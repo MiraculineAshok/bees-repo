@@ -80,15 +80,22 @@ app.use(express.static(path.join(__dirname))); // Serve static files
 
 // Ensure uploads directory exists
 const uploadsDir = 'uploads';
-if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-    console.log('📁 Created uploads directory');
+try {
+    if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+        console.log('📁 Created uploads directory');
+    }
+} catch (error) {
+    console.warn('⚠️ Could not create uploads directory:', error.message);
+    console.log('📁 Will use temporary directory for uploads');
 }
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, uploadsDir + '/')
+        // Use uploads directory if it exists, otherwise use temp directory
+        const destDir = fs.existsSync(uploadsDir) ? uploadsDir + '/' : '/tmp/';
+        cb(null, destDir);
     },
     filename: function (req, file, cb) {
         // Generate unique filename with timestamp
@@ -729,13 +736,15 @@ app.post('/api/upload-photo', upload.single('photo'), async (req, res) => {
         console.warn('⚠️ Cloudinary upload failed, falling back to local storage:', cloudinaryError.message);
         
         // Fallback to local storage
-        photoUrl = `/uploads/${req.file.filename}`;
+        const isTempDir = !fs.existsSync(uploadsDir);
+        photoUrl = isTempDir ? `/tmp/${req.file.filename}` : `/uploads/${req.file.filename}`;
         console.log('📁 Using local storage:', photoUrl);
       }
     } else {
       // Cloudinary not available, use local storage
       console.log('⚠️ Cloudinary not available, using local storage');
-      photoUrl = `/uploads/${req.file.filename}`;
+      const isTempDir = !fs.existsSync(uploadsDir);
+      photoUrl = isTempDir ? `/tmp/${req.file.filename}` : `/uploads/${req.file.filename}`;
       console.log('📁 Using local storage:', photoUrl);
     }
 
