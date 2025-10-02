@@ -233,7 +233,7 @@ Searches across first_name, last_name, email, zeta_id, and phone fields.
 
 ### Create a new student
 ```bash
-curl -X POST http://localhost:3001/api/students \
+curl -X POST https://bees-repo.onrender.com/api/students \
   -H "Content-Type: application/json" \
   -d '{
     "first_name": "Alice",
@@ -247,12 +247,12 @@ curl -X POST http://localhost:3001/api/students \
 
 ### Search for students
 ```bash
-curl http://localhost:3001/api/students/search/Alice
+curl https://bees-repo.onrender.com/api/students/search/Alice
 ```
 
 ### Update a student
 ```bash
-curl -X PUT http://localhost:3001/api/students/1 \
+curl -X PUT https://bees-repo.onrender.com/api/students/1 \
   -H "Content-Type: application/json" \
   -d '{
     "phone": "+1555987654",
@@ -262,5 +262,5 @@ curl -X PUT http://localhost:3001/api/students/1 \
 
 ### Delete a student
 ```bash
-curl -X DELETE http://localhost:3001/api/students/1
+curl -X DELETE https://bees-repo.onrender.com/api/students/1
 ```

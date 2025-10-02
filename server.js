@@ -52,7 +52,7 @@ const QuestionBankService = require('./services/questionBankService');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+const BASE_URL = process.env.BASE_URL || 'https://bees-repo.onrender.com';
 
 // Middleware
 app.use(helmet({

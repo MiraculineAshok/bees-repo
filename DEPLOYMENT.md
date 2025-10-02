@@ -16,12 +16,12 @@ DATABASE_URL=postgresql://neondb_owner:npg_dI2XKrE5lcbZ@ep-crimson-field-adzgxrr
 DATABASE_POOL_URL=postgresql://neondb_owner:npg_dI2XKrE5lcbZ@ep-crimson-field-adzgxrr5-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
 
 # Base URL (update with your Render URL)
-BASE_URL=https://your-app-name.onrender.com
+BASE_URL=https://bees-repo.onrender.com
 
 # Zoho OAuth
 ZOHO_CLIENT_ID=1000.UL4MAM5ZPKYPTLH1M3DABTDVC964ZW
 ZOHO_CLIENT_SECRET=2e4e1d8cb9dc7cde4f515b0f9615cbaafb557c6e9a
-ZOHO_REDIRECT_URL=https://your-app-name.onrender.com/getCode
+ZOHO_REDIRECT_URL=https://bees-repo.onrender.com/getCode
 
 # Server
 NODE_ENV=production

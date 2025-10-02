@@ -170,7 +170,7 @@ The following users are pre-configured with access:
 
 ### Via API (Programmatic)
 ```bash
-curl -X POST http://localhost:3001/api/authorized-users \
+curl -X POST https://bees-repo.onrender.com/api/authorized-users \
   -H "Content-Type: application/json" \
   -d '{
     "email": "newuser@zohocorp.com",
@@ -212,15 +212,15 @@ VALUES ('newuser@zohocorp.com', 'New User', 'user', FALSE);
 ### Test API Endpoints
 ```bash
 # Get authorized users
-curl http://localhost:3001/api/authorized-users
+curl https://bees-repo.onrender.com/api/authorized-users
 
 # Add new user
-curl -X POST http://localhost:3001/api/authorized-users \
+curl -X POST https://bees-repo.onrender.com/api/authorized-users \
   -H "Content-Type: application/json" \
   -d '{"email": "test@zohocorp.com", "name": "Test User"}'
 
 # Remove user
-curl -X DELETE http://localhost:3001/api/authorized-users/test@zohocorp.com
+curl -X DELETE https://bees-repo.onrender.com/api/authorized-users/test@zohocorp.com
 ```
 
 ## Troubleshooting
@@ -246,13 +246,13 @@ curl -X DELETE http://localhost:3001/api/authorized-users/test@zohocorp.com
 
 ```bash
 # Check server health
-curl http://localhost:3001/health
+curl https://bees-repo.onrender.com/health
 
 # Check authorized users
-curl http://localhost:3001/api/authorized-users
+curl https://bees-repo.onrender.com/api/authorized-users
 
 # Test unauthorized page
-curl http://localhost:3001/unauthorized?email=test@example.com
+curl https://bees-repo.onrender.com/unauthorized?email=test@example.com
 ```
 
 ## Security Considerations
