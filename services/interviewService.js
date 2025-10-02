@@ -1,10 +1,22 @@
 const pool = require('../db/pool');
 const mockDataService = require('./mockDataService');
-const cloudinary = require('../config/cloudinary');
+
+// Cloudinary configuration (optional)
+let cloudinary = null;
+try {
+  cloudinary = require('../config/cloudinary');
+} catch (error) {
+  console.log('⚠️ Cloudinary config not found in interviewService, using local storage fallback');
+}
 
 // Helper function to delete image from Cloudinary
 async function deleteCloudinaryImage(photoUrl) {
     try {
+        if (!cloudinary) {
+            console.log('⚠️ Cloudinary not available in interviewService, skipping deletion');
+            return;
+        }
+        
         if (!photoUrl || !photoUrl.includes('cloudinary.com')) {
             console.log('Skipping deletion - not a Cloudinary URL:', photoUrl);
             return; // Not a Cloudinary URL
