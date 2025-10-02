@@ -817,9 +817,14 @@
             <!-- Header -->
             <header class="header">
                 <h1 id="page-title">Admin Dashboard</h1>
-                <div class="user-info">
-                    <div class="user-avatar">A</div>
-                    <span>Admin User</span>
+                <div class="header-actions">
+                    <button class="btn btn-success" onclick="startInterview()" style="background: #dc3545; color: white; margin-right: 1rem;">
+                        Start Interview
+                    </button>
+                    <div class="user-info">
+                        <div class="user-avatar">A</div>
+                        <span id="admin-user-name">Admin User</span>
+                    </div>
                 </div>
             </header>
 
@@ -1138,6 +1143,7 @@
 
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
+            checkUserLoginStatus();
             initializeDashboard();
             setupEventListeners();
         });
@@ -1171,6 +1177,54 @@
                 e.preventDefault();
                 addQuestion();
             });
+        }
+
+        // User authentication functions
+        function checkUserLoginStatus() {
+            // Check URL parameters for user data (from OAuth callback)
+            const urlParams = new URLSearchParams(window.location.search);
+            const userEmail = urlParams.get('email');
+            const userName = urlParams.get('name');
+            
+            if (userEmail || userName) {
+                // User just logged in, display their info
+                const userData = {
+                    email: userEmail,
+                    name: userName || userEmail?.split('@')[0] || 'Admin'
+                };
+                displayUserInfo(userData);
+                
+                // Store user data in localStorage for future visits
+                localStorage.setItem('bees_user_data', JSON.stringify(userData));
+                
+                // Clean up URL parameters
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } else {
+                // Check localStorage for existing user data
+                const storedUserData = localStorage.getItem('bees_user_data');
+                if (storedUserData) {
+                    try {
+                        const userData = JSON.parse(storedUserData);
+                        displayUserInfo(userData);
+                    } catch (e) {
+                        console.error('Error parsing stored user data:', e);
+                        localStorage.removeItem('bees_user_data');
+                    }
+                }
+            }
+        }
+
+        function displayUserInfo(userData) {
+            const userNameElement = document.getElementById('admin-user-name');
+            if (userData && userData.name && userNameElement) {
+                userNameElement.textContent = userData.name;
+            }
+        }
+
+        // Start Interview function
+        function startInterview() {
+            console.log('Starting interview from admin dashboard...');
+            window.location.href = '/interview';
         }
 
         function switchSection(section) {

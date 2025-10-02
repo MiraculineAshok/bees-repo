@@ -135,6 +135,11 @@ app.get('/interview-session', (req, res) => {
   res.sendFile(path.join(__dirname, 'interview-session.html'));
 });
 
+// Admin dashboard page route
+app.get('/admin-dashboard.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin-dashboard.html'));
+});
+
 app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
@@ -1245,13 +1250,31 @@ app.get('/getCode', async (req, res) => {
         }
       }
       
-      // Redirect back to landing page with user information
+      // Check if user is admin and redirect accordingly
       const baseUrl = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
-      const redirectUrl = new URL(`${baseUrl}/`);
-      if (userEmail) redirectUrl.searchParams.set('email', userEmail);
-      if (userName) redirectUrl.searchParams.set('name', userName);
+      let redirectUrl;
       
-      console.log('Redirecting user back to landing page with info:', { userEmail, userName });
+      // Check if user is admin (you can modify this logic based on your admin criteria)
+      const isAdmin = userEmail && (
+        userEmail.includes('admin') || 
+        userEmail.includes('superadmin') || 
+        userEmail === 'miraculine.j@zohocorp.com' // Add your admin email here
+      );
+      
+      if (isAdmin) {
+        // Redirect admin to admin dashboard
+        redirectUrl = new URL(`${baseUrl}/admin-dashboard.html`);
+        if (userEmail) redirectUrl.searchParams.set('email', userEmail);
+        if (userName) redirectUrl.searchParams.set('name', userName);
+        console.log('Redirecting admin to dashboard:', { userEmail, userName });
+      } else {
+        // Redirect regular user to landing page
+        redirectUrl = new URL(`${baseUrl}/`);
+        if (userEmail) redirectUrl.searchParams.set('email', userEmail);
+        if (userName) redirectUrl.searchParams.set('name', userName);
+        console.log('Redirecting user to landing page:', { userEmail, userName });
+      }
+      
       res.redirect(redirectUrl.toString());
     } catch (parseError) {
       console.error('Error parsing token response:', parseError);
