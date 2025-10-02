@@ -737,7 +737,8 @@ app.post('/api/upload-photo', upload.single('photo'), async (req, res) => {
       data: {
         filename: req.file.filename,
         originalName: req.file.originalname,
-        photoUrl: photoUrl,
+        path: photoUrl, // This is what the frontend expects
+        photoUrl: photoUrl, // Keep both for compatibility
         publicId: publicId,
         size: req.file.size
       }

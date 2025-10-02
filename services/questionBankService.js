@@ -4,6 +4,11 @@ class QuestionBankService {
     // Get all questions from the question bank
     async getAllQuestions() {
         try {
+            if (!pool) {
+                console.error('❌ Database pool is not available');
+                return { success: false, error: 'Database connection not available' };
+            }
+            
             const query = `
                 SELECT id, question, category, times_asked, created_at, updated_at
                 FROM question_bank
@@ -37,6 +42,11 @@ class QuestionBankService {
     // Get all categories
     async getCategories() {
         try {
+            if (!pool) {
+                console.error('❌ Database pool is not available');
+                return { success: false, error: 'Database connection not available' };
+            }
+            
             const query = `
                 SELECT DISTINCT category, COUNT(*) as question_count
                 FROM question_bank

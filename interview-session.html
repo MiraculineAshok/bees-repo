@@ -1358,33 +1358,6 @@
             `).join('');
         }
 
-        async function updateAnswer(questionId, answer) {
-            try {
-                const response = await fetch(`/api/interview-questions/${questionId}/answer`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        student_answer: answer
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (response.ok && result.success) {
-                    // Update local questions array
-                    const questionIndex = questions.findIndex(q => q.id === questionId);
-                    if (questionIndex !== -1) {
-                        questions[questionIndex] = result.data;
-                    }
-                } else {
-                    console.error('Error updating answer:', result);
-                }
-            } catch (error) {
-                console.error('Error updating answer:', error);
-            }
-        }
 
         async function updateVerdict() {
             if (!currentInterview) return;
@@ -1703,7 +1676,8 @@
                 if (response.ok && result.success) {
                     // Update the answer with the photo URL
                     const currentAnswer = questions.find(q => q.id === questionId)?.student_answer || '';
-                    await updateAnswer(questionId, currentAnswer, result.data.photoUrl);
+                    const photoUrl = result.data.photoUrl || result.data.path; // Handle both formats
+                    await updateAnswer(questionId, currentAnswer, photoUrl);
                     
                     // Refresh the display
                     displayQuestions();
