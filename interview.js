@@ -48,7 +48,7 @@ class InterviewPage {
             });
         }
 
-        // Search Student button
+        // Search for Student button
         const searchBtn = document.getElementById('search-btn');
         if (searchBtn) {
             searchBtn.addEventListener('click', (e) => {

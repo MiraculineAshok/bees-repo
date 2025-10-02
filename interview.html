@@ -7,6 +7,17 @@
     <link rel="stylesheet" href="/interview.css">
 </head>
 <body>
+    <!-- User Authentication Header -->
+    <header class="auth-header">
+        <div class="auth-header-content">
+            <a href="/" class="logo">Bees</a>
+            <div class="user-info">
+                <span id="user-name" class="user-name hidden"></span>
+                <button id="login-btn" class="login-btn">Sign in with Zoho</button>
+            </div>
+        </div>
+    </header>
+
     <div class="container">
         <div class="header">
             <h1>Interview Portal</h1>
@@ -22,12 +33,12 @@
         <!-- Search Section -->
         <div class="card">
             <div class="search-section">
-                <h2>Search Student</h2>
+                <h2>Search for Student</h2>
                 <div class="form-group">
                     <label for="zeta-id">Zeta ID:</label>
                     <input type="text" id="zeta-id" placeholder="Enter Zeta ID (e.g., ZETA001)" required>
                 </div>
-                <button id="search-btn" class="search-btn">Search Student</button>
+                <button id="search-btn" class="search-btn">Search for Student</button>
             </div>
         </div>
 
@@ -78,6 +89,7 @@
         </div>
     </div>
 
+    <script src="/shared-auth.js"></script>
     <script src="/interview.js"></script>
 </body>
 </html>

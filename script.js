@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (userData && userData.name) {
             // Show user name and hide login button
-            userNameElement.textContent = `Welcome, ${userData.name}`;
+            userNameElement.textContent = `Logged in as ${userData.name}`;
             userNameElement.classList.remove('hidden');
             if (loginBtn) {
                 loginBtn.classList.add('hidden');

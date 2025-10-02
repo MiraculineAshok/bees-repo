@@ -42,6 +42,43 @@
             align-items: center;
         }
         
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            color: #2d3748;
+            background: #f7fafc;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .user-name:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+        }
+        
+        .login-btn {
+            background: #4299e1;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .login-btn:hover {
+            background: #3182ce;
+        }
+        
         .header-actions .btn {
             padding: 0.5rem 1rem;
             font-size: 0.9rem;
@@ -1030,6 +1067,10 @@
         <div class="header-content">
             <a href="/" class="logo">Bees</a>
             <div class="header-actions">
+                <div class="user-info">
+                    <span id="user-name" class="user-name hidden"></span>
+                    <button id="login-btn" class="login-btn hidden">Sign in with Zoho</button>
+                </div>
                 <button id="save-interview-btn" class="btn btn-success" onclick="saveInterview()">
                     Save Interview
                 </button>
@@ -2440,5 +2481,7 @@
         </div>
     </div>
 </div>
+
+<script src="/shared-auth.js"></script>
 </body>
 </html>

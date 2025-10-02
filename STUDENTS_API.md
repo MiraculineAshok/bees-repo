@@ -167,7 +167,7 @@ CREATE TABLE students (
 }
 ```
 
-### 6. Search Students
+### 6. Search for Students
 **GET** `/api/students/search/:term`
 
 Searches across first_name, last_name, email, zeta_id, and phone fields.
