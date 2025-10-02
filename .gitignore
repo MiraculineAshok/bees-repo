@@ -101,3 +101,19 @@ logs
 # Temporary files
 tmp/
 temp/
+
+# Uploaded files
+uploads/
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.webp
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Cloudinary credentials (if stored locally)
+config/cloudinary.js
