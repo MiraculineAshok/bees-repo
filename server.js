@@ -272,7 +272,7 @@ app.get('/api/students/search/:term', async (req, res) => {
 });
 
 // Get student by zeta_id
-app.get('/api/students/:zeta_id', async (req, res) => {
+app.get('/api/students/zeta/:zeta_id', async (req, res) => {
   try {
     const student = await StudentService.getStudentByZetaId(req.params.zeta_id);
     res.json({

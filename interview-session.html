@@ -1221,7 +1221,7 @@
                     if (!currentStudent.id) {
                         console.log('Student missing id field, attempting to fetch full student data...');
                         try {
-                            const fullStudentResponse = await fetch(`/api/students/${currentStudent.zeta_id}`);
+                            const fullStudentResponse = await fetch(`/api/students/zeta/${currentStudent.zeta_id}`);
                             if (fullStudentResponse.ok) {
                                 const fullStudentResult = await fullStudentResponse.json();
                                 if (fullStudentResult.success && fullStudentResult.data) {
