@@ -78,10 +78,17 @@ app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 app.use(express.static(path.join(__dirname))); // Serve static files
 
+// Ensure uploads directory exists
+const uploadsDir = 'uploads';
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+    console.log('📁 Created uploads directory');
+}
+
 // Configure multer for file uploads
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'uploads/')
+        cb(null, uploadsDir + '/')
     },
     filename: function (req, file, cb) {
         // Generate unique filename with timestamp
