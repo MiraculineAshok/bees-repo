@@ -59,6 +59,7 @@ class AdminService {
                     i.verdict,
                     i.duration_seconds,
                     i.created_at,
+                    i.session_id,
                     CONCAT(s.first_name, ' ', s.last_name) as student_name,
                     s.email as student_email,
                     s.zeta_id,

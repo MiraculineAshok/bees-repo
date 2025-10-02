@@ -2223,7 +2223,7 @@
                 console.log('📋 Interviews data response:', interviewsData);
                 
                 const sessionInterviews = interviewsData.success ? 
-                    interviewsData.data.filter(interview => interview.session_name === session.name) : [];
+                    interviewsData.data.filter(interview => interview.session_id === parseInt(sessionId)) : [];
                 
                 console.log('Session interviews loaded:', sessionInterviews.length);
 
