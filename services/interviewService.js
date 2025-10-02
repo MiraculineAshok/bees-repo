@@ -328,6 +328,32 @@ class InterviewService {
             throw error;
         }
     }
+
+    static async updateDuration(interviewId, durationSeconds, endTime) {
+        console.log('⏱️ InterviewService.updateDuration called with:', { interviewId, durationSeconds, endTime });
+        
+        if (!(await this.isDatabaseAvailable())) {
+            console.log('📝 Database unavailable, using mock data');
+            return mockDataService.updateDuration(interviewId, durationSeconds, endTime);
+        }
+
+        try {
+            const result = await pool.query(
+                'UPDATE interviews SET duration_seconds = $1, end_time = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3 RETURNING *',
+                [durationSeconds, endTime, interviewId]
+            );
+
+            if (result.rows.length === 0) {
+                throw new Error('Interview not found');
+            }
+
+            console.log('✅ Interview duration updated successfully');
+            return result.rows[0];
+        } catch (error) {
+            console.error('❌ Error updating interview duration:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = InterviewService;

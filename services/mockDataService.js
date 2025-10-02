@@ -383,6 +383,22 @@ class MockDataService {
         
         throw new Error('Question not found');
     }
+
+    updateDuration(interviewId, durationSeconds, endTime) {
+        console.log('⏱️ MockDataService.updateDuration called with:', { interviewId, durationSeconds, endTime });
+        
+        const interview = this.interviews.find(i => i.id === parseInt(interviewId));
+        if (!interview) {
+            throw new Error('Interview not found');
+        }
+        
+        interview.duration_seconds = durationSeconds;
+        interview.end_time = endTime;
+        interview.updated_at = new Date().toISOString();
+        
+        console.log('✅ Mock interview duration updated successfully');
+        return Promise.resolve({ ...interview });
+    }
 }
 
 module.exports = new MockDataService();

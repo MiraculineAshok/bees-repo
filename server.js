@@ -369,6 +369,26 @@ app.delete('/api/authorized-users/:email', async (req, res) => {
   }
 });
 
+// Get user role
+app.get('/api/user/role', async (req, res) => {
+  try {
+    // For now, return a mock role - you can implement proper authentication later
+    // In a real app, you'd get this from the authenticated user's session/token
+    const mockRole = 'superadmin'; // Change to 'interviewer' to test role-based access
+    
+    res.json({
+      success: true,
+      role: mockRole
+    });
+  } catch (error) {
+    console.error('❌ Server: Error getting user role:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 app.get('/api/user/:email', async (req, res) => {
   try {
     const { email } = req.params;
@@ -522,6 +542,33 @@ app.delete('/api/interview-questions/:questionId', async (req, res) => {
     });
   }
 });
+
+// Update interview duration
+app.put('/api/interviews/:id/duration', async (req, res) => {
+  try {
+    const { duration_seconds, end_time } = req.body;
+    console.log('⏱️ Server: updateDuration API called with:', {
+      interviewId: req.params.id,
+      duration_seconds,
+      end_time
+    });
+    
+    const result = await InterviewService.updateDuration(req.params.id, duration_seconds, end_time);
+    console.log('✅ Server: updateDuration successful');
+    
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    console.error('❌ Server: Error updating duration:', error);
+    res.status(400).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 
 app.get('/api/interviews/:id/questions', async (req, res) => {
   try {

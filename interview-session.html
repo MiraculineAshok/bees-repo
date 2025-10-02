@@ -42,6 +42,32 @@
             align-items: center;
         }
         
+        .interview-clock {
+            background: #2563eb;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .clock-icon {
+            font-size: 1.2rem;
+        }
+        
+        .verdict-section {
+            margin-top: 1rem;
+        }
+        
+        .verdict-section.hidden {
+            display: none;
+        }
+        
         .user-info {
             display: flex;
             align-items: center;
@@ -1130,6 +1156,10 @@
         <div class="header-content">
             <a href="/" class="logo">Bees</a>
             <div class="header-actions">
+                <div class="interview-clock" id="interview-clock">
+                    <span class="clock-icon">⏱️</span>
+                    <span id="duration-display">00:00:00</span>
+                </div>
                 <div class="user-info">
                     <span id="user-name" class="user-name hidden"></span>
                     <button id="login-btn" class="login-btn hidden">Sign in with Zoho</button>
@@ -1228,7 +1258,7 @@
         <div class="right-panel">
             <h3 class="panel-title">Interview Management</h3>
             
-            <div class="verdict-section">
+            <div class="verdict-section" id="verdict-section">
                 <h4 class="verdict-title">Interview Verdict</h4>
                 <select id="verdict-select" class="verdict-select" onchange="updateVerdict()">
                     <option value="">Select Verdict</option>
@@ -1266,6 +1296,9 @@
         let currentStudent = null;
         let questions = [];
         let previousInterviews = [];
+        let interviewStartTime = null;
+        let durationInterval = null;
+        let userRole = 'interviewer'; // Default role
 
         // Load student data and initialize interview
         async function loadStudentData() {
@@ -1383,6 +1416,9 @@
                 await loadStudentData();
                 return;
             }
+
+            // Check user role for verdict access
+            await checkUserRole();
             
             if (!currentStudent.id) {
                 console.error('currentStudent exists but has no id property');
@@ -1459,6 +1495,9 @@
                 if (response.ok && result.success) {
                     currentInterview = result.data;
                     console.log('Interview created:', currentInterview);
+                    
+                    // Start duration tracking
+                    startDurationTracking();
                 } else {
                     console.error('Error creating interview:', result);
                     showError('Error creating interview: ' + (result.error || 'Unknown error'));
@@ -1466,6 +1505,121 @@
             } catch (error) {
                 console.error('Error creating interview:', error);
                 showError('Error creating interview');
+            }
+        }
+
+        // Duration tracking functions
+        function startDurationTracking() {
+            if (interviewStartTime) return; // Already started
+            
+            interviewStartTime = new Date();
+            console.log('⏱️ Interview started at:', interviewStartTime);
+            
+            // Update clock every second
+            durationInterval = setInterval(updateDurationDisplay, 1000);
+            updateDurationDisplay();
+        }
+
+        function stopDurationTracking() {
+            if (durationInterval) {
+                clearInterval(durationInterval);
+                durationInterval = null;
+            }
+            
+            if (interviewStartTime) {
+                const endTime = new Date();
+                const duration = Math.floor((endTime - interviewStartTime) / 1000);
+                console.log('⏱️ Interview ended. Duration:', duration, 'seconds');
+                
+                // Update database with duration
+                updateInterviewDuration(duration, endTime);
+            }
+        }
+
+        function updateDurationDisplay() {
+            if (!interviewStartTime) return;
+            
+            const now = new Date();
+            const duration = Math.floor((now - interviewStartTime) / 1000);
+            
+            const hours = Math.floor(duration / 3600);
+            const minutes = Math.floor((duration % 3600) / 60);
+            const seconds = duration % 60;
+            
+            const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            const durationDisplay = document.getElementById('duration-display');
+            if (durationDisplay) {
+                durationDisplay.textContent = timeString;
+            }
+        }
+
+        async function updateInterviewDuration(durationSeconds, endTime) {
+            if (!currentInterview) return;
+            
+            try {
+                const response = await fetch(`/api/interviews/${currentInterview.id}/duration`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        duration_seconds: durationSeconds,
+                        end_time: endTime.toISOString()
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    console.log('✅ Interview duration updated:', durationSeconds, 'seconds');
+                }
+            } catch (error) {
+                console.error('Error updating interview duration:', error);
+            }
+        }
+
+        // Role-based access control
+        async function checkUserRole() {
+            try {
+                // Get user role from server
+                const response = await fetch('/api/user/role');
+                const result = await response.json();
+                
+                if (result.success) {
+                    userRole = result.role;
+                    console.log('User role:', userRole);
+                    
+                    // Show/hide verdict section based on role
+                    const verdictSection = document.getElementById('verdict-section');
+                    if (verdictSection) {
+                        if (userRole === 'superadmin') {
+                            verdictSection.classList.remove('hidden');
+                        } else {
+                            verdictSection.classList.add('hidden');
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking user role:', error);
+                // Default to hiding verdict section for non-superadmin users
+                const verdictSection = document.getElementById('verdict-section');
+                if (verdictSection) {
+                    verdictSection.classList.add('hidden');
+                }
+            }
+        }
+
+        function formatDuration(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            
+            if (hours > 0) {
+                return `${hours}h ${minutes}m ${secs}s`;
+            } else if (minutes > 0) {
+                return `${minutes}m ${secs}s`;
+            } else {
+                return `${secs}s`;
             }
         }
 
@@ -1691,6 +1845,7 @@
                         </div>
                         <div class="previous-interview-questions">
                             <span class="previous-interview-questions-count">Interview #${interview.id}</span>
+                            ${interview.duration_seconds ? `<br><small>Duration: ${formatDuration(interview.duration_seconds)}</small>` : ''}
                             ${interview.overall_notes ? `<br><small>Notes: ${interview.overall_notes.substring(0, 50)}${interview.overall_notes.length > 50 ? '...' : ''}</small>` : ''}
                         </div>
                     </div>
@@ -2113,6 +2268,9 @@
 
         async function endInterview() {
             if (!currentInterview) return;
+
+            // Stop duration tracking
+            stopDurationTracking();
 
             try {
                 const response = await fetch(`/api/interviews/${currentInterview.id}/complete`, {
