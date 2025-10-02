@@ -191,11 +191,38 @@
             margin-bottom: 0.5rem;
         }
         
-        .message-image {
+        .image-preview {
+            position: relative;
+            display: inline-block;
             margin-top: 0.5rem;
+        }
+        
+        .message-image {
             max-width: 200px;
             border-radius: 8px;
             cursor: pointer;
+            display: block;
+        }
+        
+        .delete-image-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255, 0, 0, 0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .delete-image-btn:hover {
+            background: rgba(255, 0, 0, 1);
         }
         
         .add-question-form {
@@ -1311,6 +1338,15 @@
         function displayQuestions() {
             const chatMessages = document.getElementById('chat-messages');
             
+            console.log('displayQuestions called with questions:', questions);
+            questions.forEach((q, i) => {
+                console.log(`Question ${i}:`, {
+                    id: q.id,
+                    text: q.question_text,
+                    answer_photo_url: q.answer_photo_url
+                });
+            });
+            
             if (questions.length === 0) {
                 chatMessages.innerHTML = '<div class="loading">No questions added yet</div>';
                     return;
@@ -1340,7 +1376,10 @@
                             >${question.student_answer || ''}</textarea>
                         </div>
                         ${question.answer_photo_url ? `
-                            <img src="${question.answer_photo_url}" class="message-image" onclick="openImageModal('${question.answer_photo_url}')" title="Click to view full size">
+                            <div class="image-preview">
+                                <img src="${question.answer_photo_url}" class="message-image" onclick="openImageModal('${question.answer_photo_url}')" title="Click to view full size" onerror="console.error('Image failed to load:', this.src)">
+                                <button class="delete-image-btn" onclick="deletePhoto(${question.id})" title="Delete image">❌</button>
+                            </div>
                         ` : ''}
                         <div class="photo-capture">
                             <button class="photo-btn" onclick="document.getElementById('photo-input-${question.id}').click()">
@@ -1698,6 +1737,15 @@
                     const currentAnswer = questions.find(q => q.id === questionId)?.student_answer || '';
                     const photoUrl = result.data.photoUrl || result.data.path; // Handle both formats
                     console.log('Photo URL:', photoUrl);
+                    
+                    // Update the local questions array immediately
+                    const questionIndex = questions.findIndex(q => q.id === questionId);
+                    if (questionIndex !== -1) {
+                        questions[questionIndex].answer_photo_url = photoUrl;
+                        console.log('Updated local question with photo URL:', questions[questionIndex]);
+                    }
+                    
+                    // Update the database
                     await updateAnswer(questionId, currentAnswer, photoUrl);
                     
                     // Refresh the display
@@ -1744,6 +1792,41 @@
                 }
             } catch (error) {
                 console.error('Error updating answer:', error);
+            }
+        }
+
+        async function deletePhoto(questionId) {
+            try {
+                const response = await fetch(`/api/interview-questions/${questionId}/answer`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        student_answer: questions.find(q => q.id === questionId)?.student_answer || '',
+                        answer_photo_url: null
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    // Update local questions array
+                    const questionIndex = questions.findIndex(q => q.id === questionId);
+                    if (questionIndex !== -1) {
+                        questions[questionIndex].answer_photo_url = null;
+                    }
+                    
+                    // Refresh the display
+                    displayQuestions();
+                    showSuccess('Image deleted successfully!');
+                } else {
+                    console.error('Error deleting photo:', result);
+                    showError('Failed to delete image');
+                }
+            } catch (error) {
+                console.error('Error deleting photo:', error);
+                showError('Error deleting image');
             }
         }
 
