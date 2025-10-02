@@ -136,49 +136,57 @@
             display: flex;
             flex-direction: column;
             min-height: 0;
-            overflow: hidden; /* Prevent container from scrolling */
+            overflow: hidden;
         }
         
         .chat-messages {
             flex: 1;
             overflow-y: auto;
-            padding: 1.5rem 1rem;
-            border-bottom: 1px solid #e2e8f0;
-            margin-bottom: 1rem;
-            min-height: 0; /* Allow flex item to shrink */
+            padding: 1.5rem;
+            background: #f8f9fa;
+            min-height: 0;
         }
         
-        .message {
-            margin-bottom: 1rem;
-            display: flex;
-            flex-direction: column;
+        .question-item {
+            margin-bottom: 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
         
-        .message.question {
-            align-items: flex-start;
-        }
-        
-        .message.answer {
-            align-items: flex-end;
-        }
-        
-        .message-bubble {
-            max-width: 80%;
-            padding: 1rem;
-            border-radius: 12px;
-            position: relative;
-        }
-        
-        .message.question .message-bubble {
-            background: #e2e8f0;
-            color: #2d3748;
-            border-bottom-left-radius: 4px;
-        }
-        
-        .message.answer .message-bubble {
-            background: #2d3748;
+        .question-header {
+            background: #2563eb;
             color: white;
-            border-bottom-right-radius: 4px;
+            padding: 1rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .question-content {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .question-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        
+        .answer-section {
+            padding: 1rem;
+            background: #f9fafb;
+        }
+        
+        .answer-label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            display: block;
         }
         
         .message-header {
@@ -421,6 +429,79 @@
         
         .question-tab.active {
             display: block;
+        }
+        
+        .question-bank-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        
+        .question-bank-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .question-bank-content {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .question-bank-header {
+            background: #2563eb;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .question-bank-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        
+        .question-bank-filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .question-bank-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .question-bank-item {
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .question-bank-item:hover {
+            background: #f3f4f6;
+        }
+        
+        .question-bank-item.selected {
+            background: #dbeafe;
+            border-color: #2563eb;
         }
         
         .form-select, .form-input {
@@ -991,10 +1072,10 @@
                 
                 <div class="add-question-form">
                     <div class="form-group">
-                        <label class="form-label">Question Source</label>
+                        <label class="form-label">Add Question</label>
                         <div class="question-source-tabs">
                             <button class="tab-btn active" onclick="switchQuestionSource('custom')">Custom Question</button>
-                            <button class="tab-btn" onclick="switchQuestionSource('bank')">Question Bank</button>
+                            <button class="tab-btn" onclick="openQuestionBank()">Question Bank</button>
                         </div>
                     </div>
                     
@@ -1353,28 +1434,24 @@
                 }
 
             chatMessages.innerHTML = questions.map((question, index) => `
-                <div class="message question" data-question-id="${question.id}">
-                    <div class="message-bubble">
-                        <div class="message-header">Question ${index + 1}</div>
-                        <div class="message-text">${question.question_text}</div>
-                        <div class="question-actions">
-                            <button class="add-to-bank-btn-small" onclick="addQuestionToBank('${question.question_text.replace(/'/g, "\\'")}')" title="Add to Question Bank">
-                                📚 Add to Bank
-                            </button>
-                        </div>
+                <div class="question-item" data-question-id="${question.id}">
+                    <div class="question-header">
+                        <span>Question ${index + 1}</span>
+                        <button class="add-to-bank-btn-small" onclick="addQuestionToBank('${question.question_text.replace(/'/g, "\\'")}')" title="Add to Question Bank">
+                            📚 Add to Bank
+                        </button>
                     </div>
-                </div>
-                <div class="message answer" data-question-id="${question.id}">
-                    <div class="message-bubble">
-                        <div class="message-header">Answer</div>
-                        <div class="message-text">
-                            <textarea 
-                                class="form-textarea" 
-                                placeholder="Enter student's answer here..."
-                                onchange="updateAnswer(${question.id}, this.value)"
-                                style="background: transparent; border: none; color: white; resize: none; min-height: 60px;"
-                            >${question.student_answer || ''}</textarea>
-                        </div>
+                    <div class="question-content">
+                        <div class="question-text">${question.question_text}</div>
+                    </div>
+                    <div class="answer-section">
+                        <label class="answer-label">Student Answer</label>
+                        <textarea 
+                            class="form-textarea" 
+                            placeholder="Enter student's answer here..."
+                            onchange="updateAnswer(${question.id}, this.value)"
+                            style="background: white; border: 1px solid #d1d5db; color: #1f2937; resize: vertical; min-height: 80px;"
+                        >${question.student_answer || ''}</textarea>
                         ${question.answer_photo_url ? `
                             <div class="image-preview">
                                 <img src="${question.answer_photo_url}" class="message-image" onclick="openImageModal('${question.answer_photo_url}')" title="Click to view full size" onerror="console.error('Image failed to load:', this.src)">
@@ -2013,6 +2090,17 @@
             }
         }
 
+        function openQuestionBank() {
+            const modal = document.getElementById('question-bank-modal');
+            modal.classList.add('active');
+            loadQuestionBankData();
+        }
+
+        function closeQuestionBank() {
+            const modal = document.getElementById('question-bank-modal');
+            modal.classList.remove('active');
+        }
+
         async function loadQuestionBankData() {
             console.log('loadQuestionBankData called');
             try {
@@ -2060,7 +2148,7 @@
         }
 
         async function loadQuestionsByCategory() {
-            const category = document.getElementById('category-select').value;
+            const category = document.getElementById('bank-category-select').value;
             if (!category) {
                 displayQuestionBankList(questionBankData);
                 return;
@@ -2080,7 +2168,7 @@
         }
 
         async function searchQuestions() {
-            const searchTerm = document.getElementById('question-search').value.trim();
+            const searchTerm = document.getElementById('bank-search-input').value.trim();
             if (!searchTerm) {
                 displayQuestionBankList(questionBankData);
                 return;
@@ -2151,6 +2239,9 @@
                     // Reload questions to show the new one
                     await loadQuestions();
                     showSuccess('Question added successfully');
+                    
+                    // Close the modal
+                    closeQuestionBank();
                 } else {
                     showError('Error adding question');
                 }
@@ -2303,5 +2394,32 @@
             </div>
         </div>
     </div>
+
+<!-- Question Bank Modal -->
+<div id="question-bank-modal" class="question-bank-modal">
+    <div class="question-bank-content">
+        <div class="question-bank-header">
+            <h3>Question Bank</h3>
+            <button class="btn btn-secondary" onclick="closeQuestionBank()">✕</button>
+        </div>
+        <div class="question-bank-body">
+            <div class="question-bank-filters">
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select id="bank-category-select" class="form-select" onchange="loadQuestionsByCategory()">
+                        <option value="">All Categories</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Search</label>
+                    <input type="text" id="bank-search-input" class="form-input" placeholder="Search questions..." onkeyup="searchQuestions()">
+                </div>
+            </div>
+            <div id="question-bank-list" class="question-bank-list">
+                <div class="loading">Loading questions...</div>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>
