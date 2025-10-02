@@ -163,4 +163,4 @@ class QuestionBankService {
     }
 }
 
-module.exports = new QuestionBankService();
+module.exports = QuestionBankService;

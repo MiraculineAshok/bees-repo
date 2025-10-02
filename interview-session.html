@@ -1834,10 +1834,12 @@
                     console.log('Photo URL:', photoUrl);
                     
                     // Update the local questions array immediately
-                    const questionIndex = questions.findIndex(q => q.id === questionId);
+                    const questionIndex = questions.findIndex(q => q.id == questionId); // Use == for type coercion
                     if (questionIndex !== -1) {
                         questions[questionIndex].answer_photo_url = photoUrl;
                         console.log('Updated local question with photo URL:', questions[questionIndex]);
+                    } else {
+                        console.error('Question not found in local array. QuestionId:', questionId, 'Available IDs:', questions.map(q => q.id));
                     }
                     
                     // Update the database
@@ -1898,7 +1900,7 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        student_answer: questions.find(q => q.id === questionId)?.student_answer || '',
+                        student_answer: questions.find(q => q.id == questionId)?.student_answer || '',
                         answer_photo_url: null
                     })
                 });
@@ -1907,7 +1909,7 @@
                 
                 if (response.ok && result.success) {
                     // Update local questions array
-                    const questionIndex = questions.findIndex(q => q.id === questionId);
+                    const questionIndex = questions.findIndex(q => q.id == questionId);
                     if (questionIndex !== -1) {
                         questions[questionIndex].answer_photo_url = null;
                     }
