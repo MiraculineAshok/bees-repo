@@ -278,6 +278,56 @@ class InterviewService {
             throw error;
         }
     }
+
+    static async deleteQuestion(questionId) {
+        console.log('🗑️ InterviewService.deleteQuestion called with questionId:', questionId);
+        
+        if (!(await this.isDatabaseAvailable())) {
+            console.log('📝 Database unavailable, using mock data');
+            return mockDataService.deleteQuestion(questionId);
+        }
+
+        try {
+            // First, get the question to check if it has an associated image
+            const questionResult = await pool.query(
+                'SELECT answer_photo_url FROM interview_questions WHERE id = $1',
+                [questionId]
+            );
+
+            if (questionResult.rows.length === 0) {
+                throw new Error('Question not found');
+            }
+
+            const question = questionResult.rows[0];
+
+            // Delete the question from the database
+            const result = await pool.query(
+                'DELETE FROM interview_questions WHERE id = $1',
+                [questionId]
+            );
+
+            if (result.rowCount === 0) {
+                throw new Error('Question not found');
+            }
+
+            // If there was an associated image, try to delete it from Cloudinary
+            if (question.answer_photo_url && question.answer_photo_url.includes('cloudinary.com')) {
+                try {
+                    await deleteCloudinaryImage(question.answer_photo_url);
+                    console.log('✅ Successfully deleted image from Cloudinary');
+                } catch (error) {
+                    console.warn('⚠️ Error deleting image from Cloudinary (continuing anyway):', error.message);
+                    // Don't throw the error - we want to continue even if Cloudinary deletion fails
+                }
+            }
+
+            console.log('✅ Question deleted successfully');
+            return { success: true };
+        } catch (error) {
+            console.error('❌ Error deleting question:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = InterviewService;

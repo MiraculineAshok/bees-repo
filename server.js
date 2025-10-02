@@ -502,6 +502,27 @@ app.put('/api/interview-questions/:questionId/answer', async (req, res) => {
   }
 });
 
+// Delete interview question
+app.delete('/api/interview-questions/:questionId', async (req, res) => {
+  try {
+    console.log('🗑️ Server: deleteQuestion API called with questionId:', req.params.questionId);
+    
+    const result = await InterviewService.deleteQuestion(req.params.questionId);
+    console.log('✅ Server: deleteQuestion successful');
+    
+    res.json({
+      success: true,
+      message: 'Question deleted successfully'
+    });
+  } catch (error) {
+    console.error('❌ Server: Error deleting question:', error);
+    res.status(400).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 app.get('/api/interviews/:id/questions', async (req, res) => {
   try {
     const questions = await InterviewService.getInterviewQuestions(req.params.id);

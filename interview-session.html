@@ -578,6 +578,52 @@
             border: 1px solid #e2e8f0;
             border-radius: 5px;
             background: white;
+            transition: max-height 0.3s ease;
+        }
+        
+        .question-bank-list.expanded {
+            max-height: 500px;
+        }
+        
+        .resize-handle {
+            height: 4px;
+            background: #e2e8f0;
+            cursor: ns-resize;
+            position: relative;
+            margin: 0.5rem 0;
+            border-radius: 2px;
+            transition: background 0.2s ease;
+        }
+        
+        .resize-handle:hover {
+            background: #2563eb;
+        }
+        
+        .resize-handle::before {
+            content: '⋮⋮';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #9ca3af;
+            font-size: 12px;
+            line-height: 1;
+        }
+        
+        .delete-question-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+            transition: background 0.2s ease;
+        }
+        
+        .delete-question-btn:hover {
+            background: #dc2626;
         }
         
         .question-bank-item {
@@ -1170,6 +1216,7 @@
                                 <input type="text" id="bank-search-input" class="form-input" placeholder="Search questions..." onkeyup="searchQuestions()">
                             </div>
                         </div>
+                        <div class="resize-handle" onmousedown="startResize(event)"></div>
                         <div id="question-bank-list" class="question-bank-list">
                             <div class="loading">Loading questions...</div>
                         </div>
@@ -1518,6 +1565,9 @@
                         <div class="question-actions">
                             <button class="add-to-bank-btn-small" onclick="event.stopPropagation(); addQuestionToBank('${question.question_text.replace(/'/g, "\\'")}')" title="Add to Question Bank">
                                 📚
+                            </button>
+                            <button class="delete-question-btn" onclick="event.stopPropagation(); deleteQuestion(${question.id})" title="Delete Question">
+                                🗑️
                             </button>
                             <span class="expand-icon">▼</span>
                         </div>
@@ -2336,6 +2386,9 @@
                     await loadQuestions();
                     showSuccess('Question added successfully');
                     
+                    // Collapse question bank back to normal height
+                    collapseQuestionBank();
+                    
                     // Switch back to custom question tab
                     switchQuestionSource('custom');
                 } else {
@@ -2344,6 +2397,77 @@
             } catch (error) {
                 console.error('Error adding question from bank:', error);
                 showError('Error adding question');
+            }
+        }
+
+        // Resize functionality for question bank
+        let isResizing = false;
+        let startY = 0;
+        let startHeight = 0;
+
+        function startResize(e) {
+            isResizing = true;
+            startY = e.clientY;
+            const questionBankList = document.getElementById('question-bank-list');
+            startHeight = questionBankList.offsetHeight;
+            
+            document.addEventListener('mousemove', doResize);
+            document.addEventListener('mouseup', stopResize);
+            e.preventDefault();
+        }
+
+        function doResize(e) {
+            if (!isResizing) return;
+            
+            const questionBankList = document.getElementById('question-bank-list');
+            const newHeight = startHeight + (e.clientY - startY);
+            const minHeight = 200;
+            const maxHeight = 600;
+            
+            if (newHeight >= minHeight && newHeight <= maxHeight) {
+                questionBankList.style.maxHeight = newHeight + 'px';
+                questionBankList.classList.add('expanded');
+            }
+        }
+
+        function stopResize() {
+            isResizing = false;
+            document.removeEventListener('mousemove', doResize);
+            document.removeEventListener('mouseup', stopResize);
+        }
+
+        function collapseQuestionBank() {
+            const questionBankList = document.getElementById('question-bank-list');
+            questionBankList.style.maxHeight = '300px';
+            questionBankList.classList.remove('expanded');
+        }
+
+        // Delete question functionality
+        async function deleteQuestion(questionId) {
+            if (!confirm('Are you sure you want to delete this question? This action cannot be undone.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/interview-questions/${questionId}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Remove from local questions array
+                    questions = questions.filter(q => q.id !== questionId);
+                    
+                    // Refresh the display
+                    displayQuestions();
+                    showSuccess('Question deleted successfully');
+                } else {
+                    showError('Error deleting question');
+                }
+            } catch (error) {
+                console.error('Error deleting question:', error);
+                showError('Error deleting question');
             }
         }
 

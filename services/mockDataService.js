@@ -365,6 +365,24 @@ class MockDataService {
         interview.updated_at = new Date().toISOString();
         return Promise.resolve({ ...interview });
     }
+
+    deleteQuestion(questionId) {
+        console.log('🗑️ MockDataService.deleteQuestion called with questionId:', questionId);
+        
+        // Find the interview that contains this question
+        for (let interview of this.interviews) {
+            const questionIndex = interview.questions.findIndex(q => q.id === parseInt(questionId));
+            if (questionIndex !== -1) {
+                // Remove the question from the interview
+                interview.questions.splice(questionIndex, 1);
+                interview.updated_at = new Date().toISOString();
+                console.log('✅ Mock question deleted successfully');
+                return Promise.resolve({ success: true });
+            }
+        }
+        
+        throw new Error('Question not found');
+    }
 }
 
 module.exports = new MockDataService();
