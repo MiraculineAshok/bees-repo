@@ -1475,7 +1475,7 @@
 
             tbody.innerHTML = questions.map(question => `
                 <tr>
-                    <td>${question.question_text}</td>
+                    <td>${question.question || 'N/A'}</td>
                     <td>${question.category || 'N/A'}</td>
                     <td>${question.times_asked || 0}</td>
                     <td>${question.correct_answers || 0}</td>
