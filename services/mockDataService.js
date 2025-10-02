@@ -130,6 +130,14 @@ class MockDataService {
         return Promise.resolve([...results]);
     }
 
+    getStudentByZetaId(zetaId) {
+        const student = this.students.find(s => s.zeta_id === zetaId);
+        if (!student) {
+            throw new Error('Student not found');
+        }
+        return Promise.resolve({ ...student });
+    }
+
     createStudent(studentData) {
         const newId = Math.max(...this.students.map(s => s.id)) + 1;
         const newStudent = {

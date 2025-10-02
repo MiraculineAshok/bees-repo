@@ -187,6 +187,29 @@ class StudentService {
       throw error;
     }
   }
+
+  // Get student by zeta_id
+  static async getStudentByZetaId(zetaId) {
+    try {
+      if (!(await this.isDatabaseAvailable())) {
+        return await mockDataService.getStudentByZetaId(zetaId);
+      }
+      
+      const result = await pool.query(`
+        SELECT * FROM students 
+        WHERE zeta_id = $1
+      `, [zetaId]);
+      
+      if (result.rows.length === 0) {
+        throw new Error('Student not found');
+      }
+      
+      return result.rows[0];
+    } catch (error) {
+      console.error('❌ Error getting student by zeta_id:', error.message);
+      throw error;
+    }
+  }
   
   // Get students count
   static async getStudentsCount() {

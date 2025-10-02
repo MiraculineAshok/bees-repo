@@ -271,6 +271,23 @@ app.get('/api/students/search/:term', async (req, res) => {
   }
 });
 
+// Get student by zeta_id
+app.get('/api/students/:zeta_id', async (req, res) => {
+  try {
+    const student = await StudentService.getStudentByZetaId(req.params.zeta_id);
+    res.json({
+      success: true,
+      data: student
+    });
+  } catch (error) {
+    console.error('Error getting student:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get student'
+    });
+  }
+});
+
 app.get('/api/students-count', async (req, res) => {
   try {
     const count = await StudentService.getStudentsCount();

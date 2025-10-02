@@ -1216,6 +1216,24 @@
                     currentStudent = result.data[0];
                     console.log('Student data set:', currentStudent);
                     console.log('currentStudent.id after API fetch:', currentStudent?.id);
+                    
+                    // Ensure the student has an id field - if not, try to get it from the database
+                    if (!currentStudent.id) {
+                        console.log('Student missing id field, attempting to fetch full student data...');
+                        try {
+                            const fullStudentResponse = await fetch(`/api/students/${currentStudent.zeta_id}`);
+                            if (fullStudentResponse.ok) {
+                                const fullStudentResult = await fullStudentResponse.json();
+                                if (fullStudentResult.success && fullStudentResult.data) {
+                                    currentStudent = fullStudentResult.data;
+                                    console.log('Updated student with id:', currentStudent.id);
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Error fetching full student data:', error);
+                        }
+                    }
+                    
                     displayStudentData(currentStudent);
                     
                     // Add a small delay to ensure DOM is ready
@@ -2111,9 +2129,9 @@
                 console.log('Categories response:', categoriesResult);
                 
                 if (categoriesResult.success) {
-                    const categorySelect = document.getElementById('category-select');
+                    const categorySelect = document.getElementById('bank-category-select');
                     if (categorySelect) {
-                        categorySelect.innerHTML = '<option value="">Select a category...</option>';
+                        categorySelect.innerHTML = '<option value="">All Categories</option>';
                         categoriesResult.data.forEach(category => {
                             const option = document.createElement('option');
                             option.value = category.category;
