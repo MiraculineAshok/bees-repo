@@ -2116,9 +2116,16 @@
         }
 
         function openQuestionBank() {
+            console.log('🚀 openQuestionBank called');
             const modal = document.getElementById('question-bank-modal');
-            modal.classList.add('active');
-            loadQuestionBankData();
+            console.log('🚀 Modal element found:', !!modal);
+            if (modal) {
+                modal.classList.add('active');
+                console.log('🚀 Modal opened, loading data...');
+                loadQuestionBankData();
+            } else {
+                console.error('❌ Question bank modal not found!');
+            }
         }
 
         function closeQuestionBank() {
@@ -2127,12 +2134,14 @@
         }
 
         async function loadQuestionBankData() {
-            console.log('loadQuestionBankData called');
+            console.log('🔍 loadQuestionBankData called');
             try {
                 // Load categories
-                console.log('Fetching categories...');
+                console.log('📂 Fetching categories...');
                 const categoriesResponse = await fetch('/api/question-bank/categories');
+                console.log('📂 Categories response status:', categoriesResponse.status);
                 const categoriesResult = await categoriesResponse.json();
+                console.log('📂 Categories result:', categoriesResult);
                 console.log('Categories response:', categoriesResult);
                 
                 if (categoriesResult.success) {
@@ -2154,10 +2163,11 @@
                 }
                 
                 // Load all questions
-                console.log('Fetching questions...');
+                console.log('❓ Fetching questions...');
                 const questionsResponse = await fetch('/api/question-bank');
+                console.log('❓ Questions response status:', questionsResponse.status);
                 const questionsResult = await questionsResponse.json();
-                console.log('Questions response:', questionsResult);
+                console.log('❓ Questions result:', questionsResult);
                 
                 if (questionsResult.success) {
                     questionBankData = questionsResult.data;
