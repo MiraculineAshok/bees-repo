@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Question Bank Test</title>
+    <style>
+        .question-source-tabs {
+            display: flex;
+            margin-bottom: 1rem;
+            border-radius: 5px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 0.5rem 1rem;
+            background: #f7fafc;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border-right: 1px solid #e2e8f0;
+        }
+        
+        .tab-btn:last-child {
+            border-right: none;
+        }
+        
+        .tab-btn.active {
+            background: #2d3748;
+            color: white;
+        }
+        
+        .tab-btn:hover:not(.active) {
+            background: #edf2f7;
+        }
+        
+        .question-tab {
+            display: none;
+        }
+        
+        .question-tab.active {
+            display: block;
+        }
+        
+        .question-bank-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            background: white;
+        }
+        
+        .question-bank-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid #f1f5f9;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .question-bank-item:hover {
+            background: #f8fafc;
+        }
+        
+        .question-bank-item:last-child {
+            border-bottom: none;
+        }
+        
+        .question-text {
+            flex: 1;
+            font-size: 0.9rem;
+            color: #2d3748;
+        }
+        
+        .question-meta {
+            font-size: 0.8rem;
+            color: #718096;
+            margin-left: 0.5rem;
+        }
+        
+        .question-category {
+            background: #e2e8f0;
+            color: #4a5568;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            margin-right: 0.5rem;
+        }
+        
+        .question-times-asked {
+            color: #718096;
+            font-size: 0.75rem;
+        }
+        
+        .loading {
+            padding: 1rem;
+            text-align: center;
+            color: #718096;
+        }
+    </style>
+</head>
+<body>
+    <h1>Question Bank Test</h1>
+    
+    <div class="form-group">
+        <label class="form-label">Question Source</label>
+        <div class="question-source-tabs">
+            <button class="tab-btn active" onclick="switchQuestionSource('custom')">Custom Question</button>
+            <button class="tab-btn" onclick="switchQuestionSource('bank')">Question Bank</button>
+        </div>
+    </div>
+    
+    <!-- Custom Question Tab -->
+    <div id="custom-question-tab" class="question-tab active">
+        <p>Custom question tab content</p>
+    </div>
+    
+    <!-- Question Bank Tab -->
+    <div id="question-bank-tab" class="question-tab">
+        <div class="form-group">
+            <label class="form-label" for="category-select">Category</label>
+            <select id="category-select" class="form-select" onchange="loadQuestionsByCategory()">
+                <option value="">Select a category...</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="question-search">Search Questions</label>
+            <input 
+                type="text" 
+                id="question-search" 
+                class="form-input" 
+                placeholder="Search questions..."
+                onkeyup="searchQuestions()"
+            >
+        </div>
+        <div id="question-bank-list" class="question-bank-list">
+            <div class="loading">Loading questions...</div>
+        </div>
+        <button onclick="loadQuestionBankData()" style="margin-top: 10px; padding: 5px 10px; background: #2d3748; color: white; border: none; border-radius: 3px; cursor: pointer;">Test Load Questions</button>
+    </div>
+
+    <script>
+        // Question Bank Functions
+        let questionBankData = [];
+        let currentCategory = '';
+
+        function switchQuestionSource(source) {
+            console.log('switchQuestionSource called with:', source);
+            
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.querySelector(`[onclick="switchQuestionSource('${source}')"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+            } else {
+                console.error('Could not find tab button for source:', source);
+            }
+            
+            // Update tab content
+            document.querySelectorAll('.question-tab').forEach(tab => tab.classList.remove('active'));
+            const activeTab = document.getElementById(`${source}-question-tab`);
+            if (activeTab) {
+                activeTab.classList.add('active');
+                console.log('Activated tab:', `${source}-question-tab`);
+            } else {
+                console.error('Could not find tab for source:', source);
+            }
+            
+            // Load question bank data if switching to bank tab
+            if (source === 'bank' && questionBankData.length === 0) {
+                console.log('Loading question bank data...');
+                loadQuestionBankData();
+            } else if (source === 'bank') {
+                console.log('Question bank data already loaded, displaying...');
+                displayQuestionBankList(questionBankData);
+            }
+        }
+
+        async function loadQuestionBankData() {
+            console.log('loadQuestionBankData called');
+            try {
+                // Load categories
+                console.log('Fetching categories...');
+                const categoriesResponse = await fetch('/api/question-bank/categories');
+                const categoriesResult = await categoriesResponse.json();
+                console.log('Categories response:', categoriesResult);
+                
+                if (categoriesResult.success) {
+                    const categorySelect = document.getElementById('category-select');
+                    if (categorySelect) {
+                        categorySelect.innerHTML = '<option value="">Select a category...</option>';
+                        categoriesResult.data.forEach(category => {
+                            const option = document.createElement('option');
+                            option.value = category.category;
+                            option.textContent = `${category.category} (${category.question_count})`;
+                            categorySelect.appendChild(option);
+                        });
+                        console.log('Categories loaded into dropdown');
+                    } else {
+                        console.error('Category select element not found');
+                    }
+                } else {
+                    console.error('Failed to load categories:', categoriesResult.error);
+                }
+                
+                // Load all questions
+                console.log('Fetching questions...');
+                const questionsResponse = await fetch('/api/question-bank');
+                const questionsResult = await questionsResponse.json();
+                console.log('Questions response:', questionsResult);
+                
+                if (questionsResult.success) {
+                    questionBankData = questionsResult.data;
+                    console.log('Question bank data loaded:', questionBankData.length, 'questions');
+                    displayQuestionBankList(questionBankData);
+                } else {
+                    console.error('Failed to load questions:', questionsResult.error);
+                }
+            } catch (error) {
+                console.error('Error loading question bank data:', error);
+                alert('Error loading question bank: ' + error.message);
+            }
+        }
+
+        function displayQuestionBankList(questions) {
+            console.log('displayQuestionBankList called with:', questions);
+            const listContainer = document.getElementById('question-bank-list');
+            
+            if (!listContainer) {
+                console.error('Question bank list container not found');
+                return;
+            }
+            
+            if (questions.length === 0) {
+                console.log('No questions to display');
+                listContainer.innerHTML = '<div class="loading">No questions found</div>';
+                return;
+            }
+            
+            console.log('Displaying', questions.length, 'questions');
+            listContainer.innerHTML = questions.map(question => `
+                <div class="question-bank-item" onclick="selectQuestionFromBank(${question.id}, '${question.question.replace(/'/g, "\\'")}')">
+                    <div class="question-text">${question.question}</div>
+                    <div class="question-meta">
+                        <span class="question-category">${question.category}</span>
+                        <span class="question-times-asked">Asked ${question.times_asked} times</span>
+                    </div>
+                </div>
+            `).join('');
+            console.log('Question bank list updated in DOM');
+        }
+
+        function selectQuestionFromBank(questionId, questionText) {
+            console.log('Selected question:', questionId, questionText);
+            alert('Selected question: ' + questionText);
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded, initializing...');
+            // Initialize question bank tab as inactive
+            document.getElementById('question-bank-tab').classList.remove('active');
+        });
+    </script>
+</body>
+</html>

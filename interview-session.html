@@ -1,0 +1,2228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Session - Bees Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            color: #4a5568;
+        }
+        
+        .header {
+            background: #ffffff;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        
+        .header-actions .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2d3748;
+            text-decoration: none;
+        }
+        
+        .back-btn {
+            background: #2d3748;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            background: #1a202c;
+        }
+        
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem;
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 1rem;
+            height: calc(100vh - 80px);
+            overflow: hidden; /* Prevent main container from scrolling */
+        }
+        
+        .interview-main {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden; /* Prevent main section from scrolling */
+        }
+        
+        .student-info-card {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .student-info-title {
+            font-size: 1.1rem;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.5rem;
+        }
+        
+        .info-item {
+            background: white;
+            padding: 0.5rem;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.8rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .info-value {
+            color: #4a5568;
+            font-size: 0.9rem;
+        }
+        
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden; /* Prevent container from scrolling */
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 1rem;
+            min-height: 0; /* Allow flex item to shrink */
+        }
+        
+        .message {
+            margin-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .message.question {
+            align-items: flex-start;
+        }
+        
+        .message.answer {
+            align-items: flex-end;
+        }
+        
+        .message-bubble {
+            max-width: 80%;
+            padding: 1rem;
+            border-radius: 12px;
+            position: relative;
+        }
+        
+        .message.question .message-bubble {
+            background: #e2e8f0;
+            color: #2d3748;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .message.answer .message-bubble {
+            background: #2d3748;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .message-header {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .message-text {
+            margin-bottom: 0.5rem;
+        }
+        
+        .message-image {
+            margin-top: 0.5rem;
+            max-width: 200px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .add-question-form {
+            background: #f7fafc;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            position: sticky;
+            bottom: 0;
+        }
+        
+        .form-group {
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+        
+        .form-textarea {
+            width: 100%;
+            min-height: 60px;
+            padding: 0.5rem;
+            border: 2px solid #e9ecef;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-textarea:focus {
+            outline: none;
+            border-color: #2d3748;
+        }
+        
+        .textarea-container {
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+        }
+        
+        .add-to-bank-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: #2d3748;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0.25rem 0.5rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+            z-index: 10;
+        }
+        
+        .add-to-bank-btn:hover {
+            background: #1a202c;
+            transform: scale(1.05);
+        }
+        
+        .add-to-bank-btn:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .question-actions {
+            margin-top: 0.5rem;
+            display: flex;
+            justify-content: flex-end;
+        }
+        
+        .add-to-bank-btn-small {
+            background: #2d3748;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0.25rem 0.5rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s ease;
+        }
+        
+        .add-to-bank-btn-small:hover {
+            background: #1a202c;
+            transform: scale(1.05);
+        }
+        
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            color: #2d3748;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #718096;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .close-modal:hover {
+            color: #2d3748;
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .question-source-tabs {
+            display: flex;
+            margin-bottom: 1rem;
+            border-radius: 5px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 0.5rem 1rem;
+            background: #f7fafc;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border-right: 1px solid #e2e8f0;
+        }
+        
+        .tab-btn:last-child {
+            border-right: none;
+        }
+        
+        .tab-btn.active {
+            background: #2d3748;
+            color: white;
+        }
+        
+        .tab-btn:hover:not(.active) {
+            background: #edf2f7;
+        }
+        
+        .question-tab {
+            display: none;
+        }
+        
+        .question-tab.active {
+            display: block;
+        }
+        
+        .form-select, .form-input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 2px solid #e9ecef;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-select:focus, .form-input:focus {
+            outline: none;
+            border-color: #2d3748;
+        }
+        
+        .question-bank-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            background: white;
+        }
+        
+        .question-bank-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid #f1f5f9;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .question-bank-item:hover {
+            background: #f8fafc;
+        }
+        
+        .question-bank-item:last-child {
+            border-bottom: none;
+        }
+        
+        .question-text {
+            flex: 1;
+            font-size: 0.9rem;
+            color: #2d3748;
+        }
+        
+        .question-meta {
+            font-size: 0.8rem;
+            color: #718096;
+            margin-left: 0.5rem;
+        }
+        
+        .question-category {
+            background: #e2e8f0;
+            color: #4a5568;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            margin-right: 0.5rem;
+        }
+        
+        .question-times-asked {
+            color: #718096;
+            font-size: 0.75rem;
+        }
+        
+        .btn {
+            background: #2d3748;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s ease;
+            margin: 0.25rem;
+            font-size: 0.9rem;
+        }
+        
+        .btn:hover {
+            background: #1a202c;
+        }
+        
+        .btn-primary {
+            background: #2d3748;
+        }
+        
+        .btn-success {
+            background: #059669;
+        }
+        
+        .btn-success:hover {
+            background: #047857;
+        }
+        
+        .btn-danger {
+            background: #dc2626;
+        }
+        
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+        
+        .right-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+            height: 100%;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .panel-title {
+            font-size: 1.2rem;
+            color: #2d3748;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .verdict-section {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: #f7fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .verdict-title {
+            font-size: 1rem;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .verdict-select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 2px solid #e9ecef;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            background: white;
+        }
+        
+        .verdict-select:focus {
+            outline: none;
+            border-color: #2d3748;
+        }
+        
+        .notes-section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .notes-title {
+            font-size: 1rem;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .notes-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 0.5rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+        
+        .notes-textarea:focus {
+            outline: none;
+            border-color: #2d3748;
+        }
+        
+        .previous-interviews-section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .previous-interviews-title {
+            font-size: 1rem;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .previous-interviews-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .previous-interview-item {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .previous-interview-item:hover {
+            background: #edf2f7;
+        }
+        
+        .previous-interview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.25rem;
+        }
+        
+        .previous-interview-date {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+        
+        .previous-interview-status {
+            background: #059669;
+            color: white;
+            padding: 0.2rem 0.4rem;
+            border-radius: 10px;
+            font-size: 0.7rem;
+        }
+        
+        .previous-interview-verdict {
+            background: #2d3748;
+            color: white;
+            padding: 0.2rem 0.4rem;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            margin-left: 0.25rem;
+        }
+        
+        .previous-interview-questions {
+            font-size: 0.8rem;
+            color: #4a5568;
+        }
+        
+        .previous-interview-questions-count {
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .no-data-container {
+            text-align: center;
+            padding: 1rem;
+            color: #6b7280;
+        }
+        
+        .no-data-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.5;
+        }
+        
+        .no-data-text {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 0.25rem;
+        }
+        
+        .no-data-subtext {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+        
+        .interview-actions {
+            text-align: center;
+        }
+        
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 1rem;
+            color: #6b7280;
+        }
+        
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 0.5rem;
+            border-radius: 6px;
+            margin: 0.5rem 0;
+            border: 1px solid #feb2b2;
+            font-size: 0.9rem;
+        }
+        
+        .success {
+            background: #c6f6d5;
+            color: #2f855a;
+            padding: 0.5rem;
+            border-radius: 6px;
+            margin: 0.5rem 0;
+            border: 1px solid #9ae6b4;
+            font-size: 0.9rem;
+        }
+        
+        .photo-capture {
+            margin: 0.5rem 0;
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .photo-btn {
+            background: #059669;
+            color: white;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+            flex: 1;
+        }
+
+        /* Camera Modal Styles */
+        .camera-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .camera-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .camera-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .camera-header h3 {
+            margin: 0;
+            color: #1e293b;
+        }
+
+        .close-camera {
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .camera-preview {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .camera-preview video {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 8px;
+            background: #000;
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .camera-controls .btn {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+        }
+        
+        .photo-btn:hover {
+            background: #047857;
+        }
+        
+        .photo-input {
+            display: none;
+        }
+        
+        .photo-preview {
+            max-width: 150px;
+            max-height: 150px;
+            border-radius: 6px;
+            display: none;
+            border: 2px solid #e2e8f0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            object-fit: cover;
+            margin-top: 0.25rem;
+        }
+        
+        .delete-photo-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: background 0.2s ease;
+        }
+        
+        .delete-photo-btn:hover {
+            background: #b91c1c;
+        }
+        
+        .photo-container {
+            position: relative;
+            display: inline-block;
+            margin-top: 0.25rem;
+        }
+        
+        .upload-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 1000;
+            font-size: 12px;
+        }
+        
+        .loading-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 1024px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .right-panel {
+                order: -1;
+                max-height: 400px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 0.5rem;
+            }
+            
+            .interview-main {
+                padding: 0.5rem;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-actions {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .header-actions .btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="/" class="logo">Bees</a>
+            <div class="header-actions">
+                <button id="save-interview-btn" class="btn btn-success" onclick="saveInterview()">
+                    Save Interview
+                </button>
+                <button class="btn btn-danger" onclick="endInterview()">
+                    End Interview
+                </button>
+                <button class="back-btn" onclick="goBack()">Back to Interview</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <div class="interview-main">
+            <div class="student-info-card">
+                <h2 class="student-info-title">Candidate Information</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Name</div>
+                        <div class="info-value" id="candidate-name">Loading...</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Email</div>
+                        <div class="info-value" id="candidate-email">Loading...</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Phone</div>
+                        <div class="info-value" id="candidate-phone">Loading...</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Zeta ID</div>
+                        <div class="info-value" id="candidate-zeta-id">Loading...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-container">
+                <div id="chat-messages" class="chat-messages">
+                    <div class="loading">Loading questions...</div>
+                </div>
+                
+                <div class="add-question-form">
+                    <div class="form-group">
+                        <label class="form-label">Question Source</label>
+                        <div class="question-source-tabs">
+                            <button class="tab-btn active" onclick="switchQuestionSource('custom')">Custom Question</button>
+                            <button class="tab-btn" onclick="switchQuestionSource('bank')">Question Bank</button>
+                        </div>
+                    </div>
+                    
+            <!-- Custom Question Tab -->
+            <div id="custom-question-tab" class="question-tab active">
+                <div class="form-group">
+                    <label class="form-label" for="new-question">Add New Question</label>
+                    <textarea 
+                        id="new-question" 
+                        class="form-textarea" 
+                        placeholder="Enter your question here..."
+                        rows="2"
+                    ></textarea>
+                </div>
+                <button id="add-question-btn" class="btn btn-primary" onclick="addQuestion()">
+                    Add Question
+                </button>
+            </div>
+                    
+                    <!-- Question Bank Tab -->
+                    <div id="question-bank-tab" class="question-tab">
+                        <div class="form-group">
+                            <label class="form-label" for="category-select">Category</label>
+                            <select id="category-select" class="form-select" onchange="loadQuestionsByCategory()">
+                                <option value="">Select a category...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="question-search">Search Questions</label>
+                            <input 
+                                type="text" 
+                                id="question-search" 
+                                class="form-input" 
+                                placeholder="Search questions..."
+                                onkeyup="searchQuestions()"
+                            >
+                        </div>
+                        <div id="question-bank-list" class="question-bank-list">
+                            <div class="loading">Loading questions...</div>
+                        </div>
+                        <button onclick="loadQuestionBankData()" style="margin-top: 10px; padding: 5px 10px; background: #2d3748; color: white; border: none; border-radius: 3px; cursor: pointer;">Test Load Questions</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="right-panel">
+            <h3 class="panel-title">Interview Management</h3>
+            
+            <div class="verdict-section">
+                <h4 class="verdict-title">Interview Verdict</h4>
+                <select id="verdict-select" class="verdict-select" onchange="updateVerdict()">
+                    <option value="">Select Verdict</option>
+                    <option value="Tiger">Tiger</option>
+                    <option value="Cow">Cow</option>
+                    <option value="Cow+">Cow+</option>
+                    <option value="Sheep">Sheep</option>
+                </select>
+            </div>
+            
+            <div class="notes-section">
+                <h4 class="notes-title">Interview Notes</h4>
+                <textarea 
+                    id="interview-notes" 
+                    class="notes-textarea" 
+                    placeholder="Add your overall interview notes here..."
+                ></textarea>
+                <button id="save-notes-btn" class="btn btn-primary" onclick="saveNotes()">
+                    Save Notes
+                </button>
+            </div>
+            
+            <div class="previous-interviews-section">
+                <h4 class="previous-interviews-title">Previous Interviews</h4>
+                <div id="previous-interviews-list" class="previous-interviews-list">
+                    <div class="loading">Loading previous interviews...</div>
+            </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <script>
+        let currentInterview = null;
+        let currentStudent = null;
+        let questions = [];
+        let previousInterviews = [];
+
+        // Load student data and initialize interview
+        async function loadStudentData() {
+            try {
+                console.log('loadStudentData called');
+                
+                // First try to get from sessionStorage
+            const studentData = sessionStorage.getItem('currentStudent');
+                console.log('sessionStorage studentData:', studentData);
+                
+            if (studentData) {
+                    currentStudent = JSON.parse(studentData);
+                    console.log('Loaded student from sessionStorage:', currentStudent);
+                    console.log('currentStudent.id after parsing:', currentStudent?.id);
+                    displayStudentData(currentStudent);
+                    
+                    // Add a small delay to ensure DOM is ready
+                    setTimeout(async () => {
+                        console.log('About to call initializeInterview from sessionStorage path');
+                        await initializeInterview();
+                    }, 100);
+                    return;
+                }
+
+                // If not in sessionStorage, try to get from URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const zetaId = urlParams.get('zeta_id');
+                console.log('zeta_id from URL:', zetaId);
+                
+                if (zetaId) {
+                    await fetchStudentByZetaId(zetaId);
+                } else {
+                    console.error('No zeta_id found in URL');
+                    showError('No student information found');
+                }
+                } catch (error) {
+                    console.error('Error loading student data:', error);
+                    showError('Error loading student data');
+                }
+        }
+
+        async function fetchStudentByZetaId(zetaId) {
+            try {
+                console.log('Fetching student with zeta_id:', zetaId);
+                const response = await fetch(`/api/students/search/${zetaId}`);
+                const result = await response.json();
+                
+                console.log('API response:', result);
+                
+                if (response.ok && result.success && result.data && result.data.length > 0) {
+                    currentStudent = result.data[0];
+                    console.log('Student data set:', currentStudent);
+                    console.log('currentStudent.id after API fetch:', currentStudent?.id);
+                    displayStudentData(currentStudent);
+                    
+                    // Add a small delay to ensure DOM is ready
+                    setTimeout(async () => {
+                        console.log('About to call initializeInterview from API fetch path');
+                        await initializeInterview();
+                    }, 100);
+            } else {
+                    console.error('Student not found or invalid response:', result);
+                    showError('Student not found');
+                }
+            } catch (error) {
+                console.error('Error fetching student:', error);
+                showError('Error fetching student data');
+            }
+        }
+
+        function displayStudentData(student) {
+            console.log('displayStudentData called with:', student);
+            
+            if (!student) {
+                console.error('No student data provided to displayStudentData');
+                return;
+            }
+            
+            try {
+                document.getElementById('candidate-name').textContent = `${student.first_name} ${student.last_name}`;
+                document.getElementById('candidate-email').textContent = student.email;
+                document.getElementById('candidate-phone').textContent = student.phone || 'N/A';
+                document.getElementById('candidate-zeta-id').textContent = student.zeta_id;
+                console.log('Student data displayed successfully');
+            } catch (error) {
+                console.error('Error displaying student data:', error);
+            }
+        }
+
+        async function initializeInterview() {
+            console.log('initializeInterview called, currentStudent:', currentStudent);
+            console.log('currentStudent type:', typeof currentStudent);
+            console.log('currentStudent.id:', currentStudent?.id);
+            
+            if (!currentStudent) {
+                console.error('currentStudent is null/undefined');
+                await loadStudentData();
+                return;
+            }
+            
+            if (!currentStudent.id) {
+                console.error('currentStudent exists but has no id property');
+                console.error('currentStudent keys:', Object.keys(currentStudent));
+                
+                // Try to reload student data as a fallback
+                console.log('Attempting to reload student data...');
+                const urlParams = new URLSearchParams(window.location.search);
+                const zetaId = urlParams.get('zeta_id');
+                
+                if (zetaId) {
+                    console.log('Retrying with zeta_id:', zetaId);
+                    await fetchStudentByZetaId(zetaId);
+                    return;
+                }
+                
+                showError('No student data available');
+                return;
+            }
+
+            try {
+                console.log('Initializing interview for student:', currentStudent.id);
+                
+                // Check if there's already an active interview for this student
+                const response = await fetch(`/api/interviews/student/${currentStudent.id}`);
+                const result = await response.json();
+                
+                if (response.ok && result.success && result.data) {
+                    currentInterview = result.data;
+                    console.log('Found existing interview:', currentInterview);
+                    document.getElementById('verdict-select').value = currentInterview.verdict || '';
+                    await loadQuestions();
+                } else {
+                    console.log('No existing interview found, creating new one');
+                    // Create new interview
+                    await createInterview();
+                }
+                
+                // Load previous interviews
+                await loadPreviousInterviews();
+            } catch (error) {
+                console.error('Error initializing interview:', error);
+                showError('Error initializing interview');
+            }
+        }
+
+        async function createInterview() {
+            try {
+                if (!currentStudent || !currentStudent.id) {
+                    console.error('No student data available for creating interview');
+                    showError('No student data available');
+                    return;
+                }
+
+                // Get current user info (you might need to implement this)
+                const interviewerId = 1; // For now, using mock interviewer ID
+                
+                console.log('Creating interview for student:', currentStudent.id, 'interviewer:', interviewerId);
+                
+                const response = await fetch('/api/interviews', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        student_id: currentStudent.id,
+                        interviewer_id: interviewerId
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    currentInterview = result.data;
+                    console.log('Interview created:', currentInterview);
+                } else {
+                    console.error('Error creating interview:', result);
+                    showError('Error creating interview: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error creating interview:', error);
+                showError('Error creating interview');
+            }
+        }
+
+        async function addQuestion() {
+            const questionText = document.getElementById('new-question').value.trim();
+            if (!questionText) {
+                showError('Please enter a question');
+                    return;
+                }
+
+            if (!currentInterview) {
+                showError('No active interview found');
+                return;
+            }
+
+            // Show loading state
+            const addButton = document.getElementById('add-question-btn');
+            const originalText = addButton.textContent;
+            addButton.textContent = 'Adding...';
+            addButton.disabled = true;
+
+            try {
+                const response = await fetch(`/api/interviews/${currentInterview.id}/questions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        question_text: questionText
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    questions.push(result.data);
+                    displayQuestions();
+                    document.getElementById('new-question').value = '';
+                    showSuccess('Question added successfully!');
+                } else {
+                    showError('Error adding question');
+                }
+            } catch (error) {
+                console.error('Error adding question:', error);
+                showError('Error adding question');
+            } finally {
+                // Restore button state
+                addButton.textContent = originalText;
+                addButton.disabled = false;
+            }
+        }
+
+        async function loadQuestions() {
+            if (!currentInterview) return;
+
+            try {
+                const response = await fetch(`/api/interviews/${currentInterview.id}/questions`);
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    questions = result.data;
+                    displayQuestions();
+                } else {
+                    showError('Error loading questions');
+                }
+            } catch (error) {
+                console.error('Error loading questions:', error);
+                showError('Error loading questions');
+            }
+        }
+
+        function displayQuestions() {
+            const chatMessages = document.getElementById('chat-messages');
+            
+            if (questions.length === 0) {
+                chatMessages.innerHTML = '<div class="loading">No questions added yet</div>';
+                    return;
+                }
+
+            chatMessages.innerHTML = questions.map((question, index) => `
+                <div class="message question" data-question-id="${question.id}">
+                    <div class="message-bubble">
+                        <div class="message-header">Question ${index + 1}</div>
+                        <div class="message-text">${question.question_text}</div>
+                        <div class="question-actions">
+                            <button class="add-to-bank-btn-small" onclick="addQuestionToBank('${question.question_text.replace(/'/g, "\\'")}')" title="Add to Question Bank">
+                                📚 Add to Bank
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="message answer" data-question-id="${question.id}">
+                    <div class="message-bubble">
+                        <div class="message-header">Answer</div>
+                        <div class="message-text">
+                            <textarea 
+                                class="form-textarea" 
+                                placeholder="Enter student's answer here..."
+                                onchange="updateAnswer(${question.id}, this.value)"
+                                style="background: transparent; border: none; color: white; resize: none; min-height: 60px;"
+                            >${question.student_answer || ''}</textarea>
+                        </div>
+                        ${question.answer_photo_url ? `
+                            <img src="${question.answer_photo_url}" class="message-image" onclick="openImageModal('${question.answer_photo_url}')" title="Click to view full size">
+                        ` : ''}
+                        <div class="photo-capture">
+                            <button class="photo-btn" onclick="document.getElementById('photo-input-${question.id}').click()">
+                                📁 Upload Image
+                            </button>
+                            <button class="photo-btn" onclick="openCamera(${question.id})">
+                                📷 Camera
+                            </button>
+                            <input type="file" class="photo-input" id="photo-input-${question.id}" 
+                                   accept="image/*" onchange="handlePhotoUpload(${question.id}, this)">
+                            <input type="file" class="photo-input" id="camera-input-${question.id}" 
+                                   accept="image/*" capture="environment" onchange="handlePhotoUpload(${question.id}, this)">
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function updateAnswer(questionId, answer) {
+            try {
+                const response = await fetch(`/api/interview-questions/${questionId}/answer`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        student_answer: answer
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    // Update local questions array
+                    const questionIndex = questions.findIndex(q => q.id === questionId);
+                    if (questionIndex !== -1) {
+                        questions[questionIndex] = result.data;
+                    }
+                } else {
+                    console.error('Error updating answer:', result);
+                }
+            } catch (error) {
+                console.error('Error updating answer:', error);
+            }
+        }
+
+        async function updateVerdict() {
+            if (!currentInterview) return;
+
+            const verdict = document.getElementById('verdict-select').value;
+            
+            try {
+                const response = await fetch(`/api/interviews/${currentInterview.id}/verdict`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        verdict: verdict
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    currentInterview.verdict = verdict;
+                    showSuccess('Verdict updated successfully!');
+                } else {
+                    showError('Error updating verdict');
+                }
+            } catch (error) {
+                console.error('Error updating verdict:', error);
+                showError('Error updating verdict');
+            }
+        }
+
+        async function loadPreviousInterviews() {
+            if (!currentStudent || !currentStudent.id) {
+                console.log('No student data available for loading previous interviews');
+                displayPreviousInterviews();
+                return;
+            }
+
+            try {
+                console.log('Loading previous interviews for student:', currentStudent.id);
+                const response = await fetch(`/api/interviews/student/${currentStudent.id}/history`);
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    previousInterviews = result.data;
+                    displayPreviousInterviews();
+                } else {
+                    console.log('No previous interviews found');
+                    previousInterviews = [];
+                    displayPreviousInterviews();
+                }
+            } catch (error) {
+                console.error('Error loading previous interviews:', error);
+                previousInterviews = [];
+                displayPreviousInterviews();
+            }
+        }
+
+        function displayPreviousInterviews() {
+            const previousInterviewsList = document.getElementById('previous-interviews-list');
+            
+            if (previousInterviews.length === 0) {
+                previousInterviewsList.innerHTML = `
+                    <div class="no-data-container">
+                        <div class="no-data-icon">📋</div>
+                        <div class="no-data-text">No Previous Interviews</div>
+                        <div class="no-data-subtext">This student hasn't completed any interviews yet</div>
+                    </div>
+                `;
+                return;
+            }
+
+            previousInterviewsList.innerHTML = previousInterviews.map(interview => {
+                const date = new Date(interview.created_at).toLocaleDateString();
+                return `
+                    <div class="previous-interview-item" onclick="viewPreviousInterview(${interview.id})">
+                        <div class="previous-interview-header">
+                            <span class="previous-interview-date">${date}</span>
+                            <div>
+                                <span class="previous-interview-status">Completed</span>
+                                ${interview.verdict ? `<span class="previous-interview-verdict">${interview.verdict}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="previous-interview-questions">
+                            <span class="previous-interview-questions-count">Interview #${interview.id}</span>
+                            ${interview.overall_notes ? `<br><small>Notes: ${interview.overall_notes.substring(0, 50)}${interview.overall_notes.length > 50 ? '...' : ''}</small>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function viewPreviousInterview(interviewId) {
+            try {
+                // Load questions for the previous interview
+                const response = await fetch(`/api/interviews/${interviewId}/questions`);
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    const previousQuestions = result.data;
+                    showPreviousInterviewModal(interviewId, previousQuestions);
+                } else {
+                    showError('Error loading previous interview details');
+                }
+            } catch (error) {
+                console.error('Error loading previous interview:', error);
+                showError('Error loading previous interview');
+            }
+        }
+
+        function openImageModal(imageUrl) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 2000;
+                cursor: pointer;
+            `;
+            
+            modal.innerHTML = `
+                <div style="position: relative; max-width: 90vw; max-height: 90vh;">
+                    <img src="${imageUrl}" style="max-width: 100%; max-height: 100%; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+                    <button onclick="this.closest('div').parentElement.remove()" 
+                            style="position: absolute; top: -10px; right: -10px; background: #dc3545; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 18px; font-weight: bold;">
+                        ×
+                    </button>
+                </div>
+            `;
+            
+            modal.onclick = function(e) {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            };
+            
+            document.body.appendChild(modal);
+        }
+
+        function showPreviousInterviewModal(interviewId, questions) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: white; padding: 2rem; border-radius: 8px; max-width: 800px; max-height: 80vh; overflow-y: auto; margin: 1rem;">
+                    <h3 style="margin-bottom: 1rem; color: #2d3748;">Previous Interview #${interviewId}</h3>
+                    <div style="margin-bottom: 1rem;">
+                        ${questions.map((q, index) => `
+                            <div style="margin-bottom: 1rem; padding: 1rem; background: #f7fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                <div style="font-weight: 600; color: #2d3748; margin-bottom: 0.5rem;">
+                                    Q${index + 1}: ${q.question_text}
+                                </div>
+                                <div style="color: #4a5568; margin-bottom: 0.5rem;">
+                                    <strong>Answer:</strong> ${q.student_answer || 'No answer provided'}
+                                </div>
+                                ${q.answer_photo_url ? `
+                                    <div style="margin-top: 0.5rem; padding: 0.5rem; background: #e8f5e8; border-radius: 6px; border: 1px solid #c3e6c3;">
+                                        <div style="font-weight: 600; color: #28a745; margin-bottom: 0.5rem; font-size: 0.9rem;">
+                                            📷 Answer Sheet
+                                        </div>
+                                        <img src="${q.answer_photo_url}" style="max-width: 300px; max-height: 300px; border-radius: 6px; border: 2px solid #dee2e6; object-fit: cover; cursor: pointer;" 
+                                             onclick="openImageModal('${q.answer_photo_url}')" 
+                                             title="Click to view full size">
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button onclick="this.closest('div').parentElement.remove()" 
+                            style="background: #2d3748; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer;">
+                        Close
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+
+        function openCamera(questionId) {
+            // Check if getUserMedia is supported
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                // Fallback to file input with camera capture
+                document.getElementById(`camera-input-${questionId}`).click();
+                return;
+            }
+
+            // Request camera access
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: 'environment' // Prefer rear camera on mobile
+                } 
+            })
+            .then(stream => {
+                // Create a video element to show camera feed
+                const video = document.createElement('video');
+                video.style.width = '100%';
+                video.style.maxWidth = '400px';
+                video.style.borderRadius = '8px';
+                video.srcObject = stream;
+                video.play();
+
+                // Create a modal for camera capture
+                const modal = document.createElement('div');
+                modal.className = 'camera-modal';
+                modal.innerHTML = `
+                    <div class="camera-container">
+                        <div class="camera-header">
+                            <h3>Take Photo</h3>
+                            <button class="close-camera" onclick="closeCamera()">×</button>
+                        </div>
+                        <div class="camera-preview">
+                            <video id="camera-video" autoplay playsinline></video>
+                        </div>
+                        <div class="camera-controls">
+                            <button class="btn btn-danger" onclick="closeCamera()">Cancel</button>
+                            <button class="btn btn-success" onclick="capturePhoto(${questionId})">Capture</button>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
+                document.getElementById('camera-video').srcObject = stream;
+
+                // Store the stream globally so we can stop it later
+                window.currentCameraStream = stream;
+            })
+            .catch(error => {
+                console.error('Error accessing camera:', error);
+                showError('Could not access camera. Please check permissions or use Upload Image instead.');
+                // Fallback to file input
+                document.getElementById(`camera-input-${questionId}`).click();
+            });
+        }
+
+        function closeCamera() {
+            // Stop the camera stream
+            if (window.currentCameraStream) {
+                window.currentCameraStream.getTracks().forEach(track => track.stop());
+                window.currentCameraStream = null;
+            }
+
+            // Remove the modal
+            const modal = document.querySelector('.camera-modal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        function capturePhoto(questionId) {
+            const video = document.getElementById('camera-video');
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+
+            // Set canvas dimensions to match video
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            // Draw the current video frame to canvas
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Convert canvas to blob
+            canvas.toBlob(blob => {
+                if (blob) {
+                    // Create a file from the blob
+                    const file = new File([blob], `camera-capture-${Date.now()}.jpg`, {
+                        type: 'image/jpeg'
+                    });
+
+                    // Create a mock input element with the captured file
+                    const mockInput = {
+                        files: [file]
+                    };
+
+                    // Close camera and upload the photo
+                    closeCamera();
+                    handlePhotoUpload(questionId, mockInput);
+                } else {
+                    showError('Failed to capture photo');
+                }
+            }, 'image/jpeg', 0.8);
+        }
+
+        async function handlePhotoUpload(questionId, input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            try {
+                const formData = new FormData();
+                formData.append('photo', file);
+
+                const response = await fetch('/api/upload-photo', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    // Update the answer with the photo URL
+                    const currentAnswer = questions.find(q => q.id === questionId)?.student_answer || '';
+                    await updateAnswer(questionId, currentAnswer, result.data.photoUrl);
+                    
+                    // Refresh the display
+                    displayQuestions();
+                    showSuccess('Image uploaded successfully!');
+                } else {
+                    showError('Failed to upload photo: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error uploading photo:', error);
+                showError('Error uploading photo: ' + error.message);
+            }
+        }
+
+        async function updateAnswer(questionId, answer, photoUrl = null) {
+            try {
+                const requestBody = {
+                    student_answer: answer
+                };
+                
+                if (photoUrl) {
+                    requestBody.answer_photo_url = photoUrl;
+                }
+                
+                const response = await fetch(`/api/interview-questions/${questionId}/answer`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    // Update local questions array
+                    const questionIndex = questions.findIndex(q => q.id === questionId);
+                    if (questionIndex !== -1) {
+                        questions[questionIndex] = result.data;
+                    }
+                } else {
+                    console.error('Error updating answer:', result);
+                }
+            } catch (error) {
+                console.error('Error updating answer:', error);
+            }
+        }
+
+        async function saveNotes() {
+            if (!currentInterview) return;
+
+            const notes = document.getElementById('interview-notes').value;
+            
+            // Show loading state
+            const saveButton = document.getElementById('save-notes-btn');
+            const originalText = saveButton.textContent;
+            saveButton.textContent = 'Saving...';
+            saveButton.disabled = true;
+            
+            try {
+                const response = await fetch(`/api/interviews/${currentInterview.id}/notes`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        notes: notes
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    showSuccess('Notes saved successfully!');
+                } else {
+                    showError('Error saving notes');
+                }
+            } catch (error) {
+                console.error('Error saving notes:', error);
+                showError('Error saving notes');
+            } finally {
+                // Restore button state
+                saveButton.textContent = originalText;
+                saveButton.disabled = false;
+            }
+        }
+
+        async function saveInterview() {
+            if (!currentInterview) {
+                showError('No active interview found');
+                return;
+            }
+
+            // Show loading state
+            const saveButton = document.getElementById('save-interview-btn');
+            const originalText = saveButton.textContent;
+            saveButton.textContent = 'Saving...';
+            saveButton.disabled = true;
+
+            try {
+                // Save notes first
+                const notes = document.getElementById('interview-notes').value;
+                if (notes) {
+                    await saveNotes();
+                }
+
+                showSuccess('Interview saved successfully!');
+            } catch (error) {
+                console.error('Error saving interview:', error);
+                showError('Error saving interview');
+            } finally {
+                // Restore button state
+                saveButton.textContent = originalText;
+                saveButton.disabled = false;
+            }
+        }
+
+        async function endInterview() {
+            if (!currentInterview) return;
+
+            try {
+                const response = await fetch(`/api/interviews/${currentInterview.id}/complete`, {
+                    method: 'PUT'
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    showSuccess('Interview completed successfully!');
+                    // Refresh previous interviews list
+                    await loadPreviousInterviews();
+                    setTimeout(() => {
+                        goBack();
+                    }, 2000);
+                } else {
+                    showError('Error completing interview');
+                }
+            } catch (error) {
+                console.error('Error completing interview:', error);
+                showError('Error completing interview');
+            }
+        }
+            
+        function goBack() {
+            window.location.href = '/interview';
+        }
+
+        function showError(message) {
+            // Remove existing messages
+            const existingError = document.querySelector('.error');
+            if (existingError) existingError.remove();
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+            document.querySelector('.interview-main').insertBefore(errorDiv, document.querySelector('.chat-container'));
+            
+            setTimeout(() => errorDiv.remove(), 5000);
+        }
+
+        function showSuccess(message) {
+            // Remove existing messages
+            const existingSuccess = document.querySelector('.success');
+            if (existingSuccess) existingSuccess.remove();
+            
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success';
+            successDiv.textContent = message;
+            document.querySelector('.interview-main').insertBefore(successDiv, document.querySelector('.chat-container'));
+            
+            setTimeout(() => successDiv.remove(), 3000);
+        }
+
+        // Question Bank Functions
+        let questionBankData = [];
+        let currentCategory = '';
+
+        // Test function for debugging
+        window.testQuestionBank = function() {
+            console.log('Testing question bank functionality...');
+            switchQuestionSource('bank');
+        };
+
+        // Additional test functions
+        window.testLoadQuestions = function() {
+            console.log('Testing loadQuestionBankData...');
+            loadQuestionBankData();
+        };
+
+        window.testDisplayQuestions = function() {
+            console.log('Testing displayQuestionBankList...');
+            displayQuestionBankList([{id: 1, question: 'Test question', category: 'Test', times_asked: 0}]);
+        };
+
+        function switchQuestionSource(source) {
+            console.log('switchQuestionSource called with:', source);
+            
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.querySelector(`[onclick="switchQuestionSource('${source}')"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+            } else {
+                console.error('Could not find tab button for source:', source);
+            }
+            
+            // Update tab content
+            document.querySelectorAll('.question-tab').forEach(tab => tab.classList.remove('active'));
+            let activeTab;
+            if (source === 'bank') {
+                activeTab = document.getElementById('question-bank-tab');
+            } else {
+                activeTab = document.getElementById(`${source}-question-tab`);
+            }
+            if (activeTab) {
+                activeTab.classList.add('active');
+                console.log('Activated tab:', activeTab.id);
+            } else {
+                console.error('Could not find tab for source:', source);
+            }
+            
+            // Load question bank data if switching to bank tab
+            if (source === 'bank' && questionBankData.length === 0) {
+                console.log('Loading question bank data...');
+                loadQuestionBankData();
+            } else if (source === 'bank') {
+                console.log('Question bank data already loaded, displaying...');
+                displayQuestionBankList(questionBankData);
+            }
+        }
+
+        async function loadQuestionBankData() {
+            console.log('loadQuestionBankData called');
+            try {
+                // Load categories
+                console.log('Fetching categories...');
+                const categoriesResponse = await fetch('/api/question-bank/categories');
+                const categoriesResult = await categoriesResponse.json();
+                console.log('Categories response:', categoriesResult);
+                
+                if (categoriesResult.success) {
+                    const categorySelect = document.getElementById('category-select');
+                    if (categorySelect) {
+                        categorySelect.innerHTML = '<option value="">Select a category...</option>';
+                        categoriesResult.data.forEach(category => {
+                            const option = document.createElement('option');
+                            option.value = category.category;
+                            option.textContent = `${category.category} (${category.question_count})`;
+                            categorySelect.appendChild(option);
+                        });
+                        console.log('Categories loaded into dropdown');
+                    } else {
+                        console.error('Category select element not found');
+                    }
+                } else {
+                    console.error('Failed to load categories:', categoriesResult.error);
+                }
+                
+                // Load all questions
+                console.log('Fetching questions...');
+                const questionsResponse = await fetch('/api/question-bank');
+                const questionsResult = await questionsResponse.json();
+                console.log('Questions response:', questionsResult);
+                
+                if (questionsResult.success) {
+                    questionBankData = questionsResult.data;
+                    console.log('Question bank data loaded:', questionBankData.length, 'questions');
+                    displayQuestionBankList(questionBankData);
+                } else {
+                    console.error('Failed to load questions:', questionsResult.error);
+                }
+            } catch (error) {
+                console.error('Error loading question bank data:', error);
+                showError('Error loading question bank');
+            }
+        }
+
+        async function loadQuestionsByCategory() {
+            const category = document.getElementById('category-select').value;
+            if (!category) {
+                displayQuestionBankList(questionBankData);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/question-bank/category/${encodeURIComponent(category)}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayQuestionBankList(result.data);
+                }
+            } catch (error) {
+                console.error('Error loading questions by category:', error);
+                showError('Error loading questions');
+            }
+        }
+
+        async function searchQuestions() {
+            const searchTerm = document.getElementById('question-search').value.trim();
+            if (!searchTerm) {
+                displayQuestionBankList(questionBankData);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/question-bank/search?q=${encodeURIComponent(searchTerm)}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayQuestionBankList(result.data);
+                }
+            } catch (error) {
+                console.error('Error searching questions:', error);
+                showError('Error searching questions');
+            }
+        }
+
+        function displayQuestionBankList(questions) {
+            console.log('displayQuestionBankList called with:', questions);
+            const listContainer = document.getElementById('question-bank-list');
+            
+            if (!listContainer) {
+                console.error('Question bank list container not found');
+                return;
+            }
+            
+            if (questions.length === 0) {
+                console.log('No questions to display');
+                listContainer.innerHTML = '<div class="loading">No questions found</div>';
+                return;
+            }
+            
+            console.log('Displaying', questions.length, 'questions');
+            listContainer.innerHTML = questions.map(question => `
+                <div class="question-bank-item" onclick="selectQuestionFromBank(${question.id}, '${question.question.replace(/'/g, "\\'")}')">
+                    <div class="question-text">${question.question}</div>
+                    <div class="question-meta">
+                        <span class="question-category">${question.category}</span>
+                        <span class="question-times-asked">Asked ${question.times_asked} times</span>
+                    </div>
+                </div>
+            `).join('');
+            console.log('Question bank list updated in DOM');
+        }
+
+        async function selectQuestionFromBank(questionId, questionText) {
+            try {
+                // Add the question to the current interview
+                const response = await fetch(`/api/interviews/${currentInterview.id}/questions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        question_text: questionText
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Increment the times asked counter
+                    await fetch(`/api/question-bank/${questionId}/increment`, {
+                        method: 'POST'
+                    });
+                    
+                    // Reload questions to show the new one
+                    await loadQuestions();
+                    showSuccess('Question added successfully');
+                } else {
+                    showError('Error adding question');
+                }
+            } catch (error) {
+                console.error('Error adding question from bank:', error);
+                showError('Error adding question');
+            }
+        }
+
+        // Add to Question Bank Functions
+        function addToQuestionBank() {
+            const questionText = document.getElementById('new-question').value.trim();
+            
+            if (!questionText) {
+                showError('Please enter a question first');
+                return;
+            }
+            
+            // Show the modal with the question text
+            document.getElementById('modal-question-text').value = questionText;
+            document.getElementById('modal-category-select').value = '';
+            document.getElementById('custom-category').value = '';
+            document.getElementById('custom-category-group').style.display = 'none';
+            document.getElementById('category-modal').style.display = 'flex';
+        }
+
+        function addQuestionToBank(questionText) {
+            // Show the modal with the question text
+            document.getElementById('modal-question-text').value = questionText;
+            document.getElementById('modal-category-select').value = '';
+            document.getElementById('custom-category').value = '';
+            document.getElementById('custom-category-group').style.display = 'none';
+            document.getElementById('category-modal').style.display = 'flex';
+        }
+
+        function handleCategoryChange() {
+            const categorySelect = document.getElementById('modal-category-select');
+            const customCategoryGroup = document.getElementById('custom-category-group');
+            
+            if (categorySelect.value === 'Other') {
+                customCategoryGroup.style.display = 'block';
+                document.getElementById('custom-category').focus();
+            } else {
+                customCategoryGroup.style.display = 'none';
+            }
+        }
+
+        function closeCategoryModal() {
+            document.getElementById('category-modal').style.display = 'none';
+        }
+
+        async function saveToQuestionBank() {
+            const questionText = document.getElementById('modal-question-text').value.trim();
+            const categorySelect = document.getElementById('modal-category-select');
+            const customCategory = document.getElementById('custom-category').value.trim();
+            
+            if (!questionText) {
+                showError('Question text is required');
+                return;
+            }
+            
+            let category = categorySelect.value;
+            if (category === 'Other') {
+                if (!customCategory) {
+                    showError('Please enter a custom category');
+                    return;
+                }
+                category = customCategory;
+            }
+            
+            if (!category) {
+                showError('Please select a category');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/question-bank', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        question: questionText,
+                        category: category
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showSuccess('Question added to question bank successfully');
+                    closeCategoryModal();
+                    
+                    // Clear the question textarea
+                    document.getElementById('new-question').value = '';
+                    
+                    // Refresh question bank data if it's loaded
+                    if (questionBankData.length > 0) {
+                        await loadQuestionBankData();
+                    }
+                } else {
+                    showError('Error adding question to bank: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error adding question to bank:', error);
+                showError('Error adding question to bank');
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStudentData();
+            // Initialize question bank tab as inactive
+            document.getElementById('question-bank-tab').classList.remove('active');
+        });
+    </script>
+
+    <!-- Category Selection Modal -->
+    <div id="category-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Question to Bank</h3>
+                <button class="close-modal" onclick="closeCategoryModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="question-text">Question:</label>
+                    <textarea id="modal-question-text" class="form-textarea" rows="3" readonly></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="modal-category-select">Category:</label>
+                    <select id="modal-category-select" class="form-select" onchange="handleCategoryChange()">
+                        <option value="">Select a category...</option>
+                        <option value="Math Aptitude">Math Aptitude</option>
+                        <option value="Generic HR">Generic HR</option>
+                        <option value="English">English</option>
+                        <option value="Technical">Technical</option>
+                        <option value="Problem Solving">Problem Solving</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group" id="custom-category-group" style="display: none;">
+                    <label class="form-label" for="custom-category">Custom Category:</label>
+                    <input type="text" id="custom-category" class="form-input" placeholder="Enter custom category...">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeCategoryModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveToQuestionBank()">Add to Bank</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

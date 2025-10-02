@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview - Student Management</title>
+    <link rel="stylesheet" href="/interview.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Interview Portal</h1>
+            <p>Search for existing students or create new student records</p>
+        </div>
+
+        <button class="back-btn">Back to Dashboard</button>
+
+        <!-- Error and Loading Messages -->
+        <div id="error-message" class="error-message hidden"></div>
+        <div id="loading-message" class="loading hidden">Searching...</div>
+
+        <!-- Search Section -->
+        <div class="card">
+            <div class="search-section">
+                <h2>Search Student</h2>
+                <div class="form-group">
+                    <label for="zeta-id">Zeta ID:</label>
+                    <input type="text" id="zeta-id" placeholder="Enter Zeta ID (e.g., ZETA001)" required>
+                </div>
+                <button id="search-btn" class="search-btn">Search Student</button>
+            </div>
+        </div>
+
+        <!-- Student Information Display -->
+        <div id="student-info" class="card student-info hidden">
+            <!-- Student information will be populated here -->
+        </div>
+
+        <!-- New Student Form -->
+        <div id="new-student-form-container" class="card new-student-form hidden">
+            <h3>Create New Student</h3>
+            <form id="new-student-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="new-zeta-id">Zeta ID *</label>
+                        <input type="text" id="new-zeta-id" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-first-name">First Name *</label>
+                        <input type="text" id="new-first-name" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="new-last-name">Last Name *</label>
+                        <input type="text" id="new-last-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-email">Email *</label>
+                        <input type="email" id="new-email" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="new-phone">Phone</label>
+                        <input type="tel" id="new-phone">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-address">Address</label>
+                        <input type="text" id="new-address">
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn">Create Student & Start Interview</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/interview.js"></script>
+</body>
+</html>
