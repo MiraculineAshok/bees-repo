@@ -540,10 +540,20 @@ class MockDataService {
 
     getSessionStats() {
         return Promise.resolve({
-            total: this.sessions.length,
-            active: this.sessions.filter(s => s.status === 'active').length,
-            completed: this.sessions.filter(s => s.status === 'completed').length,
-            cancelled: this.sessions.filter(s => s.status === 'cancelled').length
+            total: this.sessions ? this.sessions.length : 0,
+            active: this.sessions ? this.sessions.filter(s => s.status === 'active').length : 0,
+            completed: this.sessions ? this.sessions.filter(s => s.status === 'completed').length : 0,
+            cancelled: this.sessions ? this.sessions.filter(s => s.status === 'cancelled').length : 0
+        });
+    }
+
+    getQuestionsStats() {
+        return Promise.resolve({
+            total_questions: 15,
+            math_questions: 5,
+            hr_questions: 4,
+            english_questions: 3,
+            technical_questions: 3
         });
     }
 

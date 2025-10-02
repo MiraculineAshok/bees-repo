@@ -124,7 +124,7 @@ class AdminService {
                     qb.id,
                     qb.question,
                     qb.category,
-                    qb.times_asked,
+                    COALESCE(qb.times_asked, 0) as times_asked,
                     COUNT(iq.id) as total_answers,
                     COUNT(CASE WHEN qp.is_correct = true THEN 1 END) as correct_answers,
                     CASE 
@@ -146,6 +146,38 @@ class AdminService {
         }
     }
 
+    static async getQuestionsStats() {
+        console.log('📊 AdminService.getQuestionsStats called');
+        
+        if (!(await this.isDatabaseAvailable())) {
+            console.log('📝 Database unavailable, using mock data');
+            return mockDataService.getQuestionsStats();
+        }
+
+        try {
+            const result = await pool.query(`
+                SELECT 
+                    COUNT(*) as total_questions,
+                    COUNT(CASE WHEN category = 'Math Aptitude' THEN 1 END) as math_questions,
+                    COUNT(CASE WHEN category = 'Generic HR Questions' THEN 1 END) as hr_questions,
+                    COUNT(CASE WHEN category = 'English' THEN 1 END) as english_questions,
+                    COUNT(CASE WHEN category = 'Technical' THEN 1 END) as technical_questions
+                FROM question_bank
+            `);
+
+            return {
+                total_questions: parseInt(result.rows[0].total_questions),
+                math_questions: parseInt(result.rows[0].math_questions),
+                hr_questions: parseInt(result.rows[0].hr_questions),
+                english_questions: parseInt(result.rows[0].english_questions),
+                technical_questions: parseInt(result.rows[0].technical_questions)
+            };
+        } catch (error) {
+            console.error('❌ Error getting questions stats:', error);
+            throw error;
+        }
+    }
+
     static async getQuestionDetails(questionId) {
         console.log('🔍 AdminService.getQuestionDetails called with questionId:', questionId);
         
@@ -161,7 +193,7 @@ class AdminService {
                     qb.id,
                     qb.question,
                     qb.category,
-                    qb.times_asked
+                    COALESCE(qb.times_asked, 0) as times_asked
                 FROM question_bank qb
                 WHERE qb.id = $1
             `, [questionId]);
@@ -172,14 +204,26 @@ class AdminService {
 
             const question = questionResult.rows[0];
 
-            // For now, return basic question info without performance data
-            // TODO: Implement question_performance tracking when needed
+            // Get student answers for this question
+            const answersResult = await pool.query(`
+                SELECT 
+                    s.first_name || ' ' || s.last_name as student_name,
+                    s.zeta_id,
+                    iq.student_answer as answer_text,
+                    iq.created_at as answered_at
+                FROM interview_questions iq
+                JOIN interviews i ON iq.interview_id = i.id
+                JOIN students s ON i.student_id = s.id
+                WHERE iq.question_text = $1
+                ORDER BY iq.created_at DESC
+            `, [question.question]);
+
             return {
                 ...question,
-                total_answers: 0,
-                correct_answers: 0,
-                success_rate: 0,
-                student_answers: []
+                total_answers: answersResult.rows.length,
+                correct_answers: 0, // TODO: Implement correctness tracking
+                success_rate: 0, // TODO: Calculate based on correctness
+                student_answers: answersResult.rows
             };
         } catch (error) {
             console.error('❌ Error getting question details:', error);

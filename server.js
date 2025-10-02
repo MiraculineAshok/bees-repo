@@ -827,6 +827,22 @@ app.get('/api/admin/interviews/stats', async (req, res) => {
   }
 });
 
+app.get('/api/admin/questions/stats', async (req, res) => {
+  try {
+    const stats = await AdminService.getQuestionsStats();
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('Error getting questions stats:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 app.get('/api/admin/questions/analytics', async (req, res) => {
   try {
     const analytics = await AdminService.getQuestionsAnalytics();
