@@ -1346,13 +1346,13 @@
                             <button class="photo-btn" onclick="document.getElementById('photo-input-${question.id}').click()">
                                 📁 Upload Image
                             </button>
-                            <button class="photo-btn" onclick="openCamera(${question.id})">
+                            <button class="photo-btn" onclick="openCamera('${question.id}')">
                                 📷 Camera
                             </button>
                             <input type="file" class="photo-input" id="photo-input-${question.id}" 
-                                   accept="image/*" onchange="handlePhotoUpload(${question.id}, this)">
+                                   accept="image/*" onchange="handlePhotoUpload('${question.id}', this)">
                             <input type="file" class="photo-input" id="camera-input-${question.id}" 
-                                   accept="image/*" capture="environment" onchange="handlePhotoUpload(${question.id}, this)">
+                                   accept="image/*" capture="environment" onchange="handlePhotoUpload('${question.id}', this)">
                         </div>
                     </div>
                 </div>
@@ -1592,7 +1592,7 @@
                         </div>
                         <div class="camera-controls">
                             <button class="btn btn-danger" onclick="closeCamera()">Cancel</button>
-                            <button class="btn btn-success" onclick="capturePhoto(${questionId})">Capture</button>
+                            <button class="btn btn-success" onclick="capturePhoto('${questionId}')">Capture</button>
                         </div>
                     </div>
                 `;
@@ -1660,9 +1660,16 @@
         }
 
         async function handlePhotoUpload(questionId, input) {
-            console.log('handlePhotoUpload called with questionId:', questionId);
+            console.log('handlePhotoUpload called with questionId:', questionId, 'type:', typeof questionId);
             console.log('currentStudent:', currentStudent);
             console.log('currentStudent.id:', currentStudent?.id);
+            
+            // Validate questionId
+            if (!questionId || questionId === 'undefined' || questionId === 'null') {
+                console.error('Invalid questionId:', questionId);
+                showError('Invalid question ID. Please refresh the page and try again.');
+                return;
+            }
             
             const file = input.files[0];
             if (!file) {
