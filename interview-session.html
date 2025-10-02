@@ -1444,6 +1444,9 @@
                     text: q.question_text,
                     answer_photo_url: q.answer_photo_url
                 });
+                if (q.answer_photo_url) {
+                    console.log(`📸 Question ${i} has image:`, q.answer_photo_url);
+                }
             });
             
             if (questions.length === 0) {
@@ -1472,7 +1475,7 @@
                         >${question.student_answer || ''}</textarea>
                         ${question.answer_photo_url ? `
                             <div class="image-preview">
-                                <img src="${question.answer_photo_url}" class="message-image" onclick="openImageModal('${question.answer_photo_url}')" title="Click to view full size" onerror="console.error('Image failed to load:', this.src)">
+                                <img src="${question.answer_photo_url}" class="message-image" onclick="openImageModal('${question.answer_photo_url}')" title="Click to view full size" onerror="console.error('Image failed to load:', this.src)" onload="console.log('✅ Image loaded successfully:', this.src)">
                                 <button class="delete-image-btn" onclick="deletePhoto(${question.id})" title="Delete image">❌</button>
                             </div>
                         ` : ''}
@@ -1837,15 +1840,17 @@
                     const questionIndex = questions.findIndex(q => q.id == questionId); // Use == for type coercion
                     if (questionIndex !== -1) {
                         questions[questionIndex].answer_photo_url = photoUrl;
-                        console.log('Updated local question with photo URL:', questions[questionIndex]);
+                        console.log('✅ Updated local question with photo URL:', questions[questionIndex]);
+                        console.log('📸 Photo URL set to:', photoUrl);
                     } else {
-                        console.error('Question not found in local array. QuestionId:', questionId, 'Available IDs:', questions.map(q => q.id));
+                        console.error('❌ Question not found in local array. QuestionId:', questionId, 'Available IDs:', questions.map(q => q.id));
                     }
                     
                     // Update the database
                     await updateAnswer(questionId, currentAnswer, photoUrl);
                     
                     // Refresh the display
+                    console.log('🔄 Refreshing display with questions:', questions);
                     displayQuestions();
                     showSuccess('Image uploaded successfully!');
                 } else {
