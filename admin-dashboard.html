@@ -1780,10 +1780,12 @@
 
         // Detail Panel Functions
         function openDetailPanel(title, content) {
+            console.log('🚀 openDetailPanel called with title:', title);
             document.getElementById('detail-panel-title').textContent = title;
             document.getElementById('detail-panel-content').innerHTML = content;
             document.getElementById('detail-panel').classList.add('active');
             document.getElementById('panel-overlay').classList.add('active');
+            console.log('✅ Detail panel opened successfully');
         }
 
         function closeDetailPanel() {
