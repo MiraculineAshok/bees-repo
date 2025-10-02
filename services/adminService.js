@@ -1,0 +1,383 @@
+const pool = require('../db/pool');
+const mockDataService = require('./mockDataService');
+
+class AdminService {
+    static async isDatabaseAvailable() {
+        try {
+            await pool.query('SELECT 1');
+            return true;
+        } catch (error) {
+            console.log('Database not available:', error.message);
+            return false;
+        }
+    }
+
+    // Overview Statistics
+    static async getOverviewStats() {
+        console.log('📊 AdminService.getOverviewStats called');
+        
+        if (!(await this.isDatabaseAvailable())) {
+            console.log('📝 Database unavailable, using mock data');
+            return mockDataService.getOverviewStats();
+        }
+
+        try {
+            const [interviewsRes, sessionsRes, questionsRes, studentsRes] = await Promise.all([
+                pool.query('SELECT COUNT(*) as total FROM interviews'),
+                pool.query('SELECT COUNT(*) as active FROM interview_sessions WHERE status = $1', ['active']),
+                pool.query('SELECT COUNT(*) as total FROM question_bank'),
+                pool.query('SELECT COUNT(*) as total FROM students')
+            ]);
+
+            return {
+                totalInterviews: parseInt(interviewsRes.rows[0].total),
+                activeSessions: parseInt(sessionsRes.rows[0].active),
+                totalQuestions: parseInt(questionsRes.rows[0].total),
+                totalStudents: parseInt(studentsRes.rows[0].total)
+            };
+        } catch (error) {
+            console.error('❌ Error getting overview stats:', error);
+            throw error;
+        }
+    }
+
+    // Interviews Management
+    static async getAllInterviews() {
+        console.log('🎯 AdminService.getAllInterviews called');
+        
+        if (!(await this.isDatabaseAvailable())) {
+            console.log('📝 Database unavailable, using mock data');
+            return mockDataService.getAllInterviews();
+        }
+
+        try {
+            const result = await pool.query(`
+                SELECT 
+                    i.id,
+                    i.interview_date,
+                    i.status,
+                    i.verdict,
+                    i.duration_seconds,
+                    i.created_at,
+                    CONCAT(s.first_name, ' ', s.last_name) as student_name,
+                    s.email as student_email,
+                    s.zeta_id,
+                    u.name as interviewer_name,
+                    u.email as interviewer_email,
+                    ins.name as session_name
+                FROM interviews i
+                LEFT JOIN students s ON i.student_id = s.id
+                LEFT JOIN users u ON i.interviewer_id = u.id
+                LEFT JOIN interview_sessions ins ON i.session_id = ins.id
+                ORDER BY i.created_at DESC
+            `);
+
+            return result.rows;
+        } catch (error) {
+            console.error('❌ Error getting all interviews:', error);
+            throw error;
+        }
+    }
+
+    static async getInterviewStats() {
+        console.log('📊 AdminService.getInterviewStats called');
+        
+        if (!(await this.isDatabaseAvailable())) {
+            console.log('📝 Database unavailable, using mock data');
+            return mockDataService.getInterviewStats();
+        }
+
+        try {
+            const result = await pool.query(`
+                SELECT 
+                    COUNT(*) as total,
+                    COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed,
+                    COUNT(CASE WHEN status = 'in_progress' THEN 1 END) as in_progress,
+                    COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled
+                FROM interviews
+            `);
+
+            return {
+                total: parseInt(result.rows[0].total),
+                completed: parseInt(result.rows[0].completed),
+                in_progress: parseInt(result.rows[0].in_progress),
+                cancelled: parseInt(result.rows[0].cancelled)
+            };
+        } catch (error) {
+            console.error('❌ Error getting interview stats:', error);
+            throw error;
+        }
+    }
+
+    // Questions Analytics
+    static async getQuestionsAnalytics() {
+        console.log('❓ AdminService.getQuestionsAnalytics called');
+        
+        if (!(await this.isDatabaseAvailable())) {
+            console.log('📝 Database unavailable, using mock data');
+            return mockDataService.getQuestionsAnalytics();
+        }
+
+        try {
+            const result = await pool.query(`
+                SELECT 
+                    qb.id,
+                    qb.question,
+                    qb.category,
+                    qb.times_asked,
+                    COUNT(iq.id) as total_answers,
+                    COUNT(CASE WHEN qp.is_correct = true THEN 1 END) as correct_answers,
+                    CASE 
+                        WHEN COUNT(iq.id) > 0 
+                        THEN ROUND((COUNT(CASE WHEN qp.is_correct = true THEN 1 END)::DECIMAL / COUNT(iq.id)) * 100, 2)
+                        ELSE 0 
+                    END as success_rate
+                FROM question_bank qb
+                LEFT JOIN interview_questions iq ON qb.question = iq.question_text
+                LEFT JOIN question_performance qp ON iq.id = qp.question_id
+                GROUP BY qb.id, qb.question, qb.category, qb.times_asked
+                ORDER BY qb.times_asked DESC
+            `);
+
+            return result.rows;
+        } catch (error) {
+            console.error('❌ Error getting questions analytics:', error);
+            throw error;
+        }
+    }
+
+    static async getQuestionDetails(questionId) {
+        console.log('🔍 AdminService.getQuestionDetails called with questionId:', questionId);
+        
+        if (!(await this.isDatabaseAvailable())) {
+            console.log('📝 Database unavailable, using mock data');
+            return mockDataService.getQuestionDetails(questionId);
+        }
+
+        try {
+            // Get question basic info
+            const questionResult = await pool.query(`
+                SELECT 
+                    qb.id,
+                    qb.question,
+                    qb.category,
+                    qb.times_asked
+                FROM question_bank qb
+                WHERE qb.id = $1
+            `, [questionId]);
+
+            if (questionResult.rows.length === 0) {
+                throw new Error('Question not found');
+            }
+
+            const question = questionResult.rows[0];
+
+            // Get student answers
+            const answersResult = await pool.query(`
+                SELECT 
+                    qp.id,
+                    qp.is_correct,
+                    qp.answer_text,
+                    qp.answered_at,
+                    s.name as student_name,
+                    s.zeta_id
+                FROM question_performance qp
+                JOIN students s ON qp.student_id = s.id
+                JOIN interview_questions iq ON qp.question_id = iq.id
+                WHERE iq.question_id = $1
+                ORDER BY qp.answered_at DESC
+            `, [questionId]);
+
+            // Calculate statistics
+            const totalAnswers = answersResult.rows.length;
+            const correctAnswers = answersResult.rows.filter(a => a.is_correct).length;
+            const successRate = totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0;
+
+            return {
+                ...question,
+                total_answers: totalAnswers,
+                correct_answers: correctAnswers,
+                success_rate: successRate,
+                student_answers: answersResult.rows
+            };
+        } catch (error) {
+            console.error('❌ Error getting question details:', error);
+            throw error;
+        }
+    }
+
+    // Interview Sessions Management
+    static async getAllSessions() {
+        console.log('📅 AdminService.getAllSessions called');
+        
+        if (!(await this.isDatabaseAvailable())) {
+            console.log('📝 Database unavailable, using mock data');
+            return mockDataService.getAllSessions();
+        }
+
+        try {
+            const result = await pool.query(`
+                SELECT 
+                    ins.id,
+                    ins.name,
+                    ins.description,
+                    ins.status,
+                    ins.created_at,
+                    u.name as created_by_name,
+                    u.email as created_by_email,
+                    COUNT(i.id) as interview_count
+                FROM interview_sessions ins
+                LEFT JOIN users u ON ins.created_by = u.id
+                LEFT JOIN interviews i ON ins.id = i.session_id
+                GROUP BY ins.id, ins.name, ins.description, ins.status, ins.created_at, u.name, u.email
+                ORDER BY ins.created_at DESC
+            `);
+
+            return result.rows;
+        } catch (error) {
+            console.error('❌ Error getting all sessions:', error);
+            throw error;
+        }
+    }
+
+    static async createSession(sessionData) {
+        console.log('➕ AdminService.createSession called with:', sessionData);
+        
+        if (!(await this.isDatabaseAvailable())) {
+            console.log('📝 Database unavailable, using mock data');
+            return mockDataService.createSession(sessionData);
+        }
+
+        try {
+            const result = await pool.query(`
+                INSERT INTO interview_sessions (name, description, created_by)
+                VALUES ($1, $2, $3)
+                RETURNING *
+            `, [sessionData.name, sessionData.description, 1]); // Using user ID 1 as default
+
+            console.log('✅ Session created successfully');
+            return result.rows[0];
+        } catch (error) {
+            console.error('❌ Error creating session:', error);
+            throw error;
+        }
+    }
+
+    static async deleteSession(sessionId) {
+        console.log('🗑️ AdminService.deleteSession called with sessionId:', sessionId);
+        
+        if (!(await this.isDatabaseAvailable())) {
+            console.log('📝 Database unavailable, using mock data');
+            return mockDataService.deleteSession(sessionId);
+        }
+
+        try {
+            // Check if session has interviews
+            const interviewsResult = await pool.query(
+                'SELECT COUNT(*) as count FROM interviews WHERE session_id = $1',
+                [sessionId]
+            );
+
+            if (parseInt(interviewsResult.rows[0].count) > 0) {
+                throw new Error('Cannot delete session with existing interviews');
+            }
+
+            const result = await pool.query(
+                'DELETE FROM interview_sessions WHERE id = $1',
+                [sessionId]
+            );
+
+            if (result.rowCount === 0) {
+                throw new Error('Session not found');
+            }
+
+            console.log('✅ Session deleted successfully');
+            return { success: true };
+        } catch (error) {
+            console.error('❌ Error deleting session:', error);
+            throw error;
+        }
+    }
+
+    static async getSessionStats() {
+        console.log('📊 AdminService.getSessionStats called');
+        
+        if (!(await this.isDatabaseAvailable())) {
+            console.log('📝 Database unavailable, using mock data');
+            return mockDataService.getSessionStats();
+        }
+
+        try {
+            const result = await pool.query(`
+                SELECT 
+                    COUNT(*) as total,
+                    COUNT(CASE WHEN status = 'active' THEN 1 END) as active,
+                    COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed,
+                    COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled
+                FROM interview_sessions
+            `);
+
+            return {
+                total: parseInt(result.rows[0].total),
+                active: parseInt(result.rows[0].active),
+                completed: parseInt(result.rows[0].completed),
+                cancelled: parseInt(result.rows[0].cancelled)
+            };
+        } catch (error) {
+            console.error('❌ Error getting session stats:', error);
+            throw error;
+        }
+    }
+
+    // Students Management
+    static async getAllStudents() {
+        console.log('👥 AdminService.getAllStudents called');
+        
+        if (!(await this.isDatabaseAvailable())) {
+            console.log('📝 Database unavailable, using mock data');
+            return mockDataService.getAllStudents();
+        }
+
+        try {
+            const result = await pool.query(`
+                SELECT 
+                    s.id,
+                    CONCAT(s.first_name, ' ', s.last_name) as name,
+                    s.email,
+                    s.zeta_id,
+                    s.phone,
+                    COUNT(i.id) as interview_count
+                FROM students s
+                LEFT JOIN interviews i ON s.id = i.student_id
+                GROUP BY s.id, s.first_name, s.last_name, s.email, s.zeta_id, s.phone
+                ORDER BY s.created_at DESC
+            `);
+
+            return result.rows;
+        } catch (error) {
+            console.error('❌ Error getting all students:', error);
+            throw error;
+        }
+    }
+
+    static async getStudentStats() {
+        console.log('📊 AdminService.getStudentStats called');
+        
+        if (!(await this.isDatabaseAvailable())) {
+            console.log('📝 Database unavailable, using mock data');
+            return mockDataService.getStudentStats();
+        }
+
+        try {
+            const result = await pool.query('SELECT COUNT(*) as total FROM students');
+            return {
+                total: parseInt(result.rows[0].total)
+            };
+        } catch (error) {
+            console.error('❌ Error getting student stats:', error);
+            throw error;
+        }
+    }
+}
+
+module.exports = AdminService;

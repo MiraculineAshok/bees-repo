@@ -46,17 +46,17 @@ class InterviewService {
         }
     }
 
-    static async createInterview(studentId, interviewerId, verdict = null) {
+    static async createInterview(studentId, interviewerId, sessionId = null, verdict = null) {
         if (!(await this.isDatabaseAvailable())) {
-            return mockDataService.createInterview(studentId, interviewerId, verdict);
+            return mockDataService.createInterview(studentId, interviewerId, sessionId, verdict);
         }
 
         try {
             const result = await pool.query(
-                `INSERT INTO interviews (student_id, interviewer_id, status, verdict) 
-                 VALUES ($1, $2, 'in_progress', $3) 
+                `INSERT INTO interviews (student_id, interviewer_id, session_id, status, verdict) 
+                 VALUES ($1, $2, $3, 'in_progress', $4) 
                  RETURNING *`,
-                [studentId, interviewerId, verdict]
+                [studentId, interviewerId, sessionId, verdict]
             );
             return result.rows[0];
         } catch (error) {

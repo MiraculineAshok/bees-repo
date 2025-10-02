@@ -1477,7 +1477,10 @@
                 // Get current user info (you might need to implement this)
                 const interviewerId = 1; // For now, using mock interviewer ID
                 
-                console.log('Creating interview for student:', currentStudent.id, 'interviewer:', interviewerId);
+                // Get session ID from URL or student data
+                const sessionId = getUrlParameter('session_id') || currentStudent.sessionId;
+                
+                console.log('Creating interview for student:', currentStudent.id, 'interviewer:', interviewerId, 'session:', sessionId);
                 
                 const response = await fetch('/api/interviews', {
                     method: 'POST',
@@ -1486,7 +1489,8 @@
                     },
                     body: JSON.stringify({
                         student_id: currentStudent.id,
-                        interviewer_id: interviewerId
+                        interviewer_id: interviewerId,
+                        session_id: sessionId
                     })
                 });
                 
@@ -1607,6 +1611,11 @@
                     verdictSection.classList.add('hidden');
                 }
             }
+        }
+
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
         }
 
         function formatDuration(seconds) {

@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Bees Interview Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8fafc;
+            color: #2d3748;
+            line-height: 1.6;
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: #2d3748;
+            color: white;
+            padding: 1.5rem 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 0 1.5rem 2rem;
+            border-bottom: 1px solid #4a5568;
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-header h2 {
+            color: #4299e1;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 0.75rem 1.5rem;
+            color: #e2e8f0;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: #4a5568;
+            color: white;
+            border-left-color: #4299e1;
+        }
+
+        .nav-link i {
+            margin-right: 0.75rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            flex: 1;
+            padding: 2rem;
+        }
+
+        .header {
+            background: white;
+            padding: 1.5rem 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: #4299e1;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 2rem;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #4299e1;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #3182ce;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        .table th,
+        .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .table th {
+            background: #f7fafc;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .table tbody tr:hover {
+            background: #f7fafc;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-completed {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status-in-progress {
+            background: #bee3f8;
+            color: #2a4365;
+        }
+
+        .status-cancelled {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: #4299e1;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #a0aec0;
+        }
+
+        .close:hover {
+            color: #4a5568;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 4px solid #4299e1;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Loading and Empty States */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #718096;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #718096;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #cbd5e0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .header {
+                padding: 1rem;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>Bees Admin</h2>
+            </div>
+            <ul class="sidebar-nav">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" data-section="overview">
+                        <i>📊</i> Overview
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="interviews">
+                        <i>🎯</i> Interviews
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="questions">
+                        <i>❓</i> Questions Analytics
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="sessions">
+                        <i>📅</i> Interview Sessions
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="students">
+                        <i>👥</i> Students
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <h1 id="page-title">Admin Dashboard</h1>
+                <div class="user-info">
+                    <div class="user-avatar">A</div>
+                    <span>Admin User</span>
+                </div>
+            </header>
+
+            <!-- Overview Section -->
+            <section id="overview" class="content-section active">
+                <div class="section-header">
+                    <h2 class="section-title">Dashboard Overview</h2>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-interviews">-</div>
+                        <div class="stat-label">Total Interviews</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="active-sessions">-</div>
+                        <div class="stat-label">Active Sessions</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-questions">-</div>
+                        <div class="stat-label">Total Questions</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-students">-</div>
+                        <div class="stat-label">Total Students</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Interviews Section -->
+            <section id="interviews" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">All Interviews</h2>
+                    <button class="btn btn-primary" onclick="refreshInterviews()">Refresh</button>
+                </div>
+                
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Student</th>
+                                <th>Interviewer</th>
+                                <th>Session</th>
+                                <th>Date</th>
+                                <th>Duration</th>
+                                <th>Status</th>
+                                <th>Verdict</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="interviews-table-body">
+                            <tr>
+                                <td colspan="9" class="loading">Loading interviews...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Questions Analytics Section -->
+            <section id="questions" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">Questions Analytics</h2>
+                    <button class="btn btn-primary" onclick="refreshQuestions()">Refresh</button>
+                </div>
+                
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Question</th>
+                                <th>Category</th>
+                                <th>Times Asked</th>
+                                <th>Correct Answers</th>
+                                <th>Success Rate</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="questions-table-body">
+                            <tr>
+                                <td colspan="6" class="loading">Loading questions...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Interview Sessions Section -->
+            <section id="sessions" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">Interview Sessions</h2>
+                    <button class="btn btn-primary" onclick="openCreateSessionModal()">Create Session</button>
+                </div>
+                
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Status</th>
+                                <th>Created By</th>
+                                <th>Created At</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sessions-table-body">
+                            <tr>
+                                <td colspan="7" class="loading">Loading sessions...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Students Section -->
+            <section id="students" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">Students</h2>
+                    <button class="btn btn-primary" onclick="refreshStudents()">Refresh</button>
+                </div>
+                
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Zeta ID</th>
+                                <th>Phone</th>
+                                <th>Interviews</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="students-table-body">
+                            <tr>
+                                <td colspan="7" class="loading">Loading students...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Create Session Modal -->
+    <div id="create-session-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Create Interview Session</h3>
+                <button class="close" onclick="closeCreateSessionModal()">&times;</button>
+            </div>
+            <form id="create-session-form">
+                <div class="form-group">
+                    <label class="form-label" for="session-name">Session Name</label>
+                    <input type="text" id="session-name" class="form-input" placeholder="e.g., Face to Face for St Mary's School" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="session-description">Description</label>
+                    <textarea id="session-description" class="form-textarea" placeholder="Brief description of the interview session"></textarea>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Create Session</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeCreateSessionModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Question Details Modal -->
+    <div id="question-details-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Question Performance Details</h3>
+                <button class="close" onclick="closeQuestionDetailsModal()">&times;</button>
+            </div>
+            <div id="question-details-content">
+                <!-- Content will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentSection = 'overview';
+        let interviews = [];
+        let questions = [];
+        let sessions = [];
+        let students = [];
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDashboard();
+            setupEventListeners();
+        });
+
+        function initializeDashboard() {
+            loadOverviewStats();
+            loadInterviews();
+            loadQuestions();
+            loadSessions();
+            loadStudents();
+        }
+
+        function setupEventListeners() {
+            // Navigation
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const section = this.dataset.section;
+                    switchSection(section);
+                });
+            });
+
+            // Create session form
+            document.getElementById('create-session-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                createSession();
+            });
+        }
+
+        function switchSection(section) {
+            // Update navigation
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            document.querySelector(`[data-section="${section}"]`).classList.add('active');
+
+            // Update content
+            document.querySelectorAll('.content-section').forEach(sec => {
+                sec.classList.remove('active');
+            });
+            document.getElementById(section).classList.add('active');
+
+            // Update page title
+            const titles = {
+                'overview': 'Dashboard Overview',
+                'interviews': 'All Interviews',
+                'questions': 'Questions Analytics',
+                'sessions': 'Interview Sessions',
+                'students': 'Students'
+            };
+            document.getElementById('page-title').textContent = titles[section];
+
+            currentSection = section;
+        }
+
+        // Overview functions
+        async function loadOverviewStats() {
+            try {
+                const [interviewsRes, sessionsRes, questionsRes, studentsRes] = await Promise.all([
+                    fetch('/api/admin/interviews/stats'),
+                    fetch('/api/admin/sessions/stats'),
+                    fetch('/api/admin/questions/stats'),
+                    fetch('/api/admin/students/stats')
+                ]);
+
+                const interviewsData = await interviewsRes.json();
+                const sessionsData = await sessionsRes.json();
+                const questionsData = await questionsRes.json();
+                const studentsData = await studentsRes.json();
+
+                document.getElementById('total-interviews').textContent = interviewsData.total || 0;
+                document.getElementById('active-sessions').textContent = sessionsData.active || 0;
+                document.getElementById('total-questions').textContent = questionsData.total || 0;
+                document.getElementById('total-students').textContent = studentsData.total || 0;
+            } catch (error) {
+                console.error('Error loading overview stats:', error);
+            }
+        }
+
+        // Interviews functions
+        async function loadInterviews() {
+            try {
+                const response = await fetch('/api/admin/interviews');
+                const data = await response.json();
+                
+                if (data.success) {
+                    interviews = data.data;
+                    displayInterviews();
+                }
+            } catch (error) {
+                console.error('Error loading interviews:', error);
+            }
+        }
+
+        function displayInterviews() {
+            const tbody = document.getElementById('interviews-table-body');
+            
+            if (interviews.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No interviews found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = interviews.map(interview => `
+                <tr>
+                    <td>${interview.id}</td>
+                    <td>${interview.student_name || 'N/A'}</td>
+                    <td>${interview.interviewer_name || 'N/A'}</td>
+                    <td>${interview.session_name || 'N/A'}</td>
+                    <td>${formatDate(interview.interview_date)}</td>
+                    <td>${formatDuration(interview.duration_seconds)}</td>
+                    <td><span class="status-badge status-${interview.status}">${interview.status}</span></td>
+                    <td>${interview.verdict || 'N/A'}</td>
+                    <td>
+                        <button class="btn btn-primary" onclick="viewInterview(${interview.id})">View</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Questions functions
+        async function loadQuestions() {
+            try {
+                const response = await fetch('/api/admin/questions/analytics');
+                const data = await response.json();
+                
+                if (data.success) {
+                    questions = data.data;
+                    displayQuestions();
+                }
+            } catch (error) {
+                console.error('Error loading questions:', error);
+            }
+        }
+
+        function displayQuestions() {
+            const tbody = document.getElementById('questions-table-body');
+            
+            if (questions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No questions found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = questions.map(question => `
+                <tr>
+                    <td>${question.question_text}</td>
+                    <td>${question.category || 'N/A'}</td>
+                    <td>${question.times_asked || 0}</td>
+                    <td>${question.correct_answers || 0}</td>
+                    <td>${question.success_rate || 0}%</td>
+                    <td>
+                        <button class="btn btn-primary" onclick="viewQuestionDetails(${question.id})">View Details</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Sessions functions
+        async function loadSessions() {
+            try {
+                const response = await fetch('/api/admin/sessions');
+                const data = await response.json();
+                
+                if (data.success) {
+                    sessions = data.data;
+                    displaySessions();
+                }
+            } catch (error) {
+                console.error('Error loading sessions:', error);
+            }
+        }
+
+        function displaySessions() {
+            const tbody = document.getElementById('sessions-table-body');
+            
+            if (sessions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No sessions found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = sessions.map(session => `
+                <tr>
+                    <td>${session.id}</td>
+                    <td>${session.name}</td>
+                    <td>${session.description || 'N/A'}</td>
+                    <td><span class="status-badge status-${session.status}">${session.status}</span></td>
+                    <td>${session.created_by_name || 'N/A'}</td>
+                    <td>${formatDate(session.created_at)}</td>
+                    <td>
+                        <button class="btn btn-primary" onclick="viewSession(${session.id})">View</button>
+                        <button class="btn btn-danger" onclick="deleteSession(${session.id})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Students functions
+        async function loadStudents() {
+            try {
+                const response = await fetch('/api/admin/students');
+                const data = await response.json();
+                
+                if (data.success) {
+                    students = data.data;
+                    displayStudents();
+                }
+            } catch (error) {
+                console.error('Error loading students:', error);
+            }
+        }
+
+        function displayStudents() {
+            const tbody = document.getElementById('students-table-body');
+            
+            if (students.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No students found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = students.map(student => `
+                <tr>
+                    <td>${student.id}</td>
+                    <td>${student.name}</td>
+                    <td>${student.email}</td>
+                    <td>${student.zeta_id}</td>
+                    <td>${student.phone || 'N/A'}</td>
+                    <td>${student.interview_count || 0}</td>
+                    <td>
+                        <button class="btn btn-primary" onclick="viewStudent(${student.id})">View</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Modal functions
+        function openCreateSessionModal() {
+            document.getElementById('create-session-modal').classList.add('active');
+        }
+
+        function closeCreateSessionModal() {
+            document.getElementById('create-session-modal').classList.remove('active');
+            document.getElementById('create-session-form').reset();
+        }
+
+        async function createSession() {
+            const name = document.getElementById('session-name').value;
+            const description = document.getElementById('session-description').value;
+
+            try {
+                const response = await fetch('/api/admin/sessions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        description: description
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    closeCreateSessionModal();
+                    loadSessions();
+                    showSuccess('Session created successfully!');
+                } else {
+                    showError('Error creating session: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error creating session:', error);
+                showError('Error creating session');
+            }
+        }
+
+        function closeQuestionDetailsModal() {
+            document.getElementById('question-details-modal').classList.remove('active');
+        }
+
+        async function viewQuestionDetails(questionId) {
+            try {
+                const response = await fetch(`/api/admin/questions/${questionId}/details`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayQuestionDetails(data.data);
+                    document.getElementById('question-details-modal').classList.add('active');
+                } else {
+                    showError('Error loading question details');
+                }
+            } catch (error) {
+                console.error('Error loading question details:', error);
+                showError('Error loading question details');
+            }
+        }
+
+        function displayQuestionDetails(question) {
+            const content = document.getElementById('question-details-content');
+            content.innerHTML = `
+                <div class="form-group">
+                    <label class="form-label">Question</label>
+                    <p>${question.question_text}</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <p>${question.category || 'N/A'}</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Performance Statistics</label>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value">${question.times_asked || 0}</div>
+                            <div class="stat-label">Times Asked</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${question.correct_answers || 0}</div>
+                            <div class="stat-label">Correct Answers</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${question.success_rate || 0}%</div>
+                            <div class="stat-label">Success Rate</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Student Performance Breakdown</label>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Answer</th>
+                                    <th>Correct</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${question.student_answers ? question.student_answers.map(answer => `
+                                    <tr>
+                                        <td>${answer.student_name}</td>
+                                        <td>${answer.answer_text || 'N/A'}</td>
+                                        <td>${answer.is_correct ? 'Yes' : 'No'}</td>
+                                        <td>${formatDate(answer.answered_at)}</td>
+                                    </tr>
+                                `).join('') : '<tr><td colspan="4">No answers recorded</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Utility functions
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+        }
+
+        function formatDuration(seconds) {
+            if (!seconds) return 'N/A';
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            
+            if (hours > 0) {
+                return `${hours}h ${minutes}m ${secs}s`;
+            } else if (minutes > 0) {
+                return `${minutes}m ${secs}s`;
+            } else {
+                return `${secs}s`;
+            }
+        }
+
+        function showSuccess(message) {
+            // Simple success notification - you can enhance this
+            alert('Success: ' + message);
+        }
+
+        function showError(message) {
+            // Simple error notification - you can enhance this
+            alert('Error: ' + message);
+        }
+
+        // Refresh functions
+        function refreshInterviews() {
+            loadInterviews();
+        }
+
+        function refreshQuestions() {
+            loadQuestions();
+        }
+
+        function refreshStudents() {
+            loadStudents();
+        }
+
+        // Action functions
+        function viewInterview(interviewId) {
+            // Implement view interview functionality
+            console.log('View interview:', interviewId);
+        }
+
+        function viewSession(sessionId) {
+            // Implement view session functionality
+            console.log('View session:', sessionId);
+        }
+
+        function viewStudent(studentId) {
+            // Implement view student functionality
+            console.log('View student:', studentId);
+        }
+
+        async function deleteSession(sessionId) {
+            if (!confirm('Are you sure you want to delete this session?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/sessions/${sessionId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    loadSessions();
+                    showSuccess('Session deleted successfully!');
+                } else {
+                    showError('Error deleting session: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error deleting session:', error);
+                showError('Error deleting session');
+            }
+        }
+    </script>
+</body>
+</html>

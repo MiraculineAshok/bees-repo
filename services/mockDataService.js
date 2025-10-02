@@ -254,12 +254,13 @@ class MockDataService {
     }
 
     // Interview methods
-    createInterview(studentId, interviewerId, verdict = null) {
+    createInterview(studentId, interviewerId, sessionId = null, verdict = null) {
         const newId = this.interviews.length > 0 ? Math.max(...this.interviews.map(i => i.id)) + 1 : 1;
         const newInterview = {
             id: newId,
             student_id: studentId,
             interviewer_id: interviewerId,
+            session_id: sessionId,
             status: 'in_progress',
             verdict: verdict,
             overall_notes: null,
@@ -398,6 +399,165 @@ class MockDataService {
         
         console.log('✅ Mock interview duration updated successfully');
         return Promise.resolve({ ...interview });
+    }
+
+    // Admin Dashboard Mock Data
+    getOverviewStats() {
+        return Promise.resolve({
+            totalInterviews: this.interviews.length,
+            activeSessions: 2,
+            totalQuestions: 15,
+            totalStudents: this.students.length
+        });
+    }
+
+    getAllInterviews() {
+        return Promise.resolve(this.interviews.map(interview => ({
+            id: interview.id,
+            interview_date: interview.created_at,
+            status: interview.status,
+            verdict: interview.verdict,
+            duration_seconds: interview.duration_seconds,
+            created_at: interview.created_at,
+            student_name: this.students.find(s => s.id === interview.student_id)?.name || 'Unknown',
+            student_email: this.students.find(s => s.id === interview.student_id)?.email || 'Unknown',
+            zeta_id: this.students.find(s => s.id === interview.student_id)?.zeta_id || 'Unknown',
+            interviewer_name: 'Mock Interviewer',
+            interviewer_email: 'interviewer@example.com',
+            session_name: 'Mock Session'
+        })));
+    }
+
+    getInterviewStats() {
+        return Promise.resolve({
+            total: this.interviews.length,
+            completed: this.interviews.filter(i => i.status === 'completed').length,
+            in_progress: this.interviews.filter(i => i.status === 'in_progress').length,
+            cancelled: this.interviews.filter(i => i.status === 'cancelled').length
+        });
+    }
+
+    getQuestionsAnalytics() {
+        return Promise.resolve([
+            {
+                id: 1,
+                question: 'What is 2 + 2?',
+                category: 'Math Aptitude',
+                times_asked: 5,
+                total_answers: 5,
+                correct_answers: 4,
+                success_rate: 80
+            },
+            {
+                id: 2,
+                question: 'Tell me about yourself',
+                category: 'Generic HR Questions',
+                times_asked: 3,
+                total_answers: 3,
+                correct_answers: 3,
+                success_rate: 100
+            }
+        ]);
+    }
+
+    getQuestionDetails(questionId) {
+        return Promise.resolve({
+            id: questionId,
+            question: 'What is 2 + 2?',
+            category: 'Math Aptitude',
+            times_asked: 5,
+            total_answers: 5,
+            correct_answers: 4,
+            success_rate: 80,
+            student_answers: [
+                {
+                    student_name: 'John Doe',
+                    zeta_id: 'ZETA001',
+                    answer_text: '4',
+                    is_correct: true,
+                    answered_at: new Date().toISOString()
+                },
+                {
+                    student_name: 'Jane Smith',
+                    zeta_id: 'ZETA002',
+                    answer_text: '5',
+                    is_correct: false,
+                    answered_at: new Date().toISOString()
+                }
+            ]
+        });
+    }
+
+    getAllSessions() {
+        return Promise.resolve([
+            {
+                id: 1,
+                name: 'Face to Face for St Mary\'s School',
+                description: 'Interview session for St Mary\'s School students',
+                status: 'active',
+                created_at: new Date().toISOString(),
+                created_by_name: 'Admin User',
+                created_by_email: 'admin@example.com',
+                interview_count: 3
+            },
+            {
+                id: 2,
+                name: 'Technical Interview Round 1',
+                description: 'First round technical interviews',
+                status: 'completed',
+                created_at: new Date(Date.now() - 86400000).toISOString(),
+                created_by_name: 'Admin User',
+                created_by_email: 'admin@example.com',
+                interview_count: 5
+            }
+        ]);
+    }
+
+    createSession(sessionData) {
+        const newSession = {
+            id: this.sessions.length + 1,
+            name: sessionData.name,
+            description: sessionData.description,
+            status: 'active',
+            created_by: 1,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        };
+        
+        this.sessions.push(newSession);
+        return Promise.resolve(newSession);
+    }
+
+    deleteSession(sessionId) {
+        const index = this.sessions.findIndex(s => s.id === parseInt(sessionId));
+        if (index === -1) {
+            throw new Error('Session not found');
+        }
+        
+        this.sessions.splice(index, 1);
+        return Promise.resolve({ success: true });
+    }
+
+    getSessionStats() {
+        return Promise.resolve({
+            total: this.sessions.length,
+            active: this.sessions.filter(s => s.status === 'active').length,
+            completed: this.sessions.filter(s => s.status === 'completed').length,
+            cancelled: this.sessions.filter(s => s.status === 'cancelled').length
+        });
+    }
+
+    getAllStudents() {
+        return Promise.resolve(this.students.map(student => ({
+            ...student,
+            interview_count: this.interviews.filter(i => i.student_id === student.id).length
+        })));
+    }
+
+    getStudentStats() {
+        return Promise.resolve({
+            total: this.students.length
+        });
     }
 }
 

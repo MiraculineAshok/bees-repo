@@ -49,6 +49,7 @@ const StudentService = require('./services/studentService');
 const AuthService = require('./services/authService');
 const InterviewService = require('./services/interviewService');
 const QuestionBankService = require('./services/questionBankService');
+const AdminService = require('./services/adminService');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -417,8 +418,8 @@ app.get('/api/user/:email', async (req, res) => {
 // Interview API routes
 app.post('/api/interviews', async (req, res) => {
   try {
-    const { student_id, interviewer_id } = req.body;
-    const interview = await InterviewService.createInterview(student_id, interviewer_id);
+    const { student_id, interviewer_id, session_id } = req.body;
+    const interview = await InterviewService.createInterview(student_id, interviewer_id, session_id);
     res.status(201).json({
       success: true,
       data: interview
@@ -770,6 +771,188 @@ app.post('/api/question-bank/:id/increment', async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('Error incrementing times asked:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Admin Dashboard API endpoints
+app.get('/api/admin/overview', async (req, res) => {
+  try {
+    const stats = await AdminService.getOverviewStats();
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('Error getting overview stats:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+app.get('/api/admin/interviews', async (req, res) => {
+  try {
+    const interviews = await AdminService.getAllInterviews();
+    res.json({
+      success: true,
+      data: interviews
+    });
+  } catch (error) {
+    console.error('Error getting all interviews:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+app.get('/api/admin/interviews/stats', async (req, res) => {
+  try {
+    const stats = await AdminService.getInterviewStats();
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('Error getting interview stats:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+app.get('/api/admin/questions/analytics', async (req, res) => {
+  try {
+    const analytics = await AdminService.getQuestionsAnalytics();
+    res.json({
+      success: true,
+      data: analytics
+    });
+  } catch (error) {
+    console.error('Error getting questions analytics:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+app.get('/api/admin/questions/:id/details', async (req, res) => {
+  try {
+    const details = await AdminService.getQuestionDetails(req.params.id);
+    res.json({
+      success: true,
+      data: details
+    });
+  } catch (error) {
+    console.error('Error getting question details:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+app.get('/api/admin/sessions', async (req, res) => {
+  try {
+    const sessions = await AdminService.getAllSessions();
+    res.json({
+      success: true,
+      data: sessions
+    });
+  } catch (error) {
+    console.error('Error getting all sessions:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+app.post('/api/admin/sessions', async (req, res) => {
+  try {
+    const { name, description } = req.body;
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        error: 'Session name is required'
+      });
+    }
+
+    const session = await AdminService.createSession({ name, description });
+    res.json({
+      success: true,
+      data: session
+    });
+  } catch (error) {
+    console.error('Error creating session:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+app.delete('/api/admin/sessions/:id', async (req, res) => {
+  try {
+    const result = await AdminService.deleteSession(req.params.id);
+    res.json(result);
+  } catch (error) {
+    console.error('Error deleting session:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+app.get('/api/admin/sessions/stats', async (req, res) => {
+  try {
+    const stats = await AdminService.getSessionStats();
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('Error getting session stats:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+app.get('/api/admin/students', async (req, res) => {
+  try {
+    const students = await AdminService.getAllStudents();
+    res.json({
+      success: true,
+      data: students
+    });
+  } catch (error) {
+    console.error('Error getting all students:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+app.get('/api/admin/students/stats', async (req, res) => {
+  try {
+    const stats = await AdminService.getStudentStats();
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('Error getting student stats:', error);
     res.status(500).json({
       success: false,
       error: error.message

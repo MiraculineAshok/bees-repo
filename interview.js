@@ -8,6 +8,7 @@ class InterviewPage {
         this.checkAuthentication();
         this.attachEventListeners();
         this.focusZetaIdInput();
+        this.loadInterviewSessions();
     }
 
     checkAuthentication() {
@@ -241,8 +242,49 @@ class InterviewPage {
         }
     }
 
+    async loadInterviewSessions() {
+        try {
+            const response = await fetch('/api/admin/sessions');
+            const data = await response.json();
+            
+            if (data.success) {
+                this.sessions = data.data.filter(session => session.status === 'active');
+                this.displaySessions();
+            } else {
+                console.log('No active sessions found');
+                this.showError('No active interview sessions available');
+            }
+        } catch (error) {
+            console.error('Error loading sessions:', error);
+            this.showError('Error loading interview sessions');
+        }
+    }
+
+    displaySessions() {
+        const sessionSelect = document.getElementById('session-select');
+        if (!sessionSelect) return;
+
+        sessionSelect.innerHTML = '<option value="">Select Interview Session</option>';
+        
+        this.sessions.forEach(session => {
+            const option = document.createElement('option');
+            option.value = session.id;
+            option.textContent = session.name;
+            sessionSelect.appendChild(option);
+        });
+    }
+
     startInterviewSession(zetaId) {
         console.log('Starting interview session for Zeta ID:', zetaId);
+        
+        // Check if session is selected
+        const sessionSelect = document.getElementById('session-select');
+        const selectedSessionId = sessionSelect.value;
+        
+        if (!selectedSessionId) {
+            this.showError('Please select an interview session first');
+            return;
+        }
         
         // Find the student data from the displayed student info
         const studentInfoDiv = document.getElementById('student-info');
@@ -250,6 +292,9 @@ class InterviewPage {
             // Extract student data from the displayed info
             const studentData = this.extractStudentDataFromDisplay();
             if (studentData) {
+                // Add session ID to student data
+                studentData.sessionId = selectedSessionId;
+                
                 // Store student data in sessionStorage
                 sessionStorage.setItem('currentStudent', JSON.stringify(studentData));
                 console.log('Student data stored in sessionStorage:', studentData);
@@ -257,7 +302,7 @@ class InterviewPage {
         }
         
         // Redirect to interview session page with student data
-        window.location.href = `/interview-session?zeta_id=${encodeURIComponent(zetaId)}`;
+        window.location.href = `/interview-session?zeta_id=${encodeURIComponent(zetaId)}&session_id=${selectedSessionId}`;
     }
     
     extractStudentDataFromDisplay() {
