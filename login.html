@@ -78,6 +78,30 @@
             transform: translateY(-2px);
         }
         
+        .admin-dashboard-btn {
+            background: rgba(255, 0, 0, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 0, 0, 0.5);
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .admin-dashboard-btn:hover {
+            background: rgba(255, 0, 0, 0.3);
+            border-color: rgba(255, 0, 0, 0.7);
+            transform: translateY(-2px);
+        }
+        
+        .admin-dashboard-btn.hidden {
+            display: none;
+        }
+        
         .main-container {
             display: flex;
             justify-content: center;
@@ -195,6 +219,7 @@
         <div class="header-content">
             <a href="/" class="logo">Bees</a>
             <div class="user-info">
+                <a href="/admin-dashboard.html" id="admin-dashboard-btn" class="admin-dashboard-btn hidden">Admin Dashboard</a>
                 <span id="user-name" class="user-name hidden"></span>
                 <button id="login-btn" class="login-btn">Sign in with Zoho</button>
             </div>

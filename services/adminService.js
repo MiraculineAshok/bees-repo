@@ -172,33 +172,14 @@ class AdminService {
 
             const question = questionResult.rows[0];
 
-            // Get student answers
-            const answersResult = await pool.query(`
-                SELECT 
-                    qp.id,
-                    qp.is_correct,
-                    qp.answer_text,
-                    qp.answered_at,
-                    s.name as student_name,
-                    s.zeta_id
-                FROM question_performance qp
-                JOIN students s ON qp.student_id = s.id
-                JOIN interview_questions iq ON qp.question_id = iq.id
-                WHERE iq.question_id = $1
-                ORDER BY qp.answered_at DESC
-            `, [questionId]);
-
-            // Calculate statistics
-            const totalAnswers = answersResult.rows.length;
-            const correctAnswers = answersResult.rows.filter(a => a.is_correct).length;
-            const successRate = totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0;
-
+            // For now, return basic question info without performance data
+            // TODO: Implement question_performance tracking when needed
             return {
                 ...question,
-                total_answers: totalAnswers,
-                correct_answers: correctAnswers,
-                success_rate: successRate,
-                student_answers: answersResult.rows
+                total_answers: 0,
+                correct_answers: 0,
+                success_rate: 0,
+                student_answers: []
             };
         } catch (error) {
             console.error('❌ Error getting question details:', error);

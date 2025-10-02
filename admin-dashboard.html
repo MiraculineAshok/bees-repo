@@ -13,8 +13,8 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f8fafc;
-            color: #2d3748;
+            background: #ffffff;
+            color: #000000;
             line-height: 1.6;
         }
 
@@ -26,7 +26,7 @@
         /* Sidebar */
         .sidebar {
             width: 250px;
-            background: #2d3748;
+            background: #000000;
             color: white;
             padding: 1.5rem 0;
             position: fixed;
@@ -37,12 +37,12 @@
 
         .sidebar-header {
             padding: 0 1.5rem 2rem;
-            border-bottom: 1px solid #4a5568;
+            border-bottom: 1px solid #333333;
             margin-bottom: 1rem;
         }
 
         .sidebar-header h2 {
-            color: #4299e1;
+            color: #ffffff;
             font-size: 1.5rem;
             font-weight: 700;
         }
@@ -58,7 +58,7 @@
         .nav-link {
             display: block;
             padding: 0.75rem 1.5rem;
-            color: #e2e8f0;
+            color: #cccccc;
             text-decoration: none;
             transition: all 0.2s ease;
             border-left: 3px solid transparent;
@@ -66,9 +66,9 @@
 
         .nav-link:hover,
         .nav-link.active {
-            background: #4a5568;
+            background: #333333;
             color: white;
-            border-left-color: #4299e1;
+            border-left-color: #ffffff;
         }
 
         .nav-link i {
@@ -88,15 +88,16 @@
             background: white;
             padding: 1.5rem 2rem;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
             margin-bottom: 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border: 1px solid #000000;
         }
 
         .header h1 {
-            color: #2d3748;
+            color: #000000;
             font-size: 2rem;
             font-weight: 700;
         }
@@ -110,7 +111,7 @@
         .user-avatar {
             width: 40px;
             height: 40px;
-            background: #4299e1;
+            background: #000000;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -124,8 +125,9 @@
             display: none;
             background: white;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
             padding: 2rem;
+            border: 1px solid #000000;
         }
 
         .content-section.active {
@@ -138,13 +140,19 @@
             align-items: center;
             margin-bottom: 2rem;
             padding-bottom: 1rem;
-            border-bottom: 2px solid #e2e8f0;
+            border-bottom: 2px solid #cccccc;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
         }
 
         .section-title {
             font-size: 1.5rem;
             font-weight: 600;
-            color: #2d3748;
+            color: #000000;
         }
 
         .btn {
@@ -159,30 +167,30 @@
         }
 
         .btn-primary {
-            background: #4299e1;
+            background: #000000;
             color: white;
         }
 
         .btn-primary:hover {
-            background: #3182ce;
+            background: #333333;
         }
 
         .btn-success {
-            background: #48bb78;
+            background: #000000;
             color: white;
         }
 
         .btn-success:hover {
-            background: #38a169;
+            background: #333333;
         }
 
         .btn-danger {
-            background: #f56565;
+            background: #000000;
             color: white;
         }
 
         .btn-danger:hover {
-            background: #e53e3e;
+            background: #333333;
         }
 
         /* Tables */
@@ -201,17 +209,17 @@
         .table td {
             padding: 1rem;
             text-align: left;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid #cccccc;
         }
 
         .table th {
-            background: #f7fafc;
+            background: #f5f5f5;
             font-weight: 600;
-            color: #4a5568;
+            color: #000000;
         }
 
         .table tbody tr:hover {
-            background: #f7fafc;
+            background: #f5f5f5;
         }
 
         .status-badge {
@@ -246,7 +254,7 @@
             display: block;
             margin-bottom: 0.5rem;
             font-weight: 600;
-            color: #4a5568;
+            color: #000000;
         }
 
         .form-input,
@@ -254,7 +262,7 @@
         .form-select {
             width: 100%;
             padding: 0.75rem;
-            border: 2px solid #e2e8f0;
+            border: 2px solid #cccccc;
             border-radius: 6px;
             font-size: 1rem;
             transition: border-color 0.2s ease;
@@ -264,7 +272,7 @@
         .form-textarea:focus,
         .form-select:focus {
             outline: none;
-            border-color: #4299e1;
+            border-color: #000000;
         }
 
         .form-textarea {
@@ -306,7 +314,7 @@
             align-items: center;
             margin-bottom: 1.5rem;
             padding-bottom: 1rem;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid #cccccc;
         }
 
         .modal-title {
@@ -323,7 +331,306 @@
         }
 
         .close:hover {
-            color: #4a5568;
+            color: #000000;
+        }
+
+        /* Detail Panel Styles */
+        .detail-panel {
+            position: fixed;
+            top: 0;
+            right: -500px;
+            width: 500px;
+            height: 100vh;
+            background: white;
+            border-left: 2px solid #000000;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.3);
+            z-index: 2000;
+            transition: right 0.3s ease-in-out;
+            overflow-y: auto;
+        }
+
+        .detail-panel.active {
+            right: 0;
+        }
+
+        .detail-panel-header {
+            background: #000000;
+            color: white;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .detail-panel-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .detail-panel-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .detail-panel-close:hover {
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+        }
+
+        .detail-panel-content {
+            padding: 1.5rem;
+        }
+
+        .detail-section {
+            margin-bottom: 2rem;
+        }
+
+        .detail-section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #000000;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #cccccc;
+        }
+
+        .detail-item {
+            margin-bottom: 1rem;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #666666;
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .detail-value {
+            color: #000000;
+            font-size: 0.95rem;
+        }
+
+        /* Interview List Styles */
+        .interview-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .interview-item {
+            border: 1px solid #cccccc;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .interview-header {
+            background: #f8f8f8;
+            padding: 1rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s ease;
+        }
+
+        .interview-header:hover {
+            background: #f0f0f0;
+        }
+
+        .interview-header.active {
+            background: #e0e0e0;
+        }
+
+        .interview-title {
+            font-weight: 600;
+            color: #000000;
+            margin: 0;
+        }
+
+        .interview-meta {
+            font-size: 0.875rem;
+            color: #666666;
+            margin-top: 0.25rem;
+        }
+
+        .interview-expand {
+            font-size: 1.2rem;
+            color: #666666;
+            transition: transform 0.2s ease;
+        }
+
+        .interview-expand.expanded {
+            transform: rotate(180deg);
+        }
+
+        .interview-details {
+            padding: 1rem;
+            border-top: 1px solid #cccccc;
+            background: white;
+            display: none;
+        }
+
+        .interview-details.active {
+            display: block;
+        }
+
+        .question-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .question-item {
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            margin-bottom: 0.75rem;
+            overflow: hidden;
+        }
+
+        .question-header {
+            background: #f5f5f5;
+            padding: 0.75rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .question-text {
+            font-weight: 500;
+            color: #000000;
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .question-expand {
+            font-size: 1rem;
+            color: #666666;
+            transition: transform 0.2s ease;
+        }
+
+        .question-expand.expanded {
+            transform: rotate(180deg);
+        }
+
+        .question-details {
+            padding: 0.75rem;
+            background: white;
+            display: none;
+        }
+
+        .question-details.active {
+            display: block;
+        }
+
+        .answer-section {
+            margin-top: 0.75rem;
+        }
+
+        .answer-label {
+            font-weight: 600;
+            color: #666666;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .answer-text {
+            color: #000000;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            background: #f8f8f8;
+            padding: 0.75rem;
+            border-radius: 4px;
+            border-left: 3px solid #000000;
+        }
+
+        .answer-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            border: 1px solid #cccccc;
+        }
+
+        .panel-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1500;
+            display: none;
+        }
+
+        .panel-overlay.active {
+            display: block;
+        }
+
+        /* Image Modal Styles */
+        .image-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-modal.active {
+            display: flex;
+        }
+
+        .image-modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
+        }
+
+        .image-modal img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 8px;
+        }
+
+        .image-modal-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-modal-close:hover {
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
         }
 
         /* Stats Cards */
@@ -339,18 +646,18 @@
             padding: 1.5rem;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            border-left: 4px solid #4299e1;
+            border-left: 4px solid #000000;
         }
 
         .stat-value {
             font-size: 2rem;
             font-weight: 700;
-            color: #2d3748;
+            color: #000000;
             margin-bottom: 0.5rem;
         }
 
         .stat-label {
-            color: #718096;
+            color: #666666;
             font-size: 0.875rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -360,19 +667,88 @@
         .loading {
             text-align: center;
             padding: 2rem;
-            color: #718096;
+            color: #666666;
         }
 
         .empty-state {
             text-align: center;
             padding: 3rem;
-            color: #718096;
+            color: #666666;
         }
 
         .empty-state i {
             font-size: 3rem;
             margin-bottom: 1rem;
-            color: #cbd5e0;
+            color: #cccccc;
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            background: #f8f8f8;
+            border: 1px solid #cccccc;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .controls-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 200px;
+            flex: 1;
+        }
+
+        .control-group .form-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #000000;
+        }
+
+        .control-group .form-select,
+        .control-group .form-input {
+            padding: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        /* Grouped Table Styles */
+        .grouped-table {
+            margin-bottom: 2rem;
+        }
+
+        .group-header {
+            background: #000000;
+            color: white;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            border-radius: 4px 4px 0 0;
+            margin-bottom: 0;
+        }
+
+        .group-header .group-count {
+            font-size: 0.875rem;
+            opacity: 0.8;
+            margin-left: 0.5rem;
+        }
+
+        .grouped-table .table {
+            border-radius: 0 0 4px 4px;
+            border-top: none;
+        }
+
+        .grouped-table .table th {
+            background: #f0f0f0;
         }
 
         /* Responsive */
@@ -480,6 +856,72 @@
                     <button class="btn btn-primary" onclick="refreshInterviews()">Refresh</button>
                 </div>
                 
+                <!-- Filter, Sort, and Group Controls -->
+                <div class="controls-panel">
+                    <div class="controls-row">
+                        <div class="control-group">
+                            <label class="form-label">Filter by Status:</label>
+                            <select id="status-filter" class="form-select" onchange="applyFilters()">
+                                <option value="">All Statuses</option>
+                                <option value="completed">Completed</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label class="form-label">Filter by Session:</label>
+                            <select id="session-filter" class="form-select" onchange="applyFilters()">
+                                <option value="">All Sessions</option>
+                            </select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label class="form-label">Filter by Verdict:</label>
+                            <select id="verdict-filter" class="form-select" onchange="applyFilters()">
+                                <option value="">All Verdicts</option>
+                                <option value="Tiger">Tiger</option>
+                                <option value="Cow">Cow</option>
+                                <option value="Cow+">Cow+</option>
+                                <option value="Sheep">Sheep</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="controls-row">
+                        <div class="control-group">
+                            <label class="form-label">Sort by:</label>
+                            <select id="sort-by" class="form-select" onchange="applySorting()">
+                                <option value="created_at_desc">Date (Newest First)</option>
+                                <option value="created_at_asc">Date (Oldest First)</option>
+                                <option value="student_name_asc">Student Name (A-Z)</option>
+                                <option value="student_name_desc">Student Name (Z-A)</option>
+                                <option value="duration_desc">Duration (Longest First)</option>
+                                <option value="duration_asc">Duration (Shortest First)</option>
+                                <option value="status_asc">Status (A-Z)</option>
+                                <option value="verdict_asc">Verdict (A-Z)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label class="form-label">Group by:</label>
+                            <select id="group-by" class="form-select" onchange="applyGrouping()">
+                                <option value="">No Grouping</option>
+                                <option value="session">Session</option>
+                                <option value="status">Status</option>
+                                <option value="verdict">Verdict</option>
+                                <option value="interviewer">Interviewer</option>
+                                <option value="date">Date</option>
+                            </select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label class="form-label">Search:</label>
+                            <input type="text" id="search-interviews" class="form-input" placeholder="Search by student name, email, or Zeta ID..." onkeyup="applySearch()">
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="table-container">
                     <table class="table">
                         <thead>
@@ -508,7 +950,10 @@
             <section id="questions" class="content-section">
                 <div class="section-header">
                     <h2 class="section-title">Questions Analytics</h2>
-                    <button class="btn btn-primary" onclick="refreshQuestions()">Refresh</button>
+                    <div class="header-actions">
+                        <button class="btn btn-success" onclick="openAddQuestionModal()">Add Question</button>
+                        <button class="btn btn-primary" onclick="refreshQuestions()">Refresh</button>
+                    </div>
                 </div>
                 
                 <div class="table-container">
@@ -629,6 +1074,60 @@
         </div>
     </div>
 
+    <!-- Add Question Modal -->
+    <div id="add-question-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Question</h3>
+                <button class="close" onclick="closeAddQuestionModal()">&times;</button>
+            </div>
+            <form id="add-question-form">
+                <div class="form-group">
+                    <label class="form-label" for="question-text">Question Text</label>
+                    <textarea id="question-text" class="form-textarea" placeholder="Enter the question text..." required rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="question-category">Category</label>
+                    <select id="question-category" class="form-select" required>
+                        <option value="">Select Category</option>
+                        <option value="Math Aptitude">Math Aptitude</option>
+                        <option value="Generic HR Questions">Generic HR Questions</option>
+                        <option value="English">English</option>
+                        <option value="Technical">Technical</option>
+                        <option value="Logical Reasoning">Logical Reasoning</option>
+                        <option value="General Knowledge">General Knowledge</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Add Question</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeAddQuestionModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Detail Panel Overlay -->
+    <div id="panel-overlay" class="panel-overlay" onclick="closeDetailPanel()"></div>
+
+    <!-- Detail Panel -->
+    <div id="detail-panel" class="detail-panel">
+        <div class="detail-panel-header">
+            <h3 id="detail-panel-title" class="detail-panel-title">Details</h3>
+            <button class="detail-panel-close" onclick="closeDetailPanel()">&times;</button>
+        </div>
+        <div id="detail-panel-content" class="detail-panel-content">
+            <!-- Content will be loaded dynamically -->
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div id="image-modal" class="image-modal" onclick="closeImageModal()">
+        <div class="image-modal-content" onclick="event.stopPropagation()">
+            <button class="image-modal-close" onclick="closeImageModal()">&times;</button>
+            <img id="modal-image" src="" alt="Answer Image">
+        </div>
+    </div>
+
     <script>
         // Global variables
         let currentSection = 'overview';
@@ -665,6 +1164,12 @@
             document.getElementById('create-session-form').addEventListener('submit', function(e) {
                 e.preventDefault();
                 createSession();
+            });
+
+            // Add question form
+            document.getElementById('add-question-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                addQuestion();
             });
         }
 
@@ -735,13 +1240,133 @@
 
         function displayInterviews() {
             const tbody = document.getElementById('interviews-table-body');
+            const container = document.querySelector('#interviews .table-container');
             
             if (interviews.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No interviews found</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = interviews.map(interview => `
+            // Apply filters, sorting, and grouping
+            let filteredInterviews = applyFiltersToInterviews();
+            let sortedInterviews = applySortingToInterviews(filteredInterviews);
+            let groupedInterviews = applyGroupingToInterviews(sortedInterviews);
+
+            // Display grouped or regular table
+            if (groupedInterviews.groups) {
+                displayGroupedInterviews(groupedInterviews, container);
+            } else {
+                displayRegularInterviews(sortedInterviews, tbody);
+            }
+        }
+
+        function applyFiltersToInterviews() {
+            let filtered = [...interviews];
+            
+            // Status filter
+            const statusFilter = document.getElementById('status-filter').value;
+            if (statusFilter) {
+                filtered = filtered.filter(interview => interview.status === statusFilter);
+            }
+            
+            // Session filter
+            const sessionFilter = document.getElementById('session-filter').value;
+            if (sessionFilter) {
+                filtered = filtered.filter(interview => interview.session_name === sessionFilter);
+            }
+            
+            // Verdict filter
+            const verdictFilter = document.getElementById('verdict-filter').value;
+            if (verdictFilter) {
+                filtered = filtered.filter(interview => interview.verdict === verdictFilter);
+            }
+            
+            // Search filter
+            const searchTerm = document.getElementById('search-interviews').value.toLowerCase();
+            if (searchTerm) {
+                filtered = filtered.filter(interview => 
+                    (interview.student_name && interview.student_name.toLowerCase().includes(searchTerm)) ||
+                    (interview.student_email && interview.student_email.toLowerCase().includes(searchTerm)) ||
+                    (interview.zeta_id && interview.zeta_id.toLowerCase().includes(searchTerm))
+                );
+            }
+            
+            return filtered;
+        }
+
+        function applySortingToInterviews(interviewList) {
+            const sortBy = document.getElementById('sort-by').value;
+            const sorted = [...interviewList];
+            
+            switch (sortBy) {
+                case 'created_at_desc':
+                    return sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                case 'created_at_asc':
+                    return sorted.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                case 'student_name_asc':
+                    return sorted.sort((a, b) => (a.student_name || '').localeCompare(b.student_name || ''));
+                case 'student_name_desc':
+                    return sorted.sort((a, b) => (b.student_name || '').localeCompare(a.student_name || ''));
+                case 'duration_desc':
+                    return sorted.sort((a, b) => (b.duration_seconds || 0) - (a.duration_seconds || 0));
+                case 'duration_asc':
+                    return sorted.sort((a, b) => (a.duration_seconds || 0) - (b.duration_seconds || 0));
+                case 'status_asc':
+                    return sorted.sort((a, b) => (a.status || '').localeCompare(b.status || ''));
+                case 'verdict_asc':
+                    return sorted.sort((a, b) => (a.verdict || '').localeCompare(b.verdict || ''));
+                default:
+                    return sorted;
+            }
+        }
+
+        function applyGroupingToInterviews(interviewList) {
+            const groupBy = document.getElementById('group-by').value;
+            
+            if (!groupBy) {
+                return { groups: null, interviews: interviewList };
+            }
+            
+            const groups = {};
+            
+            interviewList.forEach(interview => {
+                let groupKey;
+                switch (groupBy) {
+                    case 'session':
+                        groupKey = interview.session_name || 'No Session';
+                        break;
+                    case 'status':
+                        groupKey = interview.status || 'Unknown';
+                        break;
+                    case 'verdict':
+                        groupKey = interview.verdict || 'No Verdict';
+                        break;
+                    case 'interviewer':
+                        groupKey = interview.interviewer_name || 'Unknown';
+                        break;
+                    case 'date':
+                        groupKey = formatDate(interview.interview_date);
+                        break;
+                    default:
+                        groupKey = 'Other';
+                }
+                
+                if (!groups[groupKey]) {
+                    groups[groupKey] = [];
+                }
+                groups[groupKey].push(interview);
+            });
+            
+            return { groups, interviews: interviewList };
+        }
+
+        function displayRegularInterviews(interviewList, tbody) {
+            if (interviewList.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No interviews match the current filters</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = interviewList.map(interview => `
                 <tr>
                     <td>${interview.id}</td>
                     <td>${interview.student_name || 'N/A'}</td>
@@ -756,6 +1381,73 @@
                     </td>
                 </tr>
             `).join('');
+        }
+
+        function displayGroupedInterviews(groupedData, container) {
+            const { groups } = groupedData;
+            
+            let html = '';
+            Object.keys(groups).sort().forEach(groupKey => {
+                const groupInterviews = groups[groupKey];
+                html += `
+                    <div class="grouped-table">
+                        <div class="group-header">
+                            ${groupKey} <span class="group-count">(${groupInterviews.length} interviews)</span>
+                        </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Student</th>
+                                    <th>Interviewer</th>
+                                    <th>Session</th>
+                                    <th>Date</th>
+                                    <th>Duration</th>
+                                    <th>Status</th>
+                                    <th>Verdict</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${groupInterviews.map(interview => `
+                                    <tr>
+                                        <td>${interview.id}</td>
+                                        <td>${interview.student_name || 'N/A'}</td>
+                                        <td>${interview.interviewer_name || 'N/A'}</td>
+                                        <td>${interview.session_name || 'N/A'}</td>
+                                        <td>${formatDate(interview.interview_date)}</td>
+                                        <td>${formatDuration(interview.duration_seconds)}</td>
+                                        <td><span class="status-badge status-${interview.status}">${interview.status}</span></td>
+                                        <td>${interview.verdict || 'N/A'}</td>
+                                        <td>
+                                            <button class="btn btn-primary" onclick="viewInterview(${interview.id})">View</button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Filter, Sort, and Group Functions
+        function applyFilters() {
+            displayInterviews();
+        }
+
+        function applySorting() {
+            displayInterviews();
+        }
+
+        function applyGrouping() {
+            displayInterviews();
+        }
+
+        function applySearch() {
+            displayInterviews();
         }
 
         // Questions functions
@@ -789,7 +1481,7 @@
                     <td>${question.correct_answers || 0}</td>
                     <td>${question.success_rate || 0}%</td>
                     <td>
-                        <button class="btn btn-primary" onclick="viewQuestionDetails(${question.id})">View Details</button>
+                        <button class="btn btn-primary" onclick="viewQuestion(${question.id})">View</button>
                     </td>
                 </tr>
             `).join('');
@@ -804,10 +1496,28 @@
                 if (data.success) {
                     sessions = data.data;
                     displaySessions();
+                    populateSessionFilter();
                 }
             } catch (error) {
                 console.error('Error loading sessions:', error);
             }
+        }
+
+        function populateSessionFilter() {
+            const sessionFilter = document.getElementById('session-filter');
+            if (!sessionFilter) return;
+            
+            // Clear existing options except "All Sessions"
+            sessionFilter.innerHTML = '<option value="">All Sessions</option>';
+            
+            // Add unique session names
+            const uniqueSessions = [...new Set(sessions.map(session => session.name))];
+            uniqueSessions.forEach(sessionName => {
+                const option = document.createElement('option');
+                option.value = sessionName;
+                option.textContent = sessionName;
+                sessionFilter.appendChild(option);
+            });
         }
 
         function displaySessions() {
@@ -910,6 +1620,52 @@
             } catch (error) {
                 console.error('Error creating session:', error);
                 showError('Error creating session');
+            }
+        }
+
+        // Add Question Modal Functions
+        function openAddQuestionModal() {
+            document.getElementById('add-question-modal').classList.add('active');
+        }
+
+        function closeAddQuestionModal() {
+            document.getElementById('add-question-modal').classList.remove('active');
+            document.getElementById('add-question-form').reset();
+        }
+
+        async function addQuestion() {
+            const questionText = document.getElementById('question-text').value;
+            const category = document.getElementById('question-category').value;
+
+            if (!questionText || !category) {
+                showError('Please fill in all fields');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/question-bank', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        question: questionText,
+                        category: category
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    closeAddQuestionModal();
+                    loadQuestions();
+                    showSuccess('Question added successfully!');
+                } else {
+                    showError('Error adding question: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error adding question:', error);
+                showError('Error adding question');
             }
         }
 
@@ -1020,6 +1776,302 @@
         function showError(message) {
             // Simple error notification - you can enhance this
             alert('Error: ' + message);
+        }
+
+        // Detail Panel Functions
+        function openDetailPanel(title, content) {
+            document.getElementById('detail-panel-title').textContent = title;
+            document.getElementById('detail-panel-content').innerHTML = content;
+            document.getElementById('detail-panel').classList.add('active');
+            document.getElementById('panel-overlay').classList.add('active');
+        }
+
+        function closeDetailPanel() {
+            document.getElementById('detail-panel').classList.remove('active');
+            document.getElementById('panel-overlay').classList.remove('active');
+        }
+
+        // Student Detail View
+        async function viewStudent(studentId) {
+            try {
+                // Get student details
+                const studentResponse = await fetch(`/api/students/${studentId}`);
+                const studentData = await studentResponse.json();
+                
+                if (!studentData.success) {
+                    showError('Student not found');
+                    return;
+                }
+
+                const student = studentData.data;
+
+                // Get student's interviews
+                const interviewsResponse = await fetch(`/api/interviews/student/${studentId}/history`);
+                const interviewsData = await interviewsResponse.json();
+                
+                const interviews = interviewsData.success ? interviewsData.data : [];
+                
+                console.log('Student interviews loaded:', interviews.length);
+
+                const content = `
+                    <div class="detail-section">
+                        <h4 class="detail-section-title">Student Information</h4>
+                        <div class="detail-item">
+                            <div class="detail-label">Name</div>
+                            <div class="detail-value">${student.first_name} ${student.last_name}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Email</div>
+                            <div class="detail-value">${student.email}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Zeta ID</div>
+                            <div class="detail-value">${student.zeta_id}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Phone</div>
+                            <div class="detail-value">${student.phone || 'N/A'}</div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4 class="detail-section-title">Interview History (${interviews.length})</h4>
+                        ${interviews.length > 0 ? `
+                            <ul class="interview-list">
+                                ${interviews.map(interview => `
+                                    <li class="interview-item">
+                                        <div class="interview-header" onclick="toggleInterview(${interview.id})">
+                                            <div>
+                                                <div class="interview-title">Interview #${interview.id}</div>
+                                                <div class="interview-meta">
+                                                    ${formatDate(interview.interview_date)} • 
+                                                    ${interview.duration_seconds ? formatDuration(interview.duration_seconds) : 'N/A'} • 
+                                                    ${interview.verdict || 'No Verdict'}
+                                                </div>
+                                            </div>
+                                            <span class="interview-expand" id="expand-${interview.id}">▼</span>
+                                        </div>
+                                        <div class="interview-details" id="details-${interview.id}">
+                                            <div class="detail-item">
+                                                <div class="detail-label">Status</div>
+                                                <div class="detail-value">${interview.status}</div>
+                                            </div>
+                                            <div class="detail-item">
+                                                <div class="detail-label">Overall Notes</div>
+                                                <div class="detail-value">${interview.overall_notes || 'No notes available'}</div>
+                                            </div>
+                                            <div class="detail-item">
+                                                <div class="detail-label">Questions & Answers</div>
+                                                <div class="detail-value">
+                                                    <div id="questions-${interview.id}">Loading questions...</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        ` : '<p>No interviews found for this student.</p>'}
+                    </div>
+                `;
+
+                openDetailPanel(`Student: ${student.first_name} ${student.last_name}`, content);
+
+                // Load questions for each interview
+                for (const interview of interviews) {
+                    await loadInterviewQuestions(interview.id);
+                }
+
+            } catch (error) {
+                console.error('Error loading student details:', error);
+                showError('Error loading student details');
+            }
+        }
+
+        // Load interview questions
+        async function loadInterviewQuestions(interviewId) {
+            try {
+                const response = await fetch(`/api/interviews/${interviewId}/questions`);
+                const data = await response.json();
+                
+                const questionsContainer = document.getElementById(`questions-${interviewId}`);
+                if (!questionsContainer) return;
+
+                if (data.success && data.data.length > 0) {
+                    const questions = data.data;
+                    questionsContainer.innerHTML = `
+                        <ul class="question-list">
+                            ${questions.map(question => `
+                                <li class="question-item">
+                                    <div class="question-header" onclick="toggleQuestion(${question.id})">
+                                        <div class="question-text">${question.question_text}</div>
+                                        <span class="question-expand" id="q-expand-${question.id}">▼</span>
+                                    </div>
+                                    <div class="question-details" id="q-details-${question.id}">
+                                        <div class="answer-section">
+                                            <div class="answer-label">Student Answer:</div>
+                                            <div class="answer-text">${question.answer_text || 'No answer provided'}</div>
+                                            ${question.answer_photo_url ? `
+                                                <img src="${question.answer_photo_url}" alt="Answer Image" class="answer-image" onclick="openImageModal('${question.answer_photo_url}')" style="cursor: pointer;">
+                                            ` : ''}
+                                        </div>
+                                    </div>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    `;
+                } else {
+                    questionsContainer.innerHTML = '<p>No questions found for this interview.</p>';
+                }
+            } catch (error) {
+                console.error('Error loading interview questions:', error);
+                const questionsContainer = document.getElementById(`questions-${interviewId}`);
+                if (questionsContainer) {
+                    questionsContainer.innerHTML = '<p>Error loading questions.</p>';
+                }
+            }
+        }
+
+        // Toggle interview expansion
+        function toggleInterview(interviewId) {
+            const details = document.getElementById(`details-${interviewId}`);
+            const expand = document.getElementById(`expand-${interviewId}`);
+            const header = expand.parentElement;
+
+            if (details.classList.contains('active')) {
+                details.classList.remove('active');
+                expand.classList.remove('expanded');
+                header.classList.remove('active');
+            } else {
+                details.classList.add('active');
+                expand.classList.add('expanded');
+                header.classList.add('active');
+            }
+        }
+
+        // Toggle question expansion
+        function toggleQuestion(questionId) {
+            const details = document.getElementById(`q-details-${questionId}`);
+            const expand = document.getElementById(`q-expand-${questionId}`);
+
+            if (details.classList.contains('active')) {
+                details.classList.remove('active');
+                expand.classList.remove('expanded');
+            } else {
+                details.classList.add('active');
+                expand.classList.add('expanded');
+            }
+        }
+
+        // Interview Detail View
+        async function viewInterview(interviewId) {
+            try {
+                const response = await fetch(`/api/interviews/${interviewId}`);
+                const data = await response.json();
+                
+                if (!data.success) {
+                    showError('Interview not found');
+                    return;
+                }
+
+                const interview = data.data;
+
+                const content = `
+                    <div class="detail-section">
+                        <h4 class="detail-section-title">Interview Information</h4>
+                        <div class="detail-item">
+                            <div class="detail-label">Interview ID</div>
+                            <div class="detail-value">#${interview.id}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Date</div>
+                            <div class="detail-value">${formatDate(interview.interview_date)}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Status</div>
+                            <div class="detail-value">${interview.status}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Duration</div>
+                            <div class="detail-value">${interview.duration_seconds ? formatDuration(interview.duration_seconds) : 'N/A'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Verdict</div>
+                            <div class="detail-value">${interview.verdict || 'No Verdict'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Overall Notes</div>
+                            <div class="detail-value">${interview.overall_notes || 'No notes available'}</div>
+                        </div>
+                    </div>
+                `;
+
+                openDetailPanel(`Interview #${interview.id}`, content);
+
+            } catch (error) {
+                console.error('Error loading interview details:', error);
+                showError('Error loading interview details');
+            }
+        }
+
+        // Question Detail View
+        async function viewQuestion(questionId) {
+            try {
+                const response = await fetch(`/api/admin/questions/${questionId}/details`);
+                const data = await response.json();
+                
+                if (!data.success) {
+                    showError('Question not found');
+                    return;
+                }
+
+                const question = data.data;
+
+                const content = `
+                    <div class="detail-section">
+                        <h4 class="detail-section-title">Question Information</h4>
+                        <div class="detail-item">
+                            <div class="detail-label">Question</div>
+                            <div class="detail-value">${question.question}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Category</div>
+                            <div class="detail-value">${question.category}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Times Asked</div>
+                            <div class="detail-value">${question.times_asked}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Total Answers</div>
+                            <div class="detail-value">${question.total_answers}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Correct Answers</div>
+                            <div class="detail-value">${question.correct_answers}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Success Rate</div>
+                            <div class="detail-value">${question.success_rate}%</div>
+                        </div>
+                    </div>
+                `;
+
+                openDetailPanel(`Question: ${question.question.substring(0, 50)}...`, content);
+
+            } catch (error) {
+                console.error('Error loading question details:', error);
+                showError('Error loading question details');
+            }
+        }
+
+        // Image Modal Functions
+        function openImageModal(imageUrl) {
+            document.getElementById('modal-image').src = imageUrl;
+            document.getElementById('image-modal').classList.add('active');
+        }
+
+        function closeImageModal() {
+            document.getElementById('image-modal').classList.remove('active');
         }
 
         // Refresh functions

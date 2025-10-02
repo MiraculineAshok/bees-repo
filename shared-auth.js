@@ -38,10 +38,27 @@
         return null;
     }
     
+    // Function to check if user is admin
+    async function checkUserRole() {
+        try {
+            const response = await fetch('/api/user/role');
+            const result = await response.json();
+            
+            if (result.success) {
+                return result.role;
+            }
+        } catch (error) {
+            console.error('Error checking user role:', error);
+        }
+        
+        return 'interviewer'; // Default role
+    }
+
     // Function to display user info in header
-    function displayUserInfo(userData) {
+    async function displayUserInfo(userData) {
         const userNameElement = document.getElementById('user-name');
         const loginBtn = document.getElementById('login-btn');
+        const adminDashboardBtn = document.getElementById('admin-dashboard-btn');
         
         if (userData && userData.name) {
             // Show user name and hide login button
@@ -63,6 +80,16 @@
                 loginBtn.classList.add('hidden');
             }
             
+            // Check user role and show/hide admin dashboard link
+            if (adminDashboardBtn) {
+                const userRole = await checkUserRole();
+                if (userRole === 'superadmin') {
+                    adminDashboardBtn.classList.remove('hidden');
+                } else {
+                    adminDashboardBtn.classList.add('hidden');
+                }
+            }
+            
             return true;
         }
         
@@ -76,10 +103,10 @@
     }
     
     // Function to initialize authentication on page load
-    function initAuth() {
+    async function initAuth() {
         const userData = getUserData();
         if (userData) {
-            displayUserInfo(userData);
+            await displayUserInfo(userData);
         }
     }
     
