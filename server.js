@@ -986,6 +986,8 @@ app.listen(PORT, async () => {
     await initializeDatabase();
   } catch (error) {
     console.error('❌ Database initialization failed:', error);
+    console.error('This is likely due to missing DATABASE_URL environment variable.');
+    console.error('Please check your Render environment variables.');
     // Continue running even if DB init fails (for development)
   }
   
