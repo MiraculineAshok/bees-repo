@@ -1793,10 +1793,13 @@
 
         // Student Detail View
         async function viewStudent(studentId) {
+            console.log('🔍 viewStudent called with ID:', studentId);
             try {
                 // Get student details
                 const studentResponse = await fetch(`/api/students/${studentId}`);
                 const studentData = await studentResponse.json();
+                
+                console.log('📊 Student data response:', studentData);
                 
                 if (!studentData.success) {
                     showError('Student not found');
@@ -1808,6 +1811,8 @@
                 // Get student's interviews
                 const interviewsResponse = await fetch(`/api/interviews/student/${studentId}/history`);
                 const interviewsData = await interviewsResponse.json();
+                
+                console.log('📋 Interviews data response:', interviewsData);
                 
                 const interviews = interviewsData.success ? interviewsData.data : [];
                 
@@ -1874,6 +1879,7 @@
                     </div>
                 `;
 
+                console.log('🎯 Opening detail panel for student:', student.first_name, student.last_name);
                 openDetailPanel(`Student: ${student.first_name} ${student.last_name}`, content);
 
                 // Load questions for each interview
@@ -1909,7 +1915,7 @@
                                     <div class="question-details" id="q-details-${question.id}">
                                         <div class="answer-section">
                                             <div class="answer-label">Student Answer:</div>
-                                            <div class="answer-text">${question.answer_text || 'No answer provided'}</div>
+                                            <div class="answer-text">${question.student_answer || 'No answer provided'}</div>
                                             ${question.answer_photo_url ? `
                                                 <img src="${question.answer_photo_url}" alt="Answer Image" class="answer-image" onclick="openImageModal('${question.answer_photo_url}')" style="cursor: pointer;">
                                             ` : ''}
