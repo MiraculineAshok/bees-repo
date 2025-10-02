@@ -1407,7 +1407,7 @@
         }
 
         async function initializeInterview() {
-            console.log('initializeInterview called, currentStudent:', currentStudent);
+            console.log('🕐 initializeInterview called, currentStudent:', currentStudent);
             console.log('currentStudent type:', typeof currentStudent);
             console.log('currentStudent.id:', currentStudent?.id);
             
@@ -1467,6 +1467,7 @@
         }
 
         async function createInterview() {
+            console.log('🕐 createInterview called, currentStudent:', currentStudent);
             try {
                 if (!currentStudent || !currentStudent.id) {
                     console.error('No student data available for creating interview');
@@ -1514,13 +1515,18 @@
 
         // Duration tracking functions
         function startDurationTracking() {
-            if (interviewStartTime) return; // Already started
+            console.log('🕐 startDurationTracking called, interviewStartTime:', interviewStartTime);
+            if (interviewStartTime) {
+                console.log('⏱️ Timer already started, returning');
+                return; // Already started
+            }
             
             interviewStartTime = new Date();
             console.log('⏱️ Interview started at:', interviewStartTime);
             
             // Update clock every second
             durationInterval = setInterval(updateDurationDisplay, 1000);
+            console.log('⏱️ Timer interval set:', durationInterval);
             updateDurationDisplay();
         }
 
@@ -1541,20 +1547,30 @@
         }
 
         function updateDurationDisplay() {
-            if (!interviewStartTime) return;
+            console.log('🕐 updateDurationDisplay called, interviewStartTime:', interviewStartTime);
+            if (!interviewStartTime) {
+                console.log('⏱️ No interview start time, returning');
+                    return;
+                }
             
             const now = new Date();
             const duration = Math.floor((now - interviewStartTime) / 1000);
+            console.log('⏱️ Duration calculated:', duration, 'seconds');
             
             const hours = Math.floor(duration / 3600);
             const minutes = Math.floor((duration % 3600) / 60);
             const seconds = duration % 60;
             
             const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            console.log('⏱️ Time string:', timeString);
             
             const durationDisplay = document.getElementById('duration-display');
+            console.log('⏱️ Duration display element:', durationDisplay);
             if (durationDisplay) {
                 durationDisplay.textContent = timeString;
+                console.log('⏱️ Updated display to:', timeString);
+            } else {
+                console.error('⏱️ Duration display element not found!');
             }
         }
 
@@ -1598,7 +1614,7 @@
                     if (verdictSection) {
                         if (userRole === 'superadmin') {
                             verdictSection.classList.remove('hidden');
-                        } else {
+                } else {
                             verdictSection.classList.add('hidden');
                         }
                     }
