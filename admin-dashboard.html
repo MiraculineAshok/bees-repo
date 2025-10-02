@@ -1214,10 +1214,10 @@
                 const questionsData = await questionsRes.json();
                 const studentsData = await studentsRes.json();
 
-                document.getElementById('total-interviews').textContent = interviewsData.total || 0;
-                document.getElementById('active-sessions').textContent = sessionsData.active || 0;
-                document.getElementById('total-questions').textContent = questionsData.total || 0;
-                document.getElementById('total-students').textContent = studentsData.total || 0;
+                document.getElementById('total-interviews').textContent = interviewsData.data?.total || 0;
+                document.getElementById('active-sessions').textContent = sessionsData.data?.active || 0;
+                document.getElementById('total-questions').textContent = questionsData.data?.total_questions || 0;
+                document.getElementById('total-students').textContent = studentsData.data?.total || 0;
             } catch (error) {
                 console.error('Error loading overview stats:', error);
             }
