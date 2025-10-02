@@ -1158,6 +1158,7 @@
             if (!currentStudent.id) {
                 console.error('currentStudent exists but has no id property');
                 console.error('currentStudent keys:', Object.keys(currentStudent));
+                console.error('currentStudent full object:', JSON.stringify(currentStudent, null, 2));
                 
                 // Try to reload student data as a fallback
                 console.log('Attempting to reload student data...');
@@ -1659,30 +1660,44 @@
         }
 
         async function handlePhotoUpload(questionId, input) {
+            console.log('handlePhotoUpload called with questionId:', questionId);
+            console.log('currentStudent:', currentStudent);
+            console.log('currentStudent.id:', currentStudent?.id);
+            
             const file = input.files[0];
-            if (!file) return;
+            if (!file) {
+                console.log('No file selected');
+                return;
+            }
+
+            console.log('File selected:', file.name, file.type, file.size);
 
             try {
                 const formData = new FormData();
                 formData.append('photo', file);
 
+                console.log('Uploading photo...');
                 const response = await fetch('/api/upload-photo', {
                     method: 'POST',
                     body: formData
                 });
 
+                console.log('Upload response status:', response.status);
                 const result = await response.json();
+                console.log('Upload response:', result);
 
                 if (response.ok && result.success) {
                     // Update the answer with the photo URL
                     const currentAnswer = questions.find(q => q.id === questionId)?.student_answer || '';
                     const photoUrl = result.data.photoUrl || result.data.path; // Handle both formats
+                    console.log('Photo URL:', photoUrl);
                     await updateAnswer(questionId, currentAnswer, photoUrl);
                     
                     // Refresh the display
                     displayQuestions();
                     showSuccess('Image uploaded successfully!');
                 } else {
+                    console.error('Upload failed:', result);
                     showError('Failed to upload photo: ' + (result.error || 'Unknown error'));
                 }
             } catch (error) {
