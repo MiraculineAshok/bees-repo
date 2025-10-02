@@ -10,11 +10,22 @@ const request = require('request');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const fs = require('fs');
-const cloudinary = require('./config/cloudinary');
+// Cloudinary configuration (optional)
+let cloudinary = null;
+try {
+  cloudinary = require('./config/cloudinary');
+} catch (error) {
+  console.log('⚠️ Cloudinary config not found, using local storage fallback');
+}
 
 // Helper function to delete image from Cloudinary
 async function deleteCloudinaryImage(photoUrl) {
   try {
+    if (!cloudinary) {
+      console.log('⚠️ Cloudinary not available, skipping deletion');
+      return;
+    }
+    
     if (!photoUrl || !photoUrl.includes('cloudinary.com')) {
       console.log('Skipping deletion - not a Cloudinary URL:', photoUrl);
       return; // Not a Cloudinary URL
@@ -687,29 +698,36 @@ app.post('/api/upload-photo', upload.single('photo'), async (req, res) => {
     let photoUrl;
     let publicId = null;
 
-    try {
-      // Try to upload to Cloudinary first
-      console.log('☁️ Attempting Cloudinary upload...');
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: 'interview-photos',
-        resource_type: 'auto',
-        transformation: [
-          { width: 800, height: 600, crop: 'limit' },
-          { quality: 'auto' }
-        ]
-      });
+    if (cloudinary) {
+      try {
+        // Try to upload to Cloudinary first
+        console.log('☁️ Attempting Cloudinary upload...');
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: 'interview-photos',
+          resource_type: 'auto',
+          transformation: [
+            { width: 800, height: 600, crop: 'limit' },
+            { quality: 'auto' }
+          ]
+        });
 
-      photoUrl = result.secure_url;
-      publicId = result.public_id;
-      
-      // Delete the local file after successful Cloudinary upload
-      fs.unlinkSync(req.file.path);
-      console.log('✅ Cloudinary upload successful:', photoUrl);
+        photoUrl = result.secure_url;
+        publicId = result.public_id;
+        
+        // Delete the local file after successful Cloudinary upload
+        fs.unlinkSync(req.file.path);
+        console.log('✅ Cloudinary upload successful:', photoUrl);
 
-    } catch (cloudinaryError) {
-      console.warn('⚠️ Cloudinary upload failed, falling back to local storage:', cloudinaryError.message);
-      
-      // Fallback to local storage
+      } catch (cloudinaryError) {
+        console.warn('⚠️ Cloudinary upload failed, falling back to local storage:', cloudinaryError.message);
+        
+        // Fallback to local storage
+        photoUrl = `/uploads/${req.file.filename}`;
+        console.log('📁 Using local storage:', photoUrl);
+      }
+    } else {
+      // Cloudinary not available, use local storage
+      console.log('⚠️ Cloudinary not available, using local storage');
       photoUrl = `/uploads/${req.file.filename}`;
       console.log('📁 Using local storage:', photoUrl);
     }
