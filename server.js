@@ -919,12 +919,14 @@ app.get('/getCode', async (req, res) => {
                 const isAuthorized = await AuthService.isUserAuthorized(userEmail);
                 if (!isAuthorized) {
                   console.log('❌ Unauthorized access attempt by:', userEmail);
-                  return res.redirect(`${BASE_URL}/unauthorized?email=${encodeURIComponent(userEmail)}`);
+                  const baseUrl = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
+                  return res.redirect(`${baseUrl}/unauthorized?email=${encodeURIComponent(userEmail)}`);
                 }
                 console.log('✅ User authorized:', userEmail);
               } catch (authError) {
                 console.error('❌ Error checking user authorization:', authError);
-                return res.redirect(`${BASE_URL}/unauthorized?email=${encodeURIComponent(userEmail || 'unknown')}`);
+                const baseUrl = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
+                return res.redirect(`${baseUrl}/unauthorized?email=${encodeURIComponent(userEmail || 'unknown')}`);
               }
             }
             
@@ -943,7 +945,8 @@ app.get('/getCode', async (req, res) => {
       }
       
       // Redirect back to landing page with user information
-      const redirectUrl = new URL(`${BASE_URL}/`);
+      const baseUrl = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
+      const redirectUrl = new URL(`${baseUrl}/`);
       if (userEmail) redirectUrl.searchParams.set('email', userEmail);
       if (userName) redirectUrl.searchParams.set('name', userName);
       
@@ -952,7 +955,8 @@ app.get('/getCode', async (req, res) => {
     } catch (parseError) {
       console.error('Error parsing token response:', parseError);
       // Even if parsing fails, try to redirect back to landing page
-      res.redirect(`${BASE_URL}/?login=success`);
+      const baseUrl = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
+      res.redirect(`${baseUrl}/?login=success`);
     }
   });
 });
