@@ -2142,9 +2142,127 @@
 
         // Action functions - viewInterview is already implemented above
 
-        function viewSession(sessionId) {
-            // Implement view session functionality
-            console.log('View session:', sessionId);
+        async function viewSession(sessionId) {
+            console.log('🔍 viewSession called with ID:', sessionId);
+            try {
+                // Get session details
+                const sessionResponse = await fetch(`/api/admin/sessions`);
+                const sessionsData = await sessionResponse.json();
+                
+                console.log('📊 Sessions data response:', sessionsData);
+                
+                if (!sessionsData.success) {
+                    showError('Failed to load sessions');
+                    return;
+                }
+
+                const session = sessionsData.data.find(s => s.id === parseInt(sessionId));
+                if (!session) {
+                    showError('Session not found');
+                    return;
+                }
+
+                // Get interviews for this session
+                const interviewsResponse = await fetch(`/api/admin/interviews`);
+                const interviewsData = await interviewsResponse.json();
+                
+                console.log('📋 Interviews data response:', interviewsData);
+                
+                const sessionInterviews = interviewsData.success ? 
+                    interviewsData.data.filter(interview => interview.session_id === parseInt(sessionId)) : [];
+                
+                console.log('Session interviews loaded:', sessionInterviews.length);
+
+                const content = `
+                    <div class="detail-section">
+                        <h4 class="detail-section-title">Session Information</h4>
+                        <div class="detail-item">
+                            <div class="detail-label">Session Name</div>
+                            <div class="detail-value">${session.name}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Description</div>
+                            <div class="detail-value">${session.description || 'No description available'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Status</div>
+                            <div class="detail-value"><span class="status-badge status-${session.status}">${session.status}</span></div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Created By</div>
+                            <div class="detail-value">${session.created_by_name || 'Unknown'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Created At</div>
+                            <div class="detail-value">${formatDate(session.created_at)}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Total Interviews</div>
+                            <div class="detail-value">${sessionInterviews.length}</div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4 class="detail-section-title">Session Interviews (${sessionInterviews.length})</h4>
+                        ${sessionInterviews.length > 0 ? `
+                            <ul class="interview-list">
+                                ${sessionInterviews.map(interview => `
+                                    <li class="interview-item">
+                                        <div class="interview-header" onclick="toggleInterview(${interview.id})">
+                                            <div>
+                                                <div class="interview-title">Interview #${interview.id}</div>
+                                                <div class="interview-meta">
+                                                    ${interview.student_name || 'Unknown Student'} • 
+                                                    ${formatDate(interview.interview_date)} • 
+                                                    ${interview.duration_seconds ? formatDuration(interview.duration_seconds) : 'N/A'} • 
+                                                    ${interview.verdict || 'No Verdict'}
+                                                </div>
+                                            </div>
+                                            <span class="interview-expand" id="expand-${interview.id}">▼</span>
+                                        </div>
+                                        <div class="interview-details" id="details-${interview.id}">
+                                            <div class="detail-item">
+                                                <div class="detail-label">Student</div>
+                                                <div class="detail-value">${interview.student_name || 'Unknown'} (${interview.zeta_id || 'N/A'})</div>
+                                            </div>
+                                            <div class="detail-item">
+                                                <div class="detail-label">Interviewer</div>
+                                                <div class="detail-value">${interview.interviewer_name || 'Unknown'}</div>
+                                            </div>
+                                            <div class="detail-item">
+                                                <div class="detail-label">Status</div>
+                                                <div class="detail-value"><span class="status-badge status-${interview.status}">${interview.status}</span></div>
+                                            </div>
+                                            <div class="detail-item">
+                                                <div class="detail-label">Overall Notes</div>
+                                                <div class="detail-value">${interview.overall_notes || 'No notes available'}</div>
+                                            </div>
+                                            <div class="detail-item">
+                                                <div class="detail-label">Questions & Answers</div>
+                                                <div class="detail-value">
+                                                    <div id="questions-${interview.id}">Loading questions...</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        ` : '<p>No interviews found for this session.</p>'}
+                    </div>
+                `;
+
+                console.log('🎯 Opening detail panel for session:', session.name);
+                openDetailPanel(`Session: ${session.name}`, content);
+
+                // Load questions for each interview
+                for (const interview of sessionInterviews) {
+                    await loadInterviewQuestions(interview.id);
+                }
+
+            } catch (error) {
+                console.error('Error loading session details:', error);
+                showError('Error loading session details');
+            }
         }
 
         // viewStudent is already implemented above
