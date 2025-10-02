@@ -2,7 +2,7 @@ const pool = require('../db/pool');
 
 class QuestionBankService {
     // Get all questions from the question bank
-    async getAllQuestions() {
+    static async getAllQuestions() {
         try {
             if (!pool) {
                 console.error('❌ Database pool is not available');
@@ -23,7 +23,7 @@ class QuestionBankService {
     }
 
     // Get questions by category
-    async getQuestionsByCategory(category) {
+    static async getQuestionsByCategory(category) {
         try {
             const query = `
                 SELECT id, question, category, times_asked, created_at, updated_at
@@ -40,7 +40,7 @@ class QuestionBankService {
     }
 
     // Get all categories
-    async getCategories() {
+    static async getCategories() {
         try {
             if (!pool) {
                 console.error('❌ Database pool is not available');
@@ -62,7 +62,7 @@ class QuestionBankService {
     }
 
     // Add a new question to the question bank
-    async addQuestion(question, category) {
+    static async addQuestion(question, category) {
         try {
             const query = `
                 INSERT INTO question_bank (question, category)
@@ -78,7 +78,7 @@ class QuestionBankService {
     }
 
     // Increment the times_asked counter for a question
-    async incrementTimesAsked(questionId) {
+    static async incrementTimesAsked(questionId) {
         try {
             const query = `
                 UPDATE question_bank
@@ -95,7 +95,7 @@ class QuestionBankService {
     }
 
     // Search questions by text
-    async searchQuestions(searchTerm) {
+    static async searchQuestions(searchTerm) {
         try {
             const query = `
                 SELECT id, question, category, times_asked, created_at, updated_at
@@ -112,7 +112,7 @@ class QuestionBankService {
     }
 
     // Get popular questions (most asked)
-    async getPopularQuestions(limit = 10) {
+    static async getPopularQuestions(limit = 10) {
         try {
             const query = `
                 SELECT id, question, category, times_asked, created_at, updated_at
@@ -130,7 +130,7 @@ class QuestionBankService {
     }
 
     // Update a question
-    async updateQuestion(questionId, question, category) {
+    static async updateQuestion(questionId, question, category) {
         try {
             const query = `
                 UPDATE question_bank
@@ -147,7 +147,7 @@ class QuestionBankService {
     }
 
     // Delete a question
-    async deleteQuestion(questionId) {
+    static async deleteQuestion(questionId) {
         try {
             const query = `
                 DELETE FROM question_bank
