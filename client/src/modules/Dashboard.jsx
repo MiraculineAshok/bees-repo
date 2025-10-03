@@ -39,7 +39,7 @@ const AdminTabs = [
 const InterviewerTabs = [
   { to: 'interview', label: 'Start Interview' },
   { to: 'my-interviews', label: '📋 My Interviews' },
-  { to: 'questions', label: '❓ Question Bank' },
+  { to: 'question-analysis', label: '❓ Question Analysis' },
 ]
 
 function Header({ role }) {
@@ -222,6 +222,75 @@ function QuestionsTab() {
   )
 }
 
+function QuestionAnalysisTab() {
+  const email = useUserEmail()
+  const [state, setState] = useState({ loading: true, error: '', items: [] })
+  const [favorites, setFavorites] = useState(new Set())
+
+  useEffect(()=>{
+    (async ()=>{
+      try {
+        const [qRes, favRes] = await Promise.all([
+          fetch('/api/question-bank'),
+          email ? fetch(`/api/interviewer/favorites?email=${encodeURIComponent(email)}`) : Promise.resolve({ ok:true, json: async()=>({ success:true, data: [] }) })
+        ])
+        const qJson = await qRes.json()
+        const favJson = await favRes.json()
+        if (qJson.success === false) throw new Error(qJson.error || 'Failed to load questions')
+        const items = qJson.data || qJson || []
+        const favIds = new Set((favJson.data || []).map(f=>f.question_id))
+        setFavorites(favIds)
+        setState({ loading:false, error:'', items })
+      } catch(e) {
+        setState({ loading:false, error: e.message || 'Failed to load', items: [] })
+      }
+    })()
+  }, [email])
+
+  async function toggleFavorite(questionId) {
+    try {
+      const isFav = favorites.has(questionId)
+      const method = isFav ? 'DELETE' : 'POST'
+      const res = await fetch(`/api/interviewer/favorites?email=${encodeURIComponent(email)}`, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question_id: questionId })
+      })
+      const json = await res.json()
+      if (!res.ok || json.success === false) throw new Error(json.error || `HTTP ${res.status}`)
+      const next = new Set(favorites)
+      if (isFav) next.delete(questionId); else next.add(questionId)
+      setFavorites(next)
+    } catch(e) {
+      alert(`Failed to update favorite: ${e.message}`)
+    }
+  }
+
+  if (state.loading) return <div style={{padding:16}}>Loading question analysis...</div>
+  if (state.error) return <div style={{padding:16,color:'#b91c1c'}}>Error: {state.error}</div>
+  if (!state.items.length) return <div style={{padding:16}}>No questions.</div>
+
+  return (
+    <div style={{padding:16,display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))',gap:12}}>
+      {state.items.map(q => (
+        <div key={q.id} style={{border:'1px solid #e5e7eb',borderRadius:6,padding:12,background:'#fff'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+            <div style={{fontWeight:600,maxWidth:'85%'}}>{q.question}</div>
+            <button onClick={()=>toggleFavorite(q.id)} title={favorites.has(q.id)?'Remove from favorites':'Add to favorites'} style={{border:'none',background:'transparent',fontSize:18,cursor:'pointer'}}>
+              {favorites.has(q.id) ? '★' : '☆'}
+            </button>
+          </div>
+          <div style={{fontSize:12,color:'#475569',marginBottom:8}}>Category: {q.category}</div>
+          {/* Placeholder stats; can be wired to /api/admin/questions/analytics if needed */}
+          <div style={{display:'flex',gap:12,fontSize:12,color:'#334155'}}>
+            <div>Asked: {q.times_asked || '-'}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function AdminSessionsTab() {
   const [state, setState] = useState({ loading: true, error: '', items: [] })
   useEffect(()=>{
@@ -295,6 +364,7 @@ export default function Dashboard() {
             <Route path="overview" element={<AdminOverviewTab />} />
             <Route path="interviews" element={<AdminInterviewsTab />} />
             <Route path="questions" element={<QuestionsTab />} />
+            <Route path="question-analysis" element={<QuestionAnalysisTab />} />
             <Route path="sessions" element={<AdminSessionsTab />} />
             <Route path="students" element={<AdminStudentsTab />} />
             <Route path="my-interviews" element={<MyInterviewsTab />} />
