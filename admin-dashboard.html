@@ -323,9 +323,130 @@
             padding: 2rem;
             border-radius: 8px;
             width: 90%;
-            max-width: 500px;
+            max-width: 600px;
             max-height: 90vh;
             overflow-y: auto;
+        }
+
+        /* Panelist Selection Styles */
+        .panelist-container {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 1rem;
+            background: #f9f9f9;
+        }
+
+        .panelist-search-container {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .search-result-item {
+            padding: 0.75rem;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .search-result-item:hover {
+            background: #f0f0f0;
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-info {
+            flex: 1;
+        }
+
+        .search-result-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .search-result-email {
+            font-size: 0.875rem;
+            color: #666;
+        }
+
+        .add-new-interviewer {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            margin-left: 0.5rem;
+        }
+
+        .add-new-interviewer:hover {
+            background: #0056b3;
+        }
+
+        .selected-panelists h4 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+            font-size: 1rem;
+        }
+
+        .selected-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .selected-panelist {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .selected-panelist-name {
+            color: #1976d2;
+            font-weight: 500;
+        }
+
+        .remove-panelist {
+            background: none;
+            border: none;
+            color: #1976d2;
+            cursor: pointer;
+            font-size: 1.2rem;
+            line-height: 1;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .remove-panelist:hover {
+            color: #d32f2f;
         }
 
         .modal-header {
@@ -1338,6 +1459,19 @@
                     <textarea id="session-description" class="form-textarea" placeholder="Brief description of the interview session"></textarea>
                 </div>
                 <div class="form-group">
+                    <label class="form-label" for="panelist-search">Panelists (Interviewers)</label>
+                    <div class="panelist-container">
+                        <div class="panelist-search-container">
+                            <input type="text" id="panelist-search" class="form-input" placeholder="Search for interviewers..." onkeyup="searchInterviewers()">
+                            <div id="panelist-search-results" class="search-results"></div>
+                        </div>
+                        <div class="selected-panelists">
+                            <h4>Selected Panelists:</h4>
+                            <div id="selected-panelists-list" class="selected-list"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
                     <button type="submit" class="btn btn-primary">Create Session</button>
                     <button type="button" class="btn btn-secondary" onclick="closeCreateSessionModal()">Cancel</button>
                 </div>
@@ -1417,6 +1551,8 @@
         let currentSection = 'overview';
         let interviews = [];
         let questions = [];
+        let selectedPanelists = [];
+        let allInterviewers = [];
         let sessions = [];
         let students = [];
 
@@ -2098,6 +2234,9 @@
         function closeCreateSessionModal() {
             document.getElementById('create-session-modal').classList.remove('active');
             document.getElementById('create-session-form').reset();
+            selectedPanelists = [];
+            updateSelectedPanelistsDisplay();
+            document.getElementById('panelist-search-results').style.display = 'none';
         }
 
         async function createSession() {
@@ -2112,7 +2251,8 @@
                     },
                     body: JSON.stringify({
                         name: name,
-                        description: description
+                        description: description,
+                        panelists: selectedPanelists
                     })
                 });
 
@@ -2128,6 +2268,152 @@
             } catch (error) {
                 console.error('Error creating session:', error);
                 showError('Error creating session');
+            }
+        }
+
+        // Panelist management functions
+        async function searchInterviewers() {
+            const searchTerm = document.getElementById('panelist-search').value.toLowerCase();
+            const resultsContainer = document.getElementById('panelist-search-results');
+            
+            if (searchTerm.length < 2) {
+                resultsContainer.style.display = 'none';
+                return;
+            }
+
+            try {
+                // Load all interviewers if not already loaded
+                if (allInterviewers.length === 0) {
+                    await loadAllInterviewers();
+                }
+
+                // Filter interviewers based on search term
+                const filteredInterviewers = allInterviewers.filter(interviewer => 
+                    interviewer.name.toLowerCase().includes(searchTerm) ||
+                    interviewer.email.toLowerCase().includes(searchTerm)
+                );
+
+                // Remove already selected panelists
+                const availableInterviewers = filteredInterviewers.filter(interviewer => 
+                    !selectedPanelists.some(selected => selected.id === interviewer.id)
+                );
+
+                displaySearchResults(availableInterviewers, searchTerm);
+            } catch (error) {
+                console.error('Error searching interviewers:', error);
+            }
+        }
+
+        async function loadAllInterviewers() {
+            try {
+                const response = await fetch('/api/admin/users/interviewers');
+                const data = await response.json();
+                if (data.success) {
+                    allInterviewers = data.data;
+                } else {
+                    console.error('Error loading interviewers:', data.error);
+                    allInterviewers = [];
+                }
+            } catch (error) {
+                console.error('Error loading interviewers:', error);
+                allInterviewers = [];
+            }
+        }
+
+        function displaySearchResults(interviewers, searchTerm) {
+            const resultsContainer = document.getElementById('panelist-search-results');
+            
+            if (interviewers.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="search-result-item">
+                        <div class="search-result-info">
+                            <div class="search-result-name">No interviewers found</div>
+                            <div class="search-result-email">Add "${searchTerm}" as new interviewer</div>
+                        </div>
+                        <button class="add-new-interviewer" onclick="addNewInterviewer('${searchTerm}')">
+                            Add New
+                        </button>
+                    </div>
+                `;
+            } else {
+                resultsContainer.innerHTML = interviewers.map(interviewer => `
+                    <div class="search-result-item" onclick="addPanelist(${interviewer.id}, '${interviewer.name}', '${interviewer.email}')">
+                        <div class="search-result-info">
+                            <div class="search-result-name">${interviewer.name}</div>
+                            <div class="search-result-email">${interviewer.email}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            resultsContainer.style.display = 'block';
+        }
+
+        function addPanelist(id, name, email) {
+            // Check if already selected
+            if (selectedPanelists.some(panelist => panelist.id === id)) {
+                return;
+            }
+
+            selectedPanelists.push({ id, name, email });
+            updateSelectedPanelistsDisplay();
+            
+            // Clear search
+            document.getElementById('panelist-search').value = '';
+            document.getElementById('panelist-search-results').style.display = 'none';
+        }
+
+        function removePanelist(id) {
+            selectedPanelists = selectedPanelists.filter(panelist => panelist.id !== id);
+            updateSelectedPanelistsDisplay();
+        }
+
+        function updateSelectedPanelistsDisplay() {
+            const container = document.getElementById('selected-panelists-list');
+            
+            if (selectedPanelists.length === 0) {
+                container.innerHTML = '<div style="color: #666; font-style: italic;">No panelists selected</div>';
+            } else {
+                container.innerHTML = selectedPanelists.map(panelist => `
+                    <div class="selected-panelist">
+                        <span class="selected-panelist-name">${panelist.name}</span>
+                        <button class="remove-panelist" onclick="removePanelist(${panelist.id})" title="Remove panelist">×</button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        async function addNewInterviewer(email) {
+            const name = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            
+            try {
+                const response = await fetch('/api/admin/users/interviewers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        email: email,
+                        role: 'interviewer'
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    // Add to allInterviewers list
+                    allInterviewers.push(data.data);
+                    
+                    // Add as panelist
+                    addPanelist(data.data.id, data.data.name, data.data.email);
+                    
+                    showSuccess('New interviewer added successfully');
+                } else {
+                    showError('Error adding interviewer: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error adding interviewer:', error);
+                showError('Error adding interviewer');
             }
         }
 

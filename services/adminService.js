@@ -274,18 +274,40 @@ class AdminService {
             return mockDataService.createSession(sessionData);
         }
 
+        const client = await pool.connect();
         try {
-            const result = await pool.query(`
+            await client.query('BEGIN');
+
+            // Create the session
+            const sessionResult = await client.query(`
                 INSERT INTO interview_sessions (name, description, created_by)
                 VALUES ($1, $2, $3)
                 RETURNING *
             `, [sessionData.name, sessionData.description, 1]); // Using user ID 1 as default
 
+            const session = sessionResult.rows[0];
+
+            // Add panelists if provided
+            if (sessionData.panelists && sessionData.panelists.length > 0) {
+                for (const panelist of sessionData.panelists) {
+                    await client.query(`
+                        INSERT INTO session_panelists (session_id, user_id)
+                        VALUES ($1, $2)
+                        ON CONFLICT (session_id, user_id) DO NOTHING
+                    `, [session.id, panelist.id]);
+                }
+                console.log(`✅ Added ${sessionData.panelists.length} panelists to session`);
+            }
+
+            await client.query('COMMIT');
             console.log('✅ Session created successfully');
-            return result.rows[0];
+            return session;
         } catch (error) {
+            await client.query('ROLLBACK');
             console.error('❌ Error creating session:', error);
             throw error;
+        } finally {
+            client.release();
         }
     }
 

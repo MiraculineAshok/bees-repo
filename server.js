@@ -845,6 +845,73 @@ app.get('/api/admin/overview', async (req, res) => {
   }
 });
 
+// Get all interviewers
+app.get('/api/admin/users/interviewers', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, name, email, role FROM users WHERE role = $1 ORDER BY name',
+      ['interviewer']
+    );
+    
+    res.json({
+      success: true,
+      data: result.rows
+    });
+  } catch (error) {
+    console.error('Error getting interviewers:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Add new interviewer
+app.post('/api/admin/users/interviewers', async (req, res) => {
+  try {
+    const { name, email, role = 'interviewer' } = req.body;
+    
+    // Check if user already exists
+    const existingUser = await pool.query(
+      'SELECT id FROM users WHERE email = $1',
+      [email]
+    );
+    
+    if (existingUser.rows.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'User with this email already exists'
+      });
+    }
+    
+    // Create new user
+    const result = await pool.query(
+      'INSERT INTO users (name, email, role, created_at, updated_at) VALUES ($1, $2, $3, NOW(), NOW()) RETURNING id, name, email, role',
+      [name, email, role]
+    );
+    
+    const newUser = result.rows[0];
+    
+    // Add to authorized users table
+    await pool.query(
+      'INSERT INTO authorized_users (email, name, role, created_at) VALUES ($1, $2, $3, NOW()) ON CONFLICT (email) DO NOTHING',
+      [email, name, role]
+    );
+    
+    res.json({
+      success: true,
+      data: newUser,
+      message: 'Interviewer added successfully'
+    });
+  } catch (error) {
+    console.error('Error adding interviewer:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 app.get('/api/admin/interviews', async (req, res) => {
   try {
     const interviews = await AdminService.getAllInterviews();
@@ -943,7 +1010,7 @@ app.get('/api/admin/sessions', async (req, res) => {
 
 app.post('/api/admin/sessions', async (req, res) => {
   try {
-    const { name, description } = req.body;
+    const { name, description, panelists = [] } = req.body;
     if (!name) {
       return res.status(400).json({
         success: false,
@@ -951,7 +1018,7 @@ app.post('/api/admin/sessions', async (req, res) => {
       });
     }
 
-    const session = await AdminService.createSession({ name, description });
+    const session = await AdminService.createSession({ name, description, panelists });
     res.json({
       success: true,
       data: session
