@@ -79,6 +79,11 @@ class InterviewService {
                  WHERE i.id = $1`,
                 [interviewId]
             );
+            
+            if (!result.rows[0]) {
+                throw new Error('Interview not found');
+            }
+            
             return result.rows[0];
         } catch (error) {
             console.error('Error getting interview:', error);

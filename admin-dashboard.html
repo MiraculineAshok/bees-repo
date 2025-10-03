@@ -2767,16 +2767,28 @@
         // Interview Detail View
         async function viewInterview(interviewId) {
             try {
+                console.log('🔍 Loading interview details for ID:', interviewId);
+                
                 // Get interview details
                 const interviewResponse = await fetch(`/api/interviews/${interviewId}`);
                 const interviewData = await interviewResponse.json();
                 
+                console.log('📊 Interview API response:', interviewData);
+                
                 if (!interviewData.success) {
+                    console.error('❌ Interview API failed:', interviewData.error);
                     showError('Interview not found');
                     return;
                 }
 
                 const interview = interviewData.data;
+                console.log('📋 Interview data:', interview);
+                
+                if (!interview) {
+                    console.error('❌ Interview data is null/undefined');
+                    showError('Interview data not available');
+                    return;
+                }
 
                 // Get student details
                 let studentInfo = 'Unknown Student';
