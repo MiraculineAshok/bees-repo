@@ -64,11 +64,21 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Check user role and show appropriate dashboard button
             try {
-                const userEmail = userData.email;
-                const url = userEmail ? `/api/user/role?email=${encodeURIComponent(userEmail)}` : '/api/user/role';
-                const response = await fetch(url);
-                const result = await response.json();
-                const userRole = result.success ? result.role : 'interviewer';
+                let userRole = 'interviewer'; // Default role
+                
+                // If role is already in userData (from OAuth callback), use it
+                if (userData.role) {
+                    userRole = userData.role;
+                    console.log('Using role from userData:', userRole);
+                } else {
+                    // Otherwise, fetch from API
+                    const userEmail = userData.email;
+                    const url = userEmail ? `/api/user/role?email=${encodeURIComponent(userEmail)}` : '/api/user/role';
+                    const response = await fetch(url);
+                    const result = await response.json();
+                    userRole = result.success ? result.role : 'interviewer';
+                    console.log('Fetched role from API:', userRole);
+                }
                 
                 if (userRole === 'superadmin' || userRole === 'admin') {
                     // Show both dashboard buttons for admin and superadmin
@@ -115,12 +125,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const urlParams = new URLSearchParams(window.location.search);
         const userEmail = urlParams.get('email');
         const userName = urlParams.get('name');
+        const userRole = urlParams.get('role');
         
         if (userEmail || userName) {
             // User just logged in, display their info
             const userData = {
                 email: userEmail,
-                name: userName || userEmail?.split('@')[0] || 'User'
+                name: userName || userEmail?.split('@')[0] || 'User',
+                role: userRole || 'interviewer' // Include role from URL
             };
             displayUserInfo(userData);
             

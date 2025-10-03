@@ -2,27 +2,29 @@
 (function() {
     'use strict';
     
-    // Function to get user data from localStorage or URL parameters
-    function getUserData() {
-        // Check URL parameters first (for OAuth callback)
-        const urlParams = new URLSearchParams(window.location.search);
-        const userEmail = urlParams.get('email');
-        const userName = urlParams.get('name');
-        
-        if (userEmail || userName) {
-            const userData = {
-                email: userEmail,
-                name: userName || userEmail?.split('@')[0] || 'User'
-            };
-            
-            // Store in localStorage for future visits
-            localStorage.setItem('bees_user_data', JSON.stringify(userData));
-            
-            // Clean up URL parameters
-            window.history.replaceState({}, document.title, window.location.pathname);
-            
-            return userData;
-        }
+           // Function to get user data from localStorage or URL parameters
+           function getUserData() {
+               // Check URL parameters first (for OAuth callback)
+               const urlParams = new URLSearchParams(window.location.search);
+               const userEmail = urlParams.get('email');
+               const userName = urlParams.get('name');
+               const userRole = urlParams.get('role');
+               
+               if (userEmail || userName) {
+                   const userData = {
+                       email: userEmail,
+                       name: userName || userEmail?.split('@')[0] || 'User',
+                       role: userRole || 'interviewer' // Include role from URL
+                   };
+                   
+                   // Store in localStorage for future visits
+                   localStorage.setItem('bees_user_data', JSON.stringify(userData));
+                   
+                   // Clean up URL parameters
+                   window.history.replaceState({}, document.title, window.location.pathname);
+                   
+                   return userData;
+               }
         
         // Check localStorage for existing user data
         const storedUserData = localStorage.getItem('bees_user_data');
@@ -85,8 +87,18 @@
                 loginBtn.classList.add('hidden');
             }
             
-            // Check user role and show appropriate dashboard button
-            const userRole = await checkUserRole();
+                   // Check user role and show appropriate dashboard button
+                   let userRole = 'interviewer'; // Default role
+                   
+                   // If role is already in userData (from OAuth callback), use it
+                   if (userData.role) {
+                       userRole = userData.role;
+                       console.log('Using role from userData:', userRole);
+                   } else {
+                       // Otherwise, fetch from API
+                       userRole = await checkUserRole();
+                       console.log('Fetched role from API:', userRole);
+                   }
             
             if (userRole === 'superadmin' || userRole === 'admin') {
                 // Show both dashboard buttons for admin and superadmin

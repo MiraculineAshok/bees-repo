@@ -1395,25 +1395,41 @@ app.get('/getCode', async (req, res) => {
       const baseUrl = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
       let redirectUrl;
       
-      // Check if user is admin (you can modify this logic based on your admin criteria)
-      const isAdmin = userEmail && (
-        userEmail.includes('admin') || 
-        userEmail.includes('superadmin') || 
-        userEmail === 'miraculine.j@zohocorp.com' // Add your admin email here
-      );
+      // Check user role from database
+      let userRole = 'interviewer'; // Default role
+      if (userEmail) {
+        try {
+          const roleResult = await pool.query(
+            'SELECT role FROM users WHERE email = $1',
+            [userEmail]
+          );
+          if (roleResult.rows.length > 0) {
+            userRole = roleResult.rows[0].role;
+            console.log('✅ User role from database:', userRole);
+          } else {
+            console.log('❌ User not found in database, using default role: interviewer');
+          }
+        } catch (roleError) {
+          console.error('❌ Error checking user role:', roleError);
+        }
+      }
+      
+      const isAdmin = userRole === 'admin' || userRole === 'superadmin';
       
       if (isAdmin) {
         // Redirect admin to admin dashboard
         redirectUrl = new URL(`${baseUrl}/admin-dashboard.html`);
         if (userEmail) redirectUrl.searchParams.set('email', userEmail);
         if (userName) redirectUrl.searchParams.set('name', userName);
-        console.log('Redirecting admin to dashboard:', { userEmail, userName });
+        redirectUrl.searchParams.set('role', userRole);
+        console.log('Redirecting admin to dashboard:', { userEmail, userName, userRole });
       } else {
         // Redirect regular user to landing page
         redirectUrl = new URL(`${baseUrl}/`);
         if (userEmail) redirectUrl.searchParams.set('email', userEmail);
         if (userName) redirectUrl.searchParams.set('name', userName);
-        console.log('Redirecting user to landing page:', { userEmail, userName });
+        redirectUrl.searchParams.set('role', userRole);
+        console.log('Redirecting user to landing page:', { userEmail, userName, userRole });
       }
       
       res.redirect(redirectUrl.toString());

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Role Checking</title>
+</head>
+<body>
+    <h1>Debug Role Checking</h1>
+    <div id="debug-info"></div>
+    <button onclick="testRole('kannan.bb@zohocorp.com')">Test Kannan (Admin)</button>
+    <button onclick="testRole('miraculine.j@zohocorp.com')">Test Miraculine (Superadmin)</button>
+    <button onclick="testRole('miraculine.j+bees@zohotest.com')">Test Miraculine+ (Interviewer)</button>
+    <button onclick="clearStorage()">Clear localStorage</button>
+
+    <script>
+        async function testRole(email) {
+            const debugDiv = document.getElementById('debug-info');
+            debugDiv.innerHTML = `<p>Testing role for: ${email}</p>`;
+            
+            try {
+                const response = await fetch(`/api/user/role?email=${encodeURIComponent(email)}`);
+                const result = await response.json();
+                
+                debugDiv.innerHTML += `
+                    <p><strong>API Response:</strong> ${JSON.stringify(result)}</p>
+                    <p><strong>Role:</strong> ${result.role}</p>
+                    <p><strong>Should show admin dashboard:</strong> ${result.role === 'admin' || result.role === 'superadmin' ? 'YES' : 'NO'}</p>
+                `;
+                
+                // Simulate user data
+                const userData = {
+                    email: email,
+                    name: email.split('@')[0]
+                };
+                
+                // Test the role checking logic
+                const userRole = result.success ? result.role : 'interviewer';
+                debugDiv.innerHTML += `
+                    <p><strong>Role check result:</strong> ${userRole}</p>
+                    <p><strong>Will show admin dashboard:</strong> ${userRole === 'superadmin' || userRole === 'admin' ? 'YES' : 'NO'}</p>
+                    <p><strong>Will show interviewer dashboard:</strong> ${userRole === 'superadmin' || userRole === 'admin' ? 'YES (both)' : 'YES (only)'}</p>
+                `;
+                
+            } catch (error) {
+                debugDiv.innerHTML += `<p><strong>Error:</strong> ${error.message}</p>`;
+            }
+        }
+        
+        function clearStorage() {
+            localStorage.removeItem('bees_user_data');
+            alert('localStorage cleared!');
+        }
+    </script>
+</body>
+</html>
