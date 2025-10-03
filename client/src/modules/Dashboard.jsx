@@ -127,14 +127,50 @@ function useUserEmail() {
 }
 
 function MyInterviewsTab() {
-  // Embed legacy interviewer dashboard for full-featured "My Interviews" list and filters
+  const email = useUserEmail()
+  const [state, setState] = useState({ loading: true, error: '', items: [] })
+  useEffect(()=>{
+    (async ()=>{
+      try {
+        if (!email) throw new Error('Missing user email')
+        const res = await fetch(`/api/interviewer/interviews?email=${encodeURIComponent(email)}`, {
+          headers: { 'x-user-email': email }
+        })
+        const json = await res.json()
+        if (!res.ok || !json.success) throw new Error(json.error || `HTTP ${res.status}`)
+        setState({ loading: false, error: '', items: json.data || [] })
+      } catch (e) {
+        setState({ loading: false, error: e.message || 'Failed to load', items: [] })
+      }
+    })()
+  }, [email])
+  if (state.loading) return <div style={{padding:16}}>Loading my interviews...</div>
+  if (state.error) return <div style={{padding:16,color:'#b91c1c'}}>Error: {state.error}</div>
+  if (!state.items.length) return <div style={{padding:16}}>No interviews found.</div>
   return (
-    <div style={{height:'calc(100vh - 120px)'}}>
-      <iframe
-        title="My Interviews"
-        src={`/interviewer-dashboard.html${window.location.search ? ('?' + window.location.search.split('?')[1]) : ''}`}
-        style={{width:'100%',height:'100%',border:'0'}}
-      />
+    <div style={{padding:16}}>
+      <table style={{width:'100%',borderCollapse:'collapse'}}>
+        <thead>
+          <tr>
+            <th style={{textAlign:'left',borderBottom:'1px solid #eee',padding:'8px'}}>Date</th>
+            <th style={{textAlign:'left',borderBottom:'1px solid #eee',padding:'8px'}}>Student</th>
+            <th style={{textAlign:'left',borderBottom:'1px solid #eee',padding:'8px'}}>Session</th>
+            <th style={{textAlign:'left',borderBottom:'1px solid #eee',padding:'8px'}}>Status</th>
+            <th style={{textAlign:'left',borderBottom:'1px solid #eee',padding:'8px'}}>Verdict</th>
+          </tr>
+        </thead>
+        <tbody>
+          {state.items.map((it)=> (
+            <tr key={it.id}>
+              <td style={{padding:'8px',borderBottom:'1px solid #f1f5f9'}}>{new Date(it.created_at || it.interview_date || Date.now()).toLocaleString()}</td>
+              <td style={{padding:'8px',borderBottom:'1px solid #f1f5f9'}}>{it.student_name || `${it.first_name || ''} ${it.last_name || ''}`}</td>
+              <td style={{padding:'8px',borderBottom:'1px solid #f1f5f9'}}>{it.session_name || '-'}</td>
+              <td style={{padding:'8px',borderBottom:'1px solid #f1f5f9'}}>{it.status}</td>
+              <td style={{padding:'8px',borderBottom:'1px solid #f1f5f9'}}>{it.verdict || '-'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   )
 }
