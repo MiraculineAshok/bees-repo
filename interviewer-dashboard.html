@@ -507,6 +507,193 @@
         .hidden {
             display: none !important;
         }
+
+        /* Enhanced Filter Styles */
+        .controls-panel {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border: 1px solid #dee2e6;
+        }
+
+        .filter-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-section-title {
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #495057;
+            font-size: 1rem;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 0.25rem;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 150px;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: #495057;
+            font-size: 0.875rem;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 0.5rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            background: white;
+        }
+
+        .filter-group input[type="text"] {
+            min-width: 200px;
+        }
+
+        .filter-group input[type="number"] {
+            min-width: 100px;
+        }
+
+        /* Sort Section */
+        .sort-section {
+            background: #fff3cd;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .sort-options {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .sort-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sort-option select {
+            padding: 0.25rem 0.5rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            min-width: 150px;
+        }
+
+        /* Group By Section */
+        .group-by-section {
+            background: #e9ecef;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .group-by-options {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .group-by-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .group-by-option input[type="radio"] {
+            margin: 0;
+        }
+
+        .group-by-option label {
+            margin: 0;
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+
+        /* Action Buttons */
+        .filter-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-filter {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background 0.2s;
+        }
+
+        .btn-filter:hover {
+            background: #0056b3;
+        }
+
+        .btn-clear {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background 0.2s;
+        }
+
+        .btn-clear:hover {
+            background: #545b62;
+        }
+
+        .btn-export {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background 0.2s;
+        }
+
+        .btn-export:hover {
+            background: #1e7e34;
+        }
+
+        /* Results Summary */
+        .results-summary {
+            background: #d1ecf1;
+            padding: 0.75rem 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            color: #0c5460;
+        }
+
+        .results-summary strong {
+            color: #000000;
+        }
     </style>
 </head>
 <body>
@@ -572,6 +759,125 @@
                     </div>
                 </div>
 
+                <!-- Enhanced Filter, Sort, and Group Controls -->
+                <div class="controls-panel">
+                    <!-- Search Section -->
+                    <div class="filter-section">
+                        <div class="filter-section-title">🔍 Search & Filter</div>
+                        <div class="filter-row">
+                            <div class="filter-group">
+                                <label>Search:</label>
+                                <input type="text" id="search-interviews" class="form-input" placeholder="Search by student name, Zeta ID, or session..." onkeyup="applyFilters()">
+                            </div>
+                            <div class="filter-group">
+                                <label>Status:</label>
+                                <select id="status-filter" class="form-select" onchange="applyFilters()">
+                                    <option value="">All Statuses</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="in_progress">In Progress</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>Verdict:</label>
+                                <select id="verdict-filter" class="form-select" onchange="applyFilters()">
+                                    <option value="">All Verdicts</option>
+                                    <option value="Tiger">Tiger</option>
+                                    <option value="Cow">Cow</option>
+                                    <option value="Cow+">Cow+</option>
+                                    <option value="Sheep">Sheep</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="filter-row">
+                            <div class="filter-group">
+                                <label>Date From:</label>
+                                <input type="date" id="date-from" class="form-input" onchange="applyFilters()">
+                            </div>
+                            <div class="filter-group">
+                                <label>Date To:</label>
+                                <input type="date" id="date-to" class="form-input" onchange="applyFilters()">
+                            </div>
+                            <div class="filter-group">
+                                <label>Duration (min):</label>
+                                <input type="number" id="duration-min" class="form-input" placeholder="Minutes" min="0" onchange="applyFilters()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sort Section -->
+                    <div class="sort-section">
+                        <div class="filter-section-title">📊 Sort Options</div>
+                        <div class="sort-options">
+                            <div class="sort-option">
+                                <label>Primary Sort:</label>
+                                <select id="sort-by" class="form-select" onchange="applySorting()">
+                                    <option value="created_at_desc">Date (Newest First)</option>
+                                    <option value="created_at_asc">Date (Oldest First)</option>
+                                    <option value="student_name_asc">Student Name (A-Z)</option>
+                                    <option value="student_name_desc">Student Name (Z-A)</option>
+                                    <option value="duration_desc">Duration (Longest First)</option>
+                                    <option value="duration_asc">Duration (Shortest First)</option>
+                                    <option value="status_asc">Status (A-Z)</option>
+                                    <option value="verdict_asc">Verdict (A-Z)</option>
+                                </select>
+                            </div>
+                            <div class="sort-option">
+                                <label>Secondary Sort:</label>
+                                <select id="sort-by-2" class="form-select" onchange="applySorting()">
+                                    <option value="">None</option>
+                                    <option value="student_name_asc">Student Name (A-Z)</option>
+                                    <option value="student_name_desc">Student Name (Z-A)</option>
+                                    <option value="created_at_desc">Date (Newest First)</option>
+                                    <option value="created_at_asc">Date (Oldest First)</option>
+                                    <option value="duration_desc">Duration (Longest First)</option>
+                                    <option value="duration_asc">Duration (Shortest First)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Group By Section -->
+                    <div class="group-by-section">
+                        <div class="filter-section-title">📋 Group By</div>
+                        <div class="group-by-options">
+                            <div class="group-by-option">
+                                <input type="radio" id="group-none" name="group-by" value="" onchange="applyGrouping()">
+                                <label for="group-none">No Grouping</label>
+                            </div>
+                            <div class="group-by-option">
+                                <input type="radio" id="group-status" name="group-by" value="status" onchange="applyGrouping()">
+                                <label for="group-status">Status</label>
+                            </div>
+                            <div class="group-by-option">
+                                <input type="radio" id="group-verdict" name="group-by" value="verdict" onchange="applyGrouping()">
+                                <label for="group-verdict">Verdict</label>
+                            </div>
+                            <div class="group-by-option">
+                                <input type="radio" id="group-date" name="group-by" value="date" onchange="applyGrouping()">
+                                <label for="group-date">Date</label>
+                            </div>
+                            <div class="group-by-option">
+                                <input type="radio" id="group-duration" name="group-by" value="duration" onchange="applyGrouping()">
+                                <label for="group-duration">Duration Range</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="filter-actions">
+                        <button class="btn-filter" onclick="applyFilters()">Apply Filters</button>
+                        <button class="btn-clear" onclick="clearAllFilters()">Clear All</button>
+                        <button class="btn-export" onclick="exportInterviews()">Export CSV</button>
+                        <button class="btn btn-secondary" onclick="loadInterviews()">Refresh Data</button>
+                    </div>
+
+                    <!-- Results Summary -->
+                    <div id="results-summary" class="results-summary" style="display: none;">
+                        <strong>0</strong> interviews found
+                    </div>
+                </div>
+
                 <!-- Interviews Table -->
                 <div class="section-card">
                     <h2 class="section-title">My Interviews</h2>
@@ -601,17 +907,45 @@
             <section id="questions-section" class="content-section">
                 <div class="section-card">
                     <h2 class="section-title">Question Bank</h2>
-                    <div class="question-bank-filters">
-                        <div class="form-group">
-                            <label class="form-label">Category</label>
-                            <select id="bank-category-select" class="form-select" onchange="loadQuestions()">
-                                <option value="">All Categories</option>
-                                <option value="Favorites">My Favorites</option>
-                            </select>
+                    <!-- Enhanced Question Bank Filters -->
+                    <div class="controls-panel">
+                        <!-- Search Section -->
+                        <div class="filter-section">
+                            <div class="filter-section-title">🔍 Search & Filter Questions</div>
+                            <div class="filter-row">
+                                <div class="filter-group">
+                                    <label>Search:</label>
+                                    <input type="text" id="bank-search-input" class="form-input" placeholder="Search questions by text..." onkeyup="loadQuestions()">
+                                </div>
+                                <div class="filter-group">
+                                    <label>Category:</label>
+                                    <select id="bank-category-select" class="form-select" onchange="loadQuestions()">
+                                        <option value="">All Categories</option>
+                                        <option value="Favorites">My Favorites</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label>Sort by:</label>
+                                    <select id="question-sort-by" class="form-select" onchange="loadQuestions()">
+                                        <option value="popularity">Most Popular</option>
+                                        <option value="recent">Most Recent</option>
+                                        <option value="alphabetical">Alphabetical</option>
+                                        <option value="category">Category</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Search</label>
-                            <input type="text" id="bank-search-input" class="form-input" placeholder="Search questions..." onkeyup="loadQuestions()">
+
+                        <!-- Action Buttons -->
+                        <div class="filter-actions">
+                            <button class="btn-filter" onclick="loadQuestions()">Search Questions</button>
+                            <button class="btn-clear" onclick="clearQuestionFilters()">Clear Filters</button>
+                            <button class="btn-export" onclick="exportQuestions()">Export Questions</button>
+                        </div>
+
+                        <!-- Results Summary -->
+                        <div id="question-results-summary" class="results-summary" style="display: none;">
+                            <strong>0</strong> questions found
                         </div>
                     </div>
                     <div id="question-bank-list" class="question-bank-list">
@@ -700,8 +1034,8 @@
                 const response = await fetch('/api/interviewer/interviews');
                 const result = await response.json();
                 if (result.success) {
-                    allInterviews = result.data;
-                    displayInterviews(allInterviews);
+                    interviews = result.data; // Store in global interviews variable
+                    displayFilteredInterviews(); // Use the new filtering system
                 } else {
                     showEmptyState('interviews-table-body', 'Failed to load interviews.');
                 }
@@ -709,6 +1043,11 @@
                 console.error('Error loading interviews:', error);
                 showEmptyState('interviews-table-body', 'Error loading interviews.');
             }
+        }
+
+        // Alias for backward compatibility
+        function loadInterviews() {
+            loadMyInterviews();
         }
 
         async function loadStats() {
@@ -767,9 +1106,302 @@
             `).join('');
         }
 
+        // Enhanced Filter, Sort, and Group Functions
+        function applyFilters() {
+            displayFilteredInterviews();
+            updateResultsSummary();
+        }
+
+        function applySorting() {
+            displayFilteredInterviews();
+        }
+
+        function applyGrouping() {
+            displayFilteredInterviews();
+        }
+
+        function displayFilteredInterviews() {
+            if (!interviews || interviews.length === 0) {
+                showEmptyState('interviews-table-body', 'No interviews found.');
+                return;
+            }
+
+            // Apply filters, sorting, and grouping
+            let filteredInterviews = applyFiltersToInterviews();
+            let sortedInterviews = applySortingToInterviews(filteredInterviews);
+            let groupedInterviews = applyGroupingToInterviews(sortedInterviews);
+
+            // Display grouped or regular table
+            if (groupedInterviews.groups) {
+                displayGroupedInterviews(groupedInterviews);
+            } else {
+                displayInterviews(sortedInterviews);
+            }
+            
+            // Update results summary
+            updateResultsSummary();
+        }
+
+        function applyFiltersToInterviews() {
+            let filtered = [...interviews];
+            
+            // Status filter
+            const statusFilter = document.getElementById('status-filter').value;
+            if (statusFilter) {
+                filtered = filtered.filter(interview => interview.status === statusFilter);
+            }
+            
+            // Verdict filter
+            const verdictFilter = document.getElementById('verdict-filter').value;
+            if (verdictFilter) {
+                filtered = filtered.filter(interview => interview.verdict === verdictFilter);
+            }
+            
+            // Date range filters
+            const dateFrom = document.getElementById('date-from').value;
+            const dateTo = document.getElementById('date-to').value;
+            
+            if (dateFrom) {
+                const fromDate = new Date(dateFrom);
+                filtered = filtered.filter(interview => {
+                    const interviewDate = new Date(interview.interview_date || interview.created_at);
+                    return interviewDate >= fromDate;
+                });
+            }
+            
+            if (dateTo) {
+                const toDate = new Date(dateTo);
+                toDate.setHours(23, 59, 59, 999); // End of day
+                filtered = filtered.filter(interview => {
+                    const interviewDate = new Date(interview.interview_date || interview.created_at);
+                    return interviewDate <= toDate;
+                });
+            }
+            
+            // Duration filter
+            const durationMin = document.getElementById('duration-min').value;
+            if (durationMin) {
+                const minSeconds = parseInt(durationMin) * 60;
+                filtered = filtered.filter(interview => {
+                    const duration = interview.duration_seconds || 0;
+                    return duration >= minSeconds;
+                });
+            }
+            
+            // Search filter (enhanced)
+            const searchTerm = document.getElementById('search-interviews').value.toLowerCase();
+            if (searchTerm) {
+                filtered = filtered.filter(interview => 
+                    (interview.student_name && interview.student_name.toLowerCase().includes(searchTerm)) ||
+                    (interview.zeta_id && interview.zeta_id.toLowerCase().includes(searchTerm)) ||
+                    (interview.session_name && interview.session_name.toLowerCase().includes(searchTerm)) ||
+                    (interview.verdict && interview.verdict.toLowerCase().includes(searchTerm))
+                );
+            }
+            
+            return filtered;
+        }
+
+        function applySortingToInterviews(interviewList) {
+            const sortBy = document.getElementById('sort-by').value;
+            const sortBy2 = document.getElementById('sort-by-2').value;
+            const sorted = [...interviewList];
+            
+            // Primary sort
+            const primarySort = getSortFunction(sortBy);
+            if (primarySort) {
+                sorted.sort(primarySort);
+            }
+            
+            // Secondary sort (if specified)
+            if (sortBy2) {
+                const secondarySort = getSortFunction(sortBy2);
+                if (secondarySort) {
+                    sorted.sort((a, b) => {
+                        const primaryResult = primarySort ? primarySort(a, b) : 0;
+                        if (primaryResult !== 0) return primaryResult;
+                        return secondarySort(a, b);
+                    });
+                }
+            }
+            
+            return sorted;
+        }
+        
+        function getSortFunction(sortKey) {
+            switch (sortKey) {
+                case 'created_at_desc':
+                    return (a, b) => new Date(b.created_at) - new Date(a.created_at);
+                case 'created_at_asc':
+                    return (a, b) => new Date(a.created_at) - new Date(b.created_at);
+                case 'student_name_asc':
+                    return (a, b) => (a.student_name || '').localeCompare(b.student_name || '');
+                case 'student_name_desc':
+                    return (a, b) => (b.student_name || '').localeCompare(a.student_name || '');
+                case 'duration_desc':
+                    return (a, b) => (b.duration_seconds || 0) - (a.duration_seconds || 0);
+                case 'duration_asc':
+                    return (a, b) => (a.duration_seconds || 0) - (b.duration_seconds || 0);
+                case 'status_asc':
+                    return (a, b) => (a.status || '').localeCompare(b.status || '');
+                case 'status_desc':
+                    return (a, b) => (b.status || '').localeCompare(a.status || '');
+                case 'verdict_asc':
+                    return (a, b) => (a.verdict || '').localeCompare(b.verdict || '');
+                case 'verdict_desc':
+                    return (a, b) => (b.verdict || '').localeCompare(a.verdict || '');
+                default:
+                    return null;
+            }
+        }
+
+        function applyGroupingToInterviews(interviewList) {
+            const groupByRadio = document.querySelector('input[name="group-by"]:checked');
+            const groupBy = groupByRadio ? groupByRadio.value : '';
+            
+            if (!groupBy) {
+                return { groups: null, interviews: interviewList };
+            }
+            
+            const groups = {};
+            
+            interviewList.forEach(interview => {
+                let groupKey;
+                switch (groupBy) {
+                    case 'status':
+                        groupKey = interview.status || 'Unknown';
+                        break;
+                    case 'verdict':
+                        groupKey = interview.verdict || 'No Verdict';
+                        break;
+                    case 'date':
+                        groupKey = formatDate(interview.interview_date || interview.created_at);
+                        break;
+                    case 'duration':
+                        const duration = interview.duration_seconds || 0;
+                        const minutes = Math.floor(duration / 60);
+                        if (minutes < 5) groupKey = '0-5 minutes';
+                        else if (minutes < 15) groupKey = '5-15 minutes';
+                        else if (minutes < 30) groupKey = '15-30 minutes';
+                        else if (minutes < 60) groupKey = '30-60 minutes';
+                        else groupKey = '60+ minutes';
+                        break;
+                    default:
+                        groupKey = 'Other';
+                }
+                
+                if (!groups[groupKey]) {
+                    groups[groupKey] = [];
+                }
+                groups[groupKey].push(interview);
+            });
+            
+            return { groups, interviews: interviewList };
+        }
+
+        function displayGroupedInterviews(groupedData) {
+            const tbody = document.getElementById('interviews-table-body');
+            if (!tbody) return;
+
+            const { groups } = groupedData;
+            let html = '';
+
+            Object.keys(groups).sort().forEach(groupKey => {
+                const groupInterviews = groups[groupKey];
+                html += `
+                    <tr class="group-header">
+                        <td colspan="8" class="group-title">
+                            <strong>${groupKey}</strong> (${groupInterviews.length} interviews)
+                        </td>
+                    </tr>
+                `;
+                
+                groupInterviews.forEach(interview => {
+                    html += `
+                        <tr class="group-item">
+                            <td>${new Date(interview.created_at).toLocaleDateString()}</td>
+                            <td>${interview.student_name}</td>
+                            <td>${interview.zeta_id}</td>
+                            <td>${interview.session_name || 'N/A'}</td>
+                            <td><span class="status-badge status-${interview.status}">${interview.status}</span></td>
+                            <td>${interview.verdict || 'N/A'}</td>
+                            <td>${formatDuration(interview.duration_seconds)}</td>
+                            <td>
+                                <button class="btn btn-primary btn-sm" onclick="viewInterview(${interview.id})">View</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        function clearAllFilters() {
+            // Clear all filter inputs
+            document.getElementById('search-interviews').value = '';
+            document.getElementById('status-filter').value = '';
+            document.getElementById('verdict-filter').value = '';
+            document.getElementById('date-from').value = '';
+            document.getElementById('date-to').value = '';
+            document.getElementById('duration-min').value = '';
+            
+            // Reset sorting
+            document.getElementById('sort-by').value = 'created_at_desc';
+            document.getElementById('sort-by-2').value = '';
+            
+            // Reset grouping
+            document.getElementById('group-none').checked = true;
+            
+            // Refresh display
+            displayFilteredInterviews();
+        }
+        
+        function updateResultsSummary() {
+            const filteredInterviews = applyFiltersToInterviews();
+            const summaryElement = document.getElementById('results-summary');
+            
+            if (summaryElement) {
+                summaryElement.innerHTML = `<strong>${filteredInterviews.length}</strong> interviews found`;
+                summaryElement.style.display = filteredInterviews.length > 0 ? 'block' : 'none';
+            }
+        }
+        
+        function exportInterviews() {
+            const filteredInterviews = applyFiltersToInterviews();
+            const sortedInterviews = applySortingToInterviews(filteredInterviews);
+            
+            // Create CSV content
+            const headers = ['Date', 'Student Name', 'Zeta ID', 'Session', 'Status', 'Verdict', 'Duration (min)'];
+            const csvContent = [
+                headers.join(','),
+                ...sortedInterviews.map(interview => [
+                    `"${new Date(interview.created_at).toLocaleDateString()}"`,
+                    `"${interview.student_name || ''}"`,
+                    `"${interview.zeta_id || ''}"`,
+                    `"${interview.session_name || ''}"`,
+                    `"${interview.status || ''}"`,
+                    `"${interview.verdict || ''}"`,
+                    Math.floor((interview.duration_seconds || 0) / 60)
+                ].join(','))
+            ].join('\n');
+            
+            // Download CSV
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `my_interviews_export_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
         async function loadQuestions() {
             const category = document.getElementById('bank-category-select').value;
             const searchTerm = document.getElementById('bank-search-input').value.trim();
+            const sortBy = document.getElementById('question-sort-by').value;
             const questionListDiv = document.getElementById('question-bank-list');
             questionListDiv.innerHTML = '<div class="loading">Loading questions...</div>';
 
@@ -788,15 +1420,83 @@
 
                 if (result.success) {
                     allQuestions = result.data;
+                    
+                    // Apply sorting
+                    allQuestions = applyQuestionSorting(allQuestions, sortBy);
+                    
                     displayQuestionBank(allQuestions);
+                    updateQuestionResultsSummary(allQuestions.length);
                 } else {
                     console.error('Failed to load questions:', result.error);
                     questionListDiv.innerHTML = `<div class="empty-state">Failed to load questions.</div>`;
+                    updateQuestionResultsSummary(0);
                 }
             } catch (error) {
                 console.error('Error loading questions:', error);
                 questionListDiv.innerHTML = `<div class="empty-state">Error loading questions.</div>`;
+                updateQuestionResultsSummary(0);
             }
+        }
+
+        function applyQuestionSorting(questions, sortBy) {
+            const sorted = [...questions];
+            
+            switch (sortBy) {
+                case 'popularity':
+                    return sorted.sort((a, b) => (b.count_of_times_asked || 0) - (a.count_of_times_asked || 0));
+                case 'recent':
+                    return sorted.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+                case 'alphabetical':
+                    return sorted.sort((a, b) => (a.question || '').localeCompare(b.question || ''));
+                case 'category':
+                    return sorted.sort((a, b) => (a.category || '').localeCompare(b.category || ''));
+                default:
+                    return sorted;
+            }
+        }
+
+        function clearQuestionFilters() {
+            document.getElementById('bank-search-input').value = '';
+            document.getElementById('bank-category-select').value = '';
+            document.getElementById('question-sort-by').value = 'popularity';
+            loadQuestions();
+        }
+
+        function updateQuestionResultsSummary(count) {
+            const summaryElement = document.getElementById('question-results-summary');
+            if (summaryElement) {
+                summaryElement.innerHTML = `<strong>${count}</strong> questions found`;
+                summaryElement.style.display = count > 0 ? 'block' : 'none';
+            }
+        }
+
+        function exportQuestions() {
+            if (!allQuestions || allQuestions.length === 0) {
+                alert('No questions to export');
+                return;
+            }
+
+            // Create CSV content
+            const headers = ['Question', 'Category', 'Times Asked'];
+            const csvContent = [
+                headers.join(','),
+                ...allQuestions.map(q => [
+                    `"${q.question || ''}"`,
+                    `"${q.category || ''}"`,
+                    q.count_of_times_asked || 0
+                ].join(','))
+            ].join('\n');
+            
+            // Download CSV
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `question_bank_export_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
         }
 
         function displayQuestionBank(questionsToDisplay) {

@@ -742,6 +742,185 @@
             font-size: 0.875rem;
         }
 
+        /* Enhanced Filter Styles */
+        .filter-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-section-title {
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #495057;
+            font-size: 1rem;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 0.25rem;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 150px;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: #495057;
+            font-size: 0.875rem;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 0.5rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            background: white;
+        }
+
+        .filter-group input[type="text"] {
+            min-width: 200px;
+        }
+
+        .filter-group input[type="number"] {
+            min-width: 100px;
+        }
+
+        /* Sort Section */
+        .sort-section {
+            background: #fff3cd;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .sort-options {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .sort-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sort-option select {
+            padding: 0.25rem 0.5rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            min-width: 150px;
+        }
+
+        /* Group By Section */
+        .group-by-section {
+            background: #e9ecef;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .group-by-options {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .group-by-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .group-by-option input[type="radio"] {
+            margin: 0;
+        }
+
+        .group-by-option label {
+            margin: 0;
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+
+        /* Action Buttons */
+        .filter-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-filter {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background 0.2s;
+        }
+
+        .btn-filter:hover {
+            background: #0056b3;
+        }
+
+        .btn-clear {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background 0.2s;
+        }
+
+        .btn-clear:hover {
+            background: #545b62;
+        }
+
+        .btn-export {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background 0.2s;
+        }
+
+        .btn-export:hover {
+            background: #1e7e34;
+        }
+
+        /* Results Summary */
+        .results-summary {
+            background: #d1ecf1;
+            padding: 0.75rem 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            color: #0c5460;
+        }
+
+        .results-summary strong {
+            color: #000000;
+        }
+
         /* Grouped Table Styles */
         .grouped-table {
             margin-bottom: 2rem;
@@ -886,69 +1065,144 @@
                     <button class="btn btn-primary" onclick="refreshInterviews()">Refresh</button>
                 </div>
                 
-                <!-- Filter, Sort, and Group Controls -->
+                <!-- Enhanced Filter, Sort, and Group Controls -->
                 <div class="controls-panel">
-                    <div class="controls-row">
-                        <div class="control-group">
-                            <label class="form-label">Filter by Status:</label>
-                            <select id="status-filter" class="form-select" onchange="applyFilters()">
-                                <option value="">All Statuses</option>
-                                <option value="completed">Completed</option>
-                                <option value="in_progress">In Progress</option>
-                                <option value="cancelled">Cancelled</option>
-                            </select>
+                    <!-- Search Section -->
+                    <div class="filter-section">
+                        <div class="filter-section-title">🔍 Search & Filter</div>
+                        <div class="filter-row">
+                            <div class="filter-group">
+                                <label>Search:</label>
+                                <input type="text" id="search-interviews" class="form-input" placeholder="Search by student name, email, Zeta ID, or interviewer..." onkeyup="applyFilters()">
+                            </div>
+                            <div class="filter-group">
+                                <label>Status:</label>
+                                <select id="status-filter" class="form-select" onchange="applyFilters()">
+                                    <option value="">All Statuses</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="in_progress">In Progress</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>Session:</label>
+                                <select id="session-filter" class="form-select" onchange="applyFilters()">
+                                    <option value="">All Sessions</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>Verdict:</label>
+                                <select id="verdict-filter" class="form-select" onchange="applyFilters()">
+                                    <option value="">All Verdicts</option>
+                                    <option value="Tiger">Tiger</option>
+                                    <option value="Cow">Cow</option>
+                                    <option value="Cow+">Cow+</option>
+                                    <option value="Sheep">Sheep</option>
+                                </select>
+                            </div>
                         </div>
-                        
-                        <div class="control-group">
-                            <label class="form-label">Filter by Session:</label>
-                            <select id="session-filter" class="form-select" onchange="applyFilters()">
-                                <option value="">All Sessions</option>
-                            </select>
-                        </div>
-                        
-                        <div class="control-group">
-                            <label class="form-label">Filter by Verdict:</label>
-                            <select id="verdict-filter" class="form-select" onchange="applyFilters()">
-                                <option value="">All Verdicts</option>
-                                <option value="Tiger">Tiger</option>
-                                <option value="Cow">Cow</option>
-                                <option value="Cow+">Cow+</option>
-                                <option value="Sheep">Sheep</option>
-                            </select>
+                        <div class="filter-row">
+                            <div class="filter-group">
+                                <label>Interviewer:</label>
+                                <select id="interviewer-filter" class="form-select" onchange="applyFilters()">
+                                    <option value="">All Interviewers</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>Date From:</label>
+                                <input type="date" id="date-from" class="form-input" onchange="applyFilters()">
+                            </div>
+                            <div class="filter-group">
+                                <label>Date To:</label>
+                                <input type="date" id="date-to" class="form-input" onchange="applyFilters()">
+                            </div>
+                            <div class="filter-group">
+                                <label>Duration (min):</label>
+                                <input type="number" id="duration-min" class="form-input" placeholder="Minutes" min="0" onchange="applyFilters()">
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="controls-row">
-                        <div class="control-group">
-                            <label class="form-label">Sort by:</label>
-                            <select id="sort-by" class="form-select" onchange="applySorting()">
-                                <option value="created_at_desc">Date (Newest First)</option>
-                                <option value="created_at_asc">Date (Oldest First)</option>
-                                <option value="student_name_asc">Student Name (A-Z)</option>
-                                <option value="student_name_desc">Student Name (Z-A)</option>
-                                <option value="duration_desc">Duration (Longest First)</option>
-                                <option value="duration_asc">Duration (Shortest First)</option>
-                                <option value="status_asc">Status (A-Z)</option>
-                                <option value="verdict_asc">Verdict (A-Z)</option>
-                            </select>
+
+                    <!-- Sort Section -->
+                    <div class="sort-section">
+                        <div class="filter-section-title">📊 Sort Options</div>
+                        <div class="sort-options">
+                            <div class="sort-option">
+                                <label>Primary Sort:</label>
+                                <select id="sort-by" class="form-select" onchange="applySorting()">
+                                    <option value="created_at_desc">Date (Newest First)</option>
+                                    <option value="created_at_asc">Date (Oldest First)</option>
+                                    <option value="student_name_asc">Student Name (A-Z)</option>
+                                    <option value="student_name_desc">Student Name (Z-A)</option>
+                                    <option value="duration_desc">Duration (Longest First)</option>
+                                    <option value="duration_asc">Duration (Shortest First)</option>
+                                    <option value="status_asc">Status (A-Z)</option>
+                                    <option value="verdict_asc">Verdict (A-Z)</option>
+                                    <option value="interviewer_asc">Interviewer (A-Z)</option>
+                                    <option value="session_asc">Session (A-Z)</option>
+                                </select>
+                            </div>
+                            <div class="sort-option">
+                                <label>Secondary Sort:</label>
+                                <select id="sort-by-2" class="form-select" onchange="applySorting()">
+                                    <option value="">None</option>
+                                    <option value="student_name_asc">Student Name (A-Z)</option>
+                                    <option value="student_name_desc">Student Name (Z-A)</option>
+                                    <option value="created_at_desc">Date (Newest First)</option>
+                                    <option value="created_at_asc">Date (Oldest First)</option>
+                                    <option value="duration_desc">Duration (Longest First)</option>
+                                    <option value="duration_asc">Duration (Shortest First)</option>
+                                </select>
+                            </div>
                         </div>
-                        
-                        <div class="control-group">
-                            <label class="form-label">Group by:</label>
-                            <select id="group-by" class="form-select" onchange="applyGrouping()">
-                                <option value="">No Grouping</option>
-                                <option value="session">Session</option>
-                                <option value="status">Status</option>
-                                <option value="verdict">Verdict</option>
-                                <option value="interviewer">Interviewer</option>
-                                <option value="date">Date</option>
-                            </select>
+                    </div>
+
+                    <!-- Group By Section -->
+                    <div class="group-by-section">
+                        <div class="filter-section-title">📋 Group By</div>
+                        <div class="group-by-options">
+                            <div class="group-by-option">
+                                <input type="radio" id="group-none" name="group-by" value="" onchange="applyGrouping()">
+                                <label for="group-none">No Grouping</label>
+                            </div>
+                            <div class="group-by-option">
+                                <input type="radio" id="group-session" name="group-by" value="session" onchange="applyGrouping()">
+                                <label for="group-session">Session</label>
+                            </div>
+                            <div class="group-by-option">
+                                <input type="radio" id="group-status" name="group-by" value="status" onchange="applyGrouping()">
+                                <label for="group-status">Status</label>
+                            </div>
+                            <div class="group-by-option">
+                                <input type="radio" id="group-verdict" name="group-by" value="verdict" onchange="applyGrouping()">
+                                <label for="group-verdict">Verdict</label>
+                            </div>
+                            <div class="group-by-option">
+                                <input type="radio" id="group-interviewer" name="group-by" value="interviewer" onchange="applyGrouping()">
+                                <label for="group-interviewer">Interviewer</label>
+                            </div>
+                            <div class="group-by-option">
+                                <input type="radio" id="group-date" name="group-by" value="date" onchange="applyGrouping()">
+                                <label for="group-date">Date</label>
+                            </div>
+                            <div class="group-by-option">
+                                <input type="radio" id="group-duration" name="group-by" value="duration" onchange="applyGrouping()">
+                                <label for="group-duration">Duration Range</label>
+                            </div>
                         </div>
-                        
-                        <div class="control-group">
-                            <label class="form-label">Search:</label>
-                            <input type="text" id="search-interviews" class="form-input" placeholder="Search by student name, email, or Zeta ID..." onkeyup="applySearch()">
-                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="filter-actions">
+                        <button class="btn-filter" onclick="applyFilters()">Apply Filters</button>
+                        <button class="btn-clear" onclick="clearAllFilters()">Clear All</button>
+                        <button class="btn-export" onclick="exportInterviews()">Export CSV</button>
+                        <button class="btn btn-secondary" onclick="refreshInterviews()">Refresh Data</button>
+                    </div>
+
+                    <!-- Results Summary -->
+                    <div id="results-summary" class="results-summary" style="display: none;">
+                        <strong>0</strong> interviews found
                     </div>
                 </div>
                 
@@ -1311,6 +1565,7 @@
                 if (data.success) {
                     interviews = data.data;
                     displayInterviews();
+                    populateInterviewerFilter();
                 }
             } catch (error) {
                 console.error('Error loading interviews:', error);
@@ -1337,6 +1592,9 @@
             } else {
                 displayRegularInterviews(sortedInterviews, tbody);
             }
+            
+            // Update results summary
+            updateResultsSummary();
         }
 
         function applyFiltersToInterviews() {
@@ -1360,13 +1618,53 @@
                 filtered = filtered.filter(interview => interview.verdict === verdictFilter);
             }
             
-            // Search filter
+            // Interviewer filter
+            const interviewerFilter = document.getElementById('interviewer-filter').value;
+            if (interviewerFilter) {
+                filtered = filtered.filter(interview => interview.interviewer_name === interviewerFilter);
+            }
+            
+            // Date range filters
+            const dateFrom = document.getElementById('date-from').value;
+            const dateTo = document.getElementById('date-to').value;
+            
+            if (dateFrom) {
+                const fromDate = new Date(dateFrom);
+                filtered = filtered.filter(interview => {
+                    const interviewDate = new Date(interview.interview_date || interview.created_at);
+                    return interviewDate >= fromDate;
+                });
+            }
+            
+            if (dateTo) {
+                const toDate = new Date(dateTo);
+                toDate.setHours(23, 59, 59, 999); // End of day
+                filtered = filtered.filter(interview => {
+                    const interviewDate = new Date(interview.interview_date || interview.created_at);
+                    return interviewDate <= toDate;
+                });
+            }
+            
+            // Duration filter
+            const durationMin = document.getElementById('duration-min').value;
+            if (durationMin) {
+                const minSeconds = parseInt(durationMin) * 60;
+                filtered = filtered.filter(interview => {
+                    const duration = interview.duration_seconds || 0;
+                    return duration >= minSeconds;
+                });
+            }
+            
+            // Search filter (enhanced)
             const searchTerm = document.getElementById('search-interviews').value.toLowerCase();
             if (searchTerm) {
                 filtered = filtered.filter(interview => 
                     (interview.student_name && interview.student_name.toLowerCase().includes(searchTerm)) ||
                     (interview.student_email && interview.student_email.toLowerCase().includes(searchTerm)) ||
-                    (interview.zeta_id && interview.zeta_id.toLowerCase().includes(searchTerm))
+                    (interview.zeta_id && interview.zeta_id.toLowerCase().includes(searchTerm)) ||
+                    (interview.interviewer_name && interview.interviewer_name.toLowerCase().includes(searchTerm)) ||
+                    (interview.session_name && interview.session_name.toLowerCase().includes(searchTerm)) ||
+                    (interview.verdict && interview.verdict.toLowerCase().includes(searchTerm))
                 );
             }
             
@@ -1375,32 +1673,68 @@
 
         function applySortingToInterviews(interviewList) {
             const sortBy = document.getElementById('sort-by').value;
+            const sortBy2 = document.getElementById('sort-by-2').value;
             const sorted = [...interviewList];
             
-            switch (sortBy) {
+            // Primary sort
+            const primarySort = getSortFunction(sortBy);
+            if (primarySort) {
+                sorted.sort(primarySort);
+            }
+            
+            // Secondary sort (if specified)
+            if (sortBy2) {
+                const secondarySort = getSortFunction(sortBy2);
+                if (secondarySort) {
+                    sorted.sort((a, b) => {
+                        const primaryResult = primarySort ? primarySort(a, b) : 0;
+                        if (primaryResult !== 0) return primaryResult;
+                        return secondarySort(a, b);
+                    });
+                }
+            }
+            
+            return sorted;
+        }
+        
+        function getSortFunction(sortKey) {
+            switch (sortKey) {
                 case 'created_at_desc':
-                    return sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                    return (a, b) => new Date(b.created_at) - new Date(a.created_at);
                 case 'created_at_asc':
-                    return sorted.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                    return (a, b) => new Date(a.created_at) - new Date(b.created_at);
                 case 'student_name_asc':
-                    return sorted.sort((a, b) => (a.student_name || '').localeCompare(b.student_name || ''));
+                    return (a, b) => (a.student_name || '').localeCompare(b.student_name || '');
                 case 'student_name_desc':
-                    return sorted.sort((a, b) => (b.student_name || '').localeCompare(a.student_name || ''));
+                    return (a, b) => (b.student_name || '').localeCompare(a.student_name || '');
                 case 'duration_desc':
-                    return sorted.sort((a, b) => (b.duration_seconds || 0) - (a.duration_seconds || 0));
+                    return (a, b) => (b.duration_seconds || 0) - (a.duration_seconds || 0);
                 case 'duration_asc':
-                    return sorted.sort((a, b) => (a.duration_seconds || 0) - (b.duration_seconds || 0));
+                    return (a, b) => (a.duration_seconds || 0) - (b.duration_seconds || 0);
                 case 'status_asc':
-                    return sorted.sort((a, b) => (a.status || '').localeCompare(b.status || ''));
+                    return (a, b) => (a.status || '').localeCompare(b.status || '');
+                case 'status_desc':
+                    return (a, b) => (b.status || '').localeCompare(a.status || '');
                 case 'verdict_asc':
-                    return sorted.sort((a, b) => (a.verdict || '').localeCompare(b.verdict || ''));
+                    return (a, b) => (a.verdict || '').localeCompare(b.verdict || '');
+                case 'verdict_desc':
+                    return (a, b) => (b.verdict || '').localeCompare(a.verdict || '');
+                case 'interviewer_asc':
+                    return (a, b) => (a.interviewer_name || '').localeCompare(b.interviewer_name || '');
+                case 'interviewer_desc':
+                    return (a, b) => (b.interviewer_name || '').localeCompare(a.interviewer_name || '');
+                case 'session_asc':
+                    return (a, b) => (a.session_name || '').localeCompare(b.session_name || '');
+                case 'session_desc':
+                    return (a, b) => (b.session_name || '').localeCompare(a.session_name || '');
                 default:
-                    return sorted;
+                    return null;
             }
         }
 
         function applyGroupingToInterviews(interviewList) {
-            const groupBy = document.getElementById('group-by').value;
+            const groupByRadio = document.querySelector('input[name="group-by"]:checked');
+            const groupBy = groupByRadio ? groupByRadio.value : '';
             
             if (!groupBy) {
                 return { groups: null, interviews: interviewList };
@@ -1425,6 +1759,15 @@
                         break;
                     case 'date':
                         groupKey = formatDate(interview.interview_date);
+                        break;
+                    case 'duration':
+                        const duration = interview.duration_seconds || 0;
+                        const minutes = Math.floor(duration / 60);
+                        if (minutes < 5) groupKey = '0-5 minutes';
+                        else if (minutes < 15) groupKey = '5-15 minutes';
+                        else if (minutes < 30) groupKey = '15-30 minutes';
+                        else if (minutes < 60) groupKey = '30-60 minutes';
+                        else groupKey = '60+ minutes';
                         break;
                     default:
                         groupKey = 'Other';
@@ -1515,6 +1858,7 @@
         // Filter, Sort, and Group Functions
         function applyFilters() {
             displayInterviews();
+            updateResultsSummary();
         }
 
         function applySorting() {
@@ -1527,6 +1871,91 @@
 
         function applySearch() {
             displayInterviews();
+            updateResultsSummary();
+        }
+        
+        function clearAllFilters() {
+            // Clear all filter inputs
+            document.getElementById('search-interviews').value = '';
+            document.getElementById('status-filter').value = '';
+            document.getElementById('session-filter').value = '';
+            document.getElementById('verdict-filter').value = '';
+            document.getElementById('interviewer-filter').value = '';
+            document.getElementById('date-from').value = '';
+            document.getElementById('date-to').value = '';
+            document.getElementById('duration-min').value = '';
+            
+            // Reset sorting
+            document.getElementById('sort-by').value = 'created_at_desc';
+            document.getElementById('sort-by-2').value = '';
+            
+            // Reset grouping
+            document.getElementById('group-none').checked = true;
+            
+            // Refresh display
+            displayInterviews();
+            updateResultsSummary();
+        }
+        
+        function updateResultsSummary() {
+            const filteredInterviews = applyFiltersToInterviews();
+            const summaryElement = document.getElementById('results-summary');
+            
+            if (summaryElement) {
+                summaryElement.innerHTML = `<strong>${filteredInterviews.length}</strong> interviews found`;
+                summaryElement.style.display = filteredInterviews.length > 0 ? 'block' : 'none';
+            }
+        }
+        
+        function exportInterviews() {
+            const filteredInterviews = applyFiltersToInterviews();
+            const sortedInterviews = applySortingToInterviews(filteredInterviews);
+            
+            // Create CSV content
+            const headers = ['ID', 'Student Name', 'Student Email', 'Zeta ID', 'Interviewer', 'Session', 'Status', 'Verdict', 'Duration (min)', 'Date'];
+            const csvContent = [
+                headers.join(','),
+                ...sortedInterviews.map(interview => [
+                    interview.id,
+                    `"${interview.student_name || ''}"`,
+                    `"${interview.student_email || ''}"`,
+                    `"${interview.zeta_id || ''}"`,
+                    `"${interview.interviewer_name || ''}"`,
+                    `"${interview.session_name || ''}"`,
+                    `"${interview.status || ''}"`,
+                    `"${interview.verdict || ''}"`,
+                    Math.floor((interview.duration_seconds || 0) / 60),
+                    `"${formatDate(interview.interview_date || interview.created_at)}"`
+                ].join(','))
+            ].join('\n');
+            
+            // Download CSV
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `interviews_export_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+        
+        function populateInterviewerFilter() {
+            const interviewerFilter = document.getElementById('interviewer-filter');
+            if (!interviewerFilter) return;
+            
+            // Clear existing options except "All Interviewers"
+            interviewerFilter.innerHTML = '<option value="">All Interviewers</option>';
+            
+            // Get unique interviewers
+            const uniqueInterviewers = [...new Set(interviews.map(interview => interview.interviewer_name).filter(name => name))];
+            uniqueInterviewers.sort().forEach(interviewerName => {
+                const option = document.createElement('option');
+                option.value = interviewerName;
+                option.textContent = interviewerName;
+                interviewerFilter.appendChild(option);
+            });
         }
 
         // Questions functions
