@@ -226,18 +226,19 @@ function QuestionAnalysisTab() {
   const email = useUserEmail()
   const [state, setState] = useState({ loading: true, error: '', items: [] })
   const [favorites, setFavorites] = useState(new Set())
+  const [detail, setDetail] = useState(null)
 
   useEffect(()=>{
     (async ()=>{
       try {
         const [qRes, favRes] = await Promise.all([
-          fetch('/api/question-bank'),
+          fetch('/api/admin/questions/analytics'),
           email ? fetch(`/api/interviewer/favorites?email=${encodeURIComponent(email)}`) : Promise.resolve({ ok:true, json: async()=>({ success:true, data: [] }) })
         ])
         const qJson = await qRes.json()
         const favJson = await favRes.json()
-        if (qJson.success === false) throw new Error(qJson.error || 'Failed to load questions')
-        const items = qJson.data || qJson || []
+        if (!qRes.ok || qJson.success === false) throw new Error(qJson.error || `HTTP ${qRes.status}`)
+        const items = qJson.data || []
         const favIds = new Set((favJson.data || []).map(f=>f.question_id))
         setFavorites(favIds)
         setState({ loading:false, error:'', items })
@@ -266,27 +267,94 @@ function QuestionAnalysisTab() {
     }
   }
 
+  async function viewDetails(id) {
+    try {
+      const res = await fetch(`/api/admin/questions/${id}/details`)
+      const json = await res.json()
+      if (!res.ok || json.success === false) throw new Error(json.error || `HTTP ${res.status}`)
+      setDetail(json.data || json)
+    } catch (e) {
+      alert(`Failed to load details: ${e.message}`)
+    }
+  }
+
+  function closeDetails() { setDetail(null) }
+
   if (state.loading) return <div style={{padding:16}}>Loading question analysis...</div>
   if (state.error) return <div style={{padding:16,color:'#b91c1c'}}>Error: {state.error}</div>
   if (!state.items.length) return <div style={{padding:16}}>No questions.</div>
 
   return (
-    <div style={{padding:16,display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))',gap:12}}>
-      {state.items.map(q => (
-        <div key={q.id} style={{border:'1px solid #e5e7eb',borderRadius:6,padding:12,background:'#fff'}}>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
-            <div style={{fontWeight:600,maxWidth:'85%'}}>{q.question}</div>
-            <button onClick={()=>toggleFavorite(q.id)} title={favorites.has(q.id)?'Remove from favorites':'Add to favorites'} style={{border:'none',background:'transparent',fontSize:18,cursor:'pointer'}}>
-              {favorites.has(q.id) ? '★' : '☆'}
-            </button>
-          </div>
-          <div style={{fontSize:12,color:'#475569',marginBottom:8}}>Category: {q.category}</div>
-          {/* Placeholder stats; can be wired to /api/admin/questions/analytics if needed */}
-          <div style={{display:'flex',gap:12,fontSize:12,color:'#334155'}}>
-            <div>Asked: {q.times_asked || '-'}</div>
+    <div style={{padding:16}}>
+      <div className="table-container" style={{overflowX:'auto'}}>
+        <table className="table" style={{width:'100%',borderCollapse:'collapse'}}>
+          <thead>
+            <tr>
+              <th style={{textAlign:'left',borderBottom:'1px solid #eee',padding:'8px'}}>Question</th>
+              <th style={{textAlign:'left',borderBottom:'1px solid #eee',padding:'8px'}}>Category</th>
+              <th style={{textAlign:'left',borderBottom:'1px solid #eee',padding:'8px'}}>Times Asked</th>
+              <th style={{textAlign:'left',borderBottom:'1px solid #eee',padding:'8px'}}>Correct Answers</th>
+              <th style={{textAlign:'left',borderBottom:'1px solid #eee',padding:'8px'}}>Success Rate</th>
+              <th style={{textAlign:'left',borderBottom:'1px solid #eee',padding:'8px'}}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {state.items.map(q => {
+              const timesAsked = (q.times_asked ?? q.count_of_times_asked ?? 0)
+              const correct = (q.correct_answers ?? 0)
+              const success = (q.success_rate != null ? `${q.success_rate}%` : '-')
+              return (
+                <tr key={q.id}>
+                  <td style={{padding:'8px',borderBottom:'1px solid #f1f5f9'}}>
+                    <span style={{marginRight:8}}>{q.question}</span>
+                    <button onClick={()=>toggleFavorite(q.id)} title={favorites.has(q.id)?'Remove from favorites':'Add to favorites'} style={{border:'none',background:'transparent',fontSize:16,cursor:'pointer'}}>
+                      {favorites.has(q.id) ? '★' : '☆'}
+                    </button>
+                  </td>
+                  <td style={{padding:'8px',borderBottom:'1px solid #f1f5f9'}}>{q.category || '-'}</td>
+                  <td style={{padding:'8px',borderBottom:'1px solid #f1f5f9'}}>{timesAsked}</td>
+                  <td style={{padding:'8px',borderBottom:'1px solid #f1f5f9'}}>{correct}</td>
+                  <td style={{padding:'8px',borderBottom:'1px solid #f1f5f9'}}>{success}</td>
+                  <td style={{padding:'8px',borderBottom:'1px solid #f1f5f9'}}>
+                    <button onClick={()=>viewDetails(q.id)} style={{background:'#000',color:'#fff',border:'none',padding:'6px 10px',borderRadius:4,cursor:'pointer'}}>View</button>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {detail && (
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.35)'}} onClick={closeDetails}>
+          <div onClick={e=>e.stopPropagation()} style={{position:'absolute',top:0,right:0,width:420,height:'100%',background:'#fff',boxShadow:'-2px 0 10px rgba(0,0,0,0.1)',padding:16,overflowY:'auto'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+              <h3 style={{margin:0}}>Question Details</h3>
+              <button onClick={closeDetails} style={{border:'none',background:'transparent',fontSize:20,cursor:'pointer'}}>&times;</button>
+            </div>
+            <div style={{marginBottom:12}}>
+              <div style={{fontWeight:600,marginBottom:6}}>{detail.question}</div>
+              <div style={{color:'#475569',fontSize:14,marginBottom:6}}>Category: {detail.category || '-'}</div>
+              <div style={{fontSize:14}}>Times Asked: {detail.times_asked ?? detail.count_of_times_asked ?? 0}</div>
+              <div style={{fontSize:14}}>Correct Answers: {detail.correct_answers ?? 0}</div>
+              <div style={{fontSize:14}}>Success Rate: {detail.success_rate != null ? `${detail.success_rate}%` : '-'}</div>
+            </div>
+            <div>
+              <h4 style={{margin:'12px 0'}}>Student Answers</h4>
+              {(detail.student_answers || []).map((a, idx)=> (
+                <div key={idx} style={{border:'1px solid #e5e7eb',borderRadius:6,padding:10,marginBottom:8,background:'#f8fafc'}}>
+                  <div style={{fontWeight:600}}>{a.student_name || 'Student'} ({a.zeta_id || '-'})</div>
+                  <div style={{fontSize:12,color:'#64748b',margin:'4px 0'}}>Answered at: {a.answered_at ? new Date(a.answered_at).toLocaleString() : '-'}</div>
+                  <div>Answer: {a.answer_text || '-'}</div>
+                </div>
+              ))}
+              {!(detail.student_answers || []).length && (
+                <div style={{color:'#64748b'}}>No answers recorded.</div>
+              )}
+            </div>
           </div>
         </div>
-      ))}
+      )}
     </div>
   )
 }
