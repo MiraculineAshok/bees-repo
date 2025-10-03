@@ -96,6 +96,26 @@
             border: 1px solid #000000;
         }
 
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .home-link {
+            color: #000000;
+            text-decoration: none;
+            margin-right: 1rem;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+
+        .home-link:hover {
+            background-color: #f0f0f0;
+            text-decoration: none;
+        }
+
         .header h1 {
             color: #000000;
             font-size: 2rem;
@@ -816,7 +836,12 @@
         <main class="main-content">
             <!-- Header -->
             <header class="header">
-                <h1 id="page-title">Admin Dashboard</h1>
+                <div class="header-left">
+                    <a href="/" class="home-link" style="color: #000000; text-decoration: none; margin-right: 1rem; font-weight: 600;">
+                        ← Home
+                    </a>
+                    <h1 id="page-title">Admin Dashboard</h1>
+                </div>
                 <div class="header-actions">
                     <button class="btn btn-success" onclick="startInterview()" style="background: #dc3545; color: white; margin-right: 1rem;">
                         Start Interview
