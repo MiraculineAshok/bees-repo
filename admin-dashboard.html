@@ -2823,6 +2823,8 @@
                     console.error('Error loading interview questions:', error);
                 }
 
+                console.log('📝 Building content HTML...');
+                
                 const content = `
                     <div class="detail-section">
                         <h4 class="detail-section-title">Interview Information</h4>
@@ -2864,11 +2866,18 @@
                     </div>
                 `;
 
+                console.log('📝 Content HTML built successfully');
+                console.log('🚀 Opening detail panel...');
+                
                 openDetailPanel(`Interview #${interview.id}`, content);
+                
+                console.log('✅ viewInterview completed successfully');
 
             } catch (error) {
-                console.error('Error loading interview details:', error);
-                showError('Error loading interview details');
+                console.error('❌ Error loading interview details:', error);
+                console.error('❌ Error stack:', error.stack);
+                console.error('❌ Error message:', error.message);
+                showError(`Error loading interview details: ${error.message}`);
             }
         }
 
