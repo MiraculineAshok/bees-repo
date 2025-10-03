@@ -72,10 +72,10 @@ class InterviewService {
 
         try {
             const result = await pool.query(
-                `SELECT i.*, s.first_name, s.last_name, s.zeta_id, u.name as interviewer_name, u.email as interviewer_email
+                `SELECT i.*, s.first_name, s.last_name, s.zeta_id, au.name as interviewer_name, au.email as interviewer_email
                  FROM interviews i
                  JOIN students s ON i.student_id = s.id
-                 JOIN users u ON i.interviewer_id = u.id
+                 JOIN authorized_users au ON i.interviewer_id = au.id
                  WHERE i.id = $1`,
                 [interviewId]
             );
@@ -93,10 +93,10 @@ class InterviewService {
 
         try {
             const result = await pool.query(
-                `SELECT i.*, s.first_name, s.last_name, s.zeta_id, u.name as interviewer_name, u.email as interviewer_email
+                `SELECT i.*, s.first_name, s.last_name, s.zeta_id, au.name as interviewer_name, au.email as interviewer_email
                  FROM interviews i
                  JOIN students s ON i.student_id = s.id
-                 JOIN users u ON i.interviewer_id = u.id
+                 JOIN authorized_users au ON i.interviewer_id = au.id
                  WHERE i.student_id = $1 AND i.status = 'in_progress'
                  ORDER BY i.created_at DESC
                  LIMIT 1`,
