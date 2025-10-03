@@ -602,6 +602,255 @@
             justify-content: center;
         }
 
+        /* Interview Session Styles */
+        .interview-session-content {
+            min-height: 600px;
+        }
+
+        .session-setup {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .setup-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .setup-card h3 {
+            margin-bottom: 0.5rem;
+            color: #2d3748;
+        }
+
+        .setup-card p {
+            color: #718096;
+            margin-bottom: 2rem;
+        }
+
+        .active-interview {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 1rem;
+            height: 600px;
+            overflow: hidden;
+        }
+
+        .interview-main {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            overflow-y: auto;
+        }
+
+        .student-info-card {
+            background: #f7fafc;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .student-info-title {
+            margin-bottom: 1rem;
+            color: #2d3748;
+            font-size: 1.25rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+        }
+
+        .info-value {
+            color: #2d3748;
+            font-weight: 500;
+        }
+
+        .conversation-container {
+            margin-top: 1.5rem;
+        }
+
+        .conversation-header {
+            margin-bottom: 1rem;
+        }
+
+        .conversation-header h3 {
+            color: #2d3748;
+            font-size: 1.25rem;
+        }
+
+        .conversation-messages {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            height: 300px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+        }
+
+        .welcome-message {
+            text-align: center;
+            color: #718096;
+            font-style: italic;
+        }
+
+        .question-input-container {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .input-tabs {
+            display: flex;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            color: #718096;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            color: #4299e1;
+            border-bottom-color: #4299e1;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .question-input-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-end;
+        }
+
+        .question-textarea {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .btn-add-question {
+            background: #4299e1;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .btn-add-question:hover {
+            background: #3182ce;
+        }
+
+        .question-bank-content {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .bank-filters {
+            margin-bottom: 1rem;
+        }
+
+        .question-bank-list {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .right-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            overflow-y: auto;
+        }
+
+        .panel-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .panel-section h3 {
+            margin-bottom: 0.75rem;
+            color: #2d3748;
+            font-size: 1.125rem;
+        }
+
+        .notes-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .previous-interviews {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .panel-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .interview-clock {
+            background: #2563eb;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .clock-icon {
+            font-size: 1.2rem;
+        }
+
         /* Compact Filter Toggle Button */
         .btn-filter-toggle {
             display: flex;
@@ -993,6 +1242,12 @@
                             Question Bank
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" onclick="showSection('interview-session')">
+                            <i>🎤</i>
+                            Interview Session
+                        </a>
+                    </li>
                 </ul>
             </nav>
         </aside>
@@ -1142,6 +1397,169 @@
                     </div>
                     <div id="question-bank-list" class="question-bank-list">
                         <div class="loading">Loading questions...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Interview Session Section -->
+            <section id="interview-session-section" class="content-section">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title">Interview Session</h2>
+                        <div class="header-actions">
+                            <div class="interview-clock" id="interview-clock">
+                                <span class="clock-icon">🕐</span>
+                                <span id="timer-display">00:00:00</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Interview Session Content -->
+                    <div id="interview-session-content" class="interview-session-content">
+                        <div class="session-setup" id="session-setup">
+                            <div class="setup-card">
+                                <h3>Start New Interview Session</h3>
+                                <p>Select a session and student to begin the interview.</p>
+                                
+                                <!-- Session Selection -->
+                                <div class="form-group">
+                                    <label class="form-label" for="session-select-interview">Select Interview Session</label>
+                                    <select id="session-select-interview" class="form-select" onchange="loadSessionDetailsForInterview()">
+                                        <option value="">Choose a session...</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Session Details -->
+                                <div id="session-details-interview" class="session-details" style="display: none;">
+                                    <div class="session-info">
+                                        <h4 id="session-name-display-interview"></h4>
+                                        <p id="session-description-display-interview"></p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Student Search -->
+                                <div class="form-group">
+                                    <label class="form-label" for="student-search-interview">Search for Student</label>
+                                    <div class="search-container">
+                                        <input type="text" id="student-search-interview" class="form-input" placeholder="Enter Zeta ID or student name..." onkeyup="searchStudentsForInterview()">
+                                        <button class="btn btn-primary" onclick="searchStudentsForInterview()">Search</button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Search Results -->
+                                <div id="search-results-interview" class="search-results" style="display: none;">
+                                    <h4>Search Results</h4>
+                                    <div id="student-results-list-interview" class="student-results-list"></div>
+                                </div>
+                                
+                                <!-- Start Interview Button -->
+                                <div class="action-buttons" style="margin-top: 2rem;">
+                                    <button id="start-interview-btn-interview" class="btn btn-success" onclick="startInterviewSessionEmbedded()" disabled>
+                                        Start Interview Session
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Active Interview Content -->
+                        <div class="active-interview" id="active-interview" style="display: none;">
+                            <div class="interview-main">
+                                <div class="student-info-card">
+                                    <h3 class="student-info-title">Candidate Information</h3>
+                                    <div class="info-grid">
+                                        <div class="info-item">
+                                            <div class="info-label">Name</div>
+                                            <div class="info-value" id="candidate-name-interview">Loading...</div>
+                                        </div>
+                                        <div class="info-item">
+                                            <div class="info-label">Email</div>
+                                            <div class="info-value" id="candidate-email-interview">Loading...</div>
+                                        </div>
+                                        <div class="info-item">
+                                            <div class="info-label">Zeta ID</div>
+                                            <div class="info-value" id="candidate-zeta-interview">Loading...</div>
+                                        </div>
+                                        <div class="info-item">
+                                            <div class="info-label">Session</div>
+                                            <div class="info-value" id="candidate-session-interview">Loading...</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Conversation Area -->
+                                <div class="conversation-container">
+                                    <div class="conversation-header">
+                                        <h3>Interview Conversation</h3>
+                                    </div>
+                                    <div class="conversation-messages" id="conversation-messages-interview">
+                                        <div class="welcome-message">
+                                            <p>Welcome to the interview! Start by asking your first question.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Question Input -->
+                                    <div class="question-input-container">
+                                        <div class="input-tabs">
+                                            <button class="tab-btn active" onclick="switchTab('custom')">Custom Question</button>
+                                            <button class="tab-btn" onclick="switchTab('bank')">Question Bank</button>
+                                        </div>
+                                        
+                                        <div class="tab-content">
+                                            <div id="custom-tab" class="tab-panel active">
+                                                <div class="question-input-group">
+                                                    <textarea id="question-input-interview" class="question-textarea" placeholder="Type your question here..." rows="3"></textarea>
+                                                    <button class="btn-add-question" onclick="addQuestionToInterview()">Add Question</button>
+                                                </div>
+                                            </div>
+                                            
+                                            <div id="bank-tab" class="tab-panel">
+                                                <div class="question-bank-content">
+                                                    <div class="bank-filters">
+                                                        <select id="category-select-interview" class="form-select" onchange="loadQuestionsFromBank()">
+                                                            <option value="">All Categories</option>
+                                                        </select>
+                                                    </div>
+                                                    <div id="question-bank-list-interview" class="question-bank-list">
+                                                        <p>Select a category to load questions</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Right Panel -->
+                            <div class="right-panel">
+                                <div class="panel-section">
+                                    <h3>Interview Notes</h3>
+                                    <textarea id="interview-notes-interview" class="notes-textarea" placeholder="Add your notes here..." rows="8"></textarea>
+                                </div>
+                                
+                                <div class="panel-section">
+                                    <h3>Verdict</h3>
+                                    <select id="verdict-select-interview" class="form-select">
+                                        <option value="">Select Verdict</option>
+                                        <option value="Tiger">Tiger</option>
+                                        <option value="Cow">Cow</option>
+                                        <option value="Cow+">Cow+</option>
+                                        <option value="Sheep">Sheep</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="panel-section">
+                                    <h3>Previous Interviews</h3>
+                                    <div id="previous-interviews-interview" class="previous-interviews">
+                                        <p>No previous interviews found</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="panel-actions">
+                                    <button class="btn btn-success" onclick="saveInterviewEmbedded()">Save Interview</button>
+                                    <button class="btn btn-secondary" onclick="exitInterviewEmbedded()">Exit Interview</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -1322,6 +1740,9 @@
         let allSessions = [];
         let selectedStudent = null;
         let selectedSession = null;
+        let currentInterview = null;
+        let interviewTimer = null;
+        let interviewStartTime = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             checkUserLoginStatus();
@@ -1381,8 +1802,24 @@
                     loadFavoriteQuestions(),
                     loadStats()
                 ]);
+                
+                // Populate interview session dropdown
+                populateInterviewSessionDropdown();
             } catch (error) {
                 console.error('Error loading dashboard data:', error);
+            }
+        }
+
+        function populateInterviewSessionDropdown() {
+            const sessionSelect = document.getElementById('session-select-interview');
+            if (sessionSelect && allSessions.length > 0) {
+                sessionSelect.innerHTML = '<option value="">Choose a session...</option>';
+                allSessions.forEach(session => {
+                    const option = document.createElement('option');
+                    option.value = session.id;
+                    option.textContent = session.name;
+                    sessionSelect.appendChild(option);
+                });
             }
         }
 
@@ -1407,7 +1844,8 @@
             const titles = {
                 'start-interview': 'Start Interview',
                 'interviews': 'My Interviews',
-                'questions': 'Question Bank'
+                'questions': 'Question Bank',
+                'interview-session': 'Interview Session'
             };
             document.getElementById('page-title').textContent = titles[sectionName];
         }
@@ -1590,6 +2028,351 @@
             
             console.log('Starting interview session with params:', params.toString());
             window.location.href = `/interview-session.html?${params.toString()}`;
+        }
+
+        // Embedded Interview Session Functions
+        function loadSessionDetailsForInterview() {
+            const sessionSelect = document.getElementById('session-select-interview');
+            const sessionId = sessionSelect.value;
+            const sessionDetails = document.getElementById('session-details-interview');
+            
+            if (sessionId) {
+                selectedSession = allSessions.find(s => s.id == sessionId);
+                if (selectedSession) {
+                    document.getElementById('session-name-display-interview').textContent = selectedSession.name;
+                    document.getElementById('session-description-display-interview').textContent = selectedSession.description || 'No description provided';
+                    sessionDetails.style.display = 'block';
+                }
+            } else {
+                sessionDetails.style.display = 'none';
+                selectedSession = null;
+            }
+            
+            updateStartButtonForInterview();
+        }
+
+        async function searchStudentsForInterview() {
+            const searchTerm = document.getElementById('student-search-interview').value.trim();
+            const searchResults = document.getElementById('search-results-interview');
+            const resultsList = document.getElementById('student-results-list-interview');
+            
+            if (!searchTerm) {
+                searchResults.style.display = 'none';
+                selectedStudent = null;
+                updateStartButtonForInterview();
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/students/search/${encodeURIComponent(searchTerm)}`);
+                const data = await response.json();
+                
+                if (data.success && data.data.length > 0) {
+                    resultsList.innerHTML = '';
+                    
+                    data.data.forEach(student => {
+                        const resultItem = document.createElement('div');
+                        resultItem.className = 'student-result-item';
+                        resultItem.onclick = () => selectStudentForInterview(student, resultItem);
+                        
+                        resultItem.innerHTML = `
+                            <div class="student-info">
+                                <div class="student-name">${student.first_name} ${student.last_name}</div>
+                                <div class="student-details">Zeta ID: ${student.zeta_id} | Email: ${student.email}</div>
+                            </div>
+                        `;
+                        
+                        resultsList.appendChild(resultItem);
+                    });
+                    
+                    searchResults.style.display = 'block';
+                } else {
+                    resultsList.innerHTML = '<p>No students found matching your search.</p>';
+                    searchResults.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error searching students:', error);
+                resultsList.innerHTML = '<p>Error searching students. Please try again.</p>';
+                searchResults.style.display = 'block';
+            }
+        }
+
+        function selectStudentForInterview(student, element) {
+            // Remove previous selection
+            document.querySelectorAll('#student-results-list-interview .student-result-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // Select current student
+            element.classList.add('selected');
+            selectedStudent = student;
+            updateStartButtonForInterview();
+        }
+
+        function updateStartButtonForInterview() {
+            const startBtn = document.getElementById('start-interview-btn-interview');
+            if (selectedSession && selectedStudent) {
+                startBtn.disabled = false;
+                startBtn.textContent = `Start Interview with ${selectedStudent.first_name} ${selectedStudent.last_name}`;
+            } else {
+                startBtn.disabled = true;
+                startBtn.textContent = 'Start Interview Session';
+            }
+        }
+
+        async function startInterviewSessionEmbedded() {
+            if (!selectedSession || !selectedStudent) {
+                alert('Please select both a session and a student before starting the interview.');
+                return;
+            }
+            
+            if (!currentUser || !currentUser.email) {
+                alert('User email not found. Please log in again.');
+                return;
+            }
+            
+            try {
+                // Create interview
+                const response = await fetch('/api/interviews', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        student_id: selectedStudent.id,
+                        interviewer_id: await getCurrentUserId(),
+                        session_id: selectedSession.id,
+                        status: 'in_progress'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentInterview = result.data;
+                    interviewStartTime = new Date();
+                    
+                    // Update UI
+                    document.getElementById('session-setup').style.display = 'none';
+                    document.getElementById('active-interview').style.display = 'grid';
+                    
+                    // Update candidate info
+                    document.getElementById('candidate-name-interview').textContent = `${selectedStudent.first_name} ${selectedStudent.last_name}`;
+                    document.getElementById('candidate-email-interview').textContent = selectedStudent.email;
+                    document.getElementById('candidate-zeta-interview').textContent = selectedStudent.zeta_id;
+                    document.getElementById('candidate-session-interview').textContent = selectedSession.name;
+                    
+                    // Start timer
+                    startInterviewTimer();
+                    
+                    // Load previous interviews
+                    loadPreviousInterviewsForStudent();
+                    
+                    // Load question bank categories
+                    loadQuestionBankCategories();
+                    
+                    console.log('Interview started successfully:', currentInterview);
+                } else {
+                    alert('Failed to start interview: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error starting interview:', error);
+                alert('Error starting interview. Please try again.');
+            }
+        }
+
+        async function getCurrentUserId() {
+            try {
+                const response = await fetch(`/api/user/id?email=${encodeURIComponent(currentUser.email)}`);
+                const result = await response.json();
+                return result.success ? result.userId : null;
+            } catch (error) {
+                console.error('Error getting user ID:', error);
+                return null;
+            }
+        }
+
+        function startInterviewTimer() {
+            interviewTimer = setInterval(() => {
+                if (interviewStartTime) {
+                    const now = new Date();
+                    const diff = now - interviewStartTime;
+                    const hours = Math.floor(diff / 3600000);
+                    const minutes = Math.floor((diff % 3600000) / 60000);
+                    const seconds = Math.floor((diff % 60000) / 1000);
+                    
+                    const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    document.getElementById('timer-display').textContent = timeString;
+                }
+            }, 1000);
+        }
+
+        function stopInterviewTimer() {
+            if (interviewTimer) {
+                clearInterval(interviewTimer);
+                interviewTimer = null;
+            }
+        }
+
+        async function loadPreviousInterviewsForStudent() {
+            if (!selectedStudent) return;
+            
+            try {
+                const response = await fetch(`/api/interviews/student/${selectedStudent.id}/history`);
+                const result = await response.json();
+                
+                const container = document.getElementById('previous-interviews-interview');
+                
+                if (result.success && result.data.length > 0) {
+                    container.innerHTML = result.data.map(interview => `
+                        <div class="previous-interview-item">
+                            <div class="interview-date">${new Date(interview.created_at).toLocaleDateString()}</div>
+                            <div class="interview-verdict">${interview.verdict || 'No verdict'}</div>
+                            <div class="interview-duration">${Math.floor(interview.duration_seconds / 60)} min</div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<p>No previous interviews found</p>';
+                }
+            } catch (error) {
+                console.error('Error loading previous interviews:', error);
+                document.getElementById('previous-interviews-interview').innerHTML = '<p>Error loading previous interviews</p>';
+            }
+        }
+
+        async function loadQuestionBankCategories() {
+            try {
+                const response = await fetch('/api/question-bank/categories');
+                const result = await response.json();
+                
+                const select = document.getElementById('category-select-interview');
+                select.innerHTML = '<option value="">All Categories</option>';
+                
+                if (result.success) {
+                    result.data.forEach(category => {
+                        const option = document.createElement('option');
+                        option.value = category;
+                        option.textContent = category;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading categories:', error);
+            }
+        }
+
+        function switchTab(tabName) {
+            // Remove active class from all tabs and panels
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+            
+            // Add active class to selected tab and panel
+            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+
+        async function addQuestionToInterview() {
+            const questionText = document.getElementById('question-input-interview').value.trim();
+            if (!questionText || !currentInterview) return;
+            
+            try {
+                const response = await fetch(`/api/interviews/${currentInterview.id}/questions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        question: questionText
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Add question to conversation
+                    addQuestionToConversation(questionText);
+                    document.getElementById('question-input-interview').value = '';
+                } else {
+                    alert('Failed to add question: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error adding question:', error);
+                alert('Error adding question. Please try again.');
+            }
+        }
+
+        function addQuestionToConversation(questionText) {
+            const messagesContainer = document.getElementById('conversation-messages-interview');
+            const questionElement = document.createElement('div');
+            questionElement.className = 'message question-message';
+            questionElement.innerHTML = `
+                <div class="message-content">
+                    <strong>Interviewer:</strong> ${questionText}
+                </div>
+            `;
+            messagesContainer.appendChild(questionElement);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        async function saveInterviewEmbedded() {
+            if (!currentInterview) return;
+            
+            const notes = document.getElementById('interview-notes-interview').value;
+            const verdict = document.getElementById('verdict-select-interview').value;
+            
+            try {
+                const response = await fetch(`/api/interviews/${currentInterview.id}/complete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        notes: notes,
+                        verdict: verdict,
+                        duration_seconds: Math.floor((new Date() - interviewStartTime) / 1000)
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Interview saved successfully!');
+                    exitInterviewEmbedded();
+                } else {
+                    alert('Failed to save interview: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error saving interview:', error);
+                alert('Error saving interview. Please try again.');
+            }
+        }
+
+        function exitInterviewEmbedded() {
+            // Stop timer
+            stopInterviewTimer();
+            
+            // Reset UI
+            document.getElementById('session-setup').style.display = 'block';
+            document.getElementById('active-interview').style.display = 'none';
+            
+            // Clear form
+            document.getElementById('session-select-interview').value = '';
+            document.getElementById('student-search-interview').value = '';
+            document.getElementById('search-results-interview').style.display = 'none';
+            document.getElementById('session-details-interview').style.display = 'none';
+            document.getElementById('question-input-interview').value = '';
+            document.getElementById('interview-notes-interview').value = '';
+            document.getElementById('verdict-select-interview').value = '';
+            document.getElementById('conversation-messages-interview').innerHTML = '<div class="welcome-message"><p>Welcome to the interview! Start by asking your first question.</p></div>';
+            
+            // Reset variables
+            currentInterview = null;
+            selectedStudent = null;
+            selectedSession = null;
+            interviewStartTime = null;
+            
+            // Reset timer display
+            document.getElementById('timer-display').textContent = '00:00:00';
         }
 
         async function loadMyInterviews() {
