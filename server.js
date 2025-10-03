@@ -139,13 +139,10 @@ app.get('/interview-session', (req, res) => {
 });
 
 // Admin dashboard page route
-app.get('/admin-dashboard.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'admin-dashboard.html'));
-});
-
-// Interviewer dashboard page route
-app.get('/interviewer-dashboard.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'interviewer-dashboard.html'));
+// Serve React SPA (dashboard)
+app.use('/dashboard', express.static(path.join(__dirname, 'client', 'dist')));
+app.get(['/dashboard', '/dashboard/*'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
 });
 
 app.get('/health', (req, res) => {
