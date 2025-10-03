@@ -1333,6 +1333,17 @@
     </main>
 
     <script>
+        // Enable embed mode if query param embed=1 and hide local header
+        (function () {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                if (params.get('embed') === '1') {
+                    document.body.classList.add('embed');
+                    const header = document.querySelector('header.header');
+                    if (header) header.style.display = 'none';
+                }
+            } catch (e) {}
+        })();
         let currentInterview = null;
         let currentStudent = null;
         let questions = [];
