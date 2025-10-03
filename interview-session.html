@@ -2443,6 +2443,13 @@
                     const categorySelect = document.getElementById('bank-category-select');
                     if (categorySelect) {
                         categorySelect.innerHTML = '<option value="">All Categories</option>';
+                        // Add Favorites option
+                        const favoritesOption = document.createElement('option');
+                        favoritesOption.value = 'Favorites';
+                        favoritesOption.textContent = 'My Favorites';
+                        categorySelect.appendChild(favoritesOption);
+                        
+                        // Add all categories
                         categoriesResult.data.forEach(category => {
                             const option = document.createElement('option');
                             option.value = category.category;
