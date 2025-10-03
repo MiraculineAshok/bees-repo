@@ -1286,31 +1286,7 @@
                     <li class="nav-item">
                         <a href="#" class="nav-link active" onclick="showSection('start-interview')">
                             <i>🎯</i>
-                            Start Interview
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link" onclick="showSection('interviews')">
-                            <i>📋</i>
-                            My Interviews
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link" onclick="showSection('questions')">
-                            <i>❓</i>
-                            Question Bank
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link" onclick="showSection('interview')">
-                            <i>🧩</i>
-                            Interview
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link" onclick="showSection('interview-session')">
-                            <i>🎤</i>
-                            Interview Session
+                            Do Interview
                         </a>
                     </li>
                 </ul>
@@ -1327,11 +1303,11 @@
         <main class="main-content">
             <!-- Removed header as per request; using page title area inside sections -->
 
-            <!-- Start Interview Section -->
+            <!-- Do Interview (Start Interview) Section -->
             <section id="start-interview-section" class="content-section active">
                 <div class="section-card">
                     <div class="section-header">
-                        <h2 class="section-title">Start New Interview</h2>
+                        <h2 class="section-title">Do Interview</h2>
                     </div>
                     
                     <!-- Session Selection -->
@@ -1375,110 +1351,7 @@
                 </div>
             </section>
 
-            <!-- My Interviews Section -->
-            <section id="interviews-section" class="content-section">
-                <!-- Stats Grid -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-value" id="total-interviews">0</div>
-                        <div class="stat-label">Total Interviews</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="completed-interviews">0</div>
-                        <div class="stat-label">Completed Interviews</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="in-progress-interviews">0</div>
-                        <div class="stat-label">Interviews In Progress</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="favorite-questions">0</div>
-                        <div class="stat-label">Favorite Questions</div>
-                    </div>
-                </div>
-
-
-                <!-- Interviews Table -->
-                <div class="section-card">
-                    <div class="section-header">
-                        <h2 class="section-title">My Interviews</h2>
-                        <div class="header-actions">
-                            <button class="btn-filter-toggle" onclick="toggleFilterPanel()" title="Filter & Sort Options">
-                                <span class="filter-icon">⚙️</span>
-                                <span class="filter-text">Filters</span>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Results Summary -->
-                    <div id="results-summary" class="results-summary" style="display: none;">
-                        <strong>0</strong> interviews found
-                    </div>
-                    
-                    <div class="table-container">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Student Name</th>
-                                    <th>Zeta ID</th>
-                                    <th>Session</th>
-                                    <th>Status</th>
-                                    <th>Verdict</th>
-                                    <th>Duration</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="interviews-table-body">
-                                <tr><td colspan="8" class="loading">Loading interviews...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Question Bank Section -->
-            <section id="questions-section" class="content-section">
-                <div class="section-card">
-                    <div class="section-header">
-                        <h2 class="section-title">Question Bank</h2>
-                        <div class="header-actions">
-                            <button class="btn-filter-toggle" onclick="toggleQuestionFilterPanel()" title="Filter & Sort Options">
-                                <span class="filter-icon">⚙️</span>
-                                <span class="filter-text">Filters</span>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Results Summary -->
-                    <div id="question-results-summary" class="results-summary" style="display: none;">
-                        <strong>0</strong> questions found
-                    </div>
-                    <div id="question-bank-list" class="question-bank-list">
-                        <div class="loading">Loading questions...</div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Interview Section (component render) -->
-            <section id="interview-section" class="content-section">
-                <div class="section-card">
-                    <div class="section-header">
-                        <h2 class="section-title">Interview</h2>
-                    </div>
-                    <div id="interview-embed" class="embedded-page"></div>
-                </div>
-            </section>
-
-            <!-- Interview Session Section (component render) -->
-            <section id="interview-session-section" class="content-section">
-                <div class="section-card">
-                    <div class="section-header">
-                        <h2 class="section-title">Interview Session</h2>
-                    </div>
-                    <div id="interview-session-embed" class="embedded-page"></div>
-                </div>
-            </section>
+            <!-- Remove other sections; only Do Interview flow remains -->
         </main>
     </div>
 
@@ -1758,58 +1631,16 @@
             
             // Update page title
             const titles = {
-                'start-interview': 'Start Interview',
-                'interviews': 'My Interviews',
-                'questions': 'Question Bank',
-                'interview': 'Interview',
-                'interview-session': 'Interview Session'
+                'start-interview': 'Do Interview'
             };
             const pageTitleEl = document.getElementById('page-title');
             if (pageTitleEl && titles[sectionName]) {
                 pageTitleEl.textContent = titles[sectionName];
             }
 
-            // Lazy-load embedded pages as components
-            if (sectionName === 'interview') {
-                lazyLoadEmbeddedPage('/interview.html', 'interview-embed');
-            } else if (sectionName === 'interview-session') {
-                lazyLoadEmbeddedPage('/interview-session.html', 'interview-session-embed');
-            }
+            // Only one section now; nothing else to lazy-load
         }
 
-        async function lazyLoadEmbeddedPage(path, containerId) {
-            const container = document.getElementById(containerId);
-            if (!container || container.dataset.loaded === 'true') return;
-            
-            container.innerHTML = '<div style="padding:1rem;color:#666;">Loading...</div>';
-            try {
-                const response = await fetch(path, { credentials: 'same-origin' });
-                const html = await response.text();
-                
-                // Extract <body> content to avoid duplicating head/styles
-                const bodyMatch = html.match(/<body[\s\S]*?>([\s\S]*?)<\/body>/i);
-                const content = bodyMatch ? bodyMatch[1] : html;
-                
-                container.innerHTML = content;
-                container.dataset.loaded = 'true';
-                
-                // Execute inline scripts in loaded content
-                const scripts = Array.from(container.querySelectorAll('script'));
-                for (const oldScript of scripts) {
-                    const newScript = document.createElement('script');
-                    if (oldScript.src) {
-                        newScript.src = oldScript.src;
-                    } else {
-                        newScript.textContent = oldScript.textContent;
-                    }
-                    document.body.appendChild(newScript);
-                    oldScript.remove();
-                }
-            } catch (e) {
-                console.error('Failed to load embedded page', path, e);
-                container.innerHTML = '<div style="padding:1rem;color:#c00;">Failed to load content.</div>';
-            }
-        }
 
         // Filter Panel Functions
         function toggleFilterPanel() {
