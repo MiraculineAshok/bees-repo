@@ -112,6 +112,176 @@ function Interview() {
   )
 }
 
+function useUserEmail() {
+  const [email, setEmail] = useState('')
+  useEffect(()=>{
+    try {
+      const stored = localStorage.getItem('bees_user_data')
+      const data = stored ? JSON.parse(stored) : null
+      const urlEmail = new URLSearchParams(window.location.search).get('email')
+      const e = urlEmail || data?.email || ''
+      if (e) setEmail(e)
+    } catch {}
+  }, [])
+  return email
+}
+
+function MyInterviewsTab() {
+  const email = useUserEmail()
+  const [state, setState] = useState({ loading: true, error: '', items: [] })
+  useEffect(()=>{
+    (async ()=>{
+      try {
+        if (!email) throw new Error('Missing user email')
+        const res = await fetch(`/api/interviewer/interviews?email=${encodeURIComponent(email)}`, {
+          headers: { 'x-user-email': email }
+        })
+        const json = await res.json()
+        if (!res.ok || !json.success) throw new Error(json.error || `HTTP ${res.status}`)
+        setState({ loading: false, error: '', items: json.data || [] })
+      } catch (e) {
+        setState({ loading: false, error: e.message || 'Failed to load', items: [] })
+      }
+    })()
+  }, [email])
+  if (state.loading) return <div style={{padding:16}}>Loading my interviews...</div>
+  if (state.error) return <div style={{padding:16,color:'#b91c1c'}}>Error: {state.error}</div>
+  if (!state.items.length) return <div style={{padding:16}}>No interviews found.</div>
+  return (
+    <div style={{padding:16}}>
+      <table style={{width:'100%',borderCollapse:'collapse'}}>
+        <thead>
+          <tr>
+            <th style={{textAlign:'left',borderBottom:'1px solid #eee',padding:'8px'}}>Date</th>
+            <th style={{textAlign:'left',borderBottom:'1px solid #eee',padding:'8px'}}>Student</th>
+            <th style={{textAlign:'left',borderBottom:'1px solid #eee',padding:'8px'}}>Session</th>
+            <th style={{textAlign:'left',borderBottom:'1px solid #eee',padding:'8px'}}>Status</th>
+            <th style={{textAlign:'left',borderBottom:'1px solid #eee',padding:'8px'}}>Verdict</th>
+          </tr>
+        </thead>
+        <tbody>
+          {state.items.map((it)=> (
+            <tr key={it.id}>
+              <td style={{padding:'8px',borderBottom:'1px solid #f1f5f9'}}>{new Date(it.created_at || it.interview_date || Date.now()).toLocaleString()}</td>
+              <td style={{padding:'8px',borderBottom:'1px solid #f1f5f9'}}>{it.student_name || `${it.first_name || ''} ${it.last_name || ''}`}</td>
+              <td style={{padding:'8px',borderBottom:'1px solid #f1f5f9'}}>{it.session_name || '-'}</td>
+              <td style={{padding:'8px',borderBottom:'1px solid #f1f5f9'}}>{it.status}</td>
+              <td style={{padding:'8px',borderBottom:'1px solid #f1f5f9'}}>{it.verdict || '-'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function AdminOverviewTab() {
+  const [state, setState] = useState({ loading: true, error: '', data: null })
+  useEffect(()=>{
+    (async ()=>{
+      try {
+        const res = await fetch('/api/admin/overview')
+        const json = await res.json()
+        if (!res.ok || !json.success) throw new Error(json.error || `HTTP ${res.status}`)
+        setState({ loading: false, error: '', data: json.data })
+      } catch (e) {
+        setState({ loading: false, error: e.message || 'Failed to load', data: null })
+      }
+    })()
+  }, [])
+  if (state.loading) return <div style={{padding:16}}>Loading overview...</div>
+  if (state.error) return <div style={{padding:16,color:'#b91c1c'}}>Error: {state.error}</div>
+  return <pre style={{padding:16,background:'#f8fafc',overflow:'auto'}}>{JSON.stringify(state.data, null, 2)}</pre>
+}
+
+function AdminInterviewsTab() {
+  const [state, setState] = useState({ loading: true, error: '', items: [] })
+  useEffect(()=>{
+    (async ()=>{
+      try {
+        const res = await fetch('/api/admin/interviews')
+        const json = await res.json()
+        if (!res.ok || !json.success) throw new Error(json.error || `HTTP ${res.status}`)
+        setState({ loading: false, error: '', items: json.data || [] })
+      } catch (e) {
+        setState({ loading: false, error: e.message || 'Failed to load', items: [] })
+      }
+    })()
+  }, [])
+  if (state.loading) return <div style={{padding:16}}>Loading interviews...</div>
+  if (state.error) return <div style={{padding:16,color:'#b91c1c'}}>Error: {state.error}</div>
+  return <div style={{padding:16}}>Total interviews: {state.items.length}</div>
+}
+
+function QuestionsTab() {
+  const email = useUserEmail()
+  const [state, setState] = useState({ loading: true, error: '', items: [] })
+  useEffect(()=>{
+    (async ()=>{
+      try {
+        const res = await fetch('/api/question-bank', { headers: email ? { 'x-user-email': email } : {} })
+        const json = await res.json()
+        if (!res.ok || json.success === false) throw new Error(json.error || `HTTP ${res.status}`)
+        const items = json.data || json || []
+        setState({ loading: false, error: '', items })
+      } catch (e) {
+        setState({ loading: false, error: e.message || 'Failed to load', items: [] })
+      }
+    })()
+  }, [email])
+  if (state.loading) return <div style={{padding:16}}>Loading questions...</div>
+  if (state.error) return <div style={{padding:16,color:'#b91c1c'}}>Error: {state.error}</div>
+  if (!state.items.length) return <div style={{padding:16}}>No questions.</div>
+  return (
+    <div style={{padding:16,display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))',gap:12}}>
+      {state.items.map((q)=> (
+        <div key={q.id} style={{border:'1px solid #e5e7eb',borderRadius:6,padding:12,background:'#fff'}}>
+          <div style={{fontWeight:600,marginBottom:6}}>{q.question}</div>
+          <div style={{fontSize:12,color:'#475569'}}>{q.category}</div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function AdminSessionsTab() {
+  const [state, setState] = useState({ loading: true, error: '', items: [] })
+  useEffect(()=>{
+    (async ()=>{
+      try {
+        const res = await fetch('/api/admin/sessions')
+        const json = await res.json()
+        if (!res.ok || !json.success) throw new Error(json.error || `HTTP ${res.status}`)
+        setState({ loading: false, error: '', items: json.data || [] })
+      } catch (e) {
+        setState({ loading: false, error: e.message || 'Failed to load', items: [] })
+      }
+    })()
+  }, [])
+  if (state.loading) return <div style={{padding:16}}>Loading sessions...</div>
+  if (state.error) return <div style={{padding:16,color:'#b91c1c'}}>Error: {state.error}</div>
+  return <div style={{padding:16}}>Total sessions: {state.items.length}</div>
+}
+
+function AdminStudentsTab() {
+  const [state, setState] = useState({ loading: true, error: '', items: [] })
+  useEffect(()=>{
+    (async ()=>{
+      try {
+        const res = await fetch('/api/admin/students')
+        const json = await res.json()
+        if (!res.ok || !json.success) throw new Error(json.error || `HTTP ${res.status}`)
+        setState({ loading: false, error: '', items: json.data || [] })
+      } catch (e) {
+        setState({ loading: false, error: e.message || 'Failed to load', items: [] })
+      }
+    })()
+  }, [])
+  if (state.loading) return <div style={{padding:16}}>Loading students...</div>
+  if (state.error) return <div style={{padding:16,color:'#b91c1c'}}>Error: {state.error}</div>
+  return <div style={{padding:16}}>Total students: {state.items.length}</div>
+}
+
 export default function Dashboard() {
   const { role, loading } = useUserRole()
   const navigate = useNavigate()
@@ -144,12 +314,12 @@ export default function Dashboard() {
         <div style={{flex:1,overflow:'auto'}}>
           <Routes>
             <Route path="interview" element={<Interview />} />
-            <Route path="overview" element={<Placeholder title="Overview" />} />
-            <Route path="interviews" element={<Placeholder title="All Interviews" />} />
-            <Route path="questions" element={<Placeholder title="Question Bank" />} />
-            <Route path="sessions" element={<Placeholder title="Sessions" />} />
-            <Route path="students" element={<Placeholder title="Students" />} />
-            <Route path="my-interviews" element={<Placeholder title="My Interviews" />} />
+            <Route path="overview" element={<AdminOverviewTab />} />
+            <Route path="interviews" element={<AdminInterviewsTab />} />
+            <Route path="questions" element={<QuestionsTab />} />
+            <Route path="sessions" element={<AdminSessionsTab />} />
+            <Route path="students" element={<AdminStudentsTab />} />
+            <Route path="my-interviews" element={<MyInterviewsTab />} />
             <Route path="*" element={<Placeholder title="Not Found" />} />
           </Routes>
         </div>
