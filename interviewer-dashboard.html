@@ -1650,40 +1650,46 @@
 
         async function loadQuestions() {
             const category = document.getElementById('bank-category-select').value;
-            const searchTerm = document.getElementById('bank-search-input').value.trim();
+            const searchTerm = document.getElementById('bank-search-input').value.trim().toLowerCase();
             const sortBy = document.getElementById('question-sort-by').value;
             const questionListDiv = document.getElementById('question-bank-list');
             questionListDiv.innerHTML = '<div class="loading">Loading questions...</div>';
 
             try {
-                let url = '/api/question-bank';
-                if (category === 'Favorites') {
-                    const userEmail = currentUser?.email || '';
-                    url = `/api/interviewer/favorites?email=${encodeURIComponent(userEmail)}`;
-                } else if (category) {
-                    url = `/api/question-bank/category/${encodeURIComponent(category)}`;
-                } else if (searchTerm) {
-                    url = `/api/question-bank/search?q=${encodeURIComponent(searchTerm)}`;
-                }
-
-                const response = await fetch(url);
+                // Always load analytics for Question Analysis view
+                const response = await fetch('/api/admin/questions/analytics');
                 const result = await response.json();
 
                 if (result.success) {
-                    allQuestions = result.data;
-                    
+                    allQuestions = result.data || [];
+
+                    // Optional: filter by Favorites
+                    if (category === 'Favorites') {
+                        allQuestions = allQuestions.filter(q => favoriteQuestionIds.has(q.id));
+                    }
+
+                    // Optional: filter by category
+                    if (category && category !== 'Favorites') {
+                        allQuestions = allQuestions.filter(q => (q.category || '').toLowerCase() === category.toLowerCase());
+                    }
+
+                    // Optional: search by question text
+                    if (searchTerm) {
+                        allQuestions = allQuestions.filter(q => (q.question || '').toLowerCase().includes(searchTerm));
+                    }
+
                     // Apply sorting
                     allQuestions = applyQuestionSorting(allQuestions, sortBy);
-                    
-                    displayQuestionBank(allQuestions);
+
+                    displayQuestionAnalytics(allQuestions);
                     updateQuestionResultsSummary(allQuestions.length);
                 } else {
-                    console.error('Failed to load questions:', result.error);
+                    console.error('Failed to load questions analytics:', result.error);
                     questionListDiv.innerHTML = `<div class="empty-state">Failed to load questions.</div>`;
                     updateQuestionResultsSummary(0);
                 }
             } catch (error) {
-                console.error('Error loading questions:', error);
+                console.error('Error loading questions analytics:', error);
                 questionListDiv.innerHTML = `<div class="empty-state">Error loading questions.</div>`;
                 updateQuestionResultsSummary(0);
             }
@@ -1693,10 +1699,10 @@
             const sorted = [...questions];
             
             switch (sortBy) {
-                case 'popularity':
-                    return sorted.sort((a, b) => (b.count_of_times_asked || 0) - (a.count_of_times_asked || 0));
-                case 'recent':
-                    return sorted.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+                case 'popularity': // times asked desc
+                    return sorted.sort((a, b) => ((b.times_asked ?? b.count_of_times_asked ?? 0) - (a.times_asked ?? a.count_of_times_asked ?? 0)));
+                case 'recent': // fallback to id desc if created_at not present
+                    return sorted.sort((a, b) => (b.created_at ? new Date(b.created_at) - new Date(a.created_at) : (b.id || 0) - (a.id || 0)));
                 case 'alphabetical':
                     return sorted.sort((a, b) => (a.question || '').localeCompare(b.question || ''));
                 case 'category':
@@ -1750,28 +1756,93 @@
             window.URL.revokeObjectURL(url);
         }
 
-        function displayQuestionBank(questionsToDisplay) {
+        function displayQuestionAnalytics(questionsToDisplay) {
             const questionListDiv = document.getElementById('question-bank-list');
             if (!questionListDiv) return;
 
-            if (questionsToDisplay.length === 0) {
+            if (!questionsToDisplay.length) {
                 questionListDiv.innerHTML = '<div class="empty-state">No questions found.</div>';
                 return;
             }
 
-            questionListDiv.innerHTML = questionsToDisplay.map(question => {
-                const isFavorited = favoriteQuestionIds.has(question.id);
+            const rows = questionsToDisplay.map(q => {
+                const timesAsked = q.times_asked ?? q.count_of_times_asked ?? 0;
+                const correct = q.correct_answers ?? 0;
+                const success = q.success_rate != null ? `${q.success_rate}%` : '-';
                 return `
-                    <div class="question-item">
-                        <span class="question-text">${question.question} (${question.category})</span>
-                        <button class="favorite-btn ${isFavorited ? 'favorited' : ''}" 
-                                onclick="toggleFavorite(${question.id})" 
-                                title="${isFavorited ? 'Remove from favorites' : 'Add to favorites'}">
-                            ${isFavorited ? '★' : '☆'}
-                        </button>
-                    </div>
+                    <tr>
+                        <td>${q.question || '-'}</td>
+                        <td>${q.category || '-'}</td>
+                        <td>${timesAsked}</td>
+                        <td>${correct}</td>
+                        <td>${success}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" onclick="viewQuestionDetails(${q.id})">View</button>
+                        </td>
+                    </tr>
                 `;
             }).join('');
+
+            questionListDiv.innerHTML = `
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Question</th>
+                                <th>Category</th>
+                                <th>Times Asked</th>
+                                <th>Correct Answers</th>
+                                <th>Success Rate</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rows}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        async function viewQuestionDetails(questionId) {
+            try {
+                const res = await fetch(`/api/admin/questions/${questionId}/details`);
+                const json = await res.json();
+                if (!res.ok || !json.success) throw new Error(json.error || `HTTP ${res.status}`);
+
+                const q = json.data || json; // support both shapes
+                const timesAsked = q.times_asked ?? q.count_of_times_asked ?? 0;
+                const correct = q.correct_answers ?? 0;
+                const success = q.success_rate != null ? `${q.success_rate}%` : '-';
+
+                const answersHtml = (q.student_answers || []).map(a => `
+                    <div class="question-answer-item">
+                        <p><strong>${a.student_name || 'Student'}</strong> (${a.zeta_id || '-'})</p>
+                        <p>Answered at: ${a.answered_at ? formatDate(a.answered_at) : '-'}</p>
+                        <p>Answer: ${a.answer_text || '-'}</p>
+                    </div>
+                `).join('') || '<p>No answers recorded.</p>';
+
+                const content = `
+                    <div class="detail-section">
+                        <h4 class="detail-section-title">Question Information</h4>
+                        <div class="detail-item"><div class="detail-label">Question</div><div class="detail-value">${q.question || '-'}</div></div>
+                        <div class="detail-item"><div class="detail-label">Category</div><div class="detail-value">${q.category || '-'}</div></div>
+                        <div class="detail-item"><div class="detail-label">Times Asked</div><div class="detail-value">${timesAsked}</div></div>
+                        <div class="detail-item"><div class="detail-label">Correct Answers</div><div class="detail-value">${correct}</div></div>
+                        <div class="detail-item"><div class="detail-label">Success Rate</div><div class="detail-value">${success}</div></div>
+                    </div>
+                    <div class="detail-section">
+                        <h4 class="detail-section-title">Student Answers</h4>
+                        ${answersHtml}
+                    </div>
+                `;
+
+                openDetailPanel('Question Details', content);
+            } catch (e) {
+                console.error('Error loading question details:', e);
+                showError(e.message || 'Failed to load question details');
+            }
         }
 
         async function toggleFavorite(questionId) {
