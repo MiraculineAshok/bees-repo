@@ -13,26 +13,88 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f5f5;
-            color: #333;
+            background: #ffffff;
+            color: #000000;
             line-height: 1.6;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: #000000;
+            color: white;
+            padding: 1.5rem 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 0 1.5rem 2rem;
+            border-bottom: 1px solid #333333;
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-header h2 {
+            color: #ffffff;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 0.75rem 1.5rem;
+            color: #cccccc;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+            cursor: pointer;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: #333333;
+            color: white;
+            border-left-color: #ffffff;
+        }
+
+        .nav-link i {
+            margin-right: 0.75rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            flex: 1;
             padding: 2rem;
         }
 
         .header {
             background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 1.5rem 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
             margin-bottom: 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border: 1px solid #000000;
         }
 
         .header-left {
@@ -42,35 +104,42 @@
         }
 
         .home-link {
-            color: #2563eb;
+            color: #000;
             text-decoration: none;
+            margin-right: 1rem;
             font-weight: 600;
             padding: 0.5rem 1rem;
-            border-radius: 6px;
+            border-radius: 4px;
             transition: background-color 0.2s ease;
         }
 
         .home-link:hover {
-            background-color: #f0f9ff;
+            background-color: #f0f0f0;
             text-decoration: none;
         }
 
         .header h1 {
-            color: #1f2937;
+            color: #000;
             font-size: 2rem;
             font-weight: 700;
         }
 
-        .user-info {
+        .header-actions {
             display: flex;
             align-items: center;
             gap: 1rem;
         }
 
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
         .user-avatar {
             width: 40px;
             height: 40px;
-            background: #2563eb;
+            background: #000;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -79,131 +148,145 @@
             font-weight: bold;
         }
 
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            margin-bottom: 2rem;
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: none;
+            text-decoration: none;
+            display: inline-block;
         }
 
-        .card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-
-        .card-header {
-            background: #2563eb;
+        .btn-primary {
+            background: #000;
             color: white;
-            padding: 1.5rem;
-            font-size: 1.25rem;
-            font-weight: 600;
         }
 
-        .card-body {
-            padding: 1.5rem;
+        .btn-primary:hover {
+            background: #333;
+        }
+
+        .btn-sm {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.8rem;
+        }
+
+        /* Content Tabs */
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
         }
 
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
+            gap: 1.5rem;
             margin-bottom: 2rem;
         }
 
         .stat-card {
             background: white;
             padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            text-align: center;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            border-left: 4px solid #000;
         }
 
         .stat-value {
-            font-size: 2.5rem;
+            font-size: 2rem;
             font-weight: 700;
-            color: #2563eb;
+            color: #000;
             margin-bottom: 0.5rem;
         }
 
         .stat-label {
-            color: #6b7280;
+            color: #666;
             font-size: 0.875rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
 
+        .section-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            border: 1px solid #000;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #000;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 1rem;
+        }
+
         .table-container {
-            max-height: 400px;
-            overflow-y: auto;
+            overflow-x: auto;
         }
 
         .table {
             width: 100%;
             border-collapse: collapse;
+            margin-top: 1rem;
         }
 
-        .table th,
-        .table td {
+        .table th, .table td {
             padding: 1rem;
             text-align: left;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1px solid #eee;
         }
 
         .table th {
-            background: #f9fafb;
+            background: #f8f8f8;
             font-weight: 600;
-            color: #374151;
-            position: sticky;
-            top: 0;
+            color: #000;
         }
 
         .table tbody tr:hover {
-            background: #f9fafb;
+            background: #f5f5f5;
         }
 
-        .btn {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            text-decoration: none;
-            display: inline-block;
-            transition: all 0.2s ease;
+        .question-bank-filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
         }
 
-        .btn-primary {
-            background: #2563eb;
-            color: white;
+        .question-bank-list {
+            max-height: 600px;
+            overflow-y: auto;
+            border: 1px solid #000;
+            border-radius: 5px;
+            padding: 1rem;
+            background: #fdfdfd;
         }
 
-        .btn-primary:hover {
-            background: #1d4ed8;
+        .question-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px dashed #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .btn-success {
-            background: #10b981;
-            color: white;
+        .question-item:last-child {
+            border-bottom: none;
         }
 
-        .btn-success:hover {
-            background: #059669;
-        }
-
-        .btn-danger {
-            background: #ef4444;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #dc2626;
-        }
-
-        .btn-sm {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.875rem;
+        .question-text {
+            flex-grow: 1;
+            margin-right: 1rem;
+            color: #000;
         }
 
         .favorite-btn {
@@ -211,247 +294,172 @@
             border: none;
             cursor: pointer;
             font-size: 1.2rem;
-            color: #d1d5db;
+            color: #ccc;
             transition: color 0.2s ease;
         }
 
         .favorite-btn.favorited {
-            color: #fbbf24;
+            color: gold;
         }
 
         .favorite-btn:hover {
-            color: #f59e0b;
+            color: orange;
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            color: #6b7280;
-        }
-
-        .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            color: #d1d5db;
-        }
-
-        .loading {
+        .loading, .empty-state {
             text-align: center;
             padding: 2rem;
-            color: #6b7280;
+            color: #666;
         }
 
-        .search-box {
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #000;
+        }
+
+        .form-select, .form-input {
             width: 100%;
             padding: 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
+            border: 1px solid #000;
+            border-radius: 5px;
             font-size: 1rem;
-            margin-bottom: 1rem;
         }
 
-        .search-box:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        .category-filter {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .category-btn {
-            padding: 0.5rem 1rem;
-            border: 1px solid #d1d5db;
-            background: white;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .category-btn.active {
-            background: #2563eb;
-            color: white;
-            border-color: #2563eb;
-        }
-
-        .category-btn:hover {
-            background: #f3f4f6;
-        }
-
-        .category-btn.active:hover {
-            background: #1d4ed8;
-        }
-
-        .interview-status {
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .status-completed {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .status-in-progress {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        .status-cancelled {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        @media (max-width: 768px) {
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        .hidden {
+            display: none !important;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-left">
-                <a href="/" class="home-link">← Home</a>
-                <h1>Interviewer Dashboard</h1>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Interviewer Dashboard</h2>
             </div>
-            <div class="user-info">
-                <div class="user-avatar" id="user-avatar">I</div>
-                <span id="user-name">Interviewer</span>
-            </div>
-        </header>
+            <nav>
+                <ul class="sidebar-nav">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link active" onclick="showSection('interviews')">
+                            <i>📋</i>
+                            My Interviews
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" onclick="showSection('questions')">
+                            <i>❓</i>
+                            Question Bank
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
 
-        <!-- Stats Overview -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-value" id="total-interviews">0</div>
-                <div class="stat-label">Total Interviews</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="completed-interviews">0</div>
-                <div class="stat-label">Completed</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="favorite-questions">0</div>
-                <div class="stat-label">Favorite Questions</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="total-questions">0</div>
-                <div class="stat-label">Questions in Bank</div>
-            </div>
-        </div>
-
-        <!-- Main Content Grid -->
-        <div class="dashboard-grid">
-            <!-- My Interviews -->
-            <div class="card">
-                <div class="card-header">
-                    My Interviews
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <a href="/" class="home-link">← Home</a>
+                    <h1 id="page-title">My Interviews</h1>
                 </div>
-                <div class="card-body">
+                <div class="header-actions">
+                    <div class="user-info">
+                        <div class="user-avatar" id="user-avatar">I</div>
+                        <span id="user-name">Interviewer User</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- My Interviews Section -->
+            <section id="interviews-section" class="content-section active">
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-interviews">0</div>
+                        <div class="stat-label">Total Interviews</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="completed-interviews">0</div>
+                        <div class="stat-label">Completed Interviews</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="in-progress-interviews">0</div>
+                        <div class="stat-label">Interviews In Progress</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="favorite-questions">0</div>
+                        <div class="stat-label">Favorite Questions</div>
+                    </div>
+                </div>
+
+                <!-- Interviews Table -->
+                <div class="section-card">
+                    <h2 class="section-title">My Interviews</h2>
                     <div class="table-container">
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th>Student</th>
                                     <th>Date</th>
+                                    <th>Student Name</th>
+                                    <th>Zeta ID</th>
+                                    <th>Session</th>
                                     <th>Status</th>
+                                    <th>Verdict</th>
                                     <th>Duration</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="interviews-table-body">
-                                <tr>
-                                    <td colspan="5" class="loading">Loading interviews...</td>
-                                </tr>
+                                <tr><td colspan="8" class="loading">Loading interviews...</td></tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
-            </div>
+            </section>
 
-            <!-- Question Bank -->
-            <div class="card">
-                <div class="card-header">
-                    Question Bank
-                </div>
-                <div class="card-body">
-                    <input type="text" id="question-search" class="search-box" placeholder="Search questions...">
-                    
-                    <div class="category-filter">
-                        <button class="category-btn active" data-category="">All</button>
-                        <button class="category-btn" data-category="Math Aptitude">Math</button>
-                        <button class="category-btn" data-category="Generic HR Questions">HR</button>
-                        <button class="category-btn" data-category="English">English</button>
-                        <button class="category-btn" data-category="Technical">Technical</button>
-                        <button class="category-btn" data-category="Favorites">My Favorites</button>
+            <!-- Question Bank Section -->
+            <section id="questions-section" class="content-section">
+                <div class="section-card">
+                    <h2 class="section-title">Question Bank</h2>
+                    <div class="question-bank-filters">
+                        <div class="form-group">
+                            <label class="form-label">Category</label>
+                            <select id="bank-category-select" class="form-select" onchange="loadQuestions()">
+                                <option value="">All Categories</option>
+                                <option value="Favorites">My Favorites</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Search</label>
+                            <input type="text" id="bank-search-input" class="form-input" placeholder="Search questions..." onkeyup="loadQuestions()">
+                        </div>
                     </div>
-
-                    <div class="table-container">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Question</th>
-                                    <th>Category</th>
-                                    <th>Times Asked</th>
-                                    <th>Favorite</th>
-                                </tr>
-                            </thead>
-                            <tbody id="questions-table-body">
-                                <tr>
-                                    <td colspan="4" class="loading">Loading questions...</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div id="question-bank-list" class="question-bank-list">
+                        <div class="loading">Loading questions...</div>
                     </div>
                 </div>
-            </div>
-        </div>
+            </section>
+        </main>
     </div>
 
     <script>
-        let currentUser = null;
+        let allInterviews = [];
         let allQuestions = [];
-        let filteredQuestions = [];
-        let myInterviews = [];
         let favoriteQuestionIds = new Set();
+        let currentUser = null;
 
-        // Initialize dashboard
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', () => {
             checkUserLoginStatus();
-            loadDashboardData();
-            setupEventListeners();
         });
 
-        function setupEventListeners() {
-            // Question search
-            document.getElementById('question-search').addEventListener('input', filterQuestions);
-            
-            // Category filters
-            document.querySelectorAll('.category-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    filterQuestions();
-                });
-            });
-        }
-
         async function checkUserLoginStatus() {
-            // Check for user data in localStorage (stored by the main login system)
             const storedUserData = localStorage.getItem('bees_user_data');
             
             if (storedUserData) {
@@ -461,6 +469,8 @@
                         document.getElementById('user-name').textContent = userData.name;
                         document.getElementById('user-avatar').textContent = userData.name.charAt(0).toUpperCase();
                         currentUser = { name: userData.name, email: userData.email };
+                        
+                        loadDashboardData();
                         return;
                     }
                 } catch (e) {
@@ -469,7 +479,6 @@
                 }
             }
             
-            // If not logged in, redirect to login page
             window.location.href = '/';
         }
 
@@ -486,40 +495,62 @@
             }
         }
 
+        function showSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all nav links
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionName + '-section').classList.add('active');
+            
+            // Add active class to clicked nav link
+            event.target.classList.add('active');
+            
+            // Update page title
+            const titles = {
+                'interviews': 'My Interviews',
+                'questions': 'Question Bank'
+            };
+            document.getElementById('page-title').textContent = titles[sectionName];
+        }
+
         async function loadMyInterviews() {
+            const tbody = document.getElementById('interviews-table-body');
+            tbody.innerHTML = `<tr><td colspan="8" class="loading">Loading interviews...</td></tr>`;
             try {
                 const response = await fetch('/api/interviewer/interviews');
                 const result = await response.json();
-                
                 if (result.success) {
-                    myInterviews = result.data;
-                    displayInterviews();
+                    allInterviews = result.data;
+                    displayInterviews(allInterviews);
                 } else {
-                    console.error('Error loading interviews:', result.error);
-                    showEmptyState('interviews-table-body', 'No interviews found');
+                    showEmptyState('interviews-table-body', 'Failed to load interviews.');
                 }
             } catch (error) {
                 console.error('Error loading interviews:', error);
-                showEmptyState('interviews-table-body', 'Error loading interviews');
+                showEmptyState('interviews-table-body', 'Error loading interviews.');
             }
         }
 
-        async function loadQuestions() {
+        async function loadStats() {
             try {
-                const response = await fetch('/api/question-bank');
+                const response = await fetch('/api/interviewer/stats');
                 const result = await response.json();
-                
                 if (result.success) {
-                    allQuestions = result.data;
-                    filteredQuestions = [...allQuestions];
-                    displayQuestions();
+                    document.getElementById('total-interviews').textContent = result.data.total;
+                    document.getElementById('completed-interviews').textContent = result.data.completed;
+                    document.getElementById('in-progress-interviews').textContent = result.data.in_progress;
                 } else {
-                    console.error('Error loading questions:', result.error);
-                    showEmptyState('questions-table-body', 'No questions found');
+                    console.error('Failed to load stats:', result.error);
                 }
             } catch (error) {
-                console.error('Error loading questions:', error);
-                showEmptyState('questions-table-body', 'Error loading questions');
+                console.error('Error loading stats:', error);
             }
         }
 
@@ -527,108 +558,96 @@
             try {
                 const response = await fetch('/api/interviewer/favorites');
                 const result = await response.json();
-                
                 if (result.success) {
                     favoriteQuestionIds = new Set(result.data.map(fav => fav.question_id));
-                    updateFavoriteButtons();
+                    document.getElementById('favorite-questions').textContent = favoriteQuestionIds.size;
+                } else {
+                    console.error('Failed to load favorite questions:', result.error);
                 }
             } catch (error) {
-                console.error('Error loading favorites:', error);
+                console.error('Error loading favorite questions:', error);
             }
         }
 
-        async function loadStats() {
-            try {
-                const [interviewsResponse, questionsResponse, favoritesResponse] = await Promise.all([
-                    fetch('/api/interviewer/stats'),
-                    fetch('/api/question-bank/stats'),
-                    fetch('/api/interviewer/favorites')
-                ]);
-
-                const interviewsData = await interviewsResponse.json();
-                const questionsData = await questionsResponse.json();
-                const favoritesData = await favoritesResponse.json();
-
-                if (interviewsData.success) {
-                    document.getElementById('total-interviews').textContent = interviewsData.data.total || 0;
-                    document.getElementById('completed-interviews').textContent = interviewsData.data.completed || 0;
-                }
-
-                if (questionsData.success) {
-                    document.getElementById('total-questions').textContent = questionsData.data.total || 0;
-                }
-
-                if (favoritesData.success) {
-                    document.getElementById('favorite-questions').textContent = favoritesData.data.length || 0;
-                }
-            } catch (error) {
-                console.error('Error loading stats:', error);
-            }
-        }
-
-        function displayInterviews() {
+        function displayInterviews(interviewsToDisplay) {
             const tbody = document.getElementById('interviews-table-body');
-            
-            if (myInterviews.length === 0) {
-                showEmptyState('interviews-table-body', 'No interviews found');
+            if (!tbody) return;
+
+            if (interviewsToDisplay.length === 0) {
+                showEmptyState('interviews-table-body', 'No interviews found.');
                 return;
             }
 
-            tbody.innerHTML = myInterviews.map(interview => `
+            tbody.innerHTML = interviewsToDisplay.map(interview => `
                 <tr>
-                    <td>${interview.student_name || 'Unknown'}</td>
-                    <td>${formatDate(interview.created_at)}</td>
-                    <td>
-                        <span class="interview-status status-${interview.status}">
-                            ${interview.status}
-                        </span>
-                    </td>
+                    <td>${new Date(interview.created_at).toLocaleDateString()}</td>
+                    <td>${interview.student_name}</td>
+                    <td>${interview.zeta_id}</td>
+                    <td>${interview.session_name || 'N/A'}</td>
+                    <td><span class="status-badge status-${interview.status}">${interview.status}</span></td>
+                    <td>${interview.verdict || 'N/A'}</td>
                     <td>${formatDuration(interview.duration_seconds)}</td>
                     <td>
-                        <button class="btn btn-primary btn-sm" onclick="viewInterview(${interview.id})">
-                            View
-                        </button>
+                        <button class="btn btn-primary btn-sm" onclick="viewInterview(${interview.id})">View</button>
                     </td>
                 </tr>
             `).join('');
         }
 
-        function displayQuestions() {
-            const tbody = document.getElementById('questions-table-body');
-            
-            if (filteredQuestions.length === 0) {
-                showEmptyState('questions-table-body', 'No questions found');
+        async function loadQuestions() {
+            const category = document.getElementById('bank-category-select').value;
+            const searchTerm = document.getElementById('bank-search-input').value.trim();
+            const questionListDiv = document.getElementById('question-bank-list');
+            questionListDiv.innerHTML = '<div class="loading">Loading questions...</div>';
+
+            try {
+                let url = '/api/question-bank';
+                if (category === 'Favorites') {
+                    url = `/api/interviewer/favorites`;
+                } else if (category) {
+                    url = `/api/question-bank/category/${encodeURIComponent(category)}`;
+                } else if (searchTerm) {
+                    url = `/api/question-bank/search?q=${encodeURIComponent(searchTerm)}`;
+                }
+
+                const response = await fetch(url);
+                const result = await response.json();
+
+                if (result.success) {
+                    allQuestions = result.data;
+                    displayQuestionBank(allQuestions);
+                } else {
+                    console.error('Failed to load questions:', result.error);
+                    questionListDiv.innerHTML = `<div class="empty-state">Failed to load questions.</div>`;
+                }
+            } catch (error) {
+                console.error('Error loading questions:', error);
+                questionListDiv.innerHTML = `<div class="empty-state">Error loading questions.</div>`;
+            }
+        }
+
+        function displayQuestionBank(questionsToDisplay) {
+            const questionListDiv = document.getElementById('question-bank-list');
+            if (!questionListDiv) return;
+
+            if (questionsToDisplay.length === 0) {
+                questionListDiv.innerHTML = '<div class="empty-state">No questions found.</div>';
                 return;
             }
 
-            tbody.innerHTML = filteredQuestions.map(question => `
-                <tr>
-                    <td>${question.question}</td>
-                    <td>${question.category}</td>
-                    <td>${question.times_asked || 0}</td>
-                    <td>
-                        <button class="favorite-btn ${favoriteQuestionIds.has(question.id) ? 'favorited' : ''}" 
+            questionListDiv.innerHTML = questionsToDisplay.map(question => {
+                const isFavorited = favoriteQuestionIds.has(question.id);
+                return `
+                    <div class="question-item">
+                        <span class="question-text">${question.question} (${question.category})</span>
+                        <button class="favorite-btn ${isFavorited ? 'favorited' : ''}" 
                                 onclick="toggleFavorite(${question.id})" 
-                                title="${favoriteQuestionIds.has(question.id) ? 'Remove from favorites' : 'Add to favorites'}">
-                            ${favoriteQuestionIds.has(question.id) ? '★' : '☆'}
+                                title="${isFavorited ? 'Remove from favorites' : 'Add to favorites'}">
+                            ${isFavorited ? '★' : '☆'}
                         </button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        function filterQuestions() {
-            const searchTerm = document.getElementById('question-search').value.toLowerCase();
-            const activeCategory = document.querySelector('.category-btn.active').dataset.category;
-            
-            filteredQuestions = allQuestions.filter(question => {
-                const matchesSearch = question.question.toLowerCase().includes(searchTerm);
-                const matchesCategory = activeCategory === '' || 
-                                     (activeCategory === 'Favorites' ? favoriteQuestionIds.has(question.id) : question.category === activeCategory);
-                return matchesSearch && matchesCategory;
-            });
-            
-            displayQuestions();
+                    </div>
+                `;
+            }).join('');
         }
 
         async function toggleFavorite(questionId) {
@@ -656,10 +675,9 @@
                     updateFavoriteButtons();
                     updateFavoriteCount();
                     
-                    // Refresh the questions display if we're on favorites filter
-                    const activeCategory = document.querySelector('.category-btn.active').dataset.category;
+                    const activeCategory = document.getElementById('bank-category-select').value;
                     if (activeCategory === 'Favorites') {
-                        filterQuestions();
+                        loadQuestions();
                     }
                 } else {
                     console.error('Error toggling favorite:', result.error);
@@ -689,15 +707,14 @@
         }
 
         function viewInterview(interviewId) {
-            // For now, just show an alert. You can implement a detailed view later
-            alert(`View interview details for interview ID: ${interviewId}`);
+            window.location.href = `/interview-session?interview_id=${interviewId}`;
         }
 
         function showEmptyState(tableBodyId, message) {
             const tbody = document.getElementById(tableBodyId);
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="5" class="empty-state">
+                    <td colspan="8" class="empty-state">
                         <i>📋</i>
                         <div>${message}</div>
                     </td>
@@ -705,24 +722,12 @@
             `;
         }
 
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        }
-
         function formatDuration(seconds) {
-            if (!seconds) return 'N/A';
+            if (seconds === null || seconds === undefined) return 'N/A';
             const hours = Math.floor(seconds / 3600);
             const minutes = Math.floor((seconds % 3600) / 60);
             const secs = seconds % 60;
-            
-            if (hours > 0) {
-                return `${hours}h ${minutes}m`;
-            } else if (minutes > 0) {
-                return `${minutes}m ${secs}s`;
-            } else {
-                return `${secs}s`;
-            }
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         }
     </script>
 </body>
