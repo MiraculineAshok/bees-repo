@@ -1305,6 +1305,11 @@
                         <i>👥</i> Students
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="my-interviews">
+                        <i>📋</i> My Interviews
+                    </a>
+                </li>
             </ul>
         </nav>
 
@@ -1481,6 +1486,33 @@
                             <tr>
                                 <td colspan="7" class="loading">Loading students...</td>
                             </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- My Interviews Section (Admin's own interviews) -->
+            <section id="my-interviews" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">My Interviews</h2>
+                    <button class="btn btn-primary" onclick="loadMyInterviewsForAdmin()">Refresh</button>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Student</th>
+                                <th>Zeta ID</th>
+                                <th>Session</th>
+                                <th>Status</th>
+                                <th>Verdict</th>
+                                <th>Duration</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="my-interviews-table-body">
+                            <tr><td colspan="8" class="loading">Loading interviews...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -1852,11 +1884,65 @@
                 'interviews': 'All Interviews',
                 'questions': 'Questions Analytics',
                 'sessions': 'Interview Sessions',
-                'students': 'Students'
+                'students': 'Students',
+                'my-interviews': 'My Interviews'
             };
             document.getElementById('page-title').textContent = titles[section];
 
             currentSection = section;
+            if (section === 'my-interviews') {
+                loadMyInterviewsForAdmin();
+            }
+        }
+
+        async function loadMyInterviewsForAdmin() {
+            try {
+                const tbody = document.getElementById('my-interviews-table-body');
+                if (!tbody) return;
+                tbody.innerHTML = '<tr><td colspan="8" class="loading">Loading interviews...</td></tr>';
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlEmail = urlParams.get('email');
+                const stored = localStorage.getItem('bees_user_data');
+                const data = stored ? JSON.parse(stored) : null;
+                const email = urlEmail || data?.email || '';
+
+                if (!email) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="error">User email not available</td></tr>';
+                    return;
+                }
+
+                const res = await fetch(`/api/interviewer/interviews?email=${encodeURIComponent(email)}`, {
+                    headers: { 'x-user-email': email }
+                });
+                const json = await res.json();
+                if (!res.ok || !json.success) throw new Error(json.error || `HTTP ${res.status}`);
+
+                const items = json.data || [];
+                if (!items.length) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No interviews found.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = items.map(interview => `
+                    <tr>
+                        <td>${formatDate(interview.created_at || interview.interview_date)}</td>
+                        <td>${interview.student_name || 'N/A'}</td>
+                        <td>${interview.zeta_id || 'N/A'}</td>
+                        <td>${interview.session_name || 'N/A'}</td>
+                        <td><span class=\"status-badge status-${interview.status}\">${interview.status}</span></td>
+                        <td>${interview.verdict || 'N/A'}</td>
+                        <td>${formatDuration(interview.duration_seconds)}</td>
+                        <td>
+                            <button class=\"btn btn-primary\" onclick=\"viewInterview(${interview.id})\">View</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('Error loading admin my interviews:', err);
+                const tbody = document.getElementById('my-interviews-table-body');
+                if (tbody) tbody.innerHTML = `<tr><td colspan=\"8\" class=\"error\">${err.message}</td></tr>`;
+            }
         }
 
         // Overview functions
