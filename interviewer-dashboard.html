@@ -1769,9 +1769,17 @@
                 const timesAsked = q.times_asked ?? q.count_of_times_asked ?? 0;
                 const correct = q.correct_answers ?? 0;
                 const success = q.success_rate != null ? `${q.success_rate}%` : '-';
+                const isFavorited = favoriteQuestionIds.has(q.id);
                 return `
                     <tr>
-                        <td>${q.question || '-'}</td>
+                        <td>
+                            <span class="question-text">${q.question || '-'}</span>
+                            <button class="favorite-btn ${isFavorited ? 'favorited' : ''}" 
+                                    onclick="toggleFavorite(${q.id})" 
+                                    title="${isFavorited ? 'Remove from favorites' : 'Add to favorites'}" style="margin-left:8px">
+                                ${isFavorited ? '★' : '☆'}
+                            </button>
+                        </td>
                         <td>${q.category || '-'}</td>
                         <td>${timesAsked}</td>
                         <td>${correct}</td>
