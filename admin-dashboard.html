@@ -218,7 +218,7 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            background: #007bff;
+            background: #000000;
             color: white;
             border: none;
             padding: 0.5rem 1rem;
@@ -229,7 +229,7 @@
         }
 
         .btn-filter-toggle:hover {
-            background: #0056b3;
+            background: #333333;
             transform: translateY(-1px);
         }
 
@@ -277,6 +277,25 @@
 
         .filter-panel-content {
             padding: 1.5rem;
+        }
+
+        /* Filter Panel Overlay - separate from detail panel overlay */
+        .filter-panel-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 400px; /* Don't cover the filter panel */
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+
+        .filter-panel-overlay.active {
+            opacity: 1;
+            visibility: visible;
         }
 
         /* Filter Panel Sections */
@@ -1566,7 +1585,7 @@
     </div>
 
     <!-- Filter Panel Overlay -->
-    <div id="filter-panel-overlay" class="panel-overlay" onclick="closeFilterPanel()"></div>
+    <div id="filter-panel-overlay" class="filter-panel-overlay" onclick="closeFilterPanel()"></div>
 
     <!-- Filter Panel -->
     <div id="filter-panel" class="filter-panel">
