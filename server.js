@@ -80,6 +80,11 @@ app.use(cors()); // Enable CORS
 app.use(morgan('combined')); // Logging
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
+// Redirect legacy standalone dashboards to unified SPA
+app.get(['/admin-dashboard.html', '/interviewer-dashboard.html'], (req, res) => {
+  res.redirect('/dashboard');
+});
+
 app.use(express.static(path.join(__dirname))); // Serve static files
 
 // Ensure uploads directory exists
@@ -1629,21 +1634,12 @@ app.get('/getCode', async (req, res) => {
       
       const isAdmin = userRole === 'admin' || userRole === 'superadmin';
       
-      if (isAdmin) {
-        // Redirect admin to admin dashboard
-        redirectUrl = new URL(`${baseUrl}/admin-dashboard.html`);
-        if (userEmail) redirectUrl.searchParams.set('email', userEmail);
-        if (userName) redirectUrl.searchParams.set('name', userName);
-        redirectUrl.searchParams.set('role', userRole);
-        console.log('Redirecting admin to dashboard:', { userEmail, userName, userRole });
-      } else {
-        // Redirect regular user to landing page
-        redirectUrl = new URL(`${baseUrl}/`);
-        if (userEmail) redirectUrl.searchParams.set('email', userEmail);
-        if (userName) redirectUrl.searchParams.set('name', userName);
-        redirectUrl.searchParams.set('role', userRole);
-        console.log('Redirecting user to landing page:', { userEmail, userName, userRole });
-      }
+      // Always go to unified dashboard SPA
+      redirectUrl = new URL(`${baseUrl}/dashboard`);
+      if (userEmail) redirectUrl.searchParams.set('email', userEmail);
+      if (userName) redirectUrl.searchParams.set('name', userName);
+      redirectUrl.searchParams.set('role', userRole);
+      console.log('Redirecting user to unified dashboard:', { userEmail, userName, userRole });
       
       res.redirect(redirectUrl.toString());
     } catch (parseError) {
