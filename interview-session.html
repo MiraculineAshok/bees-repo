@@ -1195,7 +1195,7 @@
     <header class="header">
         <div class="header-content">
             <a href="/" class="logo">Bees</a>
-            <nav id="role-nav" style="display:flex;gap:8px;flex-wrap:wrap"></nav>
+            
             <div class="header-actions">
                 <div class="interview-clock" id="interview-clock">
                     <span class="clock-icon">⏱️</span>
@@ -1709,35 +1709,7 @@
                         verdictSection.classList.remove('hidden');
                     }
 
-                    // Build role-based nav (mirror dashboard tabs)
-                    const nav = document.getElementById('role-nav');
-                    if (nav) {
-                        const isAdmin = userRole === 'admin' || userRole === 'superadmin';
-                        const tabs = isAdmin
-                          ? [
-                              { href: '/dashboard/interview', label: 'Start Interview' },
-                              { href: '/dashboard/overview', label: '📊 Overview' },
-                              { href: '/dashboard/interviews', label: '🎯 Interviews' },
-                              { href: '/dashboard/questions', label: '❓ Questions' },
-                              { href: '/dashboard/sessions', label: '📅 Sessions' },
-                              { href: '/dashboard/students', label: '👥 Students' },
-                              { href: '/dashboard/my-interviews', label: '📋 My Interviews' }
-                            ]
-                          : [
-                              { href: '/dashboard/interview', label: 'Start Interview' },
-                              { href: '/dashboard/my-interviews', label: '📋 My Interviews' },
-                              { href: '/dashboard/question-analysis', label: '❓ Question Analysis' }
-                            ];
-
-                        // Preserve email/name params on navigation
-                        const params = [];
-                        const name = urlParams.get('name');
-                        if (email) params.push(`email=${encodeURIComponent(email)}`);
-                        if (name) params.push(`name=${encodeURIComponent(name)}`);
-                        const qs = params.length ? `?${params.join('&')}` : '';
-
-                        nav.innerHTML = tabs.map(t => `<a href="${t.href}${qs}" style="text-decoration:none;color:#111;background:#f3f4f6;padding:6px 10px;border-radius:4px">${t.label}</a>`).join('');
-                    }
+                // No tabs on interview page per requirement
                 }
             } catch (error) {
                 console.error('Error checking user role:', error);
