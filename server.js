@@ -147,14 +147,7 @@ app.get('/interview-session', (req, res) => {
   res.sendFile(path.join(__dirname, 'interview-session.html'));
 });
 
-// Admin dashboard page route
-// Serve React SPA (dashboard)
-app.use('/dashboard', express.static(path.join(__dirname, 'client', 'dist')));
-// Serve built assets at root /assets (Vite uses absolute paths by default)
-app.use('/assets', express.static(path.join(__dirname, 'client', 'dist', 'assets')));
-app.get(['/dashboard', '/dashboard/*'], (req, res) => {
-  res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
-});
+// React SPA removed; serving legacy dashboards directly
 
 app.get('/health', (req, res) => {
   res.json({
@@ -1639,14 +1632,13 @@ app.get('/getCode', async (req, res) => {
       }
       
       const isAdmin = userRole === 'admin' || userRole === 'superadmin';
-      
-      // Always go to unified dashboard SPA
-      redirectUrl = new URL(`${baseUrl}/dashboard`);
+      // Redirect to legacy dashboards with context
+      const targetPath = isAdmin ? '/admin-dashboard.html' : '/interviewer-dashboard.html';
+      redirectUrl = new URL(`${baseUrl}${targetPath}`);
       if (userEmail) redirectUrl.searchParams.set('email', userEmail);
       if (userName) redirectUrl.searchParams.set('name', userName);
       redirectUrl.searchParams.set('role', userRole);
-      console.log('Redirecting user to unified dashboard:', { userEmail, userName, userRole });
-      
+      console.log('Redirecting user to legacy dashboard:', { targetPath, userEmail, userName, userRole });
       res.redirect(redirectUrl.toString());
     } catch (parseError) {
       console.error('Error parsing token response:', parseError);
