@@ -41,7 +41,11 @@
     // Function to check if user is admin
     async function checkUserRole() {
         try {
-            const response = await fetch('/api/user/role');
+            const userData = getUserData();
+            const userEmail = userData ? userData.email : null;
+            
+            const url = userEmail ? `/api/user/role?email=${encodeURIComponent(userEmail)}` : '/api/user/role';
+            const response = await fetch(url);
             const result = await response.json();
             
             if (result.success) {
@@ -59,6 +63,7 @@
         const userNameElement = document.getElementById('user-name');
         const loginBtn = document.getElementById('login-btn');
         const adminDashboardBtn = document.getElementById('admin-dashboard-btn');
+        const interviewerDashboardBtn = document.getElementById('interviewer-dashboard-btn');
         
         if (userData && userData.name) {
             // Show user name and hide login button
@@ -80,12 +85,25 @@
                 loginBtn.classList.add('hidden');
             }
             
-            // Check user role and show/hide admin dashboard link
-            if (adminDashboardBtn) {
-                const userRole = await checkUserRole();
-                if (userRole === 'superadmin') {
+            // Check user role and show appropriate dashboard button
+            const userRole = await checkUserRole();
+            
+            if (userRole === 'superadmin' || userRole === 'admin') {
+                // Show admin dashboard button for admins
+                if (adminDashboardBtn) {
                     adminDashboardBtn.classList.remove('hidden');
-                } else {
+                }
+                // Hide interviewer dashboard button for admins
+                if (interviewerDashboardBtn) {
+                    interviewerDashboardBtn.classList.add('hidden');
+                }
+            } else {
+                // Show interviewer dashboard button for interviewers
+                if (interviewerDashboardBtn) {
+                    interviewerDashboardBtn.classList.remove('hidden');
+                }
+                // Hide admin dashboard button for interviewers
+                if (adminDashboardBtn) {
                     adminDashboardBtn.classList.add('hidden');
                 }
             }

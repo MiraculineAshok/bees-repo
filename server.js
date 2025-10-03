@@ -10,6 +10,7 @@ const request = require('request');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const fs = require('fs');
+const pool = require('./db/pool');
 // Cloudinary configuration (optional)
 let cloudinary = null;
 try {
@@ -384,14 +385,51 @@ app.delete('/api/authorized-users/:email', async (req, res) => {
 // Get user role
 app.get('/api/user/role', async (req, res) => {
   try {
-    // For now, return a mock role - you can implement proper authentication later
-    // In a real app, you'd get this from the authenticated user's session/token
-    const mockRole = 'superadmin'; // Change to 'interviewer' to test role-based access
+    // Get user email from query parameter or headers
+    const userEmail = req.query.email || req.headers['x-user-email'];
+    console.log('🔍 Role API called with email:', userEmail);
     
-    res.json({
-      success: true,
-      role: mockRole
-    });
+    if (!userEmail) {
+      console.log('📝 No email provided, returning default role: interviewer');
+      return res.json({
+        success: true,
+        role: 'interviewer' // Default role if no email provided
+      });
+    }
+    
+    // Check database for user role
+    try {
+      console.log('🔍 Querying database for user role...');
+      const result = await pool.query(
+        'SELECT role FROM users WHERE email = $1',
+        [userEmail]
+      );
+      
+      console.log('📊 Database result:', result.rows);
+      
+      if (result.rows.length > 0) {
+        const role = result.rows[0].role;
+        console.log('✅ Found user role:', role);
+        res.json({
+          success: true,
+          role: role
+        });
+      } else {
+        // User not found in database, default to interviewer
+        console.log('❌ User not found in database, returning default role: interviewer');
+        res.json({
+          success: true,
+          role: 'interviewer'
+        });
+      }
+    } catch (dbError) {
+      console.error('❌ Database error getting user role:', dbError);
+      // Fallback to default role
+      res.json({
+        success: true,
+        role: 'interviewer'
+      });
+    }
   } catch (error) {
     console.error('❌ Server: Error getting user role:', error);
     res.status(500).json({

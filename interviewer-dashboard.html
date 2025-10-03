@@ -451,17 +451,26 @@
         }
 
         async function checkUserLoginStatus() {
-            const userName = localStorage.getItem('userName');
-            const userEmail = localStorage.getItem('userEmail');
+            // Check for user data in localStorage (stored by the main login system)
+            const storedUserData = localStorage.getItem('bees_user_data');
             
-            if (userName && userEmail) {
-                document.getElementById('user-name').textContent = userName;
-                document.getElementById('user-avatar').textContent = userName.charAt(0).toUpperCase();
-                currentUser = { name: userName, email: userEmail };
-            } else {
-                // If not logged in, redirect to login page
-                window.location.href = '/';
+            if (storedUserData) {
+                try {
+                    const userData = JSON.parse(storedUserData);
+                    if (userData.name && userData.email) {
+                        document.getElementById('user-name').textContent = userData.name;
+                        document.getElementById('user-avatar').textContent = userData.name.charAt(0).toUpperCase();
+                        currentUser = { name: userData.name, email: userData.email };
+                        return;
+                    }
+                } catch (e) {
+                    console.error('Error parsing stored user data:', e);
+                    localStorage.removeItem('bees_user_data');
+                }
             }
+            
+            // If not logged in, redirect to login page
+            window.location.href = '/';
         }
 
         async function loadDashboardData() {

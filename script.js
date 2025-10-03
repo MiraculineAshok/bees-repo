@@ -38,12 +38,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Function to display user information after login
-    function displayUserInfo(userData) {
+    async function displayUserInfo(userData) {
         const userNameElement = document.getElementById('user-name');
         const loginBtn = document.getElementById('login-btn');
         const startInterviewMainBtn = document.getElementById('start-interview-main-btn');
         const interviewDashboard = document.getElementById('interview-dashboard');
-        const interviewerDashboardLink = document.getElementById('interviewer-dashboard-link');
+        const adminDashboardBtn = document.getElementById('admin-dashboard-btn');
+        const interviewerDashboardBtn = document.getElementById('interviewer-dashboard-btn');
         
         if (userData && userData.name) {
             // Show user name and hide login button
@@ -61,12 +62,42 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Start interview button not found');
             }
             
-            // Show interviewer dashboard link
-            if (interviewerDashboardLink) {
-                console.log('Showing interviewer dashboard link');
-                interviewerDashboardLink.classList.remove('hidden');
-            } else {
-                console.log('Interviewer dashboard link not found');
+            // Check user role and show appropriate dashboard button
+            try {
+                const userEmail = userData.email;
+                const url = userEmail ? `/api/user/role?email=${encodeURIComponent(userEmail)}` : '/api/user/role';
+                const response = await fetch(url);
+                const result = await response.json();
+                const userRole = result.success ? result.role : 'interviewer';
+                
+                if (userRole === 'superadmin' || userRole === 'admin') {
+                    // Show admin dashboard button
+                    if (adminDashboardBtn) {
+                        adminDashboardBtn.classList.remove('hidden');
+                    }
+                    // Hide interviewer dashboard button for admins
+                    if (interviewerDashboardBtn) {
+                        interviewerDashboardBtn.classList.add('hidden');
+                    }
+                } else {
+                    // Show interviewer dashboard button
+                    if (interviewerDashboardBtn) {
+                        interviewerDashboardBtn.classList.remove('hidden');
+                    }
+                    // Hide admin dashboard button for interviewers
+                    if (adminDashboardBtn) {
+                        adminDashboardBtn.classList.add('hidden');
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking user role:', error);
+                // Default to showing interviewer dashboard
+                if (interviewerDashboardBtn) {
+                    interviewerDashboardBtn.classList.remove('hidden');
+                }
+                if (adminDashboardBtn) {
+                    adminDashboardBtn.classList.add('hidden');
+                }
             }
             
             // Show interview dashboard
@@ -75,7 +106,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // User logged in successfully
-            
             console.log('User logged in:', userData);
         }
     }
