@@ -1243,6 +1243,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a href="#" class="nav-link" onclick="showSection('interview')">
+                            <i>🧩</i>
+                            Interview
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a href="#" class="nav-link" onclick="showSection('interview-session')">
                             <i>🎤</i>
                             Interview Session
@@ -1401,165 +1407,26 @@
                 </div>
             </section>
 
-            <!-- Interview Session Section -->
+            <!-- Interview Section (iframe) -->
+            <section id="interview-section" class="content-section">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title">Interview</h2>
+                    </div>
+                    <div style="height: 80vh; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+                        <iframe src="/interview.html" style="width: 100%; height: 100%; border: 0;" title="Interview"></iframe>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Interview Session Section (iframe) -->
             <section id="interview-session-section" class="content-section">
                 <div class="section-card">
                     <div class="section-header">
                         <h2 class="section-title">Interview Session</h2>
-                        <div class="header-actions">
-                            <div class="interview-clock" id="interview-clock">
-                                <span class="clock-icon">🕐</span>
-                                <span id="timer-display">00:00:00</span>
-                            </div>
-                        </div>
                     </div>
-                    
-                    <!-- Interview Session Content -->
-                    <div id="interview-session-content" class="interview-session-content">
-                        <div class="session-setup" id="session-setup">
-                            <div class="setup-card">
-                                <h3>Start New Interview Session</h3>
-                                <p>Select a session and student to begin the interview.</p>
-                                
-                                <!-- Session Selection -->
-                                <div class="form-group">
-                                    <label class="form-label" for="session-select-interview">Select Interview Session</label>
-                                    <select id="session-select-interview" class="form-select" onchange="loadSessionDetailsForInterview()">
-                                        <option value="">Choose a session...</option>
-                                    </select>
-                                </div>
-                                
-                                <!-- Session Details -->
-                                <div id="session-details-interview" class="session-details" style="display: none;">
-                                    <div class="session-info">
-                                        <h4 id="session-name-display-interview"></h4>
-                                        <p id="session-description-display-interview"></p>
-                                    </div>
-                                </div>
-                                
-                                <!-- Student Search -->
-                                <div class="form-group">
-                                    <label class="form-label" for="student-search-interview">Search for Student</label>
-                                    <div class="search-container">
-                                        <input type="text" id="student-search-interview" class="form-input" placeholder="Enter Zeta ID or student name..." onkeyup="searchStudentsForInterview()">
-                                        <button class="btn btn-primary" onclick="searchStudentsForInterview()">Search</button>
-                                    </div>
-                                </div>
-                                
-                                <!-- Search Results -->
-                                <div id="search-results-interview" class="search-results" style="display: none;">
-                                    <h4>Search Results</h4>
-                                    <div id="student-results-list-interview" class="student-results-list"></div>
-                                </div>
-                                
-                                <!-- Start Interview Button -->
-                                <div class="action-buttons" style="margin-top: 2rem;">
-                                    <button id="start-interview-btn-interview" class="btn btn-success" onclick="startInterviewSessionEmbedded()" disabled>
-                                        Start Interview Session
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Active Interview Content -->
-                        <div class="active-interview" id="active-interview" style="display: none;">
-                            <div class="interview-main">
-                                <div class="student-info-card">
-                                    <h3 class="student-info-title">Candidate Information</h3>
-                                    <div class="info-grid">
-                                        <div class="info-item">
-                                            <div class="info-label">Name</div>
-                                            <div class="info-value" id="candidate-name-interview">Loading...</div>
-                                        </div>
-                                        <div class="info-item">
-                                            <div class="info-label">Email</div>
-                                            <div class="info-value" id="candidate-email-interview">Loading...</div>
-                                        </div>
-                                        <div class="info-item">
-                                            <div class="info-label">Zeta ID</div>
-                                            <div class="info-value" id="candidate-zeta-interview">Loading...</div>
-                                        </div>
-                                        <div class="info-item">
-                                            <div class="info-label">Session</div>
-                                            <div class="info-value" id="candidate-session-interview">Loading...</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Conversation Area -->
-                                <div class="conversation-container">
-                                    <div class="conversation-header">
-                                        <h3>Interview Conversation</h3>
-                                    </div>
-                                    <div class="conversation-messages" id="conversation-messages-interview">
-                                        <div class="welcome-message">
-                                            <p>Welcome to the interview! Start by asking your first question.</p>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Question Input -->
-                                    <div class="question-input-container">
-                                        <div class="input-tabs">
-                                            <button class="tab-btn active" onclick="switchTab('custom')">Custom Question</button>
-                                            <button class="tab-btn" onclick="switchTab('bank')">Question Bank</button>
-                                        </div>
-                                        
-                                        <div class="tab-content">
-                                            <div id="custom-tab" class="tab-panel active">
-                                                <div class="question-input-group">
-                                                    <textarea id="question-input-interview" class="question-textarea" placeholder="Type your question here..." rows="3"></textarea>
-                                                    <button class="btn-add-question" onclick="addQuestionToInterview()">Add Question</button>
-                                                </div>
-                                            </div>
-                                            
-                                            <div id="bank-tab" class="tab-panel">
-                                                <div class="question-bank-content">
-                                                    <div class="bank-filters">
-                                                        <select id="category-select-interview" class="form-select" onchange="loadQuestionsFromBank()">
-                                                            <option value="">All Categories</option>
-                                                        </select>
-                                                    </div>
-                                                    <div id="question-bank-list-interview" class="question-bank-list">
-                                                        <p>Select a category to load questions</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Right Panel -->
-                            <div class="right-panel">
-                                <div class="panel-section">
-                                    <h3>Interview Notes</h3>
-                                    <textarea id="interview-notes-interview" class="notes-textarea" placeholder="Add your notes here..." rows="8"></textarea>
-                                </div>
-                                
-                                <div class="panel-section">
-                                    <h3>Verdict</h3>
-                                    <select id="verdict-select-interview" class="form-select">
-                                        <option value="">Select Verdict</option>
-                                        <option value="Tiger">Tiger</option>
-                                        <option value="Cow">Cow</option>
-                                        <option value="Cow+">Cow+</option>
-                                        <option value="Sheep">Sheep</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="panel-section">
-                                    <h3>Previous Interviews</h3>
-                                    <div id="previous-interviews-interview" class="previous-interviews">
-                                        <p>No previous interviews found</p>
-                                    </div>
-                                </div>
-                                
-                                <div class="panel-actions">
-                                    <button class="btn btn-success" onclick="saveInterviewEmbedded()">Save Interview</button>
-                                    <button class="btn btn-secondary" onclick="exitInterviewEmbedded()">Exit Interview</button>
-                                </div>
-                            </div>
-                        </div>
+                    <div style="height: 80vh; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+                        <iframe src="/interview-session.html" style="width: 100%; height: 100%; border: 0;" title="Interview Session"></iframe>
                     </div>
                 </div>
             </section>
@@ -1845,6 +1712,7 @@
                 'start-interview': 'Start Interview',
                 'interviews': 'My Interviews',
                 'questions': 'Question Bank',
+                'interview': 'Interview',
                 'interview-session': 'Interview Session'
             };
             document.getElementById('page-title').textContent = titles[sectionName];
