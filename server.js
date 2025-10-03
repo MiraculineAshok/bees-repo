@@ -50,6 +50,7 @@ const AuthService = require('./services/authService');
 const InterviewService = require('./services/interviewService');
 const QuestionBankService = require('./services/questionBankService');
 const AdminService = require('./services/adminService');
+const InterviewerService = require('./services/interviewerService');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -138,6 +139,11 @@ app.get('/interview-session', (req, res) => {
 // Admin dashboard page route
 app.get('/admin-dashboard.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'admin-dashboard.html'));
+});
+
+// Interviewer dashboard page route
+app.get('/interviewer-dashboard.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'interviewer-dashboard.html'));
 });
 
 app.get('/health', (req, res) => {
@@ -974,6 +980,103 @@ app.get('/api/admin/students/stats', async (req, res) => {
     });
   } catch (error) {
     console.error('Error getting student stats:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Interviewer Dashboard API endpoints
+app.get('/api/interviewer/interviews', async (req, res) => {
+  try {
+    // For now, use interviewer ID 1. In a real app, get from authenticated user
+    const interviewerId = 1;
+    const interviews = await InterviewerService.getMyInterviews(interviewerId);
+    res.json({
+      success: true,
+      data: interviews
+    });
+  } catch (error) {
+    console.error('Error getting interviewer interviews:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+app.get('/api/interviewer/stats', async (req, res) => {
+  try {
+    // For now, use interviewer ID 1. In a real app, get from authenticated user
+    const interviewerId = 1;
+    const stats = await InterviewerService.getMyStats(interviewerId);
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('Error getting interviewer stats:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+app.get('/api/interviewer/favorites', async (req, res) => {
+  try {
+    // For now, use interviewer ID 1. In a real app, get from authenticated user
+    const interviewerId = 1;
+    const favorites = await InterviewerService.getFavorites(interviewerId);
+    res.json({
+      success: true,
+      data: favorites
+    });
+  } catch (error) {
+    console.error('Error getting favorites:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+app.post('/api/interviewer/favorites', async (req, res) => {
+  try {
+    const { question_id } = req.body;
+    // For now, use interviewer ID 1. In a real app, get from authenticated user
+    const interviewerId = 1;
+    
+    const result = await InterviewerService.addFavorite(interviewerId, question_id);
+    res.json({
+      success: true,
+      data: result,
+      message: 'Question added to favorites'
+    });
+  } catch (error) {
+    console.error('Error adding favorite:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+app.delete('/api/interviewer/favorites', async (req, res) => {
+  try {
+    const { question_id } = req.body;
+    // For now, use interviewer ID 1. In a real app, get from authenticated user
+    const interviewerId = 1;
+    
+    const result = await InterviewerService.removeFavorite(interviewerId, question_id);
+    res.json({
+      success: true,
+      data: result,
+      message: 'Question removed from favorites'
+    });
+  } catch (error) {
+    console.error('Error removing favorite:', error);
     res.status(500).json({
       success: false,
       error: error.message

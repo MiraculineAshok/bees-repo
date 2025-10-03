@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const loginBtn = document.getElementById('login-btn');
         const startInterviewMainBtn = document.getElementById('start-interview-main-btn');
         const interviewDashboard = document.getElementById('interview-dashboard');
+        const interviewerDashboardLink = document.getElementById('interviewer-dashboard-link');
         
         if (userData && userData.name) {
             // Show user name and hide login button
@@ -58,6 +59,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 startInterviewMainBtn.classList.remove('hidden');
             } else {
                 console.log('Start interview button not found');
+            }
+            
+            // Show interviewer dashboard link
+            if (interviewerDashboardLink) {
+                console.log('Showing interviewer dashboard link');
+                interviewerDashboardLink.classList.remove('hidden');
+            } else {
+                console.log('Interviewer dashboard link not found');
             }
             
             // Show interview dashboard

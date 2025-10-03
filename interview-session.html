@@ -1239,6 +1239,7 @@
                                 <label class="form-label">Category</label>
                                 <select id="bank-category-select" class="form-select" onchange="loadQuestionsByCategory()">
                                     <option value="">All Categories</option>
+                                    <option value="Favorites">My Favorites</option>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -2484,7 +2485,15 @@
             }
             
             try {
-                const response = await fetch(`/api/question-bank/category/${encodeURIComponent(category)}`);
+                let response;
+                if (category === 'Favorites') {
+                    // Load favorite questions
+                    response = await fetch('/api/interviewer/favorites');
+                } else {
+                    // Load questions by category
+                    response = await fetch(`/api/question-bank/category/${encodeURIComponent(category)}`);
+                }
+                
                 const result = await response.json();
                 
                 if (result.success) {

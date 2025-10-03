@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interviewer Dashboard - Bees Interview Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .home-link {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: background-color 0.2s ease;
+        }
+
+        .home-link:hover {
+            background-color: #f0f9ff;
+            text-decoration: none;
+        }
+
+        .header h1 {
+            color: #1f2937;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: #2563eb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: #2563eb;
+            color: white;
+            padding: 1.5rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2563eb;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .table th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+            position: sticky;
+            top: 0;
+        }
+
+        .table tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .favorite-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: #d1d5db;
+            transition: color 0.2s ease;
+        }
+
+        .favorite-btn.favorited {
+            color: #fbbf24;
+        }
+
+        .favorite-btn:hover {
+            color: #f59e0b;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6b7280;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #d1d5db;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #6b7280;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .category-filter {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d5db;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .category-btn.active {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+
+        .category-btn:hover {
+            background: #f3f4f6;
+        }
+
+        .category-btn.active:hover {
+            background: #1d4ed8;
+        }
+
+        .interview-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-completed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-in-progress {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-cancelled {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <a href="/" class="home-link">← Home</a>
+                <h1>Interviewer Dashboard</h1>
+            </div>
+            <div class="user-info">
+                <div class="user-avatar" id="user-avatar">I</div>
+                <span id="user-name">Interviewer</span>
+            </div>
+        </header>
+
+        <!-- Stats Overview -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="total-interviews">0</div>
+                <div class="stat-label">Total Interviews</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="completed-interviews">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="favorite-questions">0</div>
+                <div class="stat-label">Favorite Questions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="total-questions">0</div>
+                <div class="stat-label">Questions in Bank</div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="dashboard-grid">
+            <!-- My Interviews -->
+            <div class="card">
+                <div class="card-header">
+                    My Interviews
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Duration</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="interviews-table-body">
+                                <tr>
+                                    <td colspan="5" class="loading">Loading interviews...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question Bank -->
+            <div class="card">
+                <div class="card-header">
+                    Question Bank
+                </div>
+                <div class="card-body">
+                    <input type="text" id="question-search" class="search-box" placeholder="Search questions...">
+                    
+                    <div class="category-filter">
+                        <button class="category-btn active" data-category="">All</button>
+                        <button class="category-btn" data-category="Math Aptitude">Math</button>
+                        <button class="category-btn" data-category="Generic HR Questions">HR</button>
+                        <button class="category-btn" data-category="English">English</button>
+                        <button class="category-btn" data-category="Technical">Technical</button>
+                        <button class="category-btn" data-category="Favorites">My Favorites</button>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Question</th>
+                                    <th>Category</th>
+                                    <th>Times Asked</th>
+                                    <th>Favorite</th>
+                                </tr>
+                            </thead>
+                            <tbody id="questions-table-body">
+                                <tr>
+                                    <td colspan="4" class="loading">Loading questions...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let allQuestions = [];
+        let filteredQuestions = [];
+        let myInterviews = [];
+        let favoriteQuestionIds = new Set();
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            checkUserLoginStatus();
+            loadDashboardData();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Question search
+            document.getElementById('question-search').addEventListener('input', filterQuestions);
+            
+            // Category filters
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    filterQuestions();
+                });
+            });
+        }
+
+        async function checkUserLoginStatus() {
+            const userName = localStorage.getItem('userName');
+            const userEmail = localStorage.getItem('userEmail');
+            
+            if (userName && userEmail) {
+                document.getElementById('user-name').textContent = userName;
+                document.getElementById('user-avatar').textContent = userName.charAt(0).toUpperCase();
+                currentUser = { name: userName, email: userEmail };
+            } else {
+                // If not logged in, redirect to login page
+                window.location.href = '/';
+            }
+        }
+
+        async function loadDashboardData() {
+            try {
+                await Promise.all([
+                    loadMyInterviews(),
+                    loadQuestions(),
+                    loadFavoriteQuestions(),
+                    loadStats()
+                ]);
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+
+        async function loadMyInterviews() {
+            try {
+                const response = await fetch('/api/interviewer/interviews');
+                const result = await response.json();
+                
+                if (result.success) {
+                    myInterviews = result.data;
+                    displayInterviews();
+                } else {
+                    console.error('Error loading interviews:', result.error);
+                    showEmptyState('interviews-table-body', 'No interviews found');
+                }
+            } catch (error) {
+                console.error('Error loading interviews:', error);
+                showEmptyState('interviews-table-body', 'Error loading interviews');
+            }
+        }
+
+        async function loadQuestions() {
+            try {
+                const response = await fetch('/api/question-bank');
+                const result = await response.json();
+                
+                if (result.success) {
+                    allQuestions = result.data;
+                    filteredQuestions = [...allQuestions];
+                    displayQuestions();
+                } else {
+                    console.error('Error loading questions:', result.error);
+                    showEmptyState('questions-table-body', 'No questions found');
+                }
+            } catch (error) {
+                console.error('Error loading questions:', error);
+                showEmptyState('questions-table-body', 'Error loading questions');
+            }
+        }
+
+        async function loadFavoriteQuestions() {
+            try {
+                const response = await fetch('/api/interviewer/favorites');
+                const result = await response.json();
+                
+                if (result.success) {
+                    favoriteQuestionIds = new Set(result.data.map(fav => fav.question_id));
+                    updateFavoriteButtons();
+                }
+            } catch (error) {
+                console.error('Error loading favorites:', error);
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const [interviewsResponse, questionsResponse, favoritesResponse] = await Promise.all([
+                    fetch('/api/interviewer/stats'),
+                    fetch('/api/question-bank/stats'),
+                    fetch('/api/interviewer/favorites')
+                ]);
+
+                const interviewsData = await interviewsResponse.json();
+                const questionsData = await questionsResponse.json();
+                const favoritesData = await favoritesResponse.json();
+
+                if (interviewsData.success) {
+                    document.getElementById('total-interviews').textContent = interviewsData.data.total || 0;
+                    document.getElementById('completed-interviews').textContent = interviewsData.data.completed || 0;
+                }
+
+                if (questionsData.success) {
+                    document.getElementById('total-questions').textContent = questionsData.data.total || 0;
+                }
+
+                if (favoritesData.success) {
+                    document.getElementById('favorite-questions').textContent = favoritesData.data.length || 0;
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        function displayInterviews() {
+            const tbody = document.getElementById('interviews-table-body');
+            
+            if (myInterviews.length === 0) {
+                showEmptyState('interviews-table-body', 'No interviews found');
+                return;
+            }
+
+            tbody.innerHTML = myInterviews.map(interview => `
+                <tr>
+                    <td>${interview.student_name || 'Unknown'}</td>
+                    <td>${formatDate(interview.created_at)}</td>
+                    <td>
+                        <span class="interview-status status-${interview.status}">
+                            ${interview.status}
+                        </span>
+                    </td>
+                    <td>${formatDuration(interview.duration_seconds)}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="viewInterview(${interview.id})">
+                            View
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function displayQuestions() {
+            const tbody = document.getElementById('questions-table-body');
+            
+            if (filteredQuestions.length === 0) {
+                showEmptyState('questions-table-body', 'No questions found');
+                return;
+            }
+
+            tbody.innerHTML = filteredQuestions.map(question => `
+                <tr>
+                    <td>${question.question}</td>
+                    <td>${question.category}</td>
+                    <td>${question.times_asked || 0}</td>
+                    <td>
+                        <button class="favorite-btn ${favoriteQuestionIds.has(question.id) ? 'favorited' : ''}" 
+                                onclick="toggleFavorite(${question.id})" 
+                                title="${favoriteQuestionIds.has(question.id) ? 'Remove from favorites' : 'Add to favorites'}">
+                            ${favoriteQuestionIds.has(question.id) ? '★' : '☆'}
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function filterQuestions() {
+            const searchTerm = document.getElementById('question-search').value.toLowerCase();
+            const activeCategory = document.querySelector('.category-btn.active').dataset.category;
+            
+            filteredQuestions = allQuestions.filter(question => {
+                const matchesSearch = question.question.toLowerCase().includes(searchTerm);
+                const matchesCategory = activeCategory === '' || 
+                                     (activeCategory === 'Favorites' ? favoriteQuestionIds.has(question.id) : question.category === activeCategory);
+                return matchesSearch && matchesCategory;
+            });
+            
+            displayQuestions();
+        }
+
+        async function toggleFavorite(questionId) {
+            try {
+                const isFavorited = favoriteQuestionIds.has(questionId);
+                const method = isFavorited ? 'DELETE' : 'POST';
+                
+                const response = await fetch(`/api/interviewer/favorites`, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ question_id: questionId })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    if (isFavorited) {
+                        favoriteQuestionIds.delete(questionId);
+                    } else {
+                        favoriteQuestionIds.add(questionId);
+                    }
+                    
+                    updateFavoriteButtons();
+                    updateFavoriteCount();
+                    
+                    // Refresh the questions display if we're on favorites filter
+                    const activeCategory = document.querySelector('.category-btn.active').dataset.category;
+                    if (activeCategory === 'Favorites') {
+                        filterQuestions();
+                    }
+                } else {
+                    console.error('Error toggling favorite:', result.error);
+                }
+            } catch (error) {
+                console.error('Error toggling favorite:', error);
+            }
+        }
+
+        function updateFavoriteButtons() {
+            document.querySelectorAll('.favorite-btn').forEach(btn => {
+                const questionId = parseInt(btn.onclick.toString().match(/\d+/)[0]);
+                if (favoriteQuestionIds.has(questionId)) {
+                    btn.classList.add('favorited');
+                    btn.textContent = '★';
+                    btn.title = 'Remove from favorites';
+                } else {
+                    btn.classList.remove('favorited');
+                    btn.textContent = '☆';
+                    btn.title = 'Add to favorites';
+                }
+            });
+        }
+
+        function updateFavoriteCount() {
+            document.getElementById('favorite-questions').textContent = favoriteQuestionIds.size;
+        }
+
+        function viewInterview(interviewId) {
+            // For now, just show an alert. You can implement a detailed view later
+            alert(`View interview details for interview ID: ${interviewId}`);
+        }
+
+        function showEmptyState(tableBodyId, message) {
+            const tbody = document.getElementById(tableBodyId);
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="empty-state">
+                        <i>📋</i>
+                        <div>${message}</div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+
+        function formatDuration(seconds) {
+            if (!seconds) return 'N/A';
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            
+            if (hours > 0) {
+                return `${hours}h ${minutes}m`;
+            } else if (minutes > 0) {
+                return `${minutes}m ${secs}s`;
+            } else {
+                return `${secs}s`;
+            }
+        }
+    </script>
+</body>
+</html>

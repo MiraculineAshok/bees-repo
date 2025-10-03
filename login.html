@@ -136,6 +136,14 @@
             opacity: 0.9;
         }
         
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
         .cta-button {
             background: #dc2626;
             color: white;
@@ -148,7 +156,27 @@
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-top: 2rem;
+        }
+
+        .dashboard-link {
+            background: #2563eb;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .dashboard-link:hover {
+            background: #1d4ed8;
+            color: white;
+            text-decoration: none;
+            transform: translateY(-2px);
         }
         
         .cta-button:hover {
@@ -232,7 +260,10 @@
             <p class="hero-description">
                 From pre-populated banks to live question tracking, make every interview smarter and sharper.
             </p>
-            <button id="start-interview-main-btn" class="cta-button hidden">Start Interview</button>
+            <div class="action-buttons">
+                <button id="start-interview-main-btn" class="cta-button hidden">Start Interview</button>
+                <a href="/interviewer-dashboard.html" class="dashboard-link hidden" id="interviewer-dashboard-link">Interviewer Dashboard</a>
+            </div>
             <div id="status" class="status"></div>
         </section>
 

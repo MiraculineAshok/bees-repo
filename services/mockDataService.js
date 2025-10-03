@@ -564,11 +564,77 @@ class MockDataService {
         })));
     }
 
-    getStudentStats() {
-        return Promise.resolve({
-            total: this.students.length
-        });
-    }
+        getStudentStats() {
+            return Promise.resolve({
+                total: this.students.length
+            });
+        }
+
+        // Interviewer Dashboard Mock Data
+        getMyInterviews(interviewerId) {
+            return Promise.resolve(this.interviews.map(interview => ({
+                id: interview.id,
+                interview_date: interview.created_at,
+                status: interview.status,
+                verdict: interview.verdict,
+                duration_seconds: interview.duration_seconds,
+                created_at: interview.created_at,
+                student_name: this.students.find(s => s.id === interview.student_id)?.name || 'Unknown',
+                student_email: this.students.find(s => s.id === interview.student_id)?.email || 'Unknown',
+                zeta_id: this.students.find(s => s.id === interview.student_id)?.zeta_id || 'Unknown',
+                session_name: 'Mock Session'
+            })));
+        }
+
+        getMyStats(interviewerId) {
+            return Promise.resolve({
+                total: this.interviews.length,
+                completed: this.interviews.filter(i => i.status === 'completed').length,
+                in_progress: this.interviews.filter(i => i.status === 'in_progress').length,
+                cancelled: this.interviews.filter(i => i.status === 'cancelled').length
+            });
+        }
+
+        getFavorites(interviewerId) {
+            return Promise.resolve([
+                {
+                    id: 1,
+                    question_id: 1,
+                    created_at: new Date().toISOString(),
+                    question: 'What is 2 + 2?',
+                    category: 'Math Aptitude'
+                },
+                {
+                    id: 2,
+                    question_id: 2,
+                    created_at: new Date().toISOString(),
+                    question: 'Tell me about yourself',
+                    category: 'Generic HR Questions'
+                }
+            ]);
+        }
+
+        addFavorite(interviewerId, questionId) {
+            return Promise.resolve({
+                id: Date.now(),
+                interviewer_id: interviewerId,
+                question_id: questionId,
+                created_at: new Date().toISOString()
+            });
+        }
+
+        removeFavorite(interviewerId, questionId) {
+            return Promise.resolve({
+                id: Date.now(),
+                interviewer_id: interviewerId,
+                question_id: questionId,
+                created_at: new Date().toISOString()
+            });
+        }
+
+        getFavoriteQuestionIds(interviewerId) {
+            return Promise.resolve([1, 2, 5]);
+        }
 }
 
 module.exports = new MockDataService();
