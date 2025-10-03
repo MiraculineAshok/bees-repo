@@ -89,16 +89,15 @@
             const userRole = await checkUserRole();
             
             if (userRole === 'superadmin' || userRole === 'admin') {
-                // Show admin dashboard button for admins
+                // Show both dashboard buttons for admin and superadmin
                 if (adminDashboardBtn) {
                     adminDashboardBtn.classList.remove('hidden');
                 }
-                // Hide interviewer dashboard button for admins
                 if (interviewerDashboardBtn) {
-                    interviewerDashboardBtn.classList.add('hidden');
+                    interviewerDashboardBtn.classList.remove('hidden');
                 }
             } else {
-                // Show interviewer dashboard button for interviewers
+                // Show only interviewer dashboard button for regular interviewers
                 if (interviewerDashboardBtn) {
                     interviewerDashboardBtn.classList.remove('hidden');
                 }
