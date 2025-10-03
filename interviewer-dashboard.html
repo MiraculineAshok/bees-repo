@@ -1213,6 +1213,15 @@
         .results-summary strong {
             color: #000000;
         }
+
+        /* Embedded page container */
+        .embedded-page {
+            min-height: 80vh;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: auto;
+            background: #fff;
+        }
     </style>
 </head>
 <body>
@@ -1407,27 +1416,23 @@
                 </div>
             </section>
 
-            <!-- Interview Section (iframe) -->
+            <!-- Interview Section (component render) -->
             <section id="interview-section" class="content-section">
                 <div class="section-card">
                     <div class="section-header">
                         <h2 class="section-title">Interview</h2>
                     </div>
-                    <div style="height: 80vh; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
-                        <iframe src="/interview.html" style="width: 100%; height: 100%; border: 0;" title="Interview"></iframe>
-                    </div>
+                    <div id="interview-embed" class="embedded-page"></div>
                 </div>
             </section>
 
-            <!-- Interview Session Section (iframe) -->
+            <!-- Interview Session Section (component render) -->
             <section id="interview-session-section" class="content-section">
                 <div class="section-card">
                     <div class="section-header">
                         <h2 class="section-title">Interview Session</h2>
                     </div>
-                    <div style="height: 80vh; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
-                        <iframe src="/interview-session.html" style="width: 100%; height: 100%; border: 0;" title="Interview Session"></iframe>
-                    </div>
+                    <div id="interview-session-embed" class="embedded-page"></div>
                 </div>
             </section>
         </main>
@@ -1716,6 +1721,47 @@
                 'interview-session': 'Interview Session'
             };
             document.getElementById('page-title').textContent = titles[sectionName];
+
+            // Lazy-load embedded pages as components
+            if (sectionName === 'interview') {
+                lazyLoadEmbeddedPage('/interview.html', 'interview-embed');
+            } else if (sectionName === 'interview-session') {
+                lazyLoadEmbeddedPage('/interview-session.html', 'interview-session-embed');
+            }
+        }
+
+        async function lazyLoadEmbeddedPage(path, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container || container.dataset.loaded === 'true') return;
+            
+            container.innerHTML = '<div style="padding:1rem;color:#666;">Loading...</div>';
+            try {
+                const response = await fetch(path, { credentials: 'same-origin' });
+                const html = await response.text();
+                
+                // Extract <body> content to avoid duplicating head/styles
+                const bodyMatch = html.match(/<body[\s\S]*?>([\s\S]*?)<\/body>/i);
+                const content = bodyMatch ? bodyMatch[1] : html;
+                
+                container.innerHTML = content;
+                container.dataset.loaded = 'true';
+                
+                // Execute inline scripts in loaded content
+                const scripts = Array.from(container.querySelectorAll('script'));
+                for (const oldScript of scripts) {
+                    const newScript = document.createElement('script');
+                    if (oldScript.src) {
+                        newScript.src = oldScript.src;
+                    } else {
+                        newScript.textContent = oldScript.textContent;
+                    }
+                    document.body.appendChild(newScript);
+                    oldScript.remove();
+                }
+            } catch (e) {
+                console.error('Failed to load embedded page', path, e);
+                container.innerHTML = '<div style="padding:1rem;color:#c00;">Failed to load content.</div>';
+            }
         }
 
         // Filter Panel Functions
