@@ -160,7 +160,7 @@ class MockDataService {
             {
                 id: 1,
                 student_id: 1,
-                interviewer_id: 1, // Miraculine J
+                interviewer_id: 1, // Miraculine J (from authorizedUsers)
                 session_id: 1,
                 status: 'completed',
                 verdict: 'Tiger',
@@ -174,7 +174,7 @@ class MockDataService {
             {
                 id: 2,
                 student_id: 2,
-                interviewer_id: 5, // Arunachalam R
+                interviewer_id: 5, // Arunachalam R (from authorizedUsers)
                 session_id: 1,
                 status: 'completed',
                 verdict: 'Cow',
@@ -184,6 +184,20 @@ class MockDataService {
                 updated_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
                 duration_seconds: 2700, // 45 minutes
                 end_time: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+            },
+            {
+                id: 3,
+                student_id: 3,
+                interviewer_id: 4, // Miraculine J (Test) (from authorizedUsers)
+                session_id: 1,
+                status: 'in_progress',
+                verdict: null,
+                overall_notes: null,
+                interview_date: new Date().toISOString(),
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                duration_seconds: 1800, // 30 minutes
+                start_time: new Date().toISOString()
             }
         ];
         this.interviewQuestions = [];
@@ -377,7 +391,7 @@ class MockDataService {
             .filter(i => i.student_id === parseInt(studentId))
             .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
             .map(interview => {
-                const interviewer = this.users.find(u => u.id === interview.interviewer_id);
+                const interviewer = this.authorizedUsers.find(u => u.id === interview.interviewer_id);
                 return {
                     ...interview,
                     session_name: 'Face to Face for St Mary\'s School',
@@ -509,7 +523,7 @@ class MockDataService {
 
     getAllInterviews() {
         return Promise.resolve(this.interviews.map(interview => {
-            const interviewer = this.users.find(u => u.id === interview.interviewer_id);
+            const interviewer = this.authorizedUsers.find(u => u.id === interview.interviewer_id);
             return {
                 id: interview.id,
                 interview_date: interview.created_at,

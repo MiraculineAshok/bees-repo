@@ -63,12 +63,12 @@ class AdminService {
                     CONCAT(s.first_name, ' ', s.last_name) as student_name,
                     s.email as student_email,
                     s.zeta_id,
-                    u.name as interviewer_name,
-                    u.email as interviewer_email,
+                    au.name as interviewer_name,
+                    au.email as interviewer_email,
                     ins.name as session_name
                 FROM interviews i
                 LEFT JOIN students s ON i.student_id = s.id
-                LEFT JOIN users u ON i.interviewer_id = u.id
+                LEFT JOIN authorized_users au ON i.interviewer_id = au.id
                 LEFT JOIN interview_sessions ins ON i.session_id = ins.id
                 ORDER BY i.created_at DESC
             `);

@@ -402,7 +402,7 @@ app.get('/api/user/role', async (req, res) => {
     try {
       console.log('🔍 Querying database for user role...');
       const result = await pool.query(
-        'SELECT role FROM users WHERE email = $1',
+        'SELECT role FROM authorized_users WHERE email = $1',
         [userEmail]
       );
       
@@ -849,7 +849,7 @@ app.get('/api/admin/overview', async (req, res) => {
 app.get('/api/admin/users/interviewers', async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, name, email, role FROM users WHERE role = $1 ORDER BY name',
+      'SELECT id, name, email, role FROM authorized_users WHERE role = $1 ORDER BY name',
       ['interviewer']
     );
     
@@ -873,7 +873,7 @@ app.post('/api/admin/users/interviewers', async (req, res) => {
     
     // Check if user already exists
     const existingUser = await pool.query(
-      'SELECT id FROM users WHERE email = $1',
+      'SELECT id FROM authorized_users WHERE email = $1',
       [email]
     );
     
@@ -886,7 +886,7 @@ app.post('/api/admin/users/interviewers', async (req, res) => {
     
     // Create new user
     const result = await pool.query(
-      'INSERT INTO users (name, email, role, created_at, updated_at) VALUES ($1, $2, $3, NOW(), NOW()) RETURNING id, name, email, role',
+      'INSERT INTO authorized_users (name, email, role, created_at, updated_at) VALUES ($1, $2, $3, NOW(), NOW()) RETURNING id, name, email, role',
       [name, email, role]
     );
     
@@ -1468,7 +1468,7 @@ app.get('/getCode', async (req, res) => {
       if (userEmail) {
         try {
           const roleResult = await pool.query(
-            'SELECT role FROM users WHERE email = $1',
+            'SELECT role FROM authorized_users WHERE email = $1',
             [userEmail]
           );
           if (roleResult.rows.length > 0) {
