@@ -1774,6 +1774,7 @@
         let currentSection = 'overview';
         let interviews = [];
         let questions = [];
+        let favoriteQuestionIds = new Set();
         let selectedPanelists = [];
         let allInterviewers = [];
         let sessions = [];
@@ -2374,15 +2375,44 @@
         // Questions functions
         async function loadQuestions() {
             try {
-                const response = await fetch('/api/admin/questions/analytics');
-                const data = await response.json();
-                
-                if (data.success) {
-                    questions = data.data;
-                    displayQuestions();
+                // Resolve current user email (from URL first, then localStorage)
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlEmail = urlParams.get('email');
+                let email = urlEmail;
+                if (!email) {
+                    try {
+                        const stored = localStorage.getItem('bees_user_data');
+                        const data = stored ? JSON.parse(stored) : null;
+                        email = data?.email || '';
+                    } catch {}
                 }
+
+                const [analyticsRes, favRes] = await Promise.all([
+                    fetch('/api/admin/questions/analytics'),
+                    email ? fetch(`/api/interviewer/favorites?email=${encodeURIComponent(email)}`) : Promise.resolve(null)
+                ]);
+
+                const analyticsJson = await analyticsRes.json();
+                if (analyticsJson && analyticsJson.success) {
+                    questions = analyticsJson.data || [];
+                } else {
+                    questions = [];
+                }
+
+                if (favRes) {
+                    try {
+                        const favJson = await favRes.json();
+                        if (favJson && favJson.success) {
+                            favoriteQuestionIds = new Set((favJson.data || []).map(f => f.question_id));
+                        }
+                    } catch {}
+                }
+
+                displayQuestions();
             } catch (error) {
                 console.error('Error loading questions:', error);
+                questions = [];
+                displayQuestions();
             }
         }
 
@@ -2396,16 +2426,63 @@
 
             tbody.innerHTML = questions.map(question => `
                 <tr>
-                    <td>${question.question || 'N/A'}</td>
+                    <td>
+                        <span>${question.question || 'N/A'}</span>
+                        <button 
+                            class="favorite-btn ${favoriteQuestionIds.has(question.id) ? 'favorited' : ''}"
+                            onclick="toggleFavorite(${question.id})"
+                            title="${favoriteQuestionIds.has(question.id) ? 'Remove from favorites' : 'Add to favorites'}"
+                            style="margin-left:8px"
+                        >${favoriteQuestionIds.has(question.id) ? '★' : '☆'}</button>
+                    </td>
                     <td>${question.category || 'N/A'}</td>
-                    <td>${question.times_asked || 0}</td>
+                    <td>${(question.times_asked ?? question.count_of_times_asked) || 0}</td>
                     <td>${question.correct_answers || 0}</td>
-                    <td>${question.success_rate || 0}%</td>
+                    <td>${(question.success_rate != null ? question.success_rate : 0)}%</td>
                     <td>
                         <button class="btn btn-primary" onclick="viewQuestion(${question.id})">View</button>
                     </td>
                 </tr>
             `).join('');
+        }
+
+        async function toggleFavorite(questionId) {
+            try {
+                // Resolve current user email
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlEmail = urlParams.get('email');
+                let email = urlEmail;
+                if (!email) {
+                    try {
+                        const stored = localStorage.getItem('bees_user_data');
+                        const data = stored ? JSON.parse(stored) : null;
+                        email = data?.email || '';
+                    } catch {}
+                }
+
+                if (!email) {
+                    alert('User email not available. Please log in again.');
+                    return;
+                }
+
+                const isFavorited = favoriteQuestionIds.has(questionId);
+                const method = isFavorited ? 'DELETE' : 'POST';
+                const res = await fetch(`/api/interviewer/favorites?email=${encodeURIComponent(email)}`, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question_id: questionId })
+                });
+                const json = await res.json();
+                if (!res.ok || json.success === false) throw new Error(json.error || `HTTP ${res.status}`);
+
+                if (isFavorited) favoriteQuestionIds.delete(questionId); else favoriteQuestionIds.add(questionId);
+
+                // Re-render the questions table to update star states
+                displayQuestions();
+            } catch (e) {
+                console.error('Error toggling favorite:', e);
+                alert(`Failed to update favorite: ${e.message || 'Unknown error'}`);
+            }
         }
 
         // Sessions functions
