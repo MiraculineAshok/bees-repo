@@ -1328,12 +1328,32 @@
         });
 
         async function checkUserLoginStatus() {
+            // First, check URL parameters (from "Start Interview Journey" button)
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlEmail = urlParams.get('email');
+            const urlName = urlParams.get('name');
+            
+            if (urlEmail && urlName) {
+                console.log('✅ User data found in URL parameters:', { email: urlEmail, name: urlName });
+                document.getElementById('user-name').textContent = urlName;
+                document.getElementById('user-avatar').textContent = urlName.charAt(0).toUpperCase();
+                currentUser = { name: urlName, email: urlEmail };
+                
+                // Store in localStorage for future use
+                localStorage.setItem('bees_user_data', JSON.stringify({ name: urlName, email: urlEmail }));
+                
+                loadDashboardData();
+                return;
+            }
+            
+            // Fallback: check localStorage
             const storedUserData = localStorage.getItem('bees_user_data');
             
             if (storedUserData) {
                 try {
                     const userData = JSON.parse(storedUserData);
                     if (userData.name && userData.email) {
+                        console.log('✅ User data found in localStorage:', userData);
                         document.getElementById('user-name').textContent = userData.name;
                         document.getElementById('user-avatar').textContent = userData.name.charAt(0).toUpperCase();
                         currentUser = { name: userData.name, email: userData.email };
@@ -1347,6 +1367,8 @@
                 }
             }
             
+            // If no valid user data found, redirect to login
+            console.log('❌ No user data found, redirecting to login');
             window.location.href = '/';
         }
 
@@ -1548,20 +1570,16 @@
                 return;
             }
             
-            // Get user data from URL parameters
-            const urlParams = new URLSearchParams(window.location.search);
-            const userEmail = urlParams.get('email') || '';
-            const userName = urlParams.get('name') || 'Interviewer';
-            
-            if (!userEmail) {
+            // Use currentUser object (which is set during login)
+            if (!currentUser || !currentUser.email) {
                 alert('User email not found. Please log in again.');
                 return;
             }
             
             // Redirect to interview session page with all necessary data
             const params = new URLSearchParams({
-                email: userEmail,
-                name: userName,
+                email: currentUser.email,
+                name: currentUser.name,
                 from: 'interviewer',
                 sessionId: selectedSession.id,
                 sessionName: selectedSession.name,
