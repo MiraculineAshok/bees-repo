@@ -56,11 +56,14 @@ function Tabs({ role }) {
   const tabs = role === 'admin' || role === 'superadmin' ? AdminTabs : InterviewerTabs
   return (
     <nav style={{display:'flex',gap:12,padding:'8px 16px',borderBottom:'1px solid #eee',flexWrap:'wrap'}}>
-      {tabs.map(t => (
-        <NavLink key={t.to} to={t.to} end style={({isActive})=>({padding:'6px 10px',borderRadius:4,textDecoration:'none',color:isActive?'#fff':'#111',background:isActive?'#111':'#f3f4f6'})}>
+      {tabs.map(t => {
+        const to = `/dashboard/${t.to}`
+        return (
+          <NavLink key={t.to} to={to} end style={({isActive})=>({padding:'6px 10px',borderRadius:4,textDecoration:'none',color:isActive?'#fff':'#111',background:isActive?'#111':'#f3f4f6'})}>
           {t.label}
-        </NavLink>
-      ))}
+          </NavLink>
+        )
+      })}
     </nav>
   )
 }
@@ -115,7 +118,20 @@ export default function Dashboard() {
   const location = useLocation()
 
   useEffect(()=>{
-    if (!loading && location.pathname === '/dashboard') navigate('/dashboard/interview', { replace: true })
+    // Normalize any nested/duplicated paths like /dashboard/interview/interview/...
+    if (!loading) {
+      const p = location.pathname
+      if (p.startsWith('/dashboard/dashboard')) {
+        navigate(p.replace('/dashboard/dashboard', '/dashboard'), { replace: true })
+        return
+      }
+      const normalized = p.replace('/dashboard/interview/interview', '/dashboard/interview')
+      if (normalized !== p) {
+        navigate(normalized, { replace: true })
+        return
+      }
+      if (p === '/dashboard') navigate('/dashboard/interview', { replace: true })
+    }
   }, [loading, location.pathname, navigate])
 
   if (loading) return <div style={{padding:16}}>Loading role...</div>

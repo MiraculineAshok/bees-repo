@@ -6,6 +6,7 @@ import Dashboard from './modules/Dashboard.jsx'
 
 const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/dashboard" replace /> },
+  { path: '/dashboard', element: <Navigate to="/dashboard/interview" replace /> },
   { path: '/dashboard/*', element: <Dashboard /> },
 ])
 
