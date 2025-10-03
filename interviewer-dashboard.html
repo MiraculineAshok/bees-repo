@@ -1031,7 +1031,8 @@
             const tbody = document.getElementById('interviews-table-body');
             tbody.innerHTML = `<tr><td colspan="8" class="loading">Loading interviews...</td></tr>`;
             try {
-                const response = await fetch('/api/interviewer/interviews');
+                const userEmail = currentUser?.email || '';
+                const response = await fetch(`/api/interviewer/interviews?email=${encodeURIComponent(userEmail)}`);
                 const result = await response.json();
                 if (result.success) {
                     interviews = result.data; // Store in global interviews variable
@@ -1052,7 +1053,8 @@
 
         async function loadStats() {
             try {
-                const response = await fetch('/api/interviewer/stats');
+                const userEmail = currentUser?.email || '';
+                const response = await fetch(`/api/interviewer/stats?email=${encodeURIComponent(userEmail)}`);
                 const result = await response.json();
                 if (result.success) {
                     document.getElementById('total-interviews').textContent = result.data.total;
@@ -1068,7 +1070,8 @@
 
         async function loadFavoriteQuestions() {
             try {
-                const response = await fetch('/api/interviewer/favorites');
+                const userEmail = currentUser?.email || '';
+                const response = await fetch(`/api/interviewer/favorites?email=${encodeURIComponent(userEmail)}`);
                 const result = await response.json();
                 if (result.success) {
                     favoriteQuestionIds = new Set(result.data.map(fav => fav.question_id));
@@ -1408,7 +1411,8 @@
             try {
                 let url = '/api/question-bank';
                 if (category === 'Favorites') {
-                    url = `/api/interviewer/favorites`;
+                    const userEmail = currentUser?.email || '';
+                    url = `/api/interviewer/favorites?email=${encodeURIComponent(userEmail)}`;
                 } else if (category) {
                     url = `/api/question-bank/category/${encodeURIComponent(category)}`;
                 } else if (searchTerm) {
@@ -1527,8 +1531,9 @@
             try {
                 const isFavorited = favoriteQuestionIds.has(questionId);
                 const method = isFavorited ? 'DELETE' : 'POST';
+                const userEmail = currentUser?.email || '';
                 
-                const response = await fetch(`/api/interviewer/favorites`, {
+                const response = await fetch(`/api/interviewer/favorites?email=${encodeURIComponent(userEmail)}`, {
                     method: method,
                     headers: {
                         'Content-Type': 'application/json'

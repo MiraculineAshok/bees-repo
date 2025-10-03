@@ -685,7 +685,10 @@ class MockDataService {
 
         // Interviewer Dashboard Mock Data
         getMyInterviews(interviewerId) {
-            return Promise.resolve(this.interviews.map(interview => ({
+            // Filter interviews by interviewer_id
+            const myInterviews = this.interviews.filter(interview => interview.interviewer_id === interviewerId);
+            
+            return Promise.resolve(myInterviews.map(interview => ({
                 id: interview.id,
                 interview_date: interview.created_at,
                 status: interview.status,
@@ -700,11 +703,14 @@ class MockDataService {
         }
 
         getMyStats(interviewerId) {
+            // Filter interviews by interviewer_id
+            const myInterviews = this.interviews.filter(interview => interview.interviewer_id === interviewerId);
+            
             return Promise.resolve({
-                total: this.interviews.length,
-                completed: this.interviews.filter(i => i.status === 'completed').length,
-                in_progress: this.interviews.filter(i => i.status === 'in_progress').length,
-                cancelled: this.interviews.filter(i => i.status === 'cancelled').length
+                total: myInterviews.length,
+                completed: myInterviews.filter(i => i.status === 'completed').length,
+                in_progress: myInterviews.filter(i => i.status === 'in_progress').length,
+                cancelled: myInterviews.filter(i => i.status === 'cancelled').length
             });
         }
 
