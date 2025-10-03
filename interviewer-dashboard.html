@@ -890,7 +890,7 @@
                     <li class="nav-item">
                         <a href="#" class="nav-link" onclick="showSection('questions')">
                             <i>❓</i>
-                            Question Bank
+                            Question Analysis
                         </a>
                     </li>
                 </ul>
@@ -975,11 +975,11 @@
                 </div>
             </section>
 
-            <!-- Question Bank Section -->
+            <!-- Question Analysis Section -->
             <section id="questions-section" class="content-section">
                 <div class="section-card">
                     <div class="section-header">
-                        <h2 class="section-title">Question Bank</h2>
+                        <h2 class="section-title">Question Analysis</h2>
                         <div class="header-actions">
                             <button class="btn-filter-toggle" onclick="toggleQuestionFilterPanel()" title="Filter & Sort Options">
                                 <span class="filter-icon">⚙️</span>
@@ -1232,7 +1232,7 @@
             // Update page title
             const titles = {
                 'interviews': 'My Interviews',
-                'questions': 'Question Bank'
+                'questions': 'Question Analysis'
             };
             document.getElementById('page-title').textContent = titles[sectionName];
         }
