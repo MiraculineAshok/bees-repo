@@ -213,6 +213,163 @@
             background: #333333;
         }
 
+        /* Compact Filter Toggle Button */
+        .btn-filter-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-filter-toggle:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+
+        .filter-icon {
+            font-size: 1rem;
+        }
+
+        .filter-text {
+            font-weight: 500;
+        }
+
+        /* Filter Panel */
+        .filter-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: white;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1001;
+            transition: right 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .filter-panel.active {
+            right: 0;
+        }
+
+        .filter-panel-header {
+            background: #000000;
+            color: white;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333333;
+        }
+
+        .filter-panel-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            flex: 1;
+        }
+
+        .filter-panel-content {
+            padding: 1.5rem;
+        }
+
+        /* Filter Panel Sections */
+        .filter-panel .filter-section,
+        .filter-panel .sort-section,
+        .filter-panel .group-by-section {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .filter-panel .filter-section-title {
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #333333;
+            font-size: 0.9rem;
+        }
+
+        .filter-panel .filter-row {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .filter-panel .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .filter-panel .filter-group label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #555555;
+        }
+
+        .filter-panel .form-input,
+        .filter-panel .form-select {
+            padding: 0.5rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            width: 100%;
+        }
+
+        .filter-panel .sort-options,
+        .filter-panel .group-by-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .filter-panel .sort-option {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .filter-panel .group-by-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-panel .group-by-option label {
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .filter-panel .filter-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .filter-panel .btn-filter,
+        .filter-panel .btn-clear,
+        .filter-panel .btn-export,
+        .filter-panel .btn {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background 0.2s;
+        }
+
         /* Tables */
         .table-container {
             overflow-x: auto;
@@ -1183,148 +1340,18 @@
             <section id="interviews" class="content-section">
                 <div class="section-header">
                     <h2 class="section-title">All Interviews</h2>
-                    <button class="btn btn-primary" onclick="refreshInterviews()">Refresh</button>
+                    <div class="header-actions">
+                        <button class="btn-filter-toggle" onclick="toggleFilterPanel()" title="Filter & Sort Options">
+                            <span class="filter-icon">⚙️</span>
+                            <span class="filter-text">Filters</span>
+                        </button>
+                        <button class="btn btn-primary" onclick="refreshInterviews()">Refresh</button>
+                    </div>
                 </div>
                 
-                <!-- Enhanced Filter, Sort, and Group Controls -->
-                <div class="controls-panel">
-                    <!-- Search Section -->
-                    <div class="filter-section">
-                        <div class="filter-section-title">🔍 Search & Filter</div>
-                        <div class="filter-row">
-                            <div class="filter-group">
-                                <label>Search:</label>
-                                <input type="text" id="search-interviews" class="form-input" placeholder="Search by student name, email, Zeta ID, or interviewer..." onkeyup="applyFilters()">
-                            </div>
-                            <div class="filter-group">
-                                <label>Status:</label>
-                                <select id="status-filter" class="form-select" onchange="applyFilters()">
-                                    <option value="">All Statuses</option>
-                                    <option value="completed">Completed</option>
-                                    <option value="in_progress">In Progress</option>
-                                    <option value="cancelled">Cancelled</option>
-                                </select>
-                            </div>
-                            <div class="filter-group">
-                                <label>Session:</label>
-                                <select id="session-filter" class="form-select" onchange="applyFilters()">
-                                    <option value="">All Sessions</option>
-                                </select>
-                            </div>
-                            <div class="filter-group">
-                                <label>Verdict:</label>
-                                <select id="verdict-filter" class="form-select" onchange="applyFilters()">
-                                    <option value="">All Verdicts</option>
-                                    <option value="Tiger">Tiger</option>
-                                    <option value="Cow">Cow</option>
-                                    <option value="Cow+">Cow+</option>
-                                    <option value="Sheep">Sheep</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="filter-row">
-                            <div class="filter-group">
-                                <label>Interviewer:</label>
-                                <select id="interviewer-filter" class="form-select" onchange="applyFilters()">
-                                    <option value="">All Interviewers</option>
-                                </select>
-                            </div>
-                            <div class="filter-group">
-                                <label>Date From:</label>
-                                <input type="date" id="date-from" class="form-input" onchange="applyFilters()">
-                            </div>
-                            <div class="filter-group">
-                                <label>Date To:</label>
-                                <input type="date" id="date-to" class="form-input" onchange="applyFilters()">
-                            </div>
-                            <div class="filter-group">
-                                <label>Duration (min):</label>
-                                <input type="number" id="duration-min" class="form-input" placeholder="Minutes" min="0" onchange="applyFilters()">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Sort Section -->
-                    <div class="sort-section">
-                        <div class="filter-section-title">📊 Sort Options</div>
-                        <div class="sort-options">
-                            <div class="sort-option">
-                                <label>Primary Sort:</label>
-                                <select id="sort-by" class="form-select" onchange="applySorting()">
-                                    <option value="created_at_desc">Date (Newest First)</option>
-                                    <option value="created_at_asc">Date (Oldest First)</option>
-                                    <option value="student_name_asc">Student Name (A-Z)</option>
-                                    <option value="student_name_desc">Student Name (Z-A)</option>
-                                    <option value="duration_desc">Duration (Longest First)</option>
-                                    <option value="duration_asc">Duration (Shortest First)</option>
-                                    <option value="status_asc">Status (A-Z)</option>
-                                    <option value="verdict_asc">Verdict (A-Z)</option>
-                                    <option value="interviewer_asc">Interviewer (A-Z)</option>
-                                    <option value="session_asc">Session (A-Z)</option>
-                                </select>
-                            </div>
-                            <div class="sort-option">
-                                <label>Secondary Sort:</label>
-                                <select id="sort-by-2" class="form-select" onchange="applySorting()">
-                                    <option value="">None</option>
-                                    <option value="student_name_asc">Student Name (A-Z)</option>
-                                    <option value="student_name_desc">Student Name (Z-A)</option>
-                                    <option value="created_at_desc">Date (Newest First)</option>
-                                    <option value="created_at_asc">Date (Oldest First)</option>
-                                    <option value="duration_desc">Duration (Longest First)</option>
-                                    <option value="duration_asc">Duration (Shortest First)</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Group By Section -->
-                    <div class="group-by-section">
-                        <div class="filter-section-title">📋 Group By</div>
-                        <div class="group-by-options">
-                            <div class="group-by-option">
-                                <input type="radio" id="group-none" name="group-by" value="" onchange="applyGrouping()">
-                                <label for="group-none">No Grouping</label>
-                            </div>
-                            <div class="group-by-option">
-                                <input type="radio" id="group-session" name="group-by" value="session" onchange="applyGrouping()">
-                                <label for="group-session">Session</label>
-                            </div>
-                            <div class="group-by-option">
-                                <input type="radio" id="group-status" name="group-by" value="status" onchange="applyGrouping()">
-                                <label for="group-status">Status</label>
-                            </div>
-                            <div class="group-by-option">
-                                <input type="radio" id="group-verdict" name="group-by" value="verdict" onchange="applyGrouping()">
-                                <label for="group-verdict">Verdict</label>
-                            </div>
-                            <div class="group-by-option">
-                                <input type="radio" id="group-interviewer" name="group-by" value="interviewer" onchange="applyGrouping()">
-                                <label for="group-interviewer">Interviewer</label>
-                            </div>
-                            <div class="group-by-option">
-                                <input type="radio" id="group-date" name="group-by" value="date" onchange="applyGrouping()">
-                                <label for="group-date">Date</label>
-                            </div>
-                            <div class="group-by-option">
-                                <input type="radio" id="group-duration" name="group-by" value="duration" onchange="applyGrouping()">
-                                <label for="group-duration">Duration Range</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="filter-actions">
-                        <button class="btn-filter" onclick="applyFilters()">Apply Filters</button>
-                        <button class="btn-clear" onclick="clearAllFilters()">Clear All</button>
-                        <button class="btn-export" onclick="exportInterviews()">Export CSV</button>
-                        <button class="btn btn-secondary" onclick="refreshInterviews()">Refresh Data</button>
-                    </div>
-
-                    <!-- Results Summary -->
-                    <div id="results-summary" class="results-summary" style="display: none;">
-                        <strong>0</strong> interviews found
-                    </div>
+                <!-- Results Summary -->
+                <div id="results-summary" class="results-summary" style="display: none;">
+                    <strong>0</strong> interviews found
                 </div>
                 
                 <div class="table-container">
@@ -1530,11 +1557,156 @@
     <!-- Detail Panel -->
     <div id="detail-panel" class="detail-panel">
         <div class="detail-panel-header">
-            <h3 id="detail-panel-title" class="detail-panel-title">Details</h3>
-            <button class="detail-panel-close" onclick="closeDetailPanel()">&times;</button>
+            <h3 id="detail-panel-title">Details</h3>
+            <button class="close-btn" onclick="closeDetailPanel()">✕</button>
         </div>
-        <div id="detail-panel-content" class="detail-panel-content">
-            <!-- Content will be loaded dynamically -->
+        <div class="detail-panel-content" id="detail-panel-content">
+            <!-- Content will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Filter Panel Overlay -->
+    <div id="filter-panel-overlay" class="panel-overlay" onclick="closeFilterPanel()"></div>
+
+    <!-- Filter Panel -->
+    <div id="filter-panel" class="filter-panel">
+        <div class="filter-panel-header">
+            <h3>Filter & Sort Options</h3>
+            <button class="close-btn" onclick="closeFilterPanel()">✕</button>
+        </div>
+        <div class="filter-panel-content">
+            <!-- Search Section -->
+            <div class="filter-section">
+                <div class="filter-section-title">🔍 Search & Filter</div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label>Search:</label>
+                        <input type="text" id="search-interviews" class="form-input" placeholder="Search by student name, email, Zeta ID, or interviewer..." onkeyup="applyFilters()">
+                    </div>
+                    <div class="filter-group">
+                        <label>Status:</label>
+                        <select id="status-filter" class="form-select" onchange="applyFilters()">
+                            <option value="">All Statuses</option>
+                            <option value="completed">Completed</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Session:</label>
+                        <select id="session-filter" class="form-select" onchange="applyFilters()">
+                            <option value="">All Sessions</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Verdict:</label>
+                        <select id="verdict-filter" class="form-select" onchange="applyFilters()">
+                            <option value="">All Verdicts</option>
+                            <option value="Tiger">Tiger</option>
+                            <option value="Cow">Cow</option>
+                            <option value="Cow+">Cow+</option>
+                            <option value="Sheep">Sheep</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label>Interviewer:</label>
+                        <select id="interviewer-filter" class="form-select" onchange="applyFilters()">
+                            <option value="">All Interviewers</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Date From:</label>
+                        <input type="date" id="date-from" class="form-input" onchange="applyFilters()">
+                    </div>
+                    <div class="filter-group">
+                        <label>Date To:</label>
+                        <input type="date" id="date-to" class="form-input" onchange="applyFilters()">
+                    </div>
+                    <div class="filter-group">
+                        <label>Duration (min):</label>
+                        <input type="number" id="duration-min" class="form-input" placeholder="Minutes" min="0" onchange="applyFilters()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sort Section -->
+            <div class="sort-section">
+                <div class="filter-section-title">📊 Sort Options</div>
+                <div class="sort-options">
+                    <div class="sort-option">
+                        <label>Primary Sort:</label>
+                        <select id="sort-by" class="form-select" onchange="applySorting()">
+                            <option value="created_at_desc">Date (Newest First)</option>
+                            <option value="created_at_asc">Date (Oldest First)</option>
+                            <option value="student_name_asc">Student Name (A-Z)</option>
+                            <option value="student_name_desc">Student Name (Z-A)</option>
+                            <option value="duration_desc">Duration (Longest First)</option>
+                            <option value="duration_asc">Duration (Shortest First)</option>
+                            <option value="status_asc">Status (A-Z)</option>
+                            <option value="verdict_asc">Verdict (A-Z)</option>
+                            <option value="interviewer_asc">Interviewer (A-Z)</option>
+                            <option value="session_asc">Session (A-Z)</option>
+                        </select>
+                    </div>
+                    <div class="sort-option">
+                        <label>Secondary Sort:</label>
+                        <select id="sort-by-2" class="form-select" onchange="applySorting()">
+                            <option value="">None</option>
+                            <option value="student_name_asc">Student Name (A-Z)</option>
+                            <option value="student_name_desc">Student Name (Z-A)</option>
+                            <option value="created_at_desc">Date (Newest First)</option>
+                            <option value="created_at_asc">Date (Oldest First)</option>
+                            <option value="duration_desc">Duration (Longest First)</option>
+                            <option value="duration_asc">Duration (Shortest First)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Group By Section -->
+            <div class="group-by-section">
+                <div class="filter-section-title">📋 Group By</div>
+                <div class="group-by-options">
+                    <div class="group-by-option">
+                        <input type="radio" id="group-none" name="group-by" value="" onchange="applyGrouping()" checked>
+                        <label for="group-none">No Grouping</label>
+                    </div>
+                    <div class="group-by-option">
+                        <input type="radio" id="group-session" name="group-by" value="session" onchange="applyGrouping()">
+                        <label for="group-session">Session</label>
+                    </div>
+                    <div class="group-by-option">
+                        <input type="radio" id="group-status" name="group-by" value="status" onchange="applyGrouping()">
+                        <label for="group-status">Status</label>
+                    </div>
+                    <div class="group-by-option">
+                        <input type="radio" id="group-verdict" name="group-by" value="verdict" onchange="applyGrouping()">
+                        <label for="group-verdict">Verdict</label>
+                    </div>
+                    <div class="group-by-option">
+                        <input type="radio" id="group-interviewer" name="group-by" value="interviewer" onchange="applyGrouping()">
+                        <label for="group-interviewer">Interviewer</label>
+                    </div>
+                    <div class="group-by-option">
+                        <input type="radio" id="group-date" name="group-by" value="date" onchange="applyGrouping()">
+                        <label for="group-date">Date</label>
+                    </div>
+                    <div class="group-by-option">
+                        <input type="radio" id="group-duration" name="group-by" value="duration" onchange="applyGrouping()">
+                        <label for="group-duration">Duration Range</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="filter-actions">
+                <button class="btn-filter" onclick="applyFilters()">Apply Filters</button>
+                <button class="btn-clear" onclick="clearAllFilters()">Clear All</button>
+                <button class="btn-export" onclick="exportInterviews()">Export CSV</button>
+                <button class="btn btn-secondary" onclick="refreshInterviews()">Refresh Data</button>
+            </div>
         </div>
     </div>
 
@@ -2585,6 +2757,25 @@
         function closeDetailPanel() {
             document.getElementById('detail-panel').classList.remove('active');
             document.getElementById('panel-overlay').classList.remove('active');
+        }
+
+        // Filter Panel Functions
+        function toggleFilterPanel() {
+            const panel = document.getElementById('filter-panel');
+            const overlay = document.getElementById('filter-panel-overlay');
+            
+            if (panel.classList.contains('active')) {
+                panel.classList.remove('active');
+                overlay.classList.remove('active');
+            } else {
+                panel.classList.add('active');
+                overlay.classList.add('active');
+            }
+        }
+
+        function closeFilterPanel() {
+            document.getElementById('filter-panel').classList.remove('active');
+            document.getElementById('filter-panel-overlay').classList.remove('active');
         }
 
         // Student Detail View
