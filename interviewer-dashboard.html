@@ -508,349 +508,6 @@
             display: none !important;
         }
 
-        /* Start Interview Section Styles */
-        .session-details {
-            background: #f8f9fa;
-            padding: 1rem;
-            border-radius: 8px;
-            margin: 1rem 0;
-            border-left: 4px solid #007bff;
-        }
-
-        .session-info h3 {
-            margin: 0 0 0.5rem 0;
-            color: #333;
-        }
-
-        .session-info p {
-            margin: 0.25rem 0;
-            color: #666;
-        }
-
-        .search-container {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-        }
-
-        .search-container .form-input {
-            flex: 1;
-        }
-
-        .search-results {
-            margin-top: 1rem;
-            padding: 1rem;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-
-        .search-results h3 {
-            margin: 0 0 1rem 0;
-            color: #333;
-        }
-
-        .student-results-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .student-result-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem;
-            background: white;
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .student-result-item:hover {
-            background: #e9ecef;
-            border-color: #007bff;
-        }
-
-        .student-result-item.selected {
-            background: #007bff;
-            color: white;
-            border-color: #0056b3;
-        }
-
-        .student-info {
-            flex: 1;
-        }
-
-        .student-name {
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-        }
-
-        .student-details {
-            font-size: 0.875rem;
-            color: #666;
-        }
-
-        .student-result-item.selected .student-details {
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-        }
-
-        /* Interview Session Styles */
-        .interview-session-content {
-            min-height: 600px;
-        }
-
-        .session-setup {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        .setup-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e2e8f0;
-        }
-
-        .setup-card h3 {
-            margin-bottom: 0.5rem;
-            color: #2d3748;
-        }
-
-        .setup-card p {
-            color: #718096;
-            margin-bottom: 2rem;
-        }
-
-        .active-interview {
-            display: grid;
-            grid-template-columns: 1fr 400px;
-            gap: 1rem;
-            height: 600px;
-            overflow: hidden;
-        }
-
-        .interview-main {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e2e8f0;
-            overflow-y: auto;
-        }
-
-        .student-info-card {
-            background: #f7fafc;
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
-            border: 1px solid #e2e8f0;
-        }
-
-        .student-info-title {
-            margin-bottom: 1rem;
-            color: #2d3748;
-            font-size: 1.25rem;
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-        }
-
-        .info-item {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .info-label {
-            font-weight: 600;
-            color: #4a5568;
-            margin-bottom: 0.25rem;
-            font-size: 0.875rem;
-        }
-
-        .info-value {
-            color: #2d3748;
-            font-weight: 500;
-        }
-
-        .conversation-container {
-            margin-top: 1.5rem;
-        }
-
-        .conversation-header {
-            margin-bottom: 1rem;
-        }
-
-        .conversation-header h3 {
-            color: #2d3748;
-            font-size: 1.25rem;
-        }
-
-        .conversation-messages {
-            background: #f7fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 1rem;
-            height: 300px;
-            overflow-y: auto;
-            margin-bottom: 1rem;
-        }
-
-        .welcome-message {
-            text-align: center;
-            color: #718096;
-            font-style: italic;
-        }
-
-        .question-input-container {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 1rem;
-        }
-
-        .input-tabs {
-            display: flex;
-            margin-bottom: 1rem;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .tab-btn {
-            background: none;
-            border: none;
-            padding: 0.75rem 1rem;
-            cursor: pointer;
-            color: #718096;
-            border-bottom: 2px solid transparent;
-            transition: all 0.2s ease;
-        }
-
-        .tab-btn.active {
-            color: #4299e1;
-            border-bottom-color: #4299e1;
-        }
-
-        .tab-panel {
-            display: none;
-        }
-
-        .tab-panel.active {
-            display: block;
-        }
-
-        .question-input-group {
-            display: flex;
-            gap: 0.5rem;
-            align-items: flex-end;
-        }
-
-        .question-textarea {
-            flex: 1;
-            padding: 0.75rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            resize: vertical;
-            font-family: inherit;
-        }
-
-        .btn-add-question {
-            background: #4299e1;
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        .btn-add-question:hover {
-            background: #3182ce;
-        }
-
-        .question-bank-content {
-            max-height: 200px;
-            overflow-y: auto;
-        }
-
-        .bank-filters {
-            margin-bottom: 1rem;
-        }
-
-        .question-bank-list {
-            max-height: 150px;
-            overflow-y: auto;
-        }
-
-        .right-panel {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e2e8f0;
-            overflow-y: auto;
-        }
-
-        .panel-section {
-            margin-bottom: 1.5rem;
-        }
-
-        .panel-section h3 {
-            margin-bottom: 0.75rem;
-            color: #2d3748;
-            font-size: 1.125rem;
-        }
-
-        .notes-textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            resize: vertical;
-            font-family: inherit;
-        }
-
-        .previous-interviews {
-            max-height: 150px;
-            overflow-y: auto;
-        }
-
-        .panel-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .interview-clock {
-            background: #2563eb;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            font-size: 1.1rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .clock-icon {
-            font-size: 1.2rem;
-        }
-
         /* Compact Filter Toggle Button */
         .btn-filter-toggle {
             display: flex;
@@ -1213,62 +870,6 @@
         .results-summary strong {
             color: #000000;
         }
-
-        /* Embedded page container */
-        .embedded-page {
-            min-height: 80vh;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            overflow: auto;
-            background: #fff;
-        }
-
-        /* Sidebar brand/logo */
-        .sidebar-header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .brand-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            text-decoration: none;
-        }
-
-        .brand-logo {
-            width: 32px;
-            height: 32px;
-            background: #000; /* Placeholder circle */
-            border-radius: 50%;
-        }
-
-        .brand-text {
-            font-weight: 700;
-            color: #111;
-            font-size: 1rem;
-        }
-
-        /* Sidebar profile at bottom */
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .sidebar-footer {
-            margin-top: auto;
-            padding: 1rem;
-            border-top: 1px solid #e2e8f0;
-        }
-
-        .sidebar .user-info {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
     </style>
 </head>
 <body>
@@ -1276,82 +877,126 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <a href="/" class="brand-link" title="Go to Home">
-                    <div class="brand-logo" aria-hidden="true"></div>
-                    <span class="brand-text">Bees</span>
-                </a>
+                <h2>Interviewer Dashboard</h2>
             </div>
             <nav>
                 <ul class="sidebar-nav">
                     <li class="nav-item">
-                        <a href="#" class="nav-link active" onclick="showSection('start-interview')">
-                            <i>🎯</i>
-                            Do Interview
+                        <a href="#" class="nav-link active" onclick="showSection('interviews')">
+                            <i>📋</i>
+                            My Interviews
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" onclick="showSection('questions')">
+                            <i>❓</i>
+                            Question Bank
                         </a>
                     </li>
                 </ul>
             </nav>
-            <div class="sidebar-footer">
-                <div class="user-info">
-                    <div class="user-avatar" id="user-avatar">I</div>
-                    <span id="user-name">Interviewer User</span>
-                </div>
-            </div>
         </aside>
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Removed header as per request; using page title area inside sections -->
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <a href="/" class="home-link">← Home</a>
+                    <h1 id="page-title">My Interviews</h1>
+                </div>
+                <div class="header-actions">
+                    <div class="user-info">
+                        <div class="user-avatar" id="user-avatar">I</div>
+                        <span id="user-name">Interviewer User</span>
+                    </div>
+                </div>
+            </header>
 
-            <!-- Do Interview (Start Interview) Section -->
-            <section id="start-interview-section" class="content-section active">
+            <!-- My Interviews Section -->
+            <section id="interviews-section" class="content-section active">
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-interviews">0</div>
+                        <div class="stat-label">Total Interviews</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="completed-interviews">0</div>
+                        <div class="stat-label">Completed Interviews</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="in-progress-interviews">0</div>
+                        <div class="stat-label">Interviews In Progress</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="favorite-questions">0</div>
+                        <div class="stat-label">Favorite Questions</div>
+                    </div>
+                </div>
+
+
+                <!-- Interviews Table -->
                 <div class="section-card">
                     <div class="section-header">
-                        <h2 class="section-title">Do Interview</h2>
-                    </div>
-                    
-                    <!-- Session Selection -->
-                    <div class="form-group">
-                        <label class="form-label" for="session-select">Select Interview Session</label>
-                        <select id="session-select" class="form-select" onchange="loadSessionDetails()">
-                            <option value="">Choose a session...</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Session Details -->
-                    <div id="session-details" class="session-details" style="display: none;">
-                        <div class="session-info">
-                            <h3 id="session-name-display"></h3>
-                            <p id="session-description-display"></p>
-                            <p><strong>Created by:</strong> <span id="session-creator"></span></p>
+                        <h2 class="section-title">My Interviews</h2>
+                        <div class="header-actions">
+                            <button class="btn-filter-toggle" onclick="toggleFilterPanel()" title="Filter & Sort Options">
+                                <span class="filter-icon">⚙️</span>
+                                <span class="filter-text">Filters</span>
+                            </button>
                         </div>
                     </div>
                     
-                    <!-- Student Search -->
-                    <div class="form-group">
-                        <label class="form-label" for="student-search">Search for Student</label>
-                        <div class="search-container">
-                            <input type="text" id="student-search" class="form-input" placeholder="Enter Zeta ID or student name..." onkeyup="searchStudents()">
-                            <button class="btn btn-primary" onclick="searchStudents()">Search</button>
-                        </div>
+                    <!-- Results Summary -->
+                    <div id="results-summary" class="results-summary" style="display: none;">
+                        <strong>0</strong> interviews found
                     </div>
                     
-                    <!-- Search Results -->
-                    <div id="search-results" class="search-results" style="display: none;">
-                        <h3>Search Results</h3>
-                        <div id="student-results-list" class="student-results-list"></div>
-                    </div>
-                    
-                    <!-- Start Interview Button -->
-                    <div class="action-buttons" style="margin-top: 2rem;">
-                        <button id="start-interview-btn" class="btn btn-success" onclick="startInterviewSession()" disabled>
-                            Start Interview Session
-                        </button>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Student Name</th>
+                                    <th>Zeta ID</th>
+                                    <th>Session</th>
+                                    <th>Status</th>
+                                    <th>Verdict</th>
+                                    <th>Duration</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="interviews-table-body">
+                                <tr><td colspan="8" class="loading">Loading interviews...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </section>
 
-            <!-- Remove other sections; only Do Interview flow remains -->
+            <!-- Question Bank Section -->
+            <section id="questions-section" class="content-section">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title">Question Bank</h2>
+                        <div class="header-actions">
+                            <button class="btn-filter-toggle" onclick="toggleQuestionFilterPanel()" title="Filter & Sort Options">
+                                <span class="filter-icon">⚙️</span>
+                                <span class="filter-text">Filters</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Results Summary -->
+                    <div id="question-results-summary" class="results-summary" style="display: none;">
+                        <strong>0</strong> questions found
+                    </div>
+                    <div id="question-bank-list" class="question-bank-list">
+                        <div class="loading">Loading questions...</div>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 
@@ -1526,44 +1171,18 @@
         let allQuestions = [];
         let favoriteQuestionIds = new Set();
         let currentUser = null;
-        let allSessions = [];
-        let selectedStudent = null;
-        let selectedSession = null;
-        let currentInterview = null;
-        let interviewTimer = null;
-        let interviewStartTime = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             checkUserLoginStatus();
         });
 
         async function checkUserLoginStatus() {
-            // First, check URL parameters (from "Start Interview Journey" button)
-            const urlParams = new URLSearchParams(window.location.search);
-            const urlEmail = urlParams.get('email');
-            const urlName = urlParams.get('name');
-            
-            if (urlEmail && urlName) {
-                console.log('✅ User data found in URL parameters:', { email: urlEmail, name: urlName });
-                document.getElementById('user-name').textContent = urlName;
-                document.getElementById('user-avatar').textContent = urlName.charAt(0).toUpperCase();
-                currentUser = { name: urlName, email: urlEmail };
-                
-                // Store in localStorage for future use
-                localStorage.setItem('bees_user_data', JSON.stringify({ name: urlName, email: urlEmail }));
-                
-                loadDashboardData();
-                return;
-            }
-            
-            // Fallback: check localStorage
             const storedUserData = localStorage.getItem('bees_user_data');
             
             if (storedUserData) {
                 try {
                     const userData = JSON.parse(storedUserData);
                     if (userData.name && userData.email) {
-                        console.log('✅ User data found in localStorage:', userData);
                         document.getElementById('user-name').textContent = userData.name;
                         document.getElementById('user-avatar').textContent = userData.name.charAt(0).toUpperCase();
                         currentUser = { name: userData.name, email: userData.email };
@@ -1577,38 +1196,19 @@
                 }
             }
             
-            // If no valid user data found, redirect to login
-            console.log('❌ No user data found, redirecting to login');
             window.location.href = '/';
         }
 
         async function loadDashboardData() {
             try {
                 await Promise.all([
-                    loadSessions(),
                     loadMyInterviews(),
                     loadQuestions(),
                     loadFavoriteQuestions(),
                     loadStats()
                 ]);
-                
-                // Populate interview session dropdown
-                populateInterviewSessionDropdown();
             } catch (error) {
                 console.error('Error loading dashboard data:', error);
-            }
-        }
-
-        function populateInterviewSessionDropdown() {
-            const sessionSelect = document.getElementById('session-select-interview');
-            if (sessionSelect && allSessions.length > 0) {
-                sessionSelect.innerHTML = '<option value="">Choose a session...</option>';
-                allSessions.forEach(session => {
-                    const option = document.createElement('option');
-                    option.value = session.id;
-                    option.textContent = session.name;
-                    sessionSelect.appendChild(option);
-                });
             }
         }
 
@@ -1631,16 +1231,11 @@
             
             // Update page title
             const titles = {
-                'start-interview': 'Do Interview'
+                'interviews': 'My Interviews',
+                'questions': 'Question Bank'
             };
-            const pageTitleEl = document.getElementById('page-title');
-            if (pageTitleEl && titles[sectionName]) {
-                pageTitleEl.textContent = titles[sectionName];
-            }
-
-            // Only one section now; nothing else to lazy-load
+            document.getElementById('page-title').textContent = titles[sectionName];
         }
-
 
         // Filter Panel Functions
         function toggleFilterPanel() {
@@ -1677,494 +1272,6 @@
         function closeQuestionFilterPanel() {
             document.getElementById('question-filter-panel').classList.remove('active');
             document.getElementById('filter-panel-overlay').classList.remove('active');
-        }
-
-        // Start Interview Functions
-        async function loadSessions() {
-            try {
-                const response = await fetch('/api/admin/sessions');
-                const data = await response.json();
-                
-                if (data.success) {
-                    allSessions = data.data;
-                    const sessionSelect = document.getElementById('session-select');
-                    sessionSelect.innerHTML = '<option value="">Choose a session...</option>';
-                    
-                    allSessions.forEach(session => {
-                        const option = document.createElement('option');
-                        option.value = session.id;
-                        option.textContent = session.name;
-                        sessionSelect.appendChild(option);
-                    });
-                } else {
-                    console.error('Failed to load sessions:', data.error);
-                }
-            } catch (error) {
-                console.error('Error loading sessions:', error);
-            }
-        }
-
-        function loadSessionDetails() {
-            const sessionSelect = document.getElementById('session-select');
-            const sessionId = sessionSelect.value;
-            const sessionDetails = document.getElementById('session-details');
-            
-            if (sessionId) {
-                selectedSession = allSessions.find(s => s.id == sessionId);
-                if (selectedSession) {
-                    document.getElementById('session-name-display').textContent = selectedSession.name;
-                    document.getElementById('session-description-display').textContent = selectedSession.description || 'No description provided';
-                    document.getElementById('session-creator').textContent = selectedSession.created_by_name || 'Unknown';
-                    sessionDetails.style.display = 'block';
-                }
-            } else {
-                sessionDetails.style.display = 'none';
-                selectedSession = null;
-            }
-            
-            updateStartButton();
-        }
-
-        async function searchStudents() {
-            const searchTerm = document.getElementById('student-search').value.trim();
-            const searchResults = document.getElementById('search-results');
-            const resultsList = document.getElementById('student-results-list');
-            
-            if (!searchTerm) {
-                searchResults.style.display = 'none';
-                selectedStudent = null;
-                updateStartButton();
-                return;
-            }
-            
-            try {
-                const response = await fetch(`/api/students/search/${encodeURIComponent(searchTerm)}`);
-                const data = await response.json();
-                
-                if (data.success && data.data.length > 0) {
-                    resultsList.innerHTML = '';
-                    
-                    data.data.forEach(student => {
-                        const resultItem = document.createElement('div');
-                        resultItem.className = 'student-result-item';
-                        resultItem.onclick = () => selectStudent(student, resultItem);
-                        
-                        resultItem.innerHTML = `
-                            <div class="student-info">
-                                <div class="student-name">${student.first_name} ${student.last_name}</div>
-                                <div class="student-details">Zeta ID: ${student.zeta_id} | Email: ${student.email}</div>
-                            </div>
-                        `;
-                        
-                        resultsList.appendChild(resultItem);
-                    });
-                    
-                    searchResults.style.display = 'block';
-                } else {
-                    resultsList.innerHTML = '<p>No students found matching your search.</p>';
-                    searchResults.style.display = 'block';
-                }
-            } catch (error) {
-                console.error('Error searching students:', error);
-                resultsList.innerHTML = '<p>Error searching students. Please try again.</p>';
-                searchResults.style.display = 'block';
-            }
-        }
-
-        function selectStudent(student, element) {
-            // Remove previous selection
-            document.querySelectorAll('.student-result-item').forEach(item => {
-                item.classList.remove('selected');
-            });
-            
-            // Select current student
-            element.classList.add('selected');
-            selectedStudent = student;
-            updateStartButton();
-        }
-
-        function updateStartButton() {
-            const startBtn = document.getElementById('start-interview-btn');
-            if (selectedSession && selectedStudent) {
-                startBtn.disabled = false;
-                startBtn.textContent = `Start Interview with ${selectedStudent.first_name} ${selectedStudent.last_name}`;
-            } else {
-                startBtn.disabled = true;
-                startBtn.textContent = 'Start Interview Session';
-            }
-        }
-
-        function startInterviewSession() {
-            if (!selectedSession || !selectedStudent) {
-                alert('Please select both a session and a student before starting the interview.');
-                return;
-            }
-            
-            // Use currentUser object (which is set during login)
-            if (!currentUser || !currentUser.email) {
-                alert('User email not found. Please log in again.');
-                return;
-            }
-            
-            // Redirect to interview session page with all necessary data
-            const params = new URLSearchParams({
-                email: currentUser.email,
-                name: currentUser.name,
-                from: 'interviewer',
-                sessionId: selectedSession.id,
-                sessionName: selectedSession.name,
-                studentId: selectedStudent.id,
-                studentName: `${selectedStudent.first_name} ${selectedStudent.last_name}`,
-                studentZetaId: selectedStudent.zeta_id
-            });
-            
-            console.log('Starting interview session with params:', params.toString());
-            window.location.href = `/interview-session.html?${params.toString()}`;
-        }
-
-        // Embedded Interview Session Functions
-        function loadSessionDetailsForInterview() {
-            const sessionSelect = document.getElementById('session-select-interview');
-            const sessionId = sessionSelect.value;
-            const sessionDetails = document.getElementById('session-details-interview');
-            
-            if (sessionId) {
-                selectedSession = allSessions.find(s => s.id == sessionId);
-                if (selectedSession) {
-                    document.getElementById('session-name-display-interview').textContent = selectedSession.name;
-                    document.getElementById('session-description-display-interview').textContent = selectedSession.description || 'No description provided';
-                    sessionDetails.style.display = 'block';
-                }
-            } else {
-                sessionDetails.style.display = 'none';
-                selectedSession = null;
-            }
-            
-            updateStartButtonForInterview();
-        }
-
-        async function searchStudentsForInterview() {
-            const searchTerm = document.getElementById('student-search-interview').value.trim();
-            const searchResults = document.getElementById('search-results-interview');
-            const resultsList = document.getElementById('student-results-list-interview');
-            
-            if (!searchTerm) {
-                searchResults.style.display = 'none';
-                selectedStudent = null;
-                updateStartButtonForInterview();
-                return;
-            }
-            
-            try {
-                const response = await fetch(`/api/students/search/${encodeURIComponent(searchTerm)}`);
-                const data = await response.json();
-                
-                if (data.success && data.data.length > 0) {
-                    resultsList.innerHTML = '';
-                    
-                    data.data.forEach(student => {
-                        const resultItem = document.createElement('div');
-                        resultItem.className = 'student-result-item';
-                        resultItem.onclick = () => selectStudentForInterview(student, resultItem);
-                        
-                        resultItem.innerHTML = `
-                            <div class="student-info">
-                                <div class="student-name">${student.first_name} ${student.last_name}</div>
-                                <div class="student-details">Zeta ID: ${student.zeta_id} | Email: ${student.email}</div>
-                            </div>
-                        `;
-                        
-                        resultsList.appendChild(resultItem);
-                    });
-                    
-                    searchResults.style.display = 'block';
-                } else {
-                    resultsList.innerHTML = '<p>No students found matching your search.</p>';
-                    searchResults.style.display = 'block';
-                }
-            } catch (error) {
-                console.error('Error searching students:', error);
-                resultsList.innerHTML = '<p>Error searching students. Please try again.</p>';
-                searchResults.style.display = 'block';
-            }
-        }
-
-        function selectStudentForInterview(student, element) {
-            // Remove previous selection
-            document.querySelectorAll('#student-results-list-interview .student-result-item').forEach(item => {
-                item.classList.remove('selected');
-            });
-            
-            // Select current student
-            element.classList.add('selected');
-            selectedStudent = student;
-            updateStartButtonForInterview();
-        }
-
-        function updateStartButtonForInterview() {
-            const startBtn = document.getElementById('start-interview-btn-interview');
-            if (selectedSession && selectedStudent) {
-                startBtn.disabled = false;
-                startBtn.textContent = `Start Interview with ${selectedStudent.first_name} ${selectedStudent.last_name}`;
-            } else {
-                startBtn.disabled = true;
-                startBtn.textContent = 'Start Interview Session';
-            }
-        }
-
-        async function startInterviewSessionEmbedded() {
-            if (!selectedSession || !selectedStudent) {
-                alert('Please select both a session and a student before starting the interview.');
-                return;
-            }
-            
-            if (!currentUser || !currentUser.email) {
-                alert('User email not found. Please log in again.');
-                return;
-            }
-            
-            try {
-                // Create interview
-                const response = await fetch('/api/interviews', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        student_id: selectedStudent.id,
-                        interviewer_id: await getCurrentUserId(),
-                        session_id: selectedSession.id,
-                        status: 'in_progress'
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    currentInterview = result.data;
-                    interviewStartTime = new Date();
-                    
-                    // Update UI
-                    document.getElementById('session-setup').style.display = 'none';
-                    document.getElementById('active-interview').style.display = 'grid';
-                    
-                    // Update candidate info
-                    document.getElementById('candidate-name-interview').textContent = `${selectedStudent.first_name} ${selectedStudent.last_name}`;
-                    document.getElementById('candidate-email-interview').textContent = selectedStudent.email;
-                    document.getElementById('candidate-zeta-interview').textContent = selectedStudent.zeta_id;
-                    document.getElementById('candidate-session-interview').textContent = selectedSession.name;
-                    
-                    // Start timer
-                    startInterviewTimer();
-                    
-                    // Load previous interviews
-                    loadPreviousInterviewsForStudent();
-                    
-                    // Load question bank categories
-                    loadQuestionBankCategories();
-                    
-                    console.log('Interview started successfully:', currentInterview);
-                } else {
-                    alert('Failed to start interview: ' + result.error);
-                }
-            } catch (error) {
-                console.error('Error starting interview:', error);
-                alert('Error starting interview. Please try again.');
-            }
-        }
-
-        async function getCurrentUserId() {
-            try {
-                const response = await fetch(`/api/user/id?email=${encodeURIComponent(currentUser.email)}`);
-                const result = await response.json();
-                return result.success ? result.userId : null;
-            } catch (error) {
-                console.error('Error getting user ID:', error);
-                return null;
-            }
-        }
-
-        function startInterviewTimer() {
-            interviewTimer = setInterval(() => {
-                if (interviewStartTime) {
-                    const now = new Date();
-                    const diff = now - interviewStartTime;
-                    const hours = Math.floor(diff / 3600000);
-                    const minutes = Math.floor((diff % 3600000) / 60000);
-                    const seconds = Math.floor((diff % 60000) / 1000);
-                    
-                    const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                    document.getElementById('timer-display').textContent = timeString;
-                }
-            }, 1000);
-        }
-
-        function stopInterviewTimer() {
-            if (interviewTimer) {
-                clearInterval(interviewTimer);
-                interviewTimer = null;
-            }
-        }
-
-        async function loadPreviousInterviewsForStudent() {
-            if (!selectedStudent) return;
-            
-            try {
-                const response = await fetch(`/api/interviews/student/${selectedStudent.id}/history`);
-                const result = await response.json();
-                
-                const container = document.getElementById('previous-interviews-interview');
-                
-                if (result.success && result.data.length > 0) {
-                    container.innerHTML = result.data.map(interview => `
-                        <div class="previous-interview-item">
-                            <div class="interview-date">${new Date(interview.created_at).toLocaleDateString()}</div>
-                            <div class="interview-verdict">${interview.verdict || 'No verdict'}</div>
-                            <div class="interview-duration">${Math.floor(interview.duration_seconds / 60)} min</div>
-                        </div>
-                    `).join('');
-                } else {
-                    container.innerHTML = '<p>No previous interviews found</p>';
-                }
-            } catch (error) {
-                console.error('Error loading previous interviews:', error);
-                document.getElementById('previous-interviews-interview').innerHTML = '<p>Error loading previous interviews</p>';
-            }
-        }
-
-        async function loadQuestionBankCategories() {
-            try {
-                const response = await fetch('/api/question-bank/categories');
-                const result = await response.json();
-                
-                const select = document.getElementById('category-select-interview');
-                select.innerHTML = '<option value="">All Categories</option>';
-                
-                if (result.success) {
-                    result.data.forEach(category => {
-                        const option = document.createElement('option');
-                        option.value = category;
-                        option.textContent = category;
-                        select.appendChild(option);
-                    });
-                }
-            } catch (error) {
-                console.error('Error loading categories:', error);
-            }
-        }
-
-        function switchTab(tabName) {
-            // Remove active class from all tabs and panels
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
-            
-            // Add active class to selected tab and panel
-            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
-            document.getElementById(`${tabName}-tab`).classList.add('active');
-        }
-
-        async function addQuestionToInterview() {
-            const questionText = document.getElementById('question-input-interview').value.trim();
-            if (!questionText || !currentInterview) return;
-            
-            try {
-                const response = await fetch(`/api/interviews/${currentInterview.id}/questions`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        question: questionText
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    // Add question to conversation
-                    addQuestionToConversation(questionText);
-                    document.getElementById('question-input-interview').value = '';
-                } else {
-                    alert('Failed to add question: ' + result.error);
-                }
-            } catch (error) {
-                console.error('Error adding question:', error);
-                alert('Error adding question. Please try again.');
-            }
-        }
-
-        function addQuestionToConversation(questionText) {
-            const messagesContainer = document.getElementById('conversation-messages-interview');
-            const questionElement = document.createElement('div');
-            questionElement.className = 'message question-message';
-            questionElement.innerHTML = `
-                <div class="message-content">
-                    <strong>Interviewer:</strong> ${questionText}
-                </div>
-            `;
-            messagesContainer.appendChild(questionElement);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        async function saveInterviewEmbedded() {
-            if (!currentInterview) return;
-            
-            const notes = document.getElementById('interview-notes-interview').value;
-            const verdict = document.getElementById('verdict-select-interview').value;
-            
-            try {
-                const response = await fetch(`/api/interviews/${currentInterview.id}/complete`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        notes: notes,
-                        verdict: verdict,
-                        duration_seconds: Math.floor((new Date() - interviewStartTime) / 1000)
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    alert('Interview saved successfully!');
-                    exitInterviewEmbedded();
-                } else {
-                    alert('Failed to save interview: ' + result.error);
-                }
-            } catch (error) {
-                console.error('Error saving interview:', error);
-                alert('Error saving interview. Please try again.');
-            }
-        }
-
-        function exitInterviewEmbedded() {
-            // Stop timer
-            stopInterviewTimer();
-            
-            // Reset UI
-            document.getElementById('session-setup').style.display = 'block';
-            document.getElementById('active-interview').style.display = 'none';
-            
-            // Clear form
-            document.getElementById('session-select-interview').value = '';
-            document.getElementById('student-search-interview').value = '';
-            document.getElementById('search-results-interview').style.display = 'none';
-            document.getElementById('session-details-interview').style.display = 'none';
-            document.getElementById('question-input-interview').value = '';
-            document.getElementById('interview-notes-interview').value = '';
-            document.getElementById('verdict-select-interview').value = '';
-            document.getElementById('conversation-messages-interview').innerHTML = '<div class="welcome-message"><p>Welcome to the interview! Start by asking your first question.</p></div>';
-            
-            // Reset variables
-            currentInterview = null;
-            selectedStudent = null;
-            selectedSession = null;
-            interviewStartTime = null;
-            
-            // Reset timer display
-            document.getElementById('timer-display').textContent = '00:00:00';
         }
 
         async function loadMyInterviews() {
