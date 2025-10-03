@@ -128,26 +128,24 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'login.html'));
 });
 
-// Main Dashboard SPA route
-app.get('/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dashboard.html'));
-});
-
-// Legacy routes - redirect to dashboard with appropriate hash
+// Interview page route
 app.get('/interview', (req, res) => {
-  res.redirect('/dashboard#interview-search');
+  res.sendFile(path.join(__dirname, 'interview.html'));
 });
 
+// Interview session page route
 app.get('/interview-session', (req, res) => {
-  res.redirect('/dashboard#interview-session');
+  res.sendFile(path.join(__dirname, 'interview-session.html'));
 });
 
+// Admin dashboard page route
 app.get('/admin-dashboard.html', (req, res) => {
-  res.redirect('/dashboard#admin-overview');
+  res.sendFile(path.join(__dirname, 'admin-dashboard.html'));
 });
 
+// Interviewer dashboard page route
 app.get('/interviewer-dashboard.html', (req, res) => {
-  res.redirect('/dashboard#interviewer-interviews');
+  res.sendFile(path.join(__dirname, 'interviewer-dashboard.html'));
 });
 
 app.get('/health', (req, res) => {
@@ -1632,12 +1630,23 @@ app.get('/getCode', async (req, res) => {
         }
       }
       
-      // Redirect all authenticated users to unified dashboard
-      redirectUrl = new URL(`${baseUrl}/dashboard`);
-      if (userEmail) redirectUrl.searchParams.set('email', userEmail);
-      if (userName) redirectUrl.searchParams.set('name', userName);
-      redirectUrl.searchParams.set('role', userRole);
-      console.log('Redirecting user to unified dashboard:', { userEmail, userName, userRole });
+      const isAdmin = userRole === 'admin' || userRole === 'superadmin';
+      
+      if (isAdmin) {
+        // Redirect admin to admin dashboard
+        redirectUrl = new URL(`${baseUrl}/admin-dashboard.html`);
+        if (userEmail) redirectUrl.searchParams.set('email', userEmail);
+        if (userName) redirectUrl.searchParams.set('name', userName);
+        redirectUrl.searchParams.set('role', userRole);
+        console.log('Redirecting admin to dashboard:', { userEmail, userName, userRole });
+      } else {
+        // Redirect regular user to landing page
+        redirectUrl = new URL(`${baseUrl}/`);
+        if (userEmail) redirectUrl.searchParams.set('email', userEmail);
+        if (userName) redirectUrl.searchParams.set('name', userName);
+        redirectUrl.searchParams.set('role', userRole);
+        console.log('Redirecting user to landing page:', { userEmail, userName, userRole });
+      }
       
       res.redirect(redirectUrl.toString());
     } catch (parseError) {
