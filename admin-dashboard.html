@@ -2770,23 +2770,43 @@
                 console.log('🔍 Loading interview details for ID:', interviewId);
                 
                 // Get interview details
+                console.log('🌐 Making fetch request to:', `/api/interviews/${interviewId}`);
                 const interviewResponse = await fetch(`/api/interviews/${interviewId}`);
-                const interviewData = await interviewResponse.json();
+                console.log('📡 Fetch response status:', interviewResponse.status);
+                console.log('📡 Fetch response ok:', interviewResponse.ok);
                 
+                if (!interviewResponse.ok) {
+                    console.error('❌ HTTP Error:', interviewResponse.status, interviewResponse.statusText);
+                    showError(`HTTP Error: ${interviewResponse.status} ${interviewResponse.statusText}`);
+                    return;
+                }
+                
+                const interviewData = await interviewResponse.json();
                 console.log('📊 Interview API response:', interviewData);
+                console.log('📊 Interview API response type:', typeof interviewData);
+                console.log('📊 Interview API response keys:', Object.keys(interviewData || {}));
+                
+                if (!interviewData) {
+                    console.error('❌ Interview response is null/undefined');
+                    showError('No response from server');
+                    return;
+                }
                 
                 if (!interviewData.success) {
                     console.error('❌ Interview API failed:', interviewData.error);
-                    showError('Interview not found');
+                    showError(`Interview API failed: ${interviewData.error || 'Unknown error'}`);
                     return;
                 }
 
                 const interview = interviewData.data;
                 console.log('📋 Interview data:', interview);
+                console.log('📋 Interview data type:', typeof interview);
+                console.log('📋 Interview data keys:', Object.keys(interview || {}));
                 
                 if (!interview) {
                     console.error('❌ Interview data is null/undefined');
-                    showError('Interview data not available');
+                    console.error('❌ Full API response was:', JSON.stringify(interviewData, null, 2));
+                    showError('Interview data not available in API response');
                     return;
                 }
 
