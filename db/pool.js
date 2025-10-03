@@ -11,12 +11,17 @@ if (!databaseUrl) {
 
 console.log('🔗 Database URL found:', databaseUrl ? 'Yes' : 'No');
 
+// Determine if we're connecting to a local or remote database
+const isLocalDatabase = databaseUrl.includes('localhost') || databaseUrl.includes('127.0.0.1');
+
 const pool = new Pool({
   connectionString: databaseUrl,
   max: 5,                  // Keep this low; multiple instances add up
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 20000,  // Increased timeout for Neon
-  ssl: { rejectUnauthorized: false }, // Neon requires SSL
+  connectionTimeoutMillis: 60000,  // Increased timeout for Neon (60 seconds)
+  ssl: isLocalDatabase ? false : { rejectUnauthorized: false }, // Only use SSL for remote databases
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 10000,
 });
 
 // Test connection on startup

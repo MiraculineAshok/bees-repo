@@ -1,11 +1,12 @@
 // Load environment variables from .env file
-require('dotenv').config();
+const path = require('path');
+const env = process.env.NODE_ENV || 'development';
+require('dotenv').config({ path: path.resolve(__dirname, `.env.${env}`) });
 
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const path = require('path');
 const request = require('request');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
