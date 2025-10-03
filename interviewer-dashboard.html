@@ -1222,6 +1222,53 @@
             overflow: auto;
             background: #fff;
         }
+
+        /* Sidebar brand/logo */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .brand-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .brand-logo {
+            width: 32px;
+            height: 32px;
+            background: #000; /* Placeholder circle */
+            border-radius: 50%;
+        }
+
+        .brand-text {
+            font-weight: 700;
+            color: #111;
+            font-size: 1rem;
+        }
+
+        /* Sidebar profile at bottom */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .sidebar .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -1229,7 +1276,10 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h2>Interviewer Dashboard</h2>
+                <a href="/" class="brand-link" title="Go to Home">
+                    <div class="brand-logo" aria-hidden="true"></div>
+                    <span class="brand-text">Bees</span>
+                </a>
             </div>
             <nav>
                 <ul class="sidebar-nav">
@@ -1265,23 +1315,17 @@
                     </li>
                 </ul>
             </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar" id="user-avatar">I</div>
+                    <span id="user-name">Interviewer User</span>
+                </div>
+            </div>
         </aside>
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Header -->
-            <header class="header">
-                <div class="header-left">
-                    <a href="/" class="home-link">← Home</a>
-                    <h1 id="page-title">My Interviews</h1>
-                </div>
-                <div class="header-actions">
-                    <div class="user-info">
-                        <div class="user-avatar" id="user-avatar">I</div>
-                        <span id="user-name">Interviewer User</span>
-                    </div>
-                </div>
-            </header>
+            <!-- Removed header as per request; using page title area inside sections -->
 
             <!-- Start Interview Section -->
             <section id="start-interview-section" class="content-section active">
@@ -1720,7 +1764,10 @@
                 'interview': 'Interview',
                 'interview-session': 'Interview Session'
             };
-            document.getElementById('page-title').textContent = titles[sectionName];
+            const pageTitleEl = document.getElementById('page-title');
+            if (pageTitleEl && titles[sectionName]) {
+                pageTitleEl.textContent = titles[sectionName];
+            }
 
             // Lazy-load embedded pages as components
             if (sectionName === 'interview') {
