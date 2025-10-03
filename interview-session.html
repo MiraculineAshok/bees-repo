@@ -1195,6 +1195,7 @@
     <header class="header">
         <div class="header-content">
             <a href="/" class="logo">Bees</a>
+            <nav id="role-nav" style="display:flex;gap:8px;flex-wrap:wrap"></nav>
             <div class="header-actions">
                 <div class="interview-clock" id="interview-clock">
                     <span class="clock-icon">⏱️</span>
@@ -1204,13 +1205,9 @@
                     <span id="user-name" class="user-name hidden"></span>
                     <button id="login-btn" class="login-btn hidden">Sign in with Zoho</button>
                 </div>
-                <button id="save-interview-btn" class="btn btn-success" onclick="saveInterview()">
-                    Save Interview
-                </button>
-                <button class="btn btn-danger" onclick="endInterview()">
-                    End Interview
-                </button>
-                <button class="back-btn" onclick="goBack()">Back to Interview</button>
+                <button id="save-interview-btn" class="btn btn-success" onclick="saveInterview()">Save Interview</button>
+                <button class="btn btn-danger" onclick="endInterview()">End Interview</button>
+                <button class="back-btn" onclick="goBack()">Back</button>
             </div>
         </div>
     </header>
@@ -1687,7 +1684,19 @@
         async function checkUserRole() {
             try {
                 // Get user role from server
-                const response = await fetch('/api/user/role');
+                // Prefer email from URL or localStorage to resolve role accurately
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlEmail = urlParams.get('email');
+                let email = urlEmail;
+                if (!email) {
+                    try {
+                        const stored = localStorage.getItem('bees_user_data');
+                        const data = stored ? JSON.parse(stored) : null;
+                        email = data?.email || '';
+                    } catch {}
+                }
+                const roleEndpoint = email ? `/api/user/role?email=${encodeURIComponent(email)}` : '/api/user/role';
+                const response = await fetch(roleEndpoint);
                 const result = await response.json();
                 
                 if (result.success) {
@@ -1698,6 +1707,36 @@
                     const verdictSection = document.getElementById('verdict-section');
                     if (verdictSection) {
                         verdictSection.classList.remove('hidden');
+                    }
+
+                    // Build role-based nav (mirror dashboard tabs)
+                    const nav = document.getElementById('role-nav');
+                    if (nav) {
+                        const isAdmin = userRole === 'admin' || userRole === 'superadmin';
+                        const tabs = isAdmin
+                          ? [
+                              { href: '/dashboard/interview', label: 'Start Interview' },
+                              { href: '/dashboard/overview', label: '📊 Overview' },
+                              { href: '/dashboard/interviews', label: '🎯 Interviews' },
+                              { href: '/dashboard/questions', label: '❓ Questions' },
+                              { href: '/dashboard/sessions', label: '📅 Sessions' },
+                              { href: '/dashboard/students', label: '👥 Students' },
+                              { href: '/dashboard/my-interviews', label: '📋 My Interviews' }
+                            ]
+                          : [
+                              { href: '/dashboard/interview', label: 'Start Interview' },
+                              { href: '/dashboard/my-interviews', label: '📋 My Interviews' },
+                              { href: '/dashboard/question-analysis', label: '❓ Question Analysis' }
+                            ];
+
+                        // Preserve email/name params on navigation
+                        const params = [];
+                        const name = urlParams.get('name');
+                        if (email) params.push(`email=${encodeURIComponent(email)}`);
+                        if (name) params.push(`name=${encodeURIComponent(name)}`);
+                        const qs = params.length ? `?${params.join('&')}` : '';
+
+                        nav.innerHTML = tabs.map(t => `<a href="${t.href}${qs}" style="text-decoration:none;color:#111;background:#f3f4f6;padding:6px 10px;border-radius:4px">${t.label}</a>`).join('');
                     }
                 }
             } catch (error) {
