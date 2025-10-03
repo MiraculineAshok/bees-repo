@@ -102,12 +102,12 @@ function Interview() {
   }, [])
   if (loading) return <div style={{padding:16}}>Loading...</div>
   return (
-    <div style={{padding:16}}>
-      {activeInterview ? (
-        <div>Resuming interview #{activeInterview.id}</div>
-      ) : (
-        <div>Start a new interview by searching for a student...</div>
-      )}
+    <div style={{height:'calc(100vh - 120px)'}}>
+      <iframe
+        title="Interview Session"
+        src={`/interview-session${window.location.search ? ('?' + window.location.search.split('?')[1]) : ''}`}
+        style={{width:'100%',height:'100%',border:'0'}}
+      />
     </div>
   )
 }
@@ -196,50 +196,28 @@ function AdminOverviewTab() {
 
 function AdminInterviewsTab() {
   const [state, setState] = useState({ loading: true, error: '', items: [] })
-  useEffect(()=>{
-    (async ()=>{
-      try {
-        const res = await fetch('/api/admin/interviews')
-        const json = await res.json()
-        if (!res.ok || !json.success) throw new Error(json.error || `HTTP ${res.status}`)
-        setState({ loading: false, error: '', items: json.data || [] })
-      } catch (e) {
-        setState({ loading: false, error: e.message || 'Failed to load', items: [] })
-      }
-    })()
-  }, [])
-  if (state.loading) return <div style={{padding:16}}>Loading interviews...</div>
-  if (state.error) return <div style={{padding:16,color:'#b91c1c'}}>Error: {state.error}</div>
-  return <div style={{padding:16}}>Total interviews: {state.items.length}</div>
+  // Embed legacy admin list with full filters and detail views
+  return (
+    <div style={{height:'calc(100vh - 120px)'}}>
+      <iframe
+        title="Admin Dashboard"
+        src={`/admin-dashboard.html${window.location.search ? ('?' + window.location.search.split('?')[1]) : ''}`}
+        style={{width:'100%',height:'100%',border:'0'}}
+      />
+    </div>
+  )
 }
 
 function QuestionsTab() {
   const email = useUserEmail()
-  const [state, setState] = useState({ loading: true, error: '', items: [] })
-  useEffect(()=>{
-    (async ()=>{
-      try {
-        const res = await fetch('/api/question-bank', { headers: email ? { 'x-user-email': email } : {} })
-        const json = await res.json()
-        if (!res.ok || json.success === false) throw new Error(json.error || `HTTP ${res.status}`)
-        const items = json.data || json || []
-        setState({ loading: false, error: '', items })
-      } catch (e) {
-        setState({ loading: false, error: e.message || 'Failed to load', items: [] })
-      }
-    })()
-  }, [email])
-  if (state.loading) return <div style={{padding:16}}>Loading questions...</div>
-  if (state.error) return <div style={{padding:16,color:'#b91c1c'}}>Error: {state.error}</div>
-  if (!state.items.length) return <div style={{padding:16}}>No questions.</div>
+  // For parity with legacy features, embed interviewer dashboard's question bank UI
   return (
-    <div style={{padding:16,display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))',gap:12}}>
-      {state.items.map((q)=> (
-        <div key={q.id} style={{border:'1px solid #e5e7eb',borderRadius:6,padding:12,background:'#fff'}}>
-          <div style={{fontWeight:600,marginBottom:6}}>{q.question}</div>
-          <div style={{fontSize:12,color:'#475569'}}>{q.category}</div>
-        </div>
-      ))}
+    <div style={{height:'calc(100vh - 120px)'}}>
+      <iframe
+        title="Interviewer Dashboard - Question Bank"
+        src={`/interviewer-dashboard.html${window.location.search ? ('?' + window.location.search.split('?')[1]) : ''}`}
+        style={{width:'100%',height:'100%',border:'0'}}
+      />
     </div>
   )
 }

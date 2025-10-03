@@ -80,9 +80,13 @@ app.use(cors()); // Enable CORS
 app.use(morgan('combined')); // Logging
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
-// Redirect legacy standalone dashboards to unified SPA
-app.get(['/admin-dashboard.html', '/interviewer-dashboard.html'], (req, res) => {
-  res.redirect('/dashboard');
+// Legacy standalone dashboards (kept for full-featured list views and filters)
+app.get('/admin-dashboard.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin-dashboard.html'));
+});
+
+app.get('/interviewer-dashboard.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'interviewer-dashboard.html'));
 });
 
 app.use(express.static(path.join(__dirname))); // Serve static files
