@@ -287,8 +287,14 @@ class MockDataService {
 
     getStudentInterviewHistory(studentId) {
         const interviews = this.interviews
-            .filter(i => i.student_id === parseInt(studentId) && i.status === 'completed')
-            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            .filter(i => i.student_id === parseInt(studentId))
+            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+            .map(interview => ({
+                ...interview,
+                session_name: 'Face to Face for St Mary\'s School',
+                interviewer_name: 'Mock Interviewer',
+                interviewer_email: 'interviewer@example.com'
+            }));
         return Promise.resolve([...interviews]);
     }
 

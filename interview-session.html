@@ -864,6 +864,46 @@
             padding: 0.2rem 0.4rem;
             border-radius: 10px;
             font-size: 0.7rem;
+        }
+
+        .status-completed {
+            background: #059669 !important;
+        }
+
+        .status-in-progress {
+            background: #d97706 !important;
+        }
+
+        .previous-interview-details {
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            background: #ffffff;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .interview-detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.25rem;
+            font-size: 0.8rem;
+        }
+
+        .interview-detail-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #6b7280;
+            min-width: 80px;
+        }
+
+        .detail-value {
+            color: #374151;
+            text-align: right;
+            flex: 1;
             margin-left: 0.25rem;
         }
         
@@ -1610,22 +1650,18 @@
                     userRole = result.role;
                     console.log('User role:', userRole);
                     
-                    // Show/hide verdict section based on role
+                    // Show verdict section for all users
                     const verdictSection = document.getElementById('verdict-section');
                     if (verdictSection) {
-                        if (userRole === 'superadmin') {
-                            verdictSection.classList.remove('hidden');
-                } else {
-                            verdictSection.classList.add('hidden');
-                        }
+                        verdictSection.classList.remove('hidden');
                     }
                 }
             } catch (error) {
                 console.error('Error checking user role:', error);
-                // Default to hiding verdict section for non-superadmin users
+                // Default to showing verdict section for all users
                 const verdictSection = document.getElementById('verdict-section');
                 if (verdictSection) {
-                    verdictSection.classList.add('hidden');
+                    verdictSection.classList.remove('hidden');
                 }
             }
         }
@@ -1860,18 +1896,42 @@
 
             previousInterviewsList.innerHTML = previousInterviews.map(interview => {
                 const date = new Date(interview.created_at).toLocaleDateString();
+                const sessionName = interview.session_name || 'General Interview';
+                const interviewerName = interview.interviewer_name || 'Unknown Interviewer';
+                const duration = interview.duration_seconds ? formatDuration(interview.duration_seconds) : 'N/A';
+                const status = interview.status || 'completed';
+                const statusClass = status === 'completed' ? 'status-completed' : 'status-in-progress';
+                const statusText = status === 'completed' ? 'Completed' : 'In Progress';
+                
                 return `
                     <div class="previous-interview-item" onclick="viewPreviousInterview(${interview.id})">
                         <div class="previous-interview-header">
                             <span class="previous-interview-date">${date}</span>
                             <div>
-                                <span class="previous-interview-status">Completed</span>
+                                <span class="previous-interview-status ${statusClass}">${statusText}</span>
                                 ${interview.verdict ? `<span class="previous-interview-verdict">${interview.verdict}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="previous-interview-details">
+                            <div class="interview-detail-row">
+                                <span class="detail-label">Session:</span>
+                                <span class="detail-value">${sessionName}</span>
+                            </div>
+                            <div class="interview-detail-row">
+                                <span class="detail-label">Interviewer:</span>
+                                <span class="detail-value">${interviewerName}</span>
+                            </div>
+                            <div class="interview-detail-row">
+                                <span class="detail-label">Duration:</span>
+                                <span class="detail-value">${duration}</span>
+                            </div>
+                            <div class="interview-detail-row">
+                                <span class="detail-label">Status:</span>
+                                <span class="detail-value ${statusClass}">${statusText}</span>
                             </div>
                         </div>
                         <div class="previous-interview-questions">
                             <span class="previous-interview-questions-count">Interview #${interview.id}</span>
-                            ${interview.duration_seconds ? `<br><small>Duration: ${formatDuration(interview.duration_seconds)}</small>` : ''}
                             ${interview.overall_notes ? `<br><small>Notes: ${interview.overall_notes.substring(0, 50)}${interview.overall_notes.length > 50 ? '...' : ''}</small>` : ''}
                         </div>
                     </div>

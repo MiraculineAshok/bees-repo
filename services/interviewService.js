@@ -116,11 +116,13 @@ class InterviewService {
 
         try {
             const result = await pool.query(
-                `SELECT i.*, s.first_name, s.last_name, s.zeta_id, u.name as interviewer_name, u.email as interviewer_email
+                `SELECT i.*, s.first_name, s.last_name, s.zeta_id, u.name as interviewer_name, u.email as interviewer_email, 
+                        iss.name as session_name
                  FROM interviews i
                  JOIN students s ON i.student_id = s.id
                  JOIN users u ON i.interviewer_id = u.id
-                 WHERE i.student_id = $1 AND i.status = 'completed'
+                 LEFT JOIN interview_sessions iss ON i.session_id = iss.id
+                 WHERE i.student_id = $1
                  ORDER BY i.created_at DESC`,
                 [studentId]
             );
