@@ -1270,12 +1270,6 @@
                 padding: 1rem;
             }
         }
-
-        /* Embed mode (when loaded inside SPA iframe with ?embed=1) */
-        body.embed .sidebar { display: none !important; }
-        body.embed .header { display: none !important; }
-        body.embed .main-content { margin-left: 0 !important; padding-top: 0 !important; }
-        body.embed .dashboard-container { padding-top: 0 !important; }
     </style>
 </head>
 <body>
@@ -1744,15 +1738,6 @@
     </div>
 
     <script>
-        // Enable embed mode if query param embed=1
-        (function () {
-            try {
-                const params = new URLSearchParams(window.location.search);
-                if (params.get('embed') === '1') {
-                    document.body.classList.add('embed');
-                }
-            } catch (e) {}
-        })();
         // Global variables
         let currentSection = 'overview';
         let interviews = [];
@@ -1844,14 +1829,7 @@
 
         // Start Interview function
         function startInterview() {
-            try {
-                const params = new URLSearchParams(window.location.search);
-                const inEmbed = params.get('embed') === '1' || (window.top && window.top !== window);
-                if (inEmbed && window.parent) {
-                    window.parent.postMessage({ type: 'navigate', view: 'interview' }, '*');
-                    return;
-                }
-            } catch (e) {}
+            console.log('Starting interview from admin dashboard...');
             window.location.href = '/interview';
         }
 

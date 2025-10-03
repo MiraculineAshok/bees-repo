@@ -508,12 +508,6 @@
             display: none !important;
         }
 
-        /* Embed mode (when loaded inside SPA iframe with ?embed=1) */
-        body.embed .sidebar { display: none !important; }
-        body.embed .header { display: none !important; }
-        body.embed .main-content { margin-left: 0 !important; padding-top: 0 !important; }
-        body.embed .dashboard-container { padding-top: 0 !important; }
-
         /* Compact Filter Toggle Button */
         .btn-filter-toggle {
             display: flex;
@@ -1173,15 +1167,6 @@
     </div>
 
     <script>
-        // Enable embed mode if query param embed=1
-        (function () {
-            try {
-                const params = new URLSearchParams(window.location.search);
-                if (params.get('embed') === '1') {
-                    document.body.classList.add('embed');
-                }
-            } catch (e) {}
-        })();
         let allInterviews = [];
         let allQuestions = [];
         let favoriteQuestionIds = new Set();
