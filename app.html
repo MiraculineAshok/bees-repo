@@ -38,6 +38,20 @@
             document.getElementById('btn-admin').onclick = () => loadView('admin', 'admin-dashboard.html?embed=1');
             document.getElementById('btn-interviewer').onclick = () => loadView('interviewer', 'interviewer-dashboard.html?embed=1');
             document.getElementById('btn-start-interview').onclick = () => loadView('interview', 'interview-session.html?embed=1');
+
+            // Listen for messages from embedded views (e.g., Start Interview)
+            window.addEventListener('message', (event) => {
+                const data = event.data || {};
+                if (data && data.type === 'navigate') {
+                    if (data.view === 'interview') {
+                        loadView('interview', 'interview-session.html?embed=1');
+                    } else if (data.view === 'admin') {
+                        loadView('admin', 'admin-dashboard.html?embed=1');
+                    } else if (data.view === 'interviewer') {
+                        loadView('interviewer', 'interviewer-dashboard.html?embed=1');
+                    }
+                }
+            });
         }
 
         window.addEventListener('DOMContentLoaded', init);

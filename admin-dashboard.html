@@ -1844,7 +1844,14 @@
 
         // Start Interview function
         function startInterview() {
-            console.log('Starting interview from admin dashboard...');
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const inEmbed = params.get('embed') === '1' || (window.top && window.top !== window);
+                if (inEmbed && window.parent) {
+                    window.parent.postMessage({ type: 'navigate', view: 'interview' }, '*');
+                    return;
+                }
+            } catch (e) {}
             window.location.href = '/interview';
         }
 
