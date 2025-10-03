@@ -508,6 +508,100 @@
             display: none !important;
         }
 
+        /* Start Interview Section Styles */
+        .session-details {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid #007bff;
+        }
+
+        .session-info h3 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+        }
+
+        .session-info p {
+            margin: 0.25rem 0;
+            color: #666;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .search-container .form-input {
+            flex: 1;
+        }
+
+        .search-results {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .search-results h3 {
+            margin: 0 0 1rem 0;
+            color: #333;
+        }
+
+        .student-results-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .student-result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .student-result-item:hover {
+            background: #e9ecef;
+            border-color: #007bff;
+        }
+
+        .student-result-item.selected {
+            background: #007bff;
+            color: white;
+            border-color: #0056b3;
+        }
+
+        .student-info {
+            flex: 1;
+        }
+
+        .student-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .student-details {
+            font-size: 0.875rem;
+            color: #666;
+        }
+
+        .student-result-item.selected .student-details {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
         /* Compact Filter Toggle Button */
         .btn-filter-toggle {
             display: flex;
@@ -882,7 +976,13 @@
             <nav>
                 <ul class="sidebar-nav">
                     <li class="nav-item">
-                        <a href="#" class="nav-link active" onclick="showSection('interviews')">
+                        <a href="#" class="nav-link active" onclick="showSection('start-interview')">
+                            <i>🎯</i>
+                            Start Interview
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" onclick="showSection('interviews')">
                             <i>📋</i>
                             My Interviews
                         </a>
@@ -913,8 +1013,56 @@
                 </div>
             </header>
 
+            <!-- Start Interview Section -->
+            <section id="start-interview-section" class="content-section active">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title">Start New Interview</h2>
+                    </div>
+                    
+                    <!-- Session Selection -->
+                    <div class="form-group">
+                        <label class="form-label" for="session-select">Select Interview Session</label>
+                        <select id="session-select" class="form-select" onchange="loadSessionDetails()">
+                            <option value="">Choose a session...</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Session Details -->
+                    <div id="session-details" class="session-details" style="display: none;">
+                        <div class="session-info">
+                            <h3 id="session-name-display"></h3>
+                            <p id="session-description-display"></p>
+                            <p><strong>Created by:</strong> <span id="session-creator"></span></p>
+                        </div>
+                    </div>
+                    
+                    <!-- Student Search -->
+                    <div class="form-group">
+                        <label class="form-label" for="student-search">Search for Student</label>
+                        <div class="search-container">
+                            <input type="text" id="student-search" class="form-input" placeholder="Enter Zeta ID or student name..." onkeyup="searchStudents()">
+                            <button class="btn btn-primary" onclick="searchStudents()">Search</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Search Results -->
+                    <div id="search-results" class="search-results" style="display: none;">
+                        <h3>Search Results</h3>
+                        <div id="student-results-list" class="student-results-list"></div>
+                    </div>
+                    
+                    <!-- Start Interview Button -->
+                    <div class="action-buttons" style="margin-top: 2rem;">
+                        <button id="start-interview-btn" class="btn btn-success" onclick="startInterviewSession()" disabled>
+                            Start Interview Session
+                        </button>
+                    </div>
+                </div>
+            </section>
+
             <!-- My Interviews Section -->
-            <section id="interviews-section" class="content-section active">
+            <section id="interviews-section" class="content-section">
                 <!-- Stats Grid -->
                 <div class="stats-grid">
                     <div class="stat-card">
@@ -1171,6 +1319,9 @@
         let allQuestions = [];
         let favoriteQuestionIds = new Set();
         let currentUser = null;
+        let allSessions = [];
+        let selectedStudent = null;
+        let selectedSession = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             checkUserLoginStatus();
@@ -1202,6 +1353,7 @@
         async function loadDashboardData() {
             try {
                 await Promise.all([
+                    loadSessions(),
                     loadMyInterviews(),
                     loadQuestions(),
                     loadFavoriteQuestions(),
@@ -1231,6 +1383,7 @@
             
             // Update page title
             const titles = {
+                'start-interview': 'Start Interview',
                 'interviews': 'My Interviews',
                 'questions': 'Question Bank'
             };
@@ -1272,6 +1425,153 @@
         function closeQuestionFilterPanel() {
             document.getElementById('question-filter-panel').classList.remove('active');
             document.getElementById('filter-panel-overlay').classList.remove('active');
+        }
+
+        // Start Interview Functions
+        async function loadSessions() {
+            try {
+                const response = await fetch('/api/admin/sessions');
+                const data = await response.json();
+                
+                if (data.success) {
+                    allSessions = data.data;
+                    const sessionSelect = document.getElementById('session-select');
+                    sessionSelect.innerHTML = '<option value="">Choose a session...</option>';
+                    
+                    allSessions.forEach(session => {
+                        const option = document.createElement('option');
+                        option.value = session.id;
+                        option.textContent = session.name;
+                        sessionSelect.appendChild(option);
+                    });
+                } else {
+                    console.error('Failed to load sessions:', data.error);
+                }
+            } catch (error) {
+                console.error('Error loading sessions:', error);
+            }
+        }
+
+        function loadSessionDetails() {
+            const sessionSelect = document.getElementById('session-select');
+            const sessionId = sessionSelect.value;
+            const sessionDetails = document.getElementById('session-details');
+            
+            if (sessionId) {
+                selectedSession = allSessions.find(s => s.id == sessionId);
+                if (selectedSession) {
+                    document.getElementById('session-name-display').textContent = selectedSession.name;
+                    document.getElementById('session-description-display').textContent = selectedSession.description || 'No description provided';
+                    document.getElementById('session-creator').textContent = selectedSession.created_by_name || 'Unknown';
+                    sessionDetails.style.display = 'block';
+                }
+            } else {
+                sessionDetails.style.display = 'none';
+                selectedSession = null;
+            }
+            
+            updateStartButton();
+        }
+
+        async function searchStudents() {
+            const searchTerm = document.getElementById('student-search').value.trim();
+            const searchResults = document.getElementById('search-results');
+            const resultsList = document.getElementById('student-results-list');
+            
+            if (!searchTerm) {
+                searchResults.style.display = 'none';
+                selectedStudent = null;
+                updateStartButton();
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/students/search/${encodeURIComponent(searchTerm)}`);
+                const data = await response.json();
+                
+                if (data.success && data.data.length > 0) {
+                    resultsList.innerHTML = '';
+                    
+                    data.data.forEach(student => {
+                        const resultItem = document.createElement('div');
+                        resultItem.className = 'student-result-item';
+                        resultItem.onclick = () => selectStudent(student, resultItem);
+                        
+                        resultItem.innerHTML = `
+                            <div class="student-info">
+                                <div class="student-name">${student.first_name} ${student.last_name}</div>
+                                <div class="student-details">Zeta ID: ${student.zeta_id} | Email: ${student.email}</div>
+                            </div>
+                        `;
+                        
+                        resultsList.appendChild(resultItem);
+                    });
+                    
+                    searchResults.style.display = 'block';
+                } else {
+                    resultsList.innerHTML = '<p>No students found matching your search.</p>';
+                    searchResults.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error searching students:', error);
+                resultsList.innerHTML = '<p>Error searching students. Please try again.</p>';
+                searchResults.style.display = 'block';
+            }
+        }
+
+        function selectStudent(student, element) {
+            // Remove previous selection
+            document.querySelectorAll('.student-result-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // Select current student
+            element.classList.add('selected');
+            selectedStudent = student;
+            updateStartButton();
+        }
+
+        function updateStartButton() {
+            const startBtn = document.getElementById('start-interview-btn');
+            if (selectedSession && selectedStudent) {
+                startBtn.disabled = false;
+                startBtn.textContent = `Start Interview with ${selectedStudent.first_name} ${selectedStudent.last_name}`;
+            } else {
+                startBtn.disabled = true;
+                startBtn.textContent = 'Start Interview Session';
+            }
+        }
+
+        function startInterviewSession() {
+            if (!selectedSession || !selectedStudent) {
+                alert('Please select both a session and a student before starting the interview.');
+                return;
+            }
+            
+            // Get user data from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const userEmail = urlParams.get('email') || '';
+            const userName = urlParams.get('name') || 'Interviewer';
+            
+            if (!userEmail) {
+                alert('User email not found. Please log in again.');
+                return;
+            }
+            
+            // Redirect to interview session page with all necessary data
+            const params = new URLSearchParams({
+                email: userEmail,
+                name: userName,
+                from: 'interviewer',
+                sessionId: selectedSession.id,
+                sessionName: selectedSession.name,
+                studentId: selectedStudent.id,
+                studentName: `${selectedStudent.first_name} ${selectedStudent.last_name}`,
+                studentZetaId: selectedStudent.zeta_id
+            });
+            
+            console.log('Starting interview session with params:', params.toString());
+            window.location.href = `/interview-session.html?${params.toString()}`;
         }
 
         async function loadMyInterviews() {

@@ -1432,7 +1432,10 @@
             <section id="sessions" class="content-section">
                 <div class="section-header">
                     <h2 class="section-title">Interview Sessions</h2>
-                    <button class="btn btn-primary" onclick="openCreateSessionModal()">Create Session</button>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="openCreateSessionModal()">Create Session</button>
+                        <button class="btn btn-success" onclick="startInterviewFromAdmin()">Start Interview</button>
+                    </div>
                 </div>
                 
                 <div class="table-container">
@@ -2323,6 +2326,31 @@
         }
 
         // Sessions functions
+        // Start interview from admin dashboard
+        function startInterviewFromAdmin() {
+            console.log('Starting interview from admin dashboard...');
+            
+            // Get user data from URL parameters or localStorage
+            const urlParams = new URLSearchParams(window.location.search);
+            const userEmail = urlParams.get('email') || '';
+            const userName = urlParams.get('name') || 'Admin User';
+            
+            if (!userEmail) {
+                showError('User email not found. Please log in again.');
+                return;
+            }
+            
+            // Redirect to interview session page with user data
+            const params = new URLSearchParams({
+                email: userEmail,
+                name: userName,
+                from: 'admin'
+            });
+            
+            console.log('Redirecting to interview session with params:', params.toString());
+            window.location.href = `/interview-session.html?${params.toString()}`;
+        }
+
         async function loadSessions() {
             try {
                 const response = await fetch('/api/admin/sessions');

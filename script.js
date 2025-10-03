@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function displayUserInfo(userData) {
         const userNameElement = document.getElementById('user-name');
         const loginBtn = document.getElementById('login-btn');
-        const startInterviewMainBtn = document.getElementById('start-interview-main-btn');
+        const startInterviewJourneyBtn = document.getElementById('start-interview-journey-btn');
         const interviewDashboard = document.getElementById('interview-dashboard');
         const adminDashboardBtn = document.getElementById('admin-dashboard-btn');
         const interviewerDashboardBtn = document.getElementById('interviewer-dashboard-btn');
@@ -55,9 +55,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Show the main start interview button
-            if (startInterviewMainBtn) {
-                console.log('Showing start interview button');
-                startInterviewMainBtn.classList.remove('hidden');
+            if (startInterviewJourneyBtn) {
+                console.log('Showing start interview journey button');
+                startInterviewJourneyBtn.classList.remove('hidden');
             } else {
                 console.log('Start interview button not found');
             }
@@ -173,13 +173,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     
-    // Add event listener for the main start interview button
-    const startInterviewMainBtn = document.getElementById('start-interview-main-btn');
-    if (startInterviewMainBtn) {
-        startInterviewMainBtn.addEventListener('click', function(e) {
+    // Add event listener for the start interview journey button
+    const startInterviewJourneyBtn = document.getElementById('start-interview-journey-btn');
+    if (startInterviewJourneyBtn) {
+        startInterviewJourneyBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('Main start interview button clicked');
-            startInterview();
+            console.log('Start interview journey button clicked');
+            startInterviewJourney();
         });
     }
     
@@ -195,6 +195,47 @@ document.addEventListener('DOMContentLoaded', function() {
         userNameElement.title = 'Click to logout';
     }
     
+    // Function to start interview journey - routes to appropriate dashboard
+    async function startInterviewJourney() {
+        console.log('Starting interview journey...');
+        
+        // Get user data from localStorage
+        const userData = JSON.parse(localStorage.getItem('bees_user_data') || '{}');
+        console.log('User data:', userData);
+        
+        if (!userData.email) {
+            showStatus('Please log in first', 'error');
+            return;
+        }
+        
+        try {
+            // Get user role to determine which dashboard to show
+            const response = await fetch(`/api/user/role?email=${encodeURIComponent(userData.email)}`);
+            const result = await response.json();
+            
+            if (result.success) {
+                const role = result.role;
+                console.log('User role:', role);
+                
+                // Route to appropriate dashboard
+                if (role === 'admin' || role === 'superadmin') {
+                    console.log('Routing to admin dashboard');
+                    window.location.href = `/admin-dashboard.html?email=${encodeURIComponent(userData.email)}&name=${encodeURIComponent(userData.name || 'User')}`;
+                } else {
+                    console.log('Routing to interviewer dashboard');
+                    window.location.href = `/interviewer-dashboard.html?email=${encodeURIComponent(userData.email)}&name=${encodeURIComponent(userData.name || 'User')}`;
+                }
+            } else {
+                console.log('Could not determine role, defaulting to interviewer dashboard');
+                window.location.href = `/interviewer-dashboard.html?email=${encodeURIComponent(userData.email)}&name=${encodeURIComponent(userData.name || 'User')}`;
+            }
+        } catch (error) {
+            console.error('Error getting user role:', error);
+            // Default to interviewer dashboard on error
+            window.location.href = `/interviewer-dashboard.html?email=${encodeURIComponent(userData.email)}&name=${encodeURIComponent(userData.name || 'User')}`;
+        }
+    }
+
     // Function to start interview
     function startInterview() {
         console.log('=== START INTERVIEW FUNCTION CALLED ===');
@@ -211,21 +252,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Make startInterview function globally available
+    // Make functions globally available
     window.startInterview = startInterview;
+    window.startInterviewJourney = startInterviewJourney;
     
     // Add event listener for the interview button
     let retryCount = 0;
     const maxRetries = 10;
     
     function attachInterviewButtonListener() {
-        const interviewBtn = document.getElementById('start-interview-main-btn');
+        const interviewBtn = document.getElementById('start-interview-journey-btn');
         if (interviewBtn) {
             console.log('Interview button found, adding event listener');
             interviewBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 console.log('Interview button clicked via event listener');
-                startInterview();
+                startInterviewJourney();
             });
         } else if (retryCount < maxRetries) {
             retryCount++;
