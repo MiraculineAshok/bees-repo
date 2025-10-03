@@ -146,6 +146,8 @@ app.get('/interview-session', (req, res) => {
 // Admin dashboard page route
 // Serve React SPA (dashboard)
 app.use('/dashboard', express.static(path.join(__dirname, 'client', 'dist')));
+// Serve built assets at root /assets (Vite uses absolute paths by default)
+app.use('/assets', express.static(path.join(__dirname, 'client', 'dist', 'assets')));
 app.get(['/dashboard', '/dashboard/*'], (req, res) => {
   res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
 });
