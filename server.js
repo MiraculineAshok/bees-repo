@@ -383,6 +383,111 @@ app.delete('/api/authorized-users/:email', async (req, res) => {
   }
 });
 
+// Helper function to get current user ID from request
+async function getCurrentUserId(req) {
+  try {
+    // Get user email from query parameter or headers
+    const userEmail = req.query.email || req.headers['x-user-email'];
+    
+    if (!userEmail) {
+      return null;
+    }
+    
+    // Check if database is available
+    try {
+      await pool.query('SELECT 1');
+      
+      // Get user ID from authorized_users table
+      const result = await pool.query(
+        'SELECT id FROM authorized_users WHERE email = $1',
+        [userEmail]
+      );
+      
+      if (result.rows.length > 0) {
+        return result.rows[0].id;
+      }
+      
+      return null;
+    } catch (dbError) {
+      console.log('📝 Database unavailable, using mock data for getCurrentUserId');
+      
+      // Use mock data
+      const mockDataService = require('./services/mockDataService');
+      return mockDataService.getUserIdByEmail(userEmail);
+    }
+  } catch (error) {
+    console.error('Error getting current user ID:', error);
+    return null;
+  }
+}
+
+// Get user ID by email
+app.get('/api/user/id', async (req, res) => {
+  try {
+    const userEmail = req.query.email;
+    console.log('🔍 User ID API called with email:', userEmail);
+    
+    if (!userEmail) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email parameter is required'
+      });
+    }
+    
+    // Check if database is available
+    try {
+      await pool.query('SELECT 1');
+      
+      // Get user ID from authorized_users table
+      const result = await pool.query(
+        'SELECT id FROM authorized_users WHERE email = $1',
+        [userEmail]
+      );
+      
+      if (result.rows.length > 0) {
+        const userId = result.rows[0].id;
+        console.log('✅ Found user ID:', userId);
+        res.json({
+          success: true,
+          userId: userId
+        });
+      } else {
+        console.log('❌ User not found in database');
+        res.status(404).json({
+          success: false,
+          error: 'User not found'
+        });
+      }
+    } catch (dbError) {
+      console.log('📝 Database unavailable, using mock data for user ID');
+      
+      // Use mock data
+      const mockDataService = require('./services/mockDataService');
+      const userId = mockDataService.getUserIdByEmail(userEmail);
+      
+      if (userId) {
+        console.log('✅ Found user ID in mock data:', userId);
+        res.json({
+          success: true,
+          userId: userId
+        });
+      } else {
+        console.log('❌ User not found in mock data');
+        res.status(404).json({
+          success: false,
+          error: 'User not found'
+        });
+      }
+    }
+  } catch (error) {
+    console.error('❌ Server: Error getting user ID:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Get user role
 app.get('/api/user/role', async (req, res) => {
   try {
@@ -1096,8 +1201,17 @@ app.get('/api/admin/students/stats', async (req, res) => {
 // Interviewer Dashboard API endpoints
 app.get('/api/interviewer/interviews', async (req, res) => {
   try {
-    // For now, use interviewer ID 1. In a real app, get from authenticated user
-    const interviewerId = 1;
+    // Get the actual logged-in user's ID
+    const interviewerId = await getCurrentUserId(req);
+    
+    if (!interviewerId) {
+      return res.status(401).json({
+        success: false,
+        error: 'User not authenticated'
+      });
+    }
+    
+    console.log('🔍 Getting interviews for interviewer ID:', interviewerId);
     const interviews = await InterviewerService.getMyInterviews(interviewerId);
     res.json({
       success: true,
@@ -1114,8 +1228,17 @@ app.get('/api/interviewer/interviews', async (req, res) => {
 
 app.get('/api/interviewer/stats', async (req, res) => {
   try {
-    // For now, use interviewer ID 1. In a real app, get from authenticated user
-    const interviewerId = 1;
+    // Get the actual logged-in user's ID
+    const interviewerId = await getCurrentUserId(req);
+    
+    if (!interviewerId) {
+      return res.status(401).json({
+        success: false,
+        error: 'User not authenticated'
+      });
+    }
+    
+    console.log('🔍 Getting stats for interviewer ID:', interviewerId);
     const stats = await InterviewerService.getMyStats(interviewerId);
     res.json({
       success: true,
@@ -1132,8 +1255,17 @@ app.get('/api/interviewer/stats', async (req, res) => {
 
 app.get('/api/interviewer/favorites', async (req, res) => {
   try {
-    // For now, use interviewer ID 1. In a real app, get from authenticated user
-    const interviewerId = 1;
+    // Get the actual logged-in user's ID
+    const interviewerId = await getCurrentUserId(req);
+    
+    if (!interviewerId) {
+      return res.status(401).json({
+        success: false,
+        error: 'User not authenticated'
+      });
+    }
+    
+    console.log('🔍 Getting favorites for interviewer ID:', interviewerId);
     const favorites = await InterviewerService.getFavorites(interviewerId);
     res.json({
       success: true,
@@ -1151,9 +1283,17 @@ app.get('/api/interviewer/favorites', async (req, res) => {
 app.post('/api/interviewer/favorites', async (req, res) => {
   try {
     const { question_id } = req.body;
-    // For now, use interviewer ID 1. In a real app, get from authenticated user
-    const interviewerId = 1;
+    // Get the actual logged-in user's ID
+    const interviewerId = await getCurrentUserId(req);
     
+    if (!interviewerId) {
+      return res.status(401).json({
+        success: false,
+        error: 'User not authenticated'
+      });
+    }
+    
+    console.log('🔍 Adding favorite for interviewer ID:', interviewerId, 'question:', question_id);
     const result = await InterviewerService.addFavorite(interviewerId, question_id);
     res.json({
       success: true,
@@ -1172,9 +1312,17 @@ app.post('/api/interviewer/favorites', async (req, res) => {
 app.delete('/api/interviewer/favorites', async (req, res) => {
   try {
     const { question_id } = req.body;
-    // For now, use interviewer ID 1. In a real app, get from authenticated user
-    const interviewerId = 1;
+    // Get the actual logged-in user's ID
+    const interviewerId = await getCurrentUserId(req);
     
+    if (!interviewerId) {
+      return res.status(401).json({
+        success: false,
+        error: 'User not authenticated'
+      });
+    }
+    
+    console.log('🔍 Removing favorite for interviewer ID:', interviewerId, 'question:', question_id);
     const result = await InterviewerService.removeFavorite(interviewerId, question_id);
     res.json({
       success: true,

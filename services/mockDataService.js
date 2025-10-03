@@ -188,7 +188,7 @@ class MockDataService {
             {
                 id: 3,
                 student_id: 3,
-                interviewer_id: 4, // Miraculine J (Test) (from authorizedUsers)
+                interviewer_id: 5, // Arunachalam R (from authorizedUsers) - This should be Arun's interview
                 session_id: 1,
                 status: 'in_progress',
                 verdict: null,
@@ -745,9 +745,15 @@ class MockDataService {
             });
         }
 
-        getFavoriteQuestionIds(interviewerId) {
-            return Promise.resolve([1, 2, 5]);
-        }
+    getFavoriteQuestionIds(interviewerId) {
+        return Promise.resolve([1, 2, 5]);
+    }
+
+    // Get user ID by email (for mock data)
+    getUserIdByEmail(email) {
+        const user = this.authorizedUsers.find(u => u.email === email);
+        return user ? user.id : null;
+    }
 }
 
 module.exports = new MockDataService();

@@ -1516,8 +1516,52 @@
                     return;
                 }
 
-                // Get current user info (you might need to implement this)
-                const interviewerId = 1; // For now, using mock interviewer ID
+                // Get current user info from localStorage or URL parameters
+                let interviewerId = null;
+                
+                // Try to get from URL parameters first (from OAuth callback)
+                const urlParams = new URLSearchParams(window.location.search);
+                const userEmail = urlParams.get('email');
+                
+                if (userEmail) {
+                    // Get user ID from API
+                    try {
+                        const response = await fetch(`/api/user/id?email=${encodeURIComponent(userEmail)}`);
+                        const result = await response.json();
+                        if (result.success) {
+                            interviewerId = result.userId;
+                            console.log('✅ Got interviewer ID from API:', interviewerId);
+                        }
+                    } catch (error) {
+                        console.error('Error getting user ID from API:', error);
+                    }
+                }
+                
+                // Fallback: try to get from localStorage
+                if (!interviewerId) {
+                    const storedUserData = localStorage.getItem('bees_user_data');
+                    if (storedUserData) {
+                        try {
+                            const userData = JSON.parse(storedUserData);
+                            if (userData.email) {
+                                const response = await fetch(`/api/user/id?email=${encodeURIComponent(userData.email)}`);
+                                const result = await response.json();
+                                if (result.success) {
+                                    interviewerId = result.userId;
+                                    console.log('✅ Got interviewer ID from localStorage:', interviewerId);
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Error getting user ID from localStorage:', error);
+                        }
+                    }
+                }
+                
+                if (!interviewerId) {
+                    console.error('❌ Could not determine interviewer ID');
+                    showError('Unable to identify interviewer. Please log in again.');
+                    return;
+                }
                 
                 // Get session ID from URL or student data
                 const sessionId = getUrlParameter('session_id') || currentStudent.sessionId;
@@ -1680,7 +1724,7 @@
                 return `${hours}h ${minutes}m ${secs}s`;
             } else if (minutes > 0) {
                 return `${minutes}m ${secs}s`;
-            } else {
+                } else {
                 return `${secs}s`;
             }
         }
