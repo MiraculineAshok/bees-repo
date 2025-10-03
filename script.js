@@ -81,12 +81,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 if (userRole === 'superadmin' || userRole === 'admin') {
-                    // Show both dashboard buttons for admin and superadmin
+                    // Show only admin dashboard for admin/superadmin; hide interviewer dashboard
                     if (adminDashboardBtn) {
                         adminDashboardBtn.classList.remove('hidden');
                     }
                     if (interviewerDashboardBtn) {
-                        interviewerDashboardBtn.classList.remove('hidden');
+                        interviewerDashboardBtn.classList.add('hidden');
                     }
                 } else {
                     // Show only interviewer dashboard button for regular interviewers
