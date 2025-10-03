@@ -77,6 +77,33 @@ class MockDataService {
                 zoho_user_id: 'mock_zoho_002',
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
+            },
+            {
+                id: 3,
+                email: 'kannan.bb@zohocorp.com',
+                name: 'Kannan B',
+                role: 'admin',
+                zoho_user_id: 'mock_zoho_003',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            },
+            {
+                id: 4,
+                email: 'miraculine.j+bees@zohotest.com',
+                name: 'Miraculine J (Test)',
+                role: 'interviewer',
+                zoho_user_id: 'mock_zoho_004',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            },
+            {
+                id: 5,
+                email: 'arunachalam.ra@zohocorp.com',
+                name: 'Arunachalam R',
+                role: 'interviewer',
+                zoho_user_id: 'mock_zoho_005',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
             }
         ];
         
@@ -98,10 +125,67 @@ class MockDataService {
                 is_superadmin: false,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
+            },
+            {
+                id: 3,
+                email: 'kannan.bb@zohocorp.com',
+                name: 'Kannan B',
+                role: 'admin',
+                is_superadmin: false,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            },
+            {
+                id: 4,
+                email: 'miraculine.j+bees@zohotest.com',
+                name: 'Miraculine J (Test)',
+                role: 'interviewer',
+                is_superadmin: false,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            },
+            {
+                id: 5,
+                email: 'arunachalam.ra@zohocorp.com',
+                name: 'Arunachalam R',
+                role: 'interviewer',
+                is_superadmin: false,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
             }
         ];
         
-        this.interviews = [];
+        // Add some sample interviews for testing
+        this.interviews = [
+            {
+                id: 1,
+                student_id: 1,
+                interviewer_id: 1, // Miraculine J
+                session_id: 1,
+                status: 'completed',
+                verdict: 'Tiger',
+                overall_notes: 'Excellent candidate with strong technical skills.',
+                interview_date: new Date().toISOString(),
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                duration_seconds: 3600, // 1 hour
+                end_time: new Date().toISOString()
+            },
+            {
+                id: 2,
+                student_id: 2,
+                interviewer_id: 5, // Arunachalam R
+                session_id: 1,
+                status: 'completed',
+                verdict: 'Cow',
+                overall_notes: 'Good candidate, needs some improvement.',
+                interview_date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // Yesterday
+                created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+                updated_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+                duration_seconds: 2700, // 45 minutes
+                end_time: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+            }
+        ];
         this.interviewQuestions = [];
     }
 
@@ -256,6 +340,7 @@ class MockDataService {
     // Interview methods
     createInterview(studentId, interviewerId, sessionId = null, verdict = null) {
         const newId = this.interviews.length > 0 ? Math.max(...this.interviews.map(i => i.id)) + 1 : 1;
+        const now = new Date();
         const newInterview = {
             id: newId,
             student_id: studentId,
@@ -264,11 +349,13 @@ class MockDataService {
             status: 'in_progress',
             verdict: verdict,
             overall_notes: null,
-            interview_date: new Date().toISOString(),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            interview_date: now.toISOString(),
+            created_at: now.toISOString(),
+            updated_at: now.toISOString(),
+            start_time: now.toISOString()
         };
         this.interviews.push(newInterview);
+        console.log('📅 Created interview with date:', now.toISOString());
         return Promise.resolve({ ...newInterview });
     }
 
@@ -289,12 +376,15 @@ class MockDataService {
         const interviews = this.interviews
             .filter(i => i.student_id === parseInt(studentId))
             .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-            .map(interview => ({
-                ...interview,
-                session_name: 'Face to Face for St Mary\'s School',
-                interviewer_name: 'Mock Interviewer',
-                interviewer_email: 'interviewer@example.com'
-            }));
+            .map(interview => {
+                const interviewer = this.users.find(u => u.id === interview.interviewer_id);
+                return {
+                    ...interview,
+                    session_name: 'Face to Face for St Mary\'s School',
+                    interviewer_name: interviewer ? interviewer.name : 'Unknown Interviewer',
+                    interviewer_email: interviewer ? interviewer.email : 'unknown@example.com'
+                };
+            });
         return Promise.resolve([...interviews]);
     }
 
@@ -418,20 +508,23 @@ class MockDataService {
     }
 
     getAllInterviews() {
-        return Promise.resolve(this.interviews.map(interview => ({
-            id: interview.id,
-            interview_date: interview.created_at,
-            status: interview.status,
-            verdict: interview.verdict,
-            duration_seconds: interview.duration_seconds,
-            created_at: interview.created_at,
-            student_name: this.students.find(s => s.id === interview.student_id)?.name || 'Unknown',
-            student_email: this.students.find(s => s.id === interview.student_id)?.email || 'Unknown',
-            zeta_id: this.students.find(s => s.id === interview.student_id)?.zeta_id || 'Unknown',
-            interviewer_name: 'Mock Interviewer',
-            interviewer_email: 'interviewer@example.com',
-            session_name: 'Mock Session'
-        })));
+        return Promise.resolve(this.interviews.map(interview => {
+            const interviewer = this.users.find(u => u.id === interview.interviewer_id);
+            return {
+                id: interview.id,
+                interview_date: interview.created_at,
+                status: interview.status,
+                verdict: interview.verdict,
+                duration_seconds: interview.duration_seconds,
+                created_at: interview.created_at,
+                student_name: this.students.find(s => s.id === interview.student_id)?.name || 'Unknown',
+                student_email: this.students.find(s => s.id === interview.student_id)?.email || 'Unknown',
+                zeta_id: this.students.find(s => s.id === interview.student_id)?.zeta_id || 'Unknown',
+                interviewer_name: interviewer ? interviewer.name : 'Unknown Interviewer',
+                interviewer_email: interviewer ? interviewer.email : 'unknown@example.com',
+                session_name: 'Face to Face for St Mary\'s School'
+            };
+        }));
     }
 
     getInterviewStats() {
@@ -588,7 +681,7 @@ class MockDataService {
                 student_name: this.students.find(s => s.id === interview.student_id)?.name || 'Unknown',
                 student_email: this.students.find(s => s.id === interview.student_id)?.email || 'Unknown',
                 zeta_id: this.students.find(s => s.id === interview.student_id)?.zeta_id || 'Unknown',
-                session_name: 'Mock Session'
+                session_name: 'Face to Face for St Mary\'s School'
             })));
         }
 
