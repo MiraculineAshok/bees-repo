@@ -1,12 +1,26 @@
 const pool = require('../db/pool');
+const mockDataService = require('./mockDataService');
 
 class QuestionBankService {
+    // Check if database is available
+    static async isDatabaseAvailable() {
+        try {
+            if (!pool) {
+                return false;
+            }
+            await pool.query('SELECT 1');
+            return true;
+        } catch (error) {
+            console.log('📝 Database unavailable, using mock data');
+            return false;
+        }
+    }
+
     // Get all questions from the question bank
     static async getAllQuestions() {
         try {
-            if (!pool) {
-                console.error('❌ Database pool is not available');
-                return { success: false, error: 'Database connection not available' };
+            if (!(await this.isDatabaseAvailable())) {
+                return mockDataService.getQuestionsAnalytics();
             }
             
             const query = `
@@ -25,6 +39,12 @@ class QuestionBankService {
     // Get questions by category
     static async getQuestionsByCategory(category) {
         try {
+            if (!(await this.isDatabaseAvailable())) {
+                const allQuestions = await mockDataService.getQuestionsAnalytics();
+                const filteredQuestions = allQuestions.data.filter(q => q.category === category);
+                return { success: true, data: filteredQuestions };
+            }
+            
             const query = `
                 SELECT id, question, category, times_asked, created_at, updated_at
                 FROM question_bank
@@ -42,9 +62,13 @@ class QuestionBankService {
     // Get all categories
     static async getCategories() {
         try {
-            if (!pool) {
-                console.error('❌ Database pool is not available');
-                return { success: false, error: 'Database connection not available' };
+            if (!(await this.isDatabaseAvailable())) {
+                const allQuestions = await mockDataService.getQuestionsAnalytics();
+                const categories = [...new Set(allQuestions.data.map(q => q.category))].map(category => ({
+                    category,
+                    question_count: allQuestions.data.filter(q => q.category === category).length
+                }));
+                return { success: true, data: categories };
             }
             
             const query = `
@@ -80,6 +104,11 @@ class QuestionBankService {
     // Increment the times_asked counter for a question
     static async incrementTimesAsked(questionId) {
         try {
+            if (!(await this.isDatabaseAvailable())) {
+                // Mock increment - just return success
+                return { success: true, data: { id: questionId, times_asked: 1 } };
+            }
+            
             const query = `
                 UPDATE question_bank
                 SET times_asked = times_asked + 1, updated_at = CURRENT_TIMESTAMP
@@ -97,6 +126,14 @@ class QuestionBankService {
     // Search questions by text
     static async searchQuestions(searchTerm) {
         try {
+            if (!(await this.isDatabaseAvailable())) {
+                const allQuestions = await mockDataService.getQuestionsAnalytics();
+                const filteredQuestions = allQuestions.data.filter(q => 
+                    q.question.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+                return { success: true, data: filteredQuestions };
+            }
+            
             const query = `
                 SELECT id, question, category, times_asked, created_at, updated_at
                 FROM question_bank

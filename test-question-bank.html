@@ -7,229 +7,130 @@
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
-        .test-button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; cursor: pointer; }
-        .test-button:hover { background: #0056b3; }
-        .result { margin: 10px 0; padding: 10px; background: #f8f9fa; border-left: 4px solid #007bff; }
-        .error { border-left-color: #dc3545; background: #f8d7da; }
-        .success { border-left-color: #28a745; background: #d4edda; }
-        .question-item { padding: 10px; margin: 5px 0; background: #e9ecef; border-radius: 4px; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
-        .modal.active { display: flex; align-items: center; justify-content: center; }
-        .modal-content { background: white; padding: 20px; border-radius: 8px; max-width: 600px; width: 90%; max-height: 80%; overflow-y: auto; }
-        .question-bank-list { max-height: 400px; overflow-y: auto; }
+        .error { color: red; }
+        .success { color: green; }
+        .question-item { margin: 10px 0; padding: 10px; border: 1px solid #ddd; }
     </style>
 </head>
 <body>
-    <h1>Question Bank Debug Test</h1>
+    <h1>Question Bank Test Page</h1>
     
     <div class="test-section">
-        <h2>API Tests</h2>
-        <button class="test-button" onclick="testCategoriesAPI()">Test Categories API</button>
-        <button class="test-button" onclick="testQuestionsAPI()">Test Questions API</button>
-        <div id="api-results"></div>
+        <h2>Test 1: Load Question Bank Data</h2>
+        <button onclick="testLoadQuestionBank()">Load Question Bank</button>
+        <div id="question-bank-result"></div>
     </div>
-
+    
     <div class="test-section">
-        <h2>Modal Test</h2>
-        <button class="test-button" onclick="testModal()">Test Modal Open/Close</button>
-        <button class="test-button" onclick="testLoadQuestions()">Test Load Questions</button>
-        <div id="modal-results"></div>
+        <h2>Test 2: Load Categories</h2>
+        <button onclick="testLoadCategories()">Load Categories</button>
+        <div id="categories-result"></div>
     </div>
-
+    
     <div class="test-section">
-        <h2>Question Bank Modal</h2>
-        <button class="test-button" onclick="openQuestionBank()">Open Question Bank</button>
-    </div>
-
-    <!-- Question Bank Modal -->
-    <div id="question-bank-modal" class="modal">
-        <div class="modal-content">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3>Question Bank Test</h3>
-                <button onclick="closeQuestionBank()" style="background: #dc3545; color: white; border: none; padding: 5px 10px; cursor: pointer;">✕</button>
-            </div>
-            <div>
-                <label>Category:</label>
-                <select id="bank-category-select" onchange="loadQuestionsByCategory()">
-                    <option value="">All Categories</option>
-                </select>
-            </div>
-            <div id="question-bank-list" class="question-bank-list">
-                <div>Loading questions...</div>
-            </div>
-        </div>
+        <h2>Test 3: Test Question Selection</h2>
+        <button onclick="testQuestionSelection()">Test Question Selection</button>
+        <div id="selection-result"></div>
     </div>
 
     <script>
-        let questionBankData = [];
-
-        function logResult(elementId, message, isError = false) {
-            const element = document.getElementById(elementId);
-            const div = document.createElement('div');
-            div.className = `result ${isError ? 'error' : 'success'}`;
-            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${message}`;
-            element.appendChild(div);
-        }
-
-        async function testCategoriesAPI() {
+        async function testLoadQuestionBank() {
+            const resultDiv = document.getElementById('question-bank-result');
+            resultDiv.innerHTML = 'Loading...';
+            
             try {
-                logResult('api-results', 'Testing categories API...');
-                const response = await fetch('/api/question-bank/categories');
-                const result = await response.json();
-                logResult('api-results', `Categories API: ${response.status} - ${JSON.stringify(result)}`);
-            } catch (error) {
-                logResult('api-results', `Categories API Error: ${error.message}`, true);
-            }
-        }
-
-        async function testQuestionsAPI() {
-            try {
-                logResult('api-results', 'Testing questions API...');
+                console.log('🔍 Testing question bank API...');
                 const response = await fetch('/api/question-bank');
-                const result = await response.json();
-                logResult('api-results', `Questions API: ${response.status} - Found ${result.data ? result.data.length : 0} questions`);
-            } catch (error) {
-                logResult('api-results', `Questions API Error: ${error.message}`, true);
-            }
-        }
-
-        function testModal() {
-            const modal = document.getElementById('question-bank-modal');
-            if (modal) {
-                modal.classList.add('active');
-                logResult('modal-results', 'Modal opened successfully');
-                setTimeout(() => {
-                    modal.classList.remove('active');
-                    logResult('modal-results', 'Modal closed successfully');
-                }, 2000);
-            } else {
-                logResult('modal-results', 'Modal element not found!', true);
-            }
-        }
-
-        async function testLoadQuestions() {
-            try {
-                logResult('modal-results', 'Testing loadQuestionBankData...');
-                await loadQuestionBankData();
-                logResult('modal-results', 'loadQuestionBankData completed');
-            } catch (error) {
-                logResult('modal-results', `loadQuestionBankData Error: ${error.message}`, true);
-            }
-        }
-
-        function openQuestionBank() {
-            console.log('🚀 openQuestionBank called');
-            const modal = document.getElementById('question-bank-modal');
-            console.log('🚀 Modal element found:', !!modal);
-            if (modal) {
-                modal.classList.add('active');
-                console.log('🚀 Modal opened, loading data...');
-                loadQuestionBankData();
-            } else {
-                console.error('❌ Question bank modal not found!');
-            }
-        }
-
-        function closeQuestionBank() {
-            const modal = document.getElementById('question-bank-modal');
-            modal.classList.remove('active');
-        }
-
-        async function loadQuestionBankData() {
-            console.log('🔍 loadQuestionBankData called');
-            try {
-                // Load categories
-                console.log('📂 Fetching categories...');
-                const categoriesResponse = await fetch('/api/question-bank/categories');
-                console.log('📂 Categories response status:', categoriesResponse.status);
-                const categoriesResult = await categoriesResponse.json();
-                console.log('📂 Categories result:', categoriesResult);
+                console.log('Response status:', response.status);
                 
-                if (categoriesResult.success) {
-                    const categorySelect = document.getElementById('bank-category-select');
-                    if (categorySelect) {
-                        categorySelect.innerHTML = '<option value="">All Categories</option>';
-                        categoriesResult.data.forEach(category => {
-                            const option = document.createElement('option');
-                            option.value = category.category;
-                            option.textContent = `${category.category} (${category.question_count})`;
-                            categorySelect.appendChild(option);
-                        });
-                        console.log('Categories loaded into dropdown');
-                    } else {
-                        console.error('Category select element not found');
-                    }
-                } else {
-                    console.error('Failed to load categories:', categoriesResult.error);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
                 
-                // Load all questions
-                console.log('❓ Fetching questions...');
-                const questionsResponse = await fetch('/api/question-bank');
-                console.log('❓ Questions response status:', questionsResponse.status);
-                const questionsResult = await questionsResponse.json();
-                console.log('❓ Questions result:', questionsResult);
-                
-                if (questionsResult.success) {
-                    questionBankData = questionsResult.data;
-                    console.log('Question bank data loaded:', questionBankData.length, 'questions');
-                    displayQuestionBankList(questionBankData);
-                } else {
-                    console.error('Failed to load questions:', questionsResult.error);
-                }
-            } catch (error) {
-                console.error('Error loading question bank data:', error);
-            }
-        }
-
-        function displayQuestionBankList(questions) {
-            console.log('displayQuestionBankList called with:', questions);
-            const listContainer = document.getElementById('question-bank-list');
-            
-            if (!listContainer) {
-                console.error('Question bank list container not found');
-                return;
-            }
-            
-            if (questions.length === 0) {
-                console.log('No questions to display');
-                listContainer.innerHTML = '<div>No questions found</div>';
-                return;
-            }
-            
-            console.log('Displaying', questions.length, 'questions');
-            listContainer.innerHTML = questions.map(question => `
-                <div class="question-item" onclick="selectQuestion(${question.id}, '${question.question.replace(/'/g, "\\'")}')">
-                    <div><strong>${question.question}</strong></div>
-                    <div style="font-size: 0.9em; color: #666;">
-                        ${question.category} | Asked ${question.times_asked} times
-                    </div>
-                </div>
-            `).join('');
-            console.log('Question bank list updated in DOM');
-        }
-
-        function selectQuestion(questionId, questionText) {
-            console.log('Selected question:', questionId, questionText);
-            alert(`Selected: ${questionText}`);
-        }
-
-        async function loadQuestionsByCategory() {
-            const category = document.getElementById('bank-category-select').value;
-            if (!category) {
-                displayQuestionBankList(questionBankData);
-                return;
-            }
-            
-            try {
-                const response = await fetch(`/api/question-bank/category/${encodeURIComponent(category)}`);
                 const result = await response.json();
+                console.log('Response result:', result);
                 
                 if (result.success) {
-                    displayQuestionBankList(result.data);
+                    resultDiv.innerHTML = `<div class="success">✅ Success! Loaded ${result.data.length} questions</div>`;
+                    resultDiv.innerHTML += '<h3>Questions:</h3>';
+                    result.data.forEach((q, i) => {
+                        resultDiv.innerHTML += `<div class="question-item">
+                            <strong>Q${i+1}:</strong> ${q.question}<br>
+                            <small>Category: ${q.category} | Times Asked: ${q.times_asked}</small>
+                        </div>`;
+                    });
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ Error: ${result.error}</div>`;
                 }
             } catch (error) {
-                console.error('Error loading questions by category:', error);
+                console.error('Error:', error);
+                resultDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function testLoadCategories() {
+            const resultDiv = document.getElementById('categories-result');
+            resultDiv.innerHTML = 'Loading...';
+            
+            try {
+                console.log('🔍 Testing categories API...');
+                const response = await fetch('/api/question-bank/categories');
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                console.log('Response result:', result);
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `<div class="success">✅ Success! Loaded ${result.data.length} categories</div>`;
+                    resultDiv.innerHTML += '<h3>Categories:</h3>';
+                    result.data.forEach(cat => {
+                        resultDiv.innerHTML += `<div class="question-item">
+                            <strong>${cat.category}</strong> (${cat.question_count} questions)
+                        </div>`;
+                    });
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ Error: ${result.error}</div>`;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function testQuestionSelection() {
+            const resultDiv = document.getElementById('selection-result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                // First load questions
+                const response = await fetch('/api/question-bank');
+                const result = await response.json();
+                
+                if (result.success && result.data.length > 0) {
+                    const question = result.data[0];
+                    resultDiv.innerHTML = `<div class="success">✅ Testing with question: "${question.question}"</div>`;
+                    
+                    // Test increment
+                    const incrementResponse = await fetch(`/api/question-bank/${question.id}/increment`, {
+                        method: 'POST'
+                    });
+                    const incrementResult = await incrementResponse.json();
+                    
+                    if (incrementResult.success) {
+                        resultDiv.innerHTML += `<div class="success">✅ Increment successful</div>`;
+                    } else {
+                        resultDiv.innerHTML += `<div class="error">❌ Increment failed: ${incrementResult.error}</div>`;
+                    }
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ No questions available to test</div>`;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
             }
         }
     </script>
