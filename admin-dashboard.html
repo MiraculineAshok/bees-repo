@@ -2728,7 +2728,7 @@
                 `;
             } else {
                 resultsContainer.innerHTML = interviewers.map(interviewer => `
-                    <div class="search-result-item" onclick="addPanelist(${interviewer.id}, '${interviewer.name}', '${interviewer.email}')">
+                    <div class="search-result-item" onclick="addPanelist(${interviewer.id}, '${interviewer.name.replace(/'/g, "\\'")}', '${interviewer.email.replace(/'/g, "\\'")}')">
                         <div class="search-result-info">
                             <div class="search-result-name">${interviewer.name}</div>
                             <div class="search-result-email">${interviewer.email}</div>
@@ -3127,7 +3127,7 @@
                                             <div class="answer-label">Student Answer:</div>
                                             <div class="answer-text">${question.student_answer || 'No answer provided'}</div>
                                             ${question.answer_photo_url ? `
-                                                <img src="${question.answer_photo_url}" alt="Answer Image" class="answer-image" onclick="openImageModal('${question.answer_photo_url}')" style="cursor: pointer;">
+                                                <img src="${question.answer_photo_url}" alt="Answer Image" class="answer-image" onclick="openImageModal('${question.answer_photo_url.replace(/'/g, "\\'")}')" style="cursor: pointer;">
                                             ` : ''}
                                         </div>
                                     </div>
@@ -3249,7 +3249,7 @@
                             <div class="question-answer-item">
                                 <p><strong>Q${index + 1}:</strong> ${q.question_text}</p>
                                 <p><strong>Answer:</strong> ${q.student_answer || 'No answer provided'}</p>
-                                ${q.answer_photo_url ? `<img src="${q.answer_photo_url}" alt="Answer photo" class="answer-image" onclick="openImageModal('${q.answer_photo_url}')">` : ''}
+                                ${q.answer_photo_url ? `<img src="${q.answer_photo_url}" alt="Answer photo" class="answer-image" onclick="openImageModal('${q.answer_photo_url.replace(/'/g, "\\'")}')">` : ''}
                             </div>
                         `).join('');
                     }
