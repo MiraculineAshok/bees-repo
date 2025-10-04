@@ -43,22 +43,22 @@
         }
         
         .interview-clock {
-            background: #2563eb;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
+            position: absolute;
+            top: 6px;
+            right: 12px;
+            background: transparent;
+            color: #1f2937;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
             font-family: 'Courier New', monospace;
-            font-weight: bold;
-            font-size: 1.1rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-weight: 600;
+            font-size: 0.9rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.25rem;
         }
         
-        .clock-icon {
-            font-size: 1.2rem;
-        }
+        .clock-icon { font-size: 1rem; opacity: 0.75; }
         
         .verdict-section {
             margin-top: 1rem;
@@ -2425,6 +2425,27 @@
             stopDurationTracking();
 
             try {
+                // Confirm if they want to exit without explicitly saving
+                const proceed = await (async () => {
+                    return new Promise((resolve) => {
+                        const overlay = document.createElement('div');
+                        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
+                        overlay.innerHTML = `
+                          <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;min-width:280px;max-width:90%;padding:16px;box-shadow:0 10px 20px rgba(0,0,0,0.15)">
+                            <div style="font-weight:600;margin-bottom:8px;color:#111827">Exit Interview?</div>
+                            <div style="font-size:14px;color:#374151;margin-bottom:12px">Have you saved your notes and answers? You can still continue and mark interview completed.</div>
+                            <div style="display:flex;gap:8px;justify-content:flex-end">
+                              <button id="exit-cancel" style="border:1px solid #e5e7eb;background:#fff;padding:6px 10px;border-radius:6px;cursor:pointer">Cancel</button>
+                              <button id="exit-continue" style="background:#dc2626;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer">Continue</button>
+                            </div>
+                          </div>`;
+                        document.body.appendChild(overlay);
+                        overlay.querySelector('#exit-cancel').onclick = ()=> { overlay.remove(); resolve(false); };
+                        overlay.querySelector('#exit-continue').onclick = ()=> { overlay.remove(); resolve(true); };
+                    });
+                })();
+                if (!proceed) return;
+
                 const response = await fetch(`/api/interviews/${currentInterview.id}/complete`, {
                     method: 'PUT'
                 });
@@ -2435,9 +2456,7 @@
                     showSuccess('Interview completed successfully!');
                     // Refresh previous interviews list
                     await loadPreviousInterviews();
-                    setTimeout(() => {
-                        goBack();
-                    }, 2000);
+                    setTimeout(() => { goBack(); }, 1000);
                 } else {
                     showError('Error completing interview');
                 }

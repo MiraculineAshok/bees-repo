@@ -10,6 +10,17 @@
         .auth-header .logo { font-size: 1.25rem; }
         .back-arrow { text-decoration: none; color: #111827; font-size: 1.25rem; }
         .sub-header { max-width: 1200px; margin: 0 auto; padding: 0.5rem 1rem; }
+        /* Make session select match input look and taller */
+        #session-select {
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 1rem;
+            background: #ffffff;
+        }
+        #session-select:focus { outline: none; border-color: #111827; }
+        .error-message { color: #dc2626; font-size: 0.85rem; margin-top: 0.25rem; }
     </style>
 </head>
 <body>
@@ -111,5 +122,30 @@
 
     <script src="/shared-auth.js"></script>
     <script src="/interview.js"></script>
+    <script>
+        // Back arrow confirmation popup
+        (function(){
+            const back = document.querySelector('.back-arrow');
+            if (!back) return;
+            back.addEventListener('click', function(e){
+                e.preventDefault();
+                const target = this.getAttribute('href') || '/';
+                const modal = document.createElement('div');
+                modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
+                modal.innerHTML = `
+                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;min-width:280px;max-width:90%;padding:16px;box-shadow:0 10px 20px rgba(0,0,0,0.15)">
+                        <div style="font-weight:600;margin-bottom:8px;color:#111827">Exit Interview?</div>
+                        <div style="font-size:14px;color:#374151;margin-bottom:12px">Are you sure you want to leave this page? Unsaved changes may be lost.</div>
+                        <div style="display:flex;gap:8px;justify-content:flex-end">
+                            <button id="cnf-cancel" style="border:1px solid #e5e7eb;background:#fff;padding:6px 10px;border-radius:6px;cursor:pointer">Cancel</button>
+                            <button id="cnf-exit" style="background:#dc2626;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer">Exit</button>
+                        </div>
+                    </div>`;
+                document.body.appendChild(modal);
+                modal.querySelector('#cnf-cancel').onclick = ()=> modal.remove();
+                modal.querySelector('#cnf-exit').onclick = ()=> { window.location.href = target; };
+            });
+        })();
+    </script>
 </body>
 </html>
