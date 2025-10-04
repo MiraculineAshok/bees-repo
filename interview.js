@@ -9,6 +9,7 @@ class InterviewPage {
         this.attachEventListeners();
         this.focusZetaIdInput();
         this.loadInterviewSessions();
+        this.initAvatar();
     }
 
     checkAuthentication() {
@@ -383,6 +384,90 @@ class InterviewPage {
     getUrlParameter(name) {
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get(name);
+    }
+
+    async initAvatar() {
+        const avatar = document.getElementById('avatar');
+        const avatarMenu = document.getElementById('avatar-menu');
+        const loginBtn = document.getElementById('login-btn');
+        
+        if (!avatar) return;
+
+        // Check if user is logged in
+        const userEmail = this.getUrlParameter('email');
+        let userData = null;
+        
+        if (userEmail) {
+            userData = {
+                email: userEmail,
+                name: this.getUrlParameter('name') || userEmail.split('@')[0]
+            };
+        } else {
+            // Check localStorage
+            const storedUserData = localStorage.getItem('bees_user_data');
+            if (storedUserData) {
+                try {
+                    userData = JSON.parse(storedUserData);
+                } catch (error) {
+                    console.error('Error parsing stored user data:', error);
+                }
+            }
+        }
+
+        if (userData && userData.email) {
+            // Show avatar and hide login button
+            try {
+                const userIdResponse = await fetch('/api/user/id');
+                const userIdData = await userIdResponse.json();
+                const userId = userIdData.success ? userIdData.userId : null;
+                const initial = userId ? userId.toString().charAt(0).toUpperCase() : (userData.email || userData.name || 'U').trim().charAt(0).toUpperCase();
+                avatar.textContent = initial || 'U';
+            } catch (error) {
+                console.error('Error fetching user ID:', error);
+                const initial = (userData.email || userData.name || 'U').trim().charAt(0).toUpperCase();
+                avatar.textContent = initial || 'U';
+            }
+            
+            avatar.classList.remove('hidden');
+            if (loginBtn) loginBtn.classList.add('hidden');
+            
+            // Set up avatar click handler
+            avatar.onclick = () => {
+                avatarMenu.style.display = (avatarMenu.style.display === 'block' ? 'none' : 'block');
+            };
+            
+            // Close menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!avatar.contains(e.target) && !avatarMenu.contains(e.target)) {
+                    avatarMenu.style.display = 'none';
+                }
+            });
+            
+            // Set up logout button
+            const logoutBtn = document.getElementById('logout-btn-dropdown');
+            if (logoutBtn) {
+                logoutBtn.onclick = () => {
+                    const overlay = document.createElement('div');
+                    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
+                    overlay.innerHTML = `
+                      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;min-width:280px;max-width:90%;padding:16px;box-shadow:0 10px 20px rgba(0,0,0,0.15)">
+                        <div style="font-weight:600;margin-bottom:8px;color:#111827">Logout?</div>
+                        <div style="font-size:14px;color:#374151;margin-bottom:12px">Are you sure you want to logout?</div>
+                        <div style="display:flex;gap:8px;justify-content:flex-end">
+                          <button id="lg-cancel" style="border:1px solid #e5e7eb;background:#fff;padding:6px 10px;border-radius:6px;cursor:pointer">Cancel</button>
+                          <button id="lg-confirm" style="background:#111827;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer">Logout</button>
+                        </div>
+                      </div>`;
+                    document.body.appendChild(overlay);
+                    overlay.querySelector('#lg-cancel').onclick = () => overlay.remove();
+                    overlay.querySelector('#lg-confirm').onclick = () => {
+                        overlay.remove();
+                        try { localStorage.removeItem('bees_user_data'); } catch {}
+                        window.location.href = '/';
+                    };
+                };
+            }
+        }
     }
 }
 

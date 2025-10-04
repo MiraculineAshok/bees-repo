@@ -39,7 +39,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to display user information after login
     async function displayUserInfo(userData) {
-        const userNameElement = document.getElementById('user-name');
         const loginBtn = document.getElementById('login-btn');
         const startInterviewMainBtn = document.getElementById('start-interview-main-btn');
         const interviewDashboard = document.getElementById('interview-dashboard');
@@ -209,17 +208,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Add logout functionality to user name (if clicked)
-    const userNameElement = document.getElementById('user-name');
-    if (userNameElement) {
-        userNameElement.addEventListener('click', function() {
-            if (confirm('Are you sure you want to logout?')) {
-                logoutUser();
-            }
-        });
-        userNameElement.style.cursor = 'pointer';
-        userNameElement.title = 'Click to logout';
-    }
     
     // Function to start interview
     function startInterview() {
