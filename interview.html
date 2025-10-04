@@ -11,6 +11,7 @@
     <header class="auth-header">
         <div class="auth-header-content">
             <a href="/" class="logo">Bees</a>
+            <button class="back-btn">Back to Dashboard</button>
             <div class="user-info">
                 <span id="user-name" class="user-name hidden"></span>
                 <button id="login-btn" class="login-btn">Sign in with Zoho</button>
@@ -24,32 +25,31 @@
             <p>Search for existing students or create new student records</p>
         </div>
 
-        <button class="back-btn">Back to Dashboard</button>
+        
 
         <!-- Error and Loading Messages -->
         <div id="error-message" class="error-message hidden"></div>
         <div id="loading-message" class="loading hidden">Searching...</div>
 
-        <!-- Session Selection -->
+        <!-- Session & Search (Combined) -->
         <div class="card">
             <div class="session-section">
                 <h2>Select Interview Session</h2>
                 <div class="form-group">
-                    <label for="session-select">Interview Session:</label>
+                    <label for="session-select">Interview Session <span style="color:#dc2626">*</span></label>
                     <select id="session-select" required>
                         <option value="">Loading sessions...</option>
                     </select>
+                    <div id="session-error" class="error-message hidden"></div>
                 </div>
             </div>
-        </div>
 
-        <!-- Search Section -->
-        <div class="card">
-            <div class="search-section">
+            <div class="search-section" style="margin-top: 1rem;">
                 <h2>Search for Student</h2>
                 <div class="form-group">
                     <label for="zeta-id">Zeta ID:</label>
                     <input type="text" id="zeta-id" placeholder="Enter Zeta ID (e.g., ZETA001)" required>
+                    <div id="zeta-error" class="error-message hidden"></div>
                 </div>
                 <button id="search-btn" class="search-btn">Search for Student</button>
             </div>
