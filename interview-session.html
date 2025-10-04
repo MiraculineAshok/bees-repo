@@ -1207,7 +1207,7 @@
                 </div>
                 <button id="save-interview-btn" class="btn btn-success" onclick="saveInterview()">Save Interview</button>
                 <button class="btn btn-danger" onclick="endInterview()">End Interview</button>
-                <button class="back-btn" onclick="goBack()">Back</button>
+                <button id="dashboard-btn" class="btn btn-primary hidden">Dashboard</button>
             </div>
         </div>
     </header>
@@ -1709,7 +1709,18 @@
                         verdictSection.classList.remove('hidden');
                     }
 
-                // No tabs on interview page per requirement
+                    // Show role-appropriate dashboard button in header
+                    const dashboardBtn = document.getElementById('dashboard-btn');
+                    if (dashboardBtn) {
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const email = urlParams.get('email') || '';
+                        const name = urlParams.get('name') || '';
+                        const qs = `?${[email?`email=${encodeURIComponent(email)}`:'', name?`name=${encodeURIComponent(name)}`:''].filter(Boolean).join('&')}`;
+                        const isAdmin = userRole === 'admin' || userRole === 'superadmin';
+                        const target = isAdmin ? `/admin-dashboard.html${qs}` : `/interviewer-dashboard.html${qs}`;
+                        dashboardBtn.classList.remove('hidden');
+                        dashboardBtn.onclick = () => { window.location.href = target; };
+                    }
                 }
             } catch (error) {
                 console.error('Error checking user role:', error);
