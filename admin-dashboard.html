@@ -1323,13 +1323,15 @@
                     </a>
                     <h1 id="page-title">Admin Dashboard</h1>
                 </div>
-                <div class="header-actions">
+                <div class="header-actions" style="position:relative">
                     <button class="btn btn-success" onclick="startInterview()" style="background: #dc3545; color: white; margin-right: 1rem;">
                         Start Interview
                     </button>
                     <div class="user-info">
-                        <div class="user-avatar">A</div>
-                        <span id="admin-user-name">Admin User</span>
+                        <div class="user-avatar" id="admin-avatar" style="cursor:pointer">A</div>
+                        <div id="admin-avatar-menu" style="position:absolute;right:0;top:56px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 10px 20px rgba(0,0,0,0.1);display:none;min-width:140px;z-index:10">
+                            <button id="admin-logout-btn" style="width:100%;background:#fff;border:none;text-align:left;padding:10px 12px;cursor:pointer">Logout</button>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -1854,9 +1856,32 @@
         }
 
         function displayUserInfo(userData) {
-            const userNameElement = document.getElementById('admin-user-name');
-            if (userData && userData.name && userNameElement) {
-                userNameElement.textContent = userData.name;
+            const avatar = document.getElementById('admin-avatar');
+            const menu = document.getElementById('admin-avatar-menu');
+            if (avatar && userData) {
+                const initial = (userData.email || userData.name || 'A').trim().charAt(0).toUpperCase();
+                avatar.textContent = initial || 'A';
+                avatar.onclick = ()=> { menu.style.display = (menu.style.display==='block' ? 'none' : 'block'); };
+                document.addEventListener('click', (e)=>{ if (!avatar.contains(e.target) && !menu.contains(e.target)) menu.style.display='none'; });
+                const logoutBtn = document.getElementById('admin-logout-btn');
+                if (logoutBtn) {
+                    logoutBtn.onclick = ()=> {
+                        const overlay = document.createElement('div');
+                        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
+                        overlay.innerHTML = `
+                          <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;min-width:280px;max-width:90%;padding:16px;box-shadow:0 10px 20px rgba(0,0,0,0.15)">
+                            <div style=\"font-weight:600;margin-bottom:8px;color:#111827\">Logout?</div>
+                            <div style=\"font-size:14px;color:#374151;margin-bottom:12px\">Are you sure you want to logout?</div>
+                            <div style=\"display:flex;gap:8px;justify-content:flex-end\">
+                              <button id=\"lg-cancel\" style=\"border:1px solid #e5e7eb;background:#fff;padding:6px 10px;border-radius:6px;cursor:pointer\">Cancel</button>
+                              <button id=\"lg-confirm\" style=\"background:#111827;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer\">Logout</button>
+                            </div>
+                          </div>`;
+                        document.body.appendChild(overlay);
+                        overlay.querySelector('#lg-cancel').onclick = ()=> overlay.remove();
+                        overlay.querySelector('#lg-confirm').onclick = ()=> { overlay.remove(); try { localStorage.removeItem('bees_user_data'); } catch {}; window.location.href = '/'; };
+                    };
+                }
             }
         }
 

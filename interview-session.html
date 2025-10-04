@@ -85,6 +85,46 @@
             align-items: center;
             gap: 0.75rem;
         }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            background: #2d3748;
+            color: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .avatar-menu {
+            position: absolute;
+            right: 16px;
+            top: 56px;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            display: none;
+            min-width: 140px;
+            z-index: 150;
+        }
+
+        .avatar-menu.active { display: block; }
+
+        .avatar-menu button {
+            width: 100%;
+            background: #ffffff;
+            border: none;
+            text-align: left;
+            padding: 10px 12px;
+            cursor: pointer;
+        }
+
+        .avatar-menu button:hover { background: #f3f4f6; }
         
         .user-name {
             font-weight: 600;
@@ -1211,7 +1251,10 @@
             <div class="header-actions">
                 
                 <div class="user-info">
-                    <span id="user-name" class="user-name hidden"></span>
+                    <div id="avatar" class="avatar hidden">U</div>
+                    <div id="avatar-menu" class="avatar-menu">
+                        <button id="logout-btn-dropdown">Logout</button>
+                    </div>
                     <button id="login-btn" class="login-btn hidden">Sign in with Zoho</button>
                 </div>
                 <button id="dashboard-btn" class="btn btn-primary hidden">Dashboard</button>
@@ -1219,7 +1262,7 @@
         </div>
     </header>
 
-    
+            
 
     <main class="main-container">
         <div class="interview-main">
@@ -1760,6 +1803,47 @@
                             overlay.querySelector('#db-cancel').onclick = ()=> overlay.remove();
                             overlay.querySelector('#db-continue').onclick = ()=> { overlay.remove(); window.location.href = target; };
                         };
+                        // Init avatar
+                        const avatar = document.getElementById('avatar');
+                        const avatarMenu = document.getElementById('avatar-menu');
+                        const loginBtn = document.getElementById('login-btn');
+                        if (avatar) {
+                            const initial = (email || name || 'U').trim().charAt(0).toUpperCase();
+                            avatar.textContent = initial || 'U';
+                            avatar.classList.remove('hidden');
+                            if (loginBtn) loginBtn.classList.add('hidden');
+                            avatar.onclick = () => {
+                                avatarMenu.classList.toggle('active');
+                            };
+                            document.addEventListener('click', (e)=>{
+                                if (!avatar.contains(e.target) && !avatarMenu.contains(e.target)) {
+                                    avatarMenu.classList.remove('active');
+                                }
+                            });
+                            const logoutBtn = document.getElementById('logout-btn-dropdown');
+                            if (logoutBtn) {
+                                logoutBtn.onclick = () => {
+                                    const overlay = document.createElement('div');
+                                    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
+                                    overlay.innerHTML = `
+                                      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;min-width:280px;max-width:90%;padding:16px;box-shadow:0 10px 20px rgba(0,0,0,0.15)">
+                                        <div style=\"font-weight:600;margin-bottom:8px;color:#111827\">Logout?</div>
+                                        <div style=\"font-size:14px;color:#374151;margin-bottom:12px\">Are you sure you want to logout?</div>
+                                        <div style=\"display:flex;gap:8px;justify-content:flex-end\">
+                                          <button id=\"lg-cancel\" style=\"border:1px solid #e5e7eb;background:#fff;padding:6px 10px;border-radius:6px;cursor:pointer\">Cancel</button>
+                                          <button id=\"lg-confirm\" style=\"background:#111827;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer\">Logout</button>
+                                        </div>
+                                      </div>`;
+                                    document.body.appendChild(overlay);
+                                    overlay.querySelector('#lg-cancel').onclick = ()=> overlay.remove();
+                                    overlay.querySelector('#lg-confirm').onclick = ()=> {
+                                        overlay.remove();
+                                        try { localStorage.removeItem('bees_user_data'); } catch {}
+                window.location.href = '/';
+                                    };
+                                };
+                            }
+                        }
                     }
                 }
             } catch (error) {
