@@ -1505,6 +1505,10 @@
                     currentInterview = result.data;
                     console.log('Found existing interview:', currentInterview);
                     document.getElementById('verdict-select').value = currentInterview.verdict || '';
+                    // Ensure timer starts for existing in-progress interview
+                    if (!interviewStartTime && currentInterview.status === 'in_progress') {
+                        startDurationTracking();
+                    }
                     await loadQuestions();
                 } else {
                     console.log('No existing interview found, creating new one');
@@ -2730,7 +2734,7 @@
             
             console.log('Displaying', questions.length, 'questions');
             listContainer.innerHTML = questions.map(question => `
-                <div class="question-bank-item" onclick="selectQuestionFromBank(${question.id}, '${question.question.replace(/'/g, "\\'")}')">
+                <div class="question-bank-item" onclick="selectQuestionFromBank(${question.id}, '${question.question.replace(/'/g, "\\'")}', this)">
                     <div class="question-text">${question.question}</div>
                     <div class="question-meta">
                         <span class="question-category">${question.category}</span>
@@ -2741,8 +2745,15 @@
             console.log('Question bank list updated in DOM');
         }
 
-        async function selectQuestionFromBank(questionId, questionText) {
+        async function selectQuestionFromBank(questionId, questionText, el) {
             try {
+                // Show inline loading on clicked item
+                if (el) {
+                    el.style.pointerEvents = 'none';
+                    const originalHtml = el.innerHTML;
+                    el.setAttribute('data-original-html', originalHtml);
+                    el.innerHTML = '<div class="question-text">Adding...</div><div class="question-meta">Please wait</div>';
+                }
                 // Add the question to the current interview
                 const response = await fetch(`/api/interviews/${currentInterview.id}/questions`, {
                     method: 'POST',
@@ -2777,6 +2788,13 @@
             } catch (error) {
                 console.error('Error adding question from bank:', error);
                 showError('Error adding question');
+            } finally {
+                if (el) {
+                    // Restore item
+                    const html = el.getAttribute('data-original-html');
+                    if (html) el.innerHTML = html;
+                    el.style.pointerEvents = '';
+                }
             }
         }
 
