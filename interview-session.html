@@ -1735,7 +1735,27 @@
                         const isAdmin = userRole === 'admin' || userRole === 'superadmin';
                         const target = isAdmin ? `/admin-dashboard.html${qs}` : `/interviewer-dashboard.html${qs}`;
                         dashboardBtn.classList.remove('hidden');
-                        dashboardBtn.onclick = () => { window.location.href = target; };
+                        dashboardBtn.onclick = () => {
+                            const isSafe = !currentInterview || (currentInterview && currentInterview.status === 'completed');
+                            if (isSafe) {
+                                window.location.href = target;
+                                return;
+                            }
+                            const overlay = document.createElement('div');
+                            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
+                            overlay.innerHTML = `
+                              <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;min-width:280px;max-width:90%;padding:16px;box-shadow:0 10px 20px rgba(0,0,0,0.15)">
+                                <div style=\"font-weight:600;margin-bottom:8px;color:#111827\">Leave without saving?</div>
+                                <div style=\"font-size:14px;color:#374151;margin-bottom:12px\">You have an active interview. Unsaved changes may be lost. Continue to Dashboard?</div>
+                                <div style=\"display:flex;gap:8px;justify-content:flex-end\">
+                                  <button id=\"db-cancel\" style=\"border:1px solid #e5e7eb;background:#fff;padding:6px 10px;border-radius:6px;cursor:pointer\">Cancel</button>
+                                  <button id=\"db-continue\" style=\"background:#111827;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer\">Continue</button>
+                                </div>
+                              </div>`;
+                            document.body.appendChild(overlay);
+                            overlay.querySelector('#db-cancel').onclick = ()=> overlay.remove();
+                            overlay.querySelector('#db-continue').onclick = ()=> { overlay.remove(); window.location.href = target; };
+                        };
                     }
                 }
             } catch (error) {
