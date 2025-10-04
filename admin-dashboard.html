@@ -1657,9 +1657,20 @@
                 </div>
                 
                 <div class="table-container">
-                    <table class="table">
+                    <!-- Bulk Edit Controls -->
+                    <div class="bulk-edit-controls">
+                        <div class="bulk-edit-info" id="bulk-edit-selected-count">0 records selected</div>
+                        <div class="bulk-edit-actions">
+                            <button class="btn btn-secondary" onclick="selectAllRows()">Select All</button>
+                            <button class="btn btn-secondary" onclick="clearSelection()">Clear</button>
+                            <button class="btn btn-primary" onclick="openBulkEditModal()">Bulk Edit</button>
+                        </div>
+                    </div>
+                    
+                    <table class="data-table">
                         <thead>
                             <tr>
+                                <th><input type="checkbox" onchange="selectAllRows()" title="Select All"></th>
                                 <th>ID</th>
                                 <th>Student</th>
                                 <th>Interviewer</th>
@@ -1673,7 +1684,7 @@
                         </thead>
                         <tbody id="interviews-table-body">
                             <tr>
-                                <td colspan="9" class="loading">Loading interviews...</td>
+                                <td colspan="10" class="loading">Loading interviews...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1691,9 +1702,20 @@
                 </div>
                 
                 <div class="table-container">
-                    <table class="table">
+                    <!-- Bulk Edit Controls -->
+                    <div class="bulk-edit-controls">
+                        <div class="bulk-edit-info" id="bulk-edit-selected-count">0 records selected</div>
+                        <div class="bulk-edit-actions">
+                            <button class="btn btn-secondary" onclick="selectAllRows()">Select All</button>
+                            <button class="btn btn-secondary" onclick="clearSelection()">Clear</button>
+                            <button class="btn btn-primary" onclick="openBulkEditModal()">Bulk Edit</button>
+                        </div>
+                    </div>
+                    
+                    <table class="data-table">
                         <thead>
                             <tr>
+                                <th><input type="checkbox" onchange="selectAllRows()" title="Select All"></th>
                                 <th>Question</th>
                                 <th>Category</th>
                                 <th>Times Asked</th>
@@ -1705,7 +1727,7 @@
                         </thead>
                         <tbody id="questions-table-body">
                             <tr>
-                                <td colspan="6" class="loading">Loading questions...</td>
+                                <td colspan="8" class="loading">Loading questions...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1720,9 +1742,20 @@
                 </div>
                 
                 <div class="table-container">
-                    <table class="table">
+                    <!-- Bulk Edit Controls -->
+                    <div class="bulk-edit-controls">
+                        <div class="bulk-edit-info" id="bulk-edit-selected-count">0 records selected</div>
+                        <div class="bulk-edit-actions">
+                            <button class="btn btn-secondary" onclick="selectAllRows()">Select All</button>
+                            <button class="btn btn-secondary" onclick="clearSelection()">Clear</button>
+                            <button class="btn btn-primary" onclick="openBulkEditModal()">Bulk Edit</button>
+                        </div>
+                    </div>
+                    
+                    <table class="data-table">
                         <thead>
                             <tr>
+                                <th><input type="checkbox" onchange="selectAllRows()" title="Select All"></th>
                                 <th>ID</th>
                                 <th>Name</th>
                                 <th>Description</th>
@@ -1734,7 +1767,7 @@
                         </thead>
                         <tbody id="sessions-table-body">
                             <tr>
-                                <td colspan="7" class="loading">Loading sessions...</td>
+                                <td colspan="8" class="loading">Loading sessions...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1788,9 +1821,20 @@
                     <button class="btn btn-primary" onclick="loadMyInterviewsForAdmin()">Refresh</button>
                 </div>
                 <div class="table-container">
-                    <table class="table">
+                    <!-- Bulk Edit Controls -->
+                    <div class="bulk-edit-controls">
+                        <div class="bulk-edit-info" id="bulk-edit-selected-count">0 records selected</div>
+                        <div class="bulk-edit-actions">
+                            <button class="btn btn-secondary" onclick="selectAllRows()">Select All</button>
+                            <button class="btn btn-secondary" onclick="clearSelection()">Clear</button>
+                            <button class="btn btn-primary" onclick="openBulkEditModal()">Bulk Edit</button>
+                        </div>
+                    </div>
+                    
+                    <table class="data-table">
                         <thead>
                             <tr>
+                                <th><input type="checkbox" onchange="selectAllRows()" title="Select All"></th>
                                 <th>Date</th>
                                 <th>Student</th>
                                 <th>Zeta ID</th>
@@ -1802,7 +1846,7 @@
                             </tr>
                         </thead>
                         <tbody id="my-interviews-table-body">
-                            <tr><td colspan="8" class="loading">Loading interviews...</td></tr>
+                            <tr><td colspan="9" class="loading">Loading interviews...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -2223,7 +2267,7 @@
             try {
                 const tbody = document.getElementById('my-interviews-table-body');
                 if (!tbody) return;
-                tbody.innerHTML = '<tr><td colspan="8" class="loading">Loading interviews...</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" class="loading">Loading interviews...</td></tr>';
 
                 const urlParams = new URLSearchParams(window.location.search);
                 const urlEmail = urlParams.get('email');
@@ -2232,7 +2276,7 @@
                 const email = urlEmail || data?.email || '';
 
                 if (!email) {
-                    tbody.innerHTML = '<tr><td colspan="8" class="error">User email not available</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="9" class="error">User email not available</td></tr>';
                     return;
                 }
 
@@ -2244,28 +2288,31 @@
 
                 const items = json.data || [];
                 if (!items.length) {
-                    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No interviews found.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No interviews found.</td></tr>';
                     return;
                 }
 
                 tbody.innerHTML = items.map(interview => `
-                    <tr>
-                        <td>${formatDate(interview.created_at || interview.interview_date)}</td>
-                        <td>${interview.student_name || 'N/A'}</td>
-                        <td>${interview.zeta_id || 'N/A'}</td>
-                        <td>${interview.session_name || 'N/A'}</td>
-                        <td><span class="status-badge status-${interview.status}">${interview.status}</span></td>
-                        <td>${interview.verdict || 'N/A'}</td>
-                        <td>${formatDuration(interview.duration_seconds)}</td>
+                    <tr data-row-id="${interview.id}">
+                        <td><input type="checkbox" class="row-checkbox" data-row-id="${interview.id}" onchange="toggleRowSelection('${interview.id}')"></td>
+                        <td data-field="created_at">${formatDate(interview.created_at || interview.interview_date)}</td>
+                        <td data-field="student_name">${interview.student_name || 'N/A'}</td>
+                        <td data-field="zeta_id">${interview.zeta_id || 'N/A'}</td>
+                        <td data-field="session_name">${interview.session_name || 'N/A'}</td>
+                        <td data-field="status"><span class="status-badge status-${interview.status}">${interview.status}</span></td>
+                        <td data-field="verdict">${interview.verdict || 'N/A'}</td>
+                        <td data-field="duration_seconds">${formatDuration(interview.duration_seconds)}</td>
                         <td>
-                            <button class="btn btn-primary" onclick="viewInterview(${interview.id})">View</button>
+                            <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}', ${JSON.stringify(interview).replace(/"/g, '&quot;')})" title="Edit">✏️</button>
+                            <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete">🗑️</button>
+                            <button class="icon-btn" onclick="viewInterview(${interview.id})" title="View">👁️</button>
                         </td>
                     </tr>
                 `).join('');
             } catch (err) {
                 console.error('Error loading admin my interviews:', err);
                 const tbody = document.getElementById('my-interviews-table-body');
-                if (tbody) tbody.innerHTML = `<tr><td colspan="8" class="error">${err.message}</td></tr>`;
+                if (tbody) tbody.innerHTML = `<tr><td colspan="9" class="error">${err.message}</td></tr>`;
             }
         }
 
@@ -2314,7 +2361,7 @@
             const container = document.querySelector('#interviews .table-container');
             
             if (interviews.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No interviews found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No interviews found</td></tr>';
                 return;
             }
 
@@ -2521,22 +2568,25 @@
 
         function displayRegularInterviews(interviewList, tbody) {
             if (interviewList.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No interviews match the current filters</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No interviews match the current filters</td></tr>';
                 return;
             }
 
             tbody.innerHTML = interviewList.map(interview => `
-                <tr>
-                    <td>${interview.id}</td>
-                    <td>${interview.student_name || 'N/A'}</td>
-                    <td>${interview.interviewer_name || 'N/A'}</td>
-                    <td>${interview.session_name || 'N/A'}</td>
-                    <td>${formatDate(interview.interview_date)}</td>
-                    <td>${formatDuration(interview.duration_seconds)}</td>
-                    <td><span class="status-badge status-${interview.status}">${interview.status}</span></td>
-                    <td>${interview.verdict || 'N/A'}</td>
+                <tr data-row-id="${interview.id}">
+                    <td><input type="checkbox" class="row-checkbox" data-row-id="${interview.id}" onchange="toggleRowSelection('${interview.id}')"></td>
+                    <td data-field="id">${interview.id}</td>
+                    <td data-field="student_name">${interview.student_name || 'N/A'}</td>
+                    <td data-field="interviewer_name">${interview.interviewer_name || 'N/A'}</td>
+                    <td data-field="session_name">${interview.session_name || 'N/A'}</td>
+                    <td data-field="interview_date">${formatDate(interview.interview_date)}</td>
+                    <td data-field="duration_seconds">${formatDuration(interview.duration_seconds)}</td>
+                    <td data-field="status"><span class="status-badge status-${interview.status}">${interview.status}</span></td>
+                    <td data-field="verdict">${interview.verdict || 'N/A'}</td>
                     <td>
-                        <button class="btn btn-primary" onclick="viewInterview(${interview.id})">View</button>
+                        <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}', ${JSON.stringify(interview).replace(/"/g, '&quot;')})" title="Edit">✏️</button>
+                        <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete">🗑️</button>
+                        <button class="icon-btn" onclick="viewInterview(${interview.id})" title="View">👁️</button>
                     </td>
                 </tr>
             `).join('');
@@ -2743,13 +2793,14 @@
             const tbody = document.getElementById('questions-table-body');
             
             if (questions.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No questions found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No questions found</td></tr>';
                 return;
             }
 
             tbody.innerHTML = questions.map(question => `
-                <tr>
-                    <td>
+                <tr data-row-id="${question.id}">
+                    <td><input type="checkbox" class="row-checkbox" data-row-id="${question.id}" onchange="toggleRowSelection('${question.id}')"></td>
+                    <td data-field="question">
                         <span>${question.question || 'N/A'}</span>
                         <button 
                             class="favorite-btn ${favoriteQuestionIds.has(question.id) ? 'favorited' : ''}"
@@ -2758,13 +2809,15 @@
                             style="margin-left:8px"
                         >${favoriteQuestionIds.has(question.id) ? '★' : '☆'}</button>
                     </td>
-                    <td>${question.category || 'N/A'}</td>
-                    <td>${question.times_asked || question.count_of_times_asked || 0}</td>
-                    <td>${question.correct_answers || question.times_answered_correctly || 0}</td>
-                    <td>${question.incorrect_answers || question.times_answered_incorrectly || 0}</td>
-                    <td>${question.success_rate || 0}%</td>
+                    <td data-field="category">${question.category || 'N/A'}</td>
+                    <td data-field="times_asked">${question.times_asked || question.count_of_times_asked || 0}</td>
+                    <td data-field="correct_answers">${question.correct_answers || question.times_answered_correctly || 0}</td>
+                    <td data-field="incorrect_answers">${question.incorrect_answers || question.times_answered_incorrectly || 0}</td>
+                    <td data-field="success_rate">${question.success_rate || 0}%</td>
                     <td>
-                        <button class="btn btn-primary" onclick="viewQuestion(${question.id})">View</button>
+                        <button class="icon-btn edit-btn" onclick="startEdit('${question.id}', ${JSON.stringify(question).replace(/"/g, '&quot;')})" title="Edit">✏️</button>
+                        <button class="icon-btn delete-btn" onclick="deleteQuestion('${question.id}')" title="Delete">🗑️</button>
+                        <button class="icon-btn" onclick="viewQuestion(${question.id})" title="View">👁️</button>
                     </td>
                 </tr>
             `).join('');
@@ -2846,21 +2899,23 @@
             const tbody = document.getElementById('sessions-table-body');
             
             if (sessions.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No sessions found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No sessions found</td></tr>';
                 return;
             }
 
             tbody.innerHTML = sessions.map(session => `
-                <tr>
-                    <td>${session.id}</td>
-                    <td>${session.name}</td>
-                    <td>${session.description || 'N/A'}</td>
-                    <td><span class="status-badge status-${session.status}">${session.status}</span></td>
-                    <td>${session.created_by_name || 'N/A'}</td>
-                    <td>${formatDate(session.created_at)}</td>
+                <tr data-row-id="${session.id}">
+                    <td><input type="checkbox" class="row-checkbox" data-row-id="${session.id}" onchange="toggleRowSelection('${session.id}')"></td>
+                    <td data-field="id">${session.id}</td>
+                    <td data-field="name">${session.name}</td>
+                    <td data-field="description">${session.description || 'N/A'}</td>
+                    <td data-field="status"><span class="status-badge status-${session.status}">${session.status}</span></td>
+                    <td data-field="created_by_name">${session.created_by_name || 'N/A'}</td>
+                    <td data-field="created_at">${formatDate(session.created_at)}</td>
                     <td>
-                        <button class="btn btn-primary" onclick="viewSession(${session.id})">View</button>
-                        <button class="btn btn-danger" onclick="deleteSession(${session.id})">Delete</button>
+                        <button class="icon-btn edit-btn" onclick="startEdit('${session.id}', ${JSON.stringify(session).replace(/"/g, '&quot;')})" title="Edit">✏️</button>
+                        <button class="icon-btn delete-btn" onclick="deleteSession('${session.id}')" title="Delete">🗑️</button>
+                        <button class="icon-btn" onclick="viewSession(${session.id})" title="View">👁️</button>
                     </td>
                 </tr>
             `).join('');
@@ -3902,7 +3957,13 @@
                     { value: 'address', text: 'Address' },
                     { value: 'zeta_id', text: 'Zeta ID' }
                 ];
-            } else if (currentTab.includes('Interviews')) {
+            } else if (currentTab.includes('Interview Sessions')) {
+                fields = [
+                    { value: 'name', text: 'Name' },
+                    { value: 'description', text: 'Description' },
+                    { value: 'status', text: 'Status' }
+                ];
+            } else if (currentTab.includes('Interviews') || currentTab.includes('My Interviews')) {
                 fields = [
                     { value: 'verdict', text: 'Verdict' },
                     { value: 'status', text: 'Status' },
@@ -3969,6 +4030,8 @@
                     'phone': 'phone',
                     'address': 'address',
                     'zeta_id': 'zeta_id',
+                    'name': 'name',
+                    'description': 'description',
                     'verdict': 'verdict',
                     'status': 'status',
                     'overall_notes': 'overall_notes',
@@ -3987,7 +4050,9 @@
                 
                 if (currentTab.includes('Students')) {
                     endpoint = '/api/students/bulk';
-                } else if (currentTab.includes('Interviews')) {
+                } else if (currentTab.includes('Interview Sessions')) {
+                    endpoint = '/api/sessions/bulk';
+                } else if (currentTab.includes('Interviews') || currentTab.includes('My Interviews')) {
                     endpoint = '/api/interviews/bulk';
                 } else if (currentTab.includes('Questions')) {
                     endpoint = '/api/question-bank/bulk';
@@ -4039,7 +4104,7 @@
             const cells = row.querySelectorAll('td:not(:last-child)');
             cells.forEach((cell, index) => {
                 const field = cell.dataset.field;
-                if (field && field !== 'id' && field !== 'interview_count') {
+                if (field && field !== 'id' && field !== 'interview_count' && field !== 'created_by_name' && field !== 'created_at' && field !== 'student_name' && field !== 'zeta_id' && field !== 'session_name' && field !== 'duration_seconds') {
                     const currentValue = cell.textContent.trim();
                     cell.innerHTML = `<input type="text" class="edit-input" value="${currentValue}" data-field="${field}">`;
                 }
@@ -4084,7 +4149,9 @@
                 
                 if (currentTab.includes('Students')) {
                     endpoint = `/api/students/${rowId}`;
-                } else if (currentTab.includes('Interviews')) {
+                } else if (currentTab.includes('Interview Sessions')) {
+                    endpoint = `/api/sessions/${rowId}`;
+                } else if (currentTab.includes('Interviews') || currentTab.includes('My Interviews')) {
                     endpoint = `/api/interviews/${rowId}`;
                 } else if (currentTab.includes('Questions')) {
                     endpoint = `/api/question-bank/${rowId}`;

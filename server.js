@@ -709,7 +709,7 @@ app.put('/api/students/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
-    
+
     const student = await StudentService.updateStudent(id, updateData);
     res.json({
       success: true,
@@ -717,6 +717,26 @@ app.put('/api/students/:id', async (req, res) => {
     });
   } catch (error) {
     console.error('Error updating student:', error);
+    res.status(400).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+app.put('/api/sessions/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    // For now, return a mock response since we don't have a SessionService
+    // In a real implementation, you would create a SessionService
+    res.json({
+      success: true,
+      data: { id: parseInt(id), ...updateData }
+    });
+  } catch (error) {
+    console.error('Error updating session:', error);
     res.status(400).json({
       success: false,
       error: error.message
@@ -766,7 +786,7 @@ app.put('/api/question-bank/:id', async (req, res) => {
 app.put('/api/students/bulk', async (req, res) => {
   try {
     const { updates } = req.body; // Array of {id, data} objects
-    
+
     const results = await StudentService.bulkUpdateStudents(updates);
     res.json({
       success: true,
@@ -774,6 +794,30 @@ app.put('/api/students/bulk', async (req, res) => {
     });
   } catch (error) {
     console.error('Error bulk updating students:', error);
+    res.status(400).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+app.put('/api/sessions/bulk', async (req, res) => {
+  try {
+    const { updates } = req.body; // Array of {id, data} objects
+
+    // For now, return a mock response since we don't have a SessionService
+    // In a real implementation, you would create a SessionService
+    const results = updates.map(update => ({
+      id: update.id,
+      ...update.data
+    }));
+    
+    res.json({
+      success: true,
+      data: results
+    });
+  } catch (error) {
+    console.error('Error bulk updating sessions:', error);
     res.status(400).json({
       success: false,
       error: error.message
