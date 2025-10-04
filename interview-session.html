@@ -1209,10 +1209,7 @@
             <a href="/" class="logo">Bees</a>
             
             <div class="header-actions">
-                <div class="interview-clock" id="interview-clock">
-                    <span class="clock-icon">⏱️</span>
-                    <span id="duration-display">00:00:00</span>
-                </div>
+                
                 <div class="user-info">
                     <span id="user-name" class="user-name hidden"></span>
                     <button id="login-btn" class="login-btn hidden">Sign in with Zoho</button>
@@ -1281,9 +1278,11 @@
                                 <button class="add-to-bank-btn" onclick="addToQuestionBank()" title="Add to Question Bank">📚</button>
                             </div>
                         </div>
-                        <button id="add-question-btn" class="btn btn-primary" onclick="addQuestion()">
-                            Add Question
-                </button>
+                        <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
+                            <button id="add-question-btn" class="btn btn-primary" onclick="addQuestion()">Add Question</button>
+                            <button id="save-interview-btn" class="btn btn-success" onclick="saveInterview()">Save Interview</button>
+                            <button class="btn btn-danger" onclick="endInterview()">End Interview</button>
+                        </div>
                     </div>
                     
                     <!-- Question Bank Tab -->
@@ -1307,10 +1306,6 @@
                         </div>
                     </div>
 
-                    <div class="interview-action-buttons">
-                        <button id="save-interview-btn" class="btn btn-success" onclick="saveInterview()">Save Interview</button>
-                        <button class="btn btn-danger" onclick="endInterview()">End Interview</button>
-                    </div>
                 </div>
             </div>
         </div>
