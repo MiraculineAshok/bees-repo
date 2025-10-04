@@ -228,6 +228,28 @@ class StudentService {
       throw error;
     }
   }
+
+  // Bulk update students
+  static async bulkUpdateStudents(updates) {
+    try {
+      if (!(await this.isDatabaseAvailable())) {
+        return await mockDataService.bulkUpdateStudents(updates);
+      }
+
+      const results = [];
+      
+      for (const update of updates) {
+        const { id, data } = update;
+        const result = await this.updateStudent(id, data);
+        results.push(result);
+      }
+      
+      return results;
+    } catch (error) {
+      console.error('❌ Error bulk updating students:', error.message);
+      throw error;
+    }
+  }
 }
 
 module.exports = StudentService;

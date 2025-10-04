@@ -687,16 +687,129 @@ app.put('/api/interview-questions/:questionId/correctness', async (req, res) => 
       questionId: req.params.questionId,
       is_correct
     });
-    
+
     const question = await InterviewService.updateCorrectness(req.params.questionId, is_correct);
     console.log('✅ Server: updateCorrectness successful, returning:', question);
-    
+
     res.json({
       success: true,
       data: question
     });
   } catch (error) {
     console.error('❌ Server: Error updating correctness:', error);
+    res.status(400).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Individual edit endpoints
+app.put('/api/students/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+    
+    const student = await StudentService.updateStudent(id, updateData);
+    res.json({
+      success: true,
+      data: student
+    });
+  } catch (error) {
+    console.error('Error updating student:', error);
+    res.status(400).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+app.put('/api/interviews/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+    
+    const interview = await InterviewService.updateInterview(id, updateData);
+    res.json({
+      success: true,
+      data: interview
+    });
+  } catch (error) {
+    console.error('Error updating interview:', error);
+    res.status(400).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+app.put('/api/question-bank/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+    
+    const question = await QuestionBankService.updateQuestion(id, updateData);
+    res.json({
+      success: true,
+      data: question
+    });
+  } catch (error) {
+    console.error('Error updating question:', error);
+    res.status(400).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Bulk edit endpoints
+app.put('/api/students/bulk', async (req, res) => {
+  try {
+    const { updates } = req.body; // Array of {id, data} objects
+    
+    const results = await StudentService.bulkUpdateStudents(updates);
+    res.json({
+      success: true,
+      data: results
+    });
+  } catch (error) {
+    console.error('Error bulk updating students:', error);
+    res.status(400).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+app.put('/api/interviews/bulk', async (req, res) => {
+  try {
+    const { updates } = req.body;
+    
+    const results = await InterviewService.bulkUpdateInterviews(updates);
+    res.json({
+      success: true,
+      data: results
+    });
+  } catch (error) {
+    console.error('Error bulk updating interviews:', error);
+    res.status(400).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+app.put('/api/question-bank/bulk', async (req, res) => {
+  try {
+    const { updates } = req.body;
+    
+    const results = await QuestionBankService.bulkUpdateQuestions(updates);
+    res.json({
+      success: true,
+      data: results
+    });
+  } catch (error) {
+    console.error('Error bulk updating questions:', error);
     res.status(400).json({
       success: false,
       error: error.message

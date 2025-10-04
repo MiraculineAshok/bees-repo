@@ -200,6 +200,53 @@ class QuestionBankService {
             return { success: false, error: error.message };
         }
     }
+
+    // Update a question
+    static async updateQuestion(id, updateData) {
+        try {
+            if (!(await this.isDatabaseAvailable())) {
+                return mockDataService.updateQuestion(id, updateData);
+            }
+
+            const fields = Object.keys(updateData);
+            const values = Object.values(updateData);
+            const setClause = fields.map((field, index) => `${field} = $${index + 2}`).join(', ');
+            
+            const query = `UPDATE question_bank SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *`;
+            const result = await pool.query(query, [id, ...values]);
+            
+            if (result.rows.length === 0) {
+                throw new Error('Question not found');
+            }
+            
+            return result.rows[0];
+        } catch (error) {
+            console.error('Error updating question:', error);
+            throw error;
+        }
+    }
+
+    // Bulk update questions
+    static async bulkUpdateQuestions(updates) {
+        try {
+            if (!(await this.isDatabaseAvailable())) {
+                return mockDataService.bulkUpdateQuestions(updates);
+            }
+
+            const results = [];
+            
+            for (const update of updates) {
+                const { id, data } = update;
+                const result = await this.updateQuestion(id, data);
+                results.push(result);
+            }
+            
+            return results;
+        } catch (error) {
+            console.error('Error bulk updating questions:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = QuestionBankService;

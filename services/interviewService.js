@@ -441,6 +441,51 @@ class InterviewService {
             throw error;
         }
     }
+
+    static async updateInterview(id, updateData) {
+        if (!(await this.isDatabaseAvailable())) {
+            return mockDataService.updateInterview(id, updateData);
+        }
+
+        try {
+            const fields = Object.keys(updateData);
+            const values = Object.values(updateData);
+            const setClause = fields.map((field, index) => `${field} = $${index + 2}`).join(', ');
+            
+            const query = `UPDATE interviews SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *`;
+            const result = await pool.query(query, [id, ...values]);
+            
+            if (result.rows.length === 0) {
+                throw new Error('Interview not found');
+            }
+            
+            return result.rows[0];
+        } catch (error) {
+            console.error('Error updating interview:', error);
+            throw error;
+        }
+    }
+
+    static async bulkUpdateInterviews(updates) {
+        if (!(await this.isDatabaseAvailable())) {
+            return mockDataService.bulkUpdateInterviews(updates);
+        }
+
+        try {
+            const results = [];
+            
+            for (const update of updates) {
+                const { id, data } = update;
+                const result = await this.updateInterview(id, data);
+                results.push(result);
+            }
+            
+            return results;
+        } catch (error) {
+            console.error('Error bulk updating interviews:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = InterviewService;
