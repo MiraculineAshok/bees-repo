@@ -1801,7 +1801,8 @@
 
             const rows = questionsToDisplay.map(q => {
                 const timesAsked = q.times_asked ?? q.count_of_times_asked ?? 0;
-                const correct = q.correct_answers ?? 0;
+                const correct = q.correct_answers ?? q.times_answered_correctly ?? 0;
+                const incorrect = q.incorrect_answers ?? q.times_answered_incorrectly ?? 0;
                 const success = q.success_rate != null ? `${q.success_rate}%` : '-';
                 const isFavorited = favoriteQuestionIds.has(q.id);
                 return `
@@ -1817,6 +1818,7 @@
                         <td>${q.category || '-'}</td>
                         <td>${timesAsked}</td>
                         <td>${correct}</td>
+                        <td>${incorrect}</td>
                         <td>${success}</td>
                         <td>
                             <button class="btn btn-primary btn-sm" onclick="viewQuestionDetails(${q.id})">View</button>
@@ -1834,6 +1836,7 @@
                                 <th>Category</th>
                                 <th>Times Asked</th>
                                 <th>Correct Answers</th>
+                                <th>Incorrect Answers</th>
                                 <th>Success Rate</th>
                                 <th>Actions</th>
                             </tr>
@@ -1854,7 +1857,8 @@
 
                 const q = json.data || json; // support both shapes
                 const timesAsked = q.times_asked ?? q.count_of_times_asked ?? 0;
-                const correct = q.correct_answers ?? 0;
+                const correct = q.correct_answers ?? q.times_answered_correctly ?? 0;
+                const incorrect = q.incorrect_answers ?? q.times_answered_incorrectly ?? 0;
                 const success = q.success_rate != null ? `${q.success_rate}%` : '-';
 
                 const answersHtml = (q.student_answers || []).map(a => `
@@ -1872,6 +1876,7 @@
                         <div class="detail-item"><div class="detail-label">Category</div><div class="detail-value">${q.category || '-'}</div></div>
                         <div class="detail-item"><div class="detail-label">Times Asked</div><div class="detail-value">${timesAsked}</div></div>
                         <div class="detail-item"><div class="detail-label">Correct Answers</div><div class="detail-value">${correct}</div></div>
+                        <div class="detail-item"><div class="detail-label">Incorrect Answers</div><div class="detail-value">${incorrect}</div></div>
                         <div class="detail-item"><div class="detail-label">Success Rate</div><div class="detail-value">${success}</div></div>
                     </div>
                     <div class="detail-section">

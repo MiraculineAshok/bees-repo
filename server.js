@@ -679,6 +679,31 @@ app.put('/api/interview-questions/:questionId/answer', async (req, res) => {
   }
 });
 
+// Update question correctness
+app.put('/api/interview-questions/:questionId/correctness', async (req, res) => {
+  try {
+    const { is_correct } = req.body;
+    console.log('🔍 Server: updateCorrectness API called with:', {
+      questionId: req.params.questionId,
+      is_correct
+    });
+    
+    const question = await InterviewService.updateCorrectness(req.params.questionId, is_correct);
+    console.log('✅ Server: updateCorrectness successful, returning:', question);
+    
+    res.json({
+      success: true,
+      data: question
+    });
+  } catch (error) {
+    console.error('❌ Server: Error updating correctness:', error);
+    res.status(400).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Delete interview question
 app.delete('/api/interview-questions/:questionId', async (req, res) => {
   try {

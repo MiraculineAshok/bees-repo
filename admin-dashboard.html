@@ -1422,6 +1422,7 @@
                                 <th>Category</th>
                                 <th>Times Asked</th>
                                 <th>Correct Answers</th>
+                                <th>Incorrect Answers</th>
                                 <th>Success Rate</th>
                                 <th>Actions</th>
                             </tr>
@@ -2472,7 +2473,8 @@
                     </td>
                     <td>${question.category || 'N/A'}</td>
                     <td>${(question.times_asked ?? question.count_of_times_asked) || 0}</td>
-                    <td>${question.correct_answers || 0}</td>
+                    <td>${question.correct_answers ?? question.times_answered_correctly || 0}</td>
+                    <td>${question.incorrect_answers ?? question.times_answered_incorrectly || 0}</td>
                     <td>${(question.success_rate != null ? question.success_rate : 0)}%</td>
                     <td>
                         <button class="btn btn-primary" onclick="viewQuestion(${question.id})">View</button>
@@ -2892,8 +2894,12 @@
                             <div class="stat-label">Times Asked</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-value">${question.correct_answers || 0}</div>
+                            <div class="stat-value">${question.correct_answers ?? question.times_answered_correctly || 0}</div>
                             <div class="stat-label">Correct Answers</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${question.incorrect_answers ?? question.times_answered_incorrectly || 0}</div>
+                            <div class="stat-label">Incorrect Answers</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-value">${question.success_rate || 0}%</div>
@@ -3343,7 +3349,11 @@
                         </div>
                         <div class="detail-item">
                             <div class="detail-label">Correct Answers</div>
-                            <div class="detail-value">${question.correct_answers}</div>
+                            <div class="detail-value">${question.correct_answers ?? question.times_answered_correctly || 0}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Incorrect Answers</div>
+                            <div class="detail-value">${question.incorrect_answers ?? question.times_answered_incorrectly || 0}</div>
                         </div>
                         <div class="detail-item">
                             <div class="detail-label">Success Rate</div>

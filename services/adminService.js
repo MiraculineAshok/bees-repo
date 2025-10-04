@@ -126,17 +126,19 @@ class AdminService {
                     qb.question,
                     qb.category,
                     COALESCE(qb.times_asked, 0) as times_asked,
+                    COALESCE(qb.times_answered_correctly, 0) as times_answered_correctly,
+                    COALESCE(qb.times_answered_incorrectly, 0) as times_answered_incorrectly,
                     COUNT(iq.id) as total_answers,
-                    COUNT(CASE WHEN qp.is_correct = true THEN 1 END) as correct_answers,
+                    COUNT(CASE WHEN iq.is_correct = true THEN 1 END) as correct_answers,
+                    COUNT(CASE WHEN iq.is_correct = false THEN 1 END) as incorrect_answers,
                     CASE 
                         WHEN COUNT(iq.id) > 0 
-                        THEN ROUND((COUNT(CASE WHEN qp.is_correct = true THEN 1 END)::DECIMAL / COUNT(iq.id)) * 100, 2)
+                        THEN ROUND((COUNT(CASE WHEN iq.is_correct = true THEN 1 END)::DECIMAL / COUNT(iq.id)) * 100, 2)
                         ELSE 0 
                     END as success_rate
                 FROM question_bank qb
                 LEFT JOIN interview_questions iq ON qb.question = iq.question_text
-                LEFT JOIN question_performance qp ON iq.id = qp.question_id
-                GROUP BY qb.id, qb.question, qb.category, qb.times_asked
+                GROUP BY qb.id, qb.question, qb.category, qb.times_asked, qb.times_answered_correctly, qb.times_answered_incorrectly
                 ORDER BY qb.times_asked DESC
             `);
 

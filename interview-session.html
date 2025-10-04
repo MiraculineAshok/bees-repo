@@ -351,6 +351,50 @@
             gap: 0.5rem;
             align-items: center;
         }
+
+        .correctness-buttons {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .correctness-btn {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #d1d5db;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        .correctness-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .correct-btn {
+            color: #059669;
+            border-color: #059669;
+        }
+
+        .correct-btn.active {
+            background: #059669;
+            color: white;
+        }
+
+        .incorrect-btn {
+            color: #dc2626;
+            border-color: #dc2626;
+        }
+
+        .incorrect-btn.active {
+            background: #dc2626;
+            color: white;
+        }
         
         .expand-icon {
             font-size: 1.2rem;
@@ -2007,6 +2051,18 @@
                         <span class="question-number">Q${index + 1}</span>
                         <div class="question-preview">${question.question_text}</div>
                         <div class="question-actions">
+                            <div class="correctness-buttons">
+                                <button class="correctness-btn correct-btn ${question.is_correct === true ? 'active' : ''}" 
+                                        onclick="event.stopPropagation(); markQuestionCorrect(${question.id}, true)" 
+                                        title="Mark as correct">
+                                    ✓
+                                </button>
+                                <button class="correctness-btn incorrect-btn ${question.is_correct === false ? 'active' : ''}" 
+                                        onclick="event.stopPropagation(); markQuestionCorrect(${question.id}, false)" 
+                                        title="Mark as incorrect">
+                                    ✗
+                                </button>
+                            </div>
                             <button class="add-to-bank-btn-small" onclick="event.stopPropagation(); addQuestionToBank('${question.question_text.replace(/'/g, "\\'")}')" title="Add to Question Bank">
                                 📚
                             </button>
@@ -2988,6 +3044,40 @@
             } catch (error) {
                 console.error('Error deleting question:', error);
                 showError('Error deleting question');
+            }
+        }
+
+        // Mark question as correct/incorrect
+        async function markQuestionCorrect(questionId, isCorrect) {
+            try {
+                const response = await fetch(`/api/interview-questions/${questionId}/correctness`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        is_correct: isCorrect
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Update local questions array
+                    const questionIndex = questions.findIndex(q => q.id === questionId);
+                    if (questionIndex !== -1) {
+                        questions[questionIndex].is_correct = isCorrect;
+                    }
+                    
+                    // Refresh the display
+                    displayQuestions();
+                    showSuccess(`Question marked as ${isCorrect ? 'correct' : 'incorrect'}`);
+                } else {
+                    showError('Error updating question correctness');
+                }
+            } catch (error) {
+                console.error('Error updating question correctness:', error);
+                showError('Error updating question correctness');
             }
         }
 

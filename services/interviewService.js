@@ -207,6 +207,86 @@ class InterviewService {
         }
     }
 
+    static async updateCorrectness(questionId, isCorrect) {
+        if (!(await this.isDatabaseAvailable())) {
+            return mockDataService.updateCorrectness(questionId, isCorrect);
+        }
+
+        try {
+            console.log('🔄 Updating question correctness:', { questionId, isCorrect });
+            
+            const result = await pool.query(
+                `UPDATE interview_questions 
+                 SET is_correct = $1, updated_at = CURRENT_TIMESTAMP
+                 WHERE id = $2 
+                 RETURNING *`,
+                [isCorrect, questionId]
+            );
+            
+            if (result.rows.length === 0) {
+                throw new Error('Question not found');
+            }
+            
+            console.log('✅ Database correctness update successful, rows affected:', result.rowCount);
+            console.log('📊 Updated question data:', result.rows[0]);
+            
+            // Update question bank statistics
+            await this.updateQuestionBankStatistics(questionId, isCorrect);
+            
+            return result.rows[0];
+        } catch (error) {
+            console.error('❌ Error updating correctness:', error);
+            throw error;
+        }
+    }
+
+    static async updateQuestionBankStatistics(questionId, isCorrect) {
+        if (!(await this.isDatabaseAvailable())) {
+            return; // Skip for mock data
+        }
+
+        try {
+            console.log('🔄 Updating question bank statistics:', { questionId, isCorrect });
+            
+            // Get the question text to find the corresponding question bank entry
+            const questionResult = await pool.query(
+                `SELECT question_text FROM interview_questions WHERE id = $1`,
+                [questionId]
+            );
+            
+            if (questionResult.rows.length === 0) {
+                console.log('⚠️ Question not found for statistics update');
+                return;
+            }
+            
+            const questionText = questionResult.rows[0].question_text;
+            
+            // Update the question bank statistics
+            if (isCorrect) {
+                await pool.query(
+                    `UPDATE question_bank 
+                     SET times_answered_correctly = times_answered_correctly + 1,
+                         updated_at = CURRENT_TIMESTAMP
+                     WHERE question = $1`,
+                    [questionText]
+                );
+            } else {
+                await pool.query(
+                    `UPDATE question_bank 
+                     SET times_answered_incorrectly = times_answered_incorrectly + 1,
+                         updated_at = CURRENT_TIMESTAMP
+                     WHERE question = $1`,
+                    [questionText]
+                );
+            }
+            
+            console.log('✅ Question bank statistics updated successfully');
+        } catch (error) {
+            console.error('❌ Error updating question bank statistics:', error);
+            // Don't throw error as this is not critical
+        }
+    }
+
     static async getInterviewQuestions(interviewId) {
         if (!(await this.isDatabaseAvailable())) {
             return mockDataService.getInterviewQuestions(interviewId);
