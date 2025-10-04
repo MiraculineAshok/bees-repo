@@ -43,9 +43,6 @@
         }
         
         .interview-clock {
-            position: absolute;
-            top: 6px;
-            right: 12px;
             background: transparent;
             color: #1f2937;
             padding: 0.25rem 0.5rem;
@@ -59,6 +56,21 @@
         }
         
         .clock-icon { font-size: 1rem; opacity: 0.75; }
+
+        .timer-wrapper {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0.25rem 2rem 0.5rem;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .interview-action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            margin-top: 0.5rem;
+        }
         
         .verdict-section {
             margin-top: 1rem;
@@ -1205,12 +1217,17 @@
                     <span id="user-name" class="user-name hidden"></span>
                     <button id="login-btn" class="login-btn hidden">Sign in with Zoho</button>
                 </div>
-                <button id="save-interview-btn" class="btn btn-success" onclick="saveInterview()">Save Interview</button>
-                <button class="btn btn-danger" onclick="endInterview()">End Interview</button>
                 <button id="dashboard-btn" class="btn btn-primary hidden">Dashboard</button>
             </div>
         </div>
     </header>
+
+    <div class="timer-wrapper">
+        <div class="interview-clock" id="interview-clock">
+            <span class="clock-icon">⏱️</span>
+            <span id="duration-display">00:00:00</span>
+        </div>
+    </div>
 
     <main class="main-container">
         <div class="interview-main">
@@ -1288,6 +1305,11 @@
                         <div id="question-bank-list" class="question-bank-list">
                             <div class="loading">Loading questions...</div>
                         </div>
+                    </div>
+
+                    <div class="interview-action-buttons">
+                        <button id="save-interview-btn" class="btn btn-success" onclick="saveInterview()">Save Interview</button>
+                        <button class="btn btn-danger" onclick="endInterview()">End Interview</button>
                     </div>
                 </div>
             </div>
