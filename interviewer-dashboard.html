@@ -2507,9 +2507,17 @@
 
         function closeBulkEditModal() {
             const modal = document.getElementById('bulk-edit-modal');
-            modal.classList.remove('active');
-            document.getElementById('bulk-edit-value').value = '';
-            document.getElementById('bulk-edit-value-group').style.display = 'none';
+            if (modal) {
+                modal.classList.remove('active');
+            }
+            const valueInput = document.getElementById('bulk-edit-value');
+            if (valueInput) {
+                valueInput.value = '';
+            }
+            const valueGroup = document.getElementById('bulk-edit-value-group');
+            if (valueGroup) {
+                valueGroup.style.display = 'none';
+            }
         }
 
         function updateBulkEditFields() {
@@ -2533,9 +2541,19 @@
             }
             
             try {
+                // Map display field names to actual database field names
+                const fieldMapping = {
+                    'verdict': 'verdict',
+                    'status': 'status',
+                    'overall_notes': 'overall_notes',
+                    'question': 'question',
+                    'category': 'category'
+                };
+                
+                const dbField = fieldMapping[field] || field;
                 const updates = Array.from(selectedRows).map(rowId => ({
-                    id: rowId,
-                    data: { [field]: value }
+                    id: parseInt(rowId), // Ensure ID is an integer
+                    data: { [dbField]: value }
                 }));
                 
                 const currentTab = document.querySelector('.nav-link.active').textContent.trim();
@@ -2547,6 +2565,8 @@
                     endpoint = '/api/question-bank/bulk';
                 }
                 
+                console.log('Bulk edit request:', { endpoint, updates });
+                
                 const response = await fetch(endpoint, {
                     method: 'PUT',
                     headers: {
@@ -2556,6 +2576,7 @@
                 });
                 
                 const result = await response.json();
+                console.log('Bulk edit response:', result);
                 
                 if (result.success) {
                     showSuccess(`Successfully updated ${updates.length} records`);
@@ -2590,7 +2611,7 @@
             const cells = row.querySelectorAll('td:not(:last-child)');
             cells.forEach((cell, index) => {
                 const field = cell.dataset.field;
-                if (field && field !== 'id') {
+                if (field && field !== 'id' && field !== 'interview_count' && field !== 'times_asked') {
                     const currentValue = cell.textContent.trim();
                     cell.innerHTML = `<input type="text" class="edit-input" value="${currentValue}" data-field="${field}">`;
                 }
@@ -2610,8 +2631,11 @@
             const row = document.querySelector(`[data-row-id="${currentEditRow}"]`);
             row.classList.remove('editing');
             
-            // Restore original content
-            loadCurrentTabData();
+            // Restore original content by reloading the current tab
+            const activeTab = document.querySelector('.nav-link.active');
+            if (activeTab) {
+                activeTab.click();
+            }
             
             currentEditRow = null;
             currentEditData = null;
@@ -2676,8 +2700,8 @@
     </script>
 
     <!-- Bulk Edit Modal -->
-    <div id="bulk-edit-modal" class="bulk-edit-modal">
-        <div class="bulk-edit-content">
+    <div id="bulk-edit-modal" class="bulk-edit-modal" onclick="closeBulkEditModal()">
+        <div class="bulk-edit-content" onclick="event.stopPropagation()">
             <div class="bulk-edit-header">
                 <h3 class="bulk-edit-title">Bulk Edit Records</h3>
                 <button class="close-modal" onclick="closeBulkEditModal()">&times;</button>
