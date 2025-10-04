@@ -6,6 +6,7 @@ class QuestionBankService {
     static async isDatabaseAvailable() {
         try {
             if (!pool) {
+                console.log('📝 Database pool not available, using mock data');
                 return false;
             }
             await pool.query('SELECT 1');
@@ -20,7 +21,8 @@ class QuestionBankService {
     static async getAllQuestions() {
         try {
             if (!(await this.isDatabaseAvailable())) {
-                return mockDataService.getQuestionsAnalytics();
+                const questions = await mockDataService.getQuestionsAnalytics();
+                return { success: true, data: questions };
             }
             
             const query = `
@@ -41,7 +43,7 @@ class QuestionBankService {
         try {
             if (!(await this.isDatabaseAvailable())) {
                 const allQuestions = await mockDataService.getQuestionsAnalytics();
-                const filteredQuestions = allQuestions.data.filter(q => q.category === category);
+                const filteredQuestions = allQuestions.filter(q => q.category === category);
                 return { success: true, data: filteredQuestions };
             }
             
@@ -64,9 +66,9 @@ class QuestionBankService {
         try {
             if (!(await this.isDatabaseAvailable())) {
                 const allQuestions = await mockDataService.getQuestionsAnalytics();
-                const categories = [...new Set(allQuestions.data.map(q => q.category))].map(category => ({
+                const categories = [...new Set(allQuestions.map(q => q.category))].map(category => ({
                     category,
-                    question_count: allQuestions.data.filter(q => q.category === category).length
+                    question_count: allQuestions.filter(q => q.category === category).length
                 }));
                 return { success: true, data: categories };
             }
@@ -128,7 +130,7 @@ class QuestionBankService {
         try {
             if (!(await this.isDatabaseAvailable())) {
                 const allQuestions = await mockDataService.getQuestionsAnalytics();
-                const filteredQuestions = allQuestions.data.filter(q => 
+                const filteredQuestions = allQuestions.filter(q => 
                     q.question.toLowerCase().includes(searchTerm.toLowerCase())
                 );
                 return { success: true, data: filteredQuestions };

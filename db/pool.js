@@ -4,9 +4,10 @@ const { Pool } = require('pg');
 const databaseUrl = process.env.DATABASE_POOL_URL || process.env.DATABASE_URL;
 
 if (!databaseUrl) {
-  console.error('❌ DATABASE_URL environment variable is not set!');
-  console.error('Please set DATABASE_URL in your Render environment variables.');
-  process.exit(1);
+  console.log('📝 DATABASE_URL environment variable is not set!');
+  console.log('📝 Using mock data for development/testing.');
+  module.exports = null;
+  return;
 }
 
 console.log('🔗 Database URL found:', databaseUrl ? 'Yes' : 'No');
