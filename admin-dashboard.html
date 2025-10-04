@@ -2127,6 +2127,34 @@
             loadQuestions();
             loadSessions();
             loadStudents();
+            
+            // Initialize bulk edit controls
+            initializeBulkEditControls();
+        }
+
+        function initializeBulkEditControls() {
+            // Ensure bulk edit controls are properly initialized
+            const bulkEditControls = document.querySelectorAll('.bulk-edit-controls');
+            bulkEditControls.forEach(control => {
+                if (!control.querySelector('.bulk-edit-info')) {
+                    const info = document.createElement('div');
+                    info.className = 'bulk-edit-info';
+                    info.id = 'bulk-edit-selected-count';
+                    info.textContent = '0 records selected';
+                    control.appendChild(info);
+                }
+                
+                if (!control.querySelector('.bulk-edit-actions')) {
+                    const actions = document.createElement('div');
+                    actions.className = 'bulk-edit-actions';
+                    actions.innerHTML = `
+                        <button class="btn btn-secondary" onclick="selectAllRows()">Select All</button>
+                        <button class="btn btn-secondary" onclick="clearSelection()">Clear</button>
+                        <button class="btn btn-primary" onclick="openBulkEditModal()">Bulk Edit</button>
+                    `;
+                    control.appendChild(actions);
+                }
+            });
         }
 
         function setupEventListeners() {
@@ -2309,6 +2337,9 @@
                         </td>
                     </tr>
                 `).join('');
+                
+                // Reinitialize bulk edit controls after data is loaded
+                initializeBulkEditControls();
             } catch (err) {
                 console.error('Error loading admin my interviews:', err);
                 const tbody = document.getElementById('my-interviews-table-body');
@@ -2590,6 +2621,9 @@
                     </td>
                 </tr>
             `).join('');
+            
+            // Reinitialize bulk edit controls after data is loaded
+            initializeBulkEditControls();
         }
 
         function displayGroupedInterviews(groupedData, container) {
@@ -2821,6 +2855,9 @@
                     </td>
                 </tr>
             `).join('');
+            
+            // Reinitialize bulk edit controls after data is loaded
+            initializeBulkEditControls();
         }
 
         async function toggleFavorite(questionId) {
@@ -2919,6 +2956,9 @@
                     </td>
                 </tr>
             `).join('');
+            
+            // Reinitialize bulk edit controls after data is loaded
+            initializeBulkEditControls();
         }
 
         // Students functions
@@ -2960,6 +3000,9 @@
                     </td>
                 </tr>
             `).join('');
+            
+            // Reinitialize bulk edit controls after data is loaded
+            initializeBulkEditControls();
         }
 
         // Modal functions
@@ -4185,14 +4228,58 @@
             }
         }
 
-        function deleteRecord(rowId, type) {
+        async function deleteRecord(rowId, type) {
             if (!confirm(`Are you sure you want to delete this ${type}?`)) {
                 return;
             }
-            
-            // Implementation depends on the specific delete functionality
-            // This would call the appropriate delete API endpoint
-            console.log(`Delete ${type} with ID: ${rowId}`);
+
+            try {
+                const currentTab = document.querySelector('.nav-link.active').textContent.trim();
+                let endpoint = '';
+
+                if (currentTab.includes('Students')) {
+                    endpoint = `/api/students/${rowId}`;
+                } else if (currentTab.includes('Interview Sessions')) {
+                    endpoint = `/api/sessions/${rowId}`;
+                } else if (currentTab.includes('Interviews') || currentTab.includes('My Interviews')) {
+                    endpoint = `/api/interviews/${rowId}`;
+                } else if (currentTab.includes('Questions')) {
+                    endpoint = `/api/question-bank/${rowId}`;
+                }
+
+                const response = await fetch(endpoint, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showSuccess(`${type} deleted successfully`);
+                    // Refresh current tab data
+                    const activeTab = document.querySelector('.nav-link.active');
+                    if (activeTab) {
+                        activeTab.click();
+                    }
+                } else {
+                    showError(`Error deleting ${type}: ${result.error}`);
+                }
+            } catch (error) {
+                console.error(`Error deleting ${type}:`, error);
+                showError(`Error deleting ${type}`);
+            }
+        }
+
+        // Specific delete functions for better UX
+        async function deleteSession(sessionId) {
+            await deleteRecord(sessionId, 'session');
+        }
+
+        async function deleteInterview(interviewId) {
+            await deleteRecord(interviewId, 'interview');
+        }
+
+        async function deleteQuestion(questionId) {
+            await deleteRecord(questionId, 'question');
         }
     </script>
 
