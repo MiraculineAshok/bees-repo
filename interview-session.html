@@ -1836,8 +1836,18 @@
                         const avatarMenu = document.getElementById('avatar-menu');
                         const loginBtn = document.getElementById('login-btn');
                         if (avatar) {
-                            const initial = (email || name || 'U').trim().charAt(0).toUpperCase();
-                            avatar.textContent = initial || 'U';
+                            // Get user ID from API to ensure consistent avatar
+                            try {
+                                const userIdResponse = await fetch('/api/user/id');
+                                const userIdData = await userIdResponse.json();
+                                const userId = userIdData.success ? userIdData.userId : null;
+                                const initial = userId ? userId.toString().charAt(0).toUpperCase() : (email || name || 'U').trim().charAt(0).toUpperCase();
+                                avatar.textContent = initial || 'U';
+                            } catch (error) {
+                                console.error('Error fetching user ID:', error);
+                                const initial = (email || name || 'U').trim().charAt(0).toUpperCase();
+                                avatar.textContent = initial || 'U';
+                            }
                             avatar.classList.remove('hidden');
                             if (loginBtn) loginBtn.classList.add('hidden');
                             avatar.onclick = () => {
@@ -1867,7 +1877,7 @@
                                     overlay.querySelector('#lg-confirm').onclick = ()=> {
                                         overlay.remove();
                                         try { localStorage.removeItem('bees_user_data'); } catch {}
-                window.location.href = '/';
+                                        window.location.href = '/';
                                     };
                                 };
                             }

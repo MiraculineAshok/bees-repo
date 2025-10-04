@@ -45,11 +45,37 @@ document.addEventListener('DOMContentLoaded', function() {
         const interviewDashboard = document.getElementById('interview-dashboard');
         const adminDashboardBtn = document.getElementById('admin-dashboard-btn');
         const interviewerDashboardBtn = document.getElementById('interviewer-dashboard-btn');
+        const avatar = document.getElementById('avatar');
+        const avatarMenu = document.getElementById('avatar-menu');
         
         if (userData && userData.name) {
-            // Show user name and hide login button
-            userNameElement.textContent = `Logged in as ${userData.name}`;
-            userNameElement.classList.remove('hidden');
+            // Show avatar and hide login button
+            if (avatar) {
+                const initial = (userData.email || userData.name || 'U').trim().charAt(0).toUpperCase();
+                avatar.textContent = initial || 'U';
+                avatar.classList.remove('hidden');
+                avatar.onclick = ()=> { avatarMenu.style.display = (avatarMenu.style.display==='block' ? 'none' : 'block'); };
+                document.addEventListener('click', (e)=>{ if (!avatar.contains(e.target) && !avatarMenu.contains(e.target)) avatarMenu.style.display='none'; });
+                const logoutBtn = document.getElementById('logout-btn-dropdown');
+                if (logoutBtn) {
+                    logoutBtn.onclick = ()=> {
+                        const overlay = document.createElement('div');
+                        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
+                        overlay.innerHTML = `
+                          <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;min-width:280px;max-width:90%;padding:16px;box-shadow:0 10px 20px rgba(0,0,0,0.15)">
+                            <div style=\"font-weight:600;margin-bottom:8px;color:#111827\">Logout?</div>
+                            <div style=\"font-size:14px;color:#374151;margin-bottom:12px\">Are you sure you want to logout?</div>
+                            <div style=\"display:flex;gap:8px;justify-content:flex-end\">
+                              <button id=\"lg-cancel\" style=\"border:1px solid #e5e7eb;background:#fff;padding:6px 10px;border-radius:6px;cursor:pointer\">Cancel</button>
+                              <button id=\"lg-confirm\" style=\"background:#111827;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer\">Logout</button>
+                            </div>
+                          </div>`;
+                        document.body.appendChild(overlay);
+                        overlay.querySelector('#lg-cancel').onclick = ()=> overlay.remove();
+                        overlay.querySelector('#lg-confirm').onclick = ()=> { overlay.remove(); try { localStorage.removeItem('bees_user_data'); } catch {}; window.location.href = '/'; };
+                    };
+                }
+            }
             if (loginBtn) {
                 loginBtn.classList.add('hidden');
             }

@@ -1855,12 +1855,22 @@
             }
         }
 
-        function displayUserInfo(userData) {
+        async function displayUserInfo(userData) {
             const avatar = document.getElementById('admin-avatar');
             const menu = document.getElementById('admin-avatar-menu');
             if (avatar && userData) {
-                const initial = (userData.email || userData.name || 'A').trim().charAt(0).toUpperCase();
-                avatar.textContent = initial || 'A';
+                // Get user ID from API to ensure consistent avatar
+                try {
+                    const userIdResponse = await fetch('/api/user/id');
+                    const userIdData = await userIdResponse.json();
+                    const userId = userIdData.success ? userIdData.userId : null;
+                    const initial = userId ? userId.toString().charAt(0).toUpperCase() : (userData.email || userData.name || 'A').trim().charAt(0).toUpperCase();
+                    avatar.textContent = initial || 'A';
+                } catch (error) {
+                    console.error('Error fetching user ID:', error);
+                    const initial = (userData.email || userData.name || 'A').trim().charAt(0).toUpperCase();
+                    avatar.textContent = initial || 'A';
+                }
                 avatar.onclick = ()=> { menu.style.display = (menu.style.display==='block' ? 'none' : 'block'); };
                 document.addEventListener('click', (e)=>{ if (!avatar.contains(e.target) && !menu.contains(e.target)) menu.style.display='none'; });
                 const logoutBtn = document.getElementById('admin-logout-btn');

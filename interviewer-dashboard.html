@@ -1185,7 +1185,17 @@
                 try {
                     const userData = JSON.parse(storedUserData);
                     if (userData.name && userData.email) {
-                        document.getElementById('user-avatar').textContent = (userData.email || userData.name).charAt(0).toUpperCase();
+                        // Get user ID from API to ensure consistent avatar
+                        try {
+                            const userIdResponse = await fetch('/api/user/id');
+                            const userIdData = await userIdResponse.json();
+                            const userId = userIdData.success ? userIdData.userId : null;
+                            const initial = userId ? userId.toString().charAt(0).toUpperCase() : (userData.email || userData.name).charAt(0).toUpperCase();
+                            document.getElementById('user-avatar').textContent = initial;
+                        } catch (error) {
+                            console.error('Error fetching user ID:', error);
+                            document.getElementById('user-avatar').textContent = (userData.email || userData.name).charAt(0).toUpperCase();
+                        }
                         const avatar = document.getElementById('user-avatar');
                         const menu = document.getElementById('avatar-menu');
                         avatar.onclick = ()=> { menu.style.display = (menu.style.display==='block'?'none':'block'); };

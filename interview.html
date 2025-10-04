@@ -21,6 +21,10 @@
         }
         #session-select:focus { outline: none; border-color: #111827; }
         .error-message { color: #dc2626; font-size: 0.85rem; margin-top: 0.25rem; }
+        .avatar { width: 36px; height: 36px; background: #2d3748; color: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; cursor: pointer; user-select: none; }
+        .avatar-menu { position: absolute; right: 16px; top: 56px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); display: none; min-width: 140px; z-index: 150; }
+        .avatar-menu button { width: 100%; background: #ffffff; border: none; text-align: left; padding: 10px 12px; cursor: pointer; }
+        .avatar-menu button:hover { background: #f3f4f6; }
     </style>
 </head>
 <body>
@@ -28,7 +32,11 @@
     <header class="auth-header">
         <div class="auth-header-content">
             <a href="/" class="logo">Bees</a>
-            <div class="user-info">
+            <div class="user-info" style="position:relative">
+                <div id="avatar" class="avatar hidden">U</div>
+                <div id="avatar-menu" class="avatar-menu">
+                    <button id="logout-btn-dropdown">Logout</button>
+                </div>
                 <span id="user-name" class="user-name hidden"></span>
                 <button id="login-btn" class="login-btn">Sign in with Zoho</button>
             </div>
