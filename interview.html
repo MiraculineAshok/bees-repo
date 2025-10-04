@@ -5,19 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interview - Student Management</title>
     <link rel="stylesheet" href="/interview.css">
+    <style>
+        .auth-header { padding: 0.5rem 1rem; }
+        .auth-header .logo { font-size: 1.25rem; }
+        .back-arrow { text-decoration: none; color: #111827; font-size: 1.25rem; }
+        .sub-header { max-width: 1200px; margin: 0 auto; padding: 0.5rem 1rem; }
+    </style>
 </head>
 <body>
     <!-- User Authentication Header -->
     <header class="auth-header">
         <div class="auth-header-content">
             <a href="/" class="logo">Bees</a>
-            <button class="back-btn">Back to Dashboard</button>
             <div class="user-info">
                 <span id="user-name" class="user-name hidden"></span>
                 <button id="login-btn" class="login-btn">Sign in with Zoho</button>
             </div>
         </div>
     </header>
+
+    <div class="sub-header">
+        <a href="/" class="back-arrow" title="Back to Dashboard">←</a>
+    </div>
 
     <div class="container">
         <div class="header">
@@ -34,7 +43,6 @@
         <!-- Session & Search (Combined) -->
         <div class="card">
             <div class="session-section">
-                <h2>Select Interview Session</h2>
                 <div class="form-group">
                     <label for="session-select">Interview Session <span style="color:#dc2626">*</span></label>
                     <select id="session-select" required>
@@ -45,7 +53,6 @@
             </div>
 
             <div class="search-section" style="margin-top: 1rem;">
-                <h2>Search for Student</h2>
                 <div class="form-group">
                     <label for="zeta-id">Zeta ID:</label>
                     <input type="text" id="zeta-id" placeholder="Enter Zeta ID (e.g., ZETA001)" required>
