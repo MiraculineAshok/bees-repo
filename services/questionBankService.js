@@ -208,8 +208,25 @@ class QuestionBankService {
                 return mockDataService.updateQuestion(id, updateData);
             }
 
-            const fields = Object.keys(updateData);
-            const values = Object.values(updateData);
+            // Define allowed fields for question_bank table
+            const allowedFields = ['question', 'category'];
+            
+            // Filter out invalid fields
+            const validUpdateData = {};
+            Object.keys(updateData).forEach(field => {
+                if (allowedFields.includes(field)) {
+                    validUpdateData[field] = updateData[field];
+                } else {
+                    console.warn(`Field "${field}" is not allowed for question updates`);
+                }
+            });
+
+            if (Object.keys(validUpdateData).length === 0) {
+                throw new Error('No valid fields to update');
+            }
+
+            const fields = Object.keys(validUpdateData);
+            const values = Object.values(validUpdateData);
             const setClause = fields.map((field, index) => `${field} = $${index + 2}`).join(', ');
             
             const query = `UPDATE question_bank SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *`;

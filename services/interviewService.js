@@ -448,8 +448,25 @@ class InterviewService {
         }
 
         try {
-            const fields = Object.keys(updateData);
-            const values = Object.values(updateData);
+            // Define allowed fields for interviews table
+            const allowedFields = ['verdict', 'status', 'overall_notes', 'interviewer_id', 'student_id', 'session_id'];
+            
+            // Filter out invalid fields
+            const validUpdateData = {};
+            Object.keys(updateData).forEach(field => {
+                if (allowedFields.includes(field)) {
+                    validUpdateData[field] = updateData[field];
+                } else {
+                    console.warn(`Field "${field}" is not allowed for interview updates`);
+                }
+            });
+
+            if (Object.keys(validUpdateData).length === 0) {
+                throw new Error('No valid fields to update');
+            }
+
+            const fields = Object.keys(validUpdateData);
+            const values = Object.values(validUpdateData);
             const setClause = fields.map((field, index) => `${field} = $${index + 2}`).join(', ');
             
             const query = `UPDATE interviews SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *`;

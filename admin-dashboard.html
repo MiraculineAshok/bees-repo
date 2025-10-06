@@ -4082,6 +4082,12 @@
                     'category': 'category'
                 };
                 
+                // Validate that the field exists in the mapping
+                if (!fieldMapping[field]) {
+                    showError(`Field "${field}" is not editable`);
+                    return;
+                }
+                
                 const dbField = fieldMapping[field] || field;
                 const updates = Array.from(selectedRows).map(rowId => ({
                     id: parseInt(rowId), // Ensure ID is an integer
@@ -4147,7 +4153,7 @@
             const cells = row.querySelectorAll('td:not(:last-child)');
             cells.forEach((cell, index) => {
                 const field = cell.dataset.field;
-                if (field && field !== 'id' && field !== 'interview_count' && field !== 'created_by_name' && field !== 'created_at' && field !== 'student_name' && field !== 'zeta_id' && field !== 'session_name' && field !== 'duration_seconds') {
+                if (field && field !== 'id' && field !== 'interview_count' && field !== 'created_by_name' && field !== 'created_at' && field !== 'student_name' && field !== 'zeta_id' && field !== 'session_name' && field !== 'duration_seconds' && field !== 'interviewer_name' && field !== 'interview_date') {
                     const currentValue = cell.textContent.trim();
                     cell.innerHTML = `<input type="text" class="edit-input" value="${currentValue}" data-field="${field}">`;
                 }
@@ -4182,12 +4188,40 @@
                 const row = document.querySelector(`[data-row-id="${rowId}"]`);
                 const inputs = row.querySelectorAll('.edit-input');
                 const updateData = {};
-                
-                inputs.forEach(input => {
-                    updateData[input.dataset.field] = input.value;
-                });
-                
+
+                // Define valid database fields for each tab
+                const validFields = {
+                    'Students': ['first_name', 'last_name', 'email', 'phone', 'address', 'zeta_id'],
+                    'Interview Sessions': ['name', 'description', 'status'],
+                    'Interviews': ['verdict', 'status', 'overall_notes'],
+                    'My Interviews': ['verdict', 'status', 'overall_notes'],
+                    'Questions': ['question', 'category']
+                };
+
                 const currentTab = document.querySelector('.nav-link.active').textContent.trim();
+                let allowedFields = [];
+                
+                for (const [tabName, fields] of Object.entries(validFields)) {
+                    if (currentTab.includes(tabName)) {
+                        allowedFields = fields;
+                        break;
+                    }
+                }
+
+                inputs.forEach(input => {
+                    const field = input.dataset.field;
+                    if (allowedFields.includes(field)) {
+                        updateData[field] = input.value;
+                    } else {
+                        console.warn(`Field "${field}" is not editable in ${currentTab}`);
+                    }
+                });
+
+                if (Object.keys(updateData).length === 0) {
+                    showError('No valid fields to update');
+                    return;
+                }
+                
                 let endpoint = '';
                 
                 if (currentTab.includes('Students')) {
