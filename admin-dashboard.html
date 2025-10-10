@@ -2988,6 +2988,17 @@
                     </td>
                 </tr>
             `).join('');
+
+            // Attach reliable click handlers for all edit buttons (avoids inline/onHTML parsing edge cases)
+            tbody.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const tr = e.currentTarget.closest('tr');
+                    const id = tr && tr.getAttribute('data-row-id');
+                    if (id) startEdit(id);
+                }, { once: false });
+            });
             
             // Clear any editing state when data is refreshed
             currentEditRow = null;
@@ -4202,10 +4213,18 @@
                 }
             }
 
+            if (!resolvedData) {
+                console.warn('startEdit: could not resolve row data for id', rowId);
+            }
+
             currentEditRow = rowId;
             currentEditData = resolvedData ? { ...resolvedData } : null;
             
             const row = document.querySelector(`[data-row-id="${rowId}"]`);
+            if (!row) {
+                console.warn('startEdit: no table row found for id', rowId);
+                return;
+            }
             row.classList.add('editing');
             
             // Replace content with edit form
