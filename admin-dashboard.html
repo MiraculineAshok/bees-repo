@@ -2982,7 +2982,7 @@
                     <td data-field="created_by_name">${session.created_by_name || 'N/A'}</td>
                     <td data-field="created_at">${formatDate(session.created_at)}</td>
                     <td>
-                        <button class="icon-btn edit-btn" onclick="startEdit('${session.id}', ${JSON.stringify(session).replace(/"/g, '&quot;')})" title="Edit">✏️</button>
+                        <button class="icon-btn edit-btn" onclick="startEdit('${session.id}')" title="Edit">✏️</button>
                         <button class="icon-btn delete-btn" onclick="deleteSession('${session.id}')" title="Delete">🗑️</button>
                         <button class="icon-btn" onclick="viewSession(${session.id})" title="View">👁️</button>
                     </td>
@@ -4183,8 +4183,27 @@
                 cancelEdit();
             }
             
+            // Derive row data if not provided to avoid inline JSON issues
+            let resolvedData = data;
+            if (!resolvedData) {
+                const active = document.querySelector('.nav-link.active');
+                const section = active ? active.dataset.section : '';
+                if (section === 'sessions') {
+                    resolvedData = (sessions || []).find(s => String(s.id) === String(rowId));
+                } else if (section === 'students') {
+                    resolvedData = (students || []).find(s => String(s.id) === String(rowId));
+                } else if (section === 'interviews') {
+                    resolvedData = (interviews || []).find(i => String(i.id) === String(rowId));
+                } else if (section === 'questions') {
+                    resolvedData = (questions || []).find(q => String(q.id) === String(rowId));
+                } else if (section === 'my-interviews') {
+                    // my interviews reuse interviews data loaded for admin
+                    resolvedData = (interviews || []).find(i => String(i.id) === String(rowId));
+                }
+            }
+
             currentEditRow = rowId;
-            currentEditData = { ...data };
+            currentEditData = resolvedData ? { ...resolvedData } : null;
             
             const row = document.querySelector(`[data-row-id="${rowId}"]`);
             row.classList.add('editing');
