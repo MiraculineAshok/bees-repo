@@ -4183,26 +4183,104 @@
             const actionCell = row.querySelector('td:last-child');
             actionCell.innerHTML = `
                 <button class="icon-btn save-btn" onclick="saveEdit('${rowId}')" title="Save">✓</button>
-                <button class="icon-btn cancel-btn" onclick="cancelEdit()" title="Cancel">✗</button>
+                <button class="icon-btn cancel-btn" onclick="cancelEdit('${rowId}')" title="Cancel">✗</button>
             `;
         }
 
-        function cancelEdit() {
-            if (!currentEditRow) return;
+        function cancelEdit(rowId) {
+            if (!rowId && !currentEditRow) return;
             
-            const row = document.querySelector(`[data-row-id="${currentEditRow}"]`);
+            const targetRowId = rowId || currentEditRow;
+            const row = document.querySelector(`[data-row-id="${targetRowId}"]`);
+            
             if (row) {
                 row.classList.remove('editing');
+                
+                // Restore original content for this specific row
+                if (currentEditData) {
+                    restoreRowContent(row, currentEditData);
+                } else {
+                    // If no original data, refresh the entire tab
+                    const activeTab = document.querySelector('.nav-link.active');
+                    if (activeTab) {
+                        activeTab.click();
+                    }
+                }
             }
             
             // Clear edit state
             currentEditRow = null;
             currentEditData = null;
+        }
+
+        function restoreRowContent(row, originalData) {
+            const currentTab = document.querySelector('.nav-link.active').textContent.trim();
             
-            // Restore original content by reloading the current tab
-            const activeTab = document.querySelector('.nav-link.active');
-            if (activeTab) {
-                activeTab.click();
+            // Restore cells based on current tab
+            const cells = row.querySelectorAll('td:not(:last-child)');
+            cells.forEach((cell, index) => {
+                const field = cell.dataset.field;
+                if (field && originalData[field] !== undefined) {
+                    let displayValue = originalData[field] || 'N/A';
+                    
+                    // Handle special field formatting
+                    if (field === 'status') {
+                        cell.innerHTML = `<span class="status-badge status-${displayValue}">${displayValue}</span>`;
+                    } else if (field === 'created_at' || field === 'interview_date') {
+                        displayValue = formatDate(originalData[field]);
+                        cell.textContent = displayValue;
+                    } else if (field === 'duration_seconds') {
+                        displayValue = formatDuration(originalData[field]);
+                        cell.textContent = displayValue;
+                    } else if (field === 'name' && currentTab.includes('Students')) {
+                        // For students, name is computed from first_name + last_name
+                        displayValue = `${originalData.first_name || ''} ${originalData.last_name || ''}`.trim();
+                        cell.textContent = displayValue;
+                    } else if (field === 'question' && currentTab.includes('Questions')) {
+                        // For questions, handle favorite button
+                        const favoriteBtn = favoriteQuestionIds && favoriteQuestionIds.has(originalData.id) ? '★' : '☆';
+                        const favoriteClass = favoriteQuestionIds && favoriteQuestionIds.has(originalData.id) ? 'favorited' : '';
+                        cell.innerHTML = `
+                            <span>${displayValue}</span>
+                            <button 
+                                class="favorite-btn ${favoriteClass}"
+                                onclick="toggleFavorite(${originalData.id})"
+                                title="${favoriteQuestionIds && favoriteQuestionIds.has(originalData.id) ? 'Remove from favorites' : 'Add to favorites'}"
+                                style="margin-left:8px"
+                            >${favoriteBtn}</button>
+                        `;
+                    } else {
+                        cell.textContent = displayValue;
+                    }
+                }
+            });
+            
+            // Restore action buttons based on current tab
+            const actionCell = row.querySelector('td:last-child');
+            if (currentTab.includes('Students')) {
+                actionCell.innerHTML = `
+                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}', ${JSON.stringify(originalData).replace(/"/g, '&quot;')})" title="Edit">✏️</button>
+                    <button class="icon-btn delete-btn" onclick="deleteRecord('${originalData.id}', 'student')" title="Delete">🗑️</button>
+                    <button class="icon-btn" onclick="viewStudent(${originalData.id})" title="View">👁️</button>
+                `;
+            } else if (currentTab.includes('Interview Sessions')) {
+                actionCell.innerHTML = `
+                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}', ${JSON.stringify(originalData).replace(/"/g, '&quot;')})" title="Edit">✏️</button>
+                    <button class="icon-btn delete-btn" onclick="deleteSession('${originalData.id}')" title="Delete">🗑️</button>
+                    <button class="icon-btn" onclick="viewSession(${originalData.id})" title="View">👁️</button>
+                `;
+            } else if (currentTab.includes('Interviews') || currentTab.includes('My Interviews')) {
+                actionCell.innerHTML = `
+                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}', ${JSON.stringify(originalData).replace(/"/g, '&quot;')})" title="Edit">✏️</button>
+                    <button class="icon-btn delete-btn" onclick="deleteInterview('${originalData.id}')" title="Delete">🗑️</button>
+                    <button class="icon-btn" onclick="viewInterview(${originalData.id})" title="View">👁️</button>
+                `;
+            } else if (currentTab.includes('Questions')) {
+                actionCell.innerHTML = `
+                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}', ${JSON.stringify(originalData).replace(/"/g, '&quot;')})" title="Edit">✏️</button>
+                    <button class="icon-btn delete-btn" onclick="deleteQuestion('${originalData.id}')" title="Delete">🗑️</button>
+                    <button class="icon-btn" onclick="viewQuestion(${originalData.id})" title="View">👁️</button>
+                `;
             }
         }
 
