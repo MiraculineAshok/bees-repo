@@ -2347,12 +2347,23 @@
                         <td data-field="verdict">${interview.verdict || 'N/A'}</td>
                         <td data-field="duration_seconds">${formatDuration(interview.duration_seconds)}</td>
                         <td>
-                            <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}', ${JSON.stringify(interview).replace(/"/g, '&quot;')})" title="Edit">✏️</button>
+                            <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit">✏️</button>
                             <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete">🗑️</button>
                             <button class="icon-btn" onclick="viewInterview(${interview.id})" title="View">👁️</button>
                         </td>
                     </tr>
                 `).join('');
+                
+                // Attach reliable click handlers for all edit buttons (avoid inline parsing edge cases)
+                tbody.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.edit-btn');
+                    if (!btn) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const tr = btn.closest('tr');
+                    const id = tr && tr.getAttribute('data-row-id');
+                    if (id) startEdit(id);
+                });
                 
                 // Clear any editing state when data is refreshed
                 currentEditRow = null;
@@ -2642,6 +2653,17 @@
                 </tr>
             `).join('');
             
+            // Attach reliable click handlers for all edit buttons (avoid inline parsing edge cases)
+            tbody.addEventListener('click', (e) => {
+                const btn = e.target.closest('.edit-btn');
+                if (!btn) return;
+                e.preventDefault();
+                e.stopPropagation();
+                const tr = btn.closest('tr');
+                const id = tr && tr.getAttribute('data-row-id');
+                if (id) startEdit(id);
+            });
+            
             // Clear any editing state when data is refreshed
             currentEditRow = null;
             currentEditData = null;
@@ -2880,6 +2902,17 @@
                 </tr>
             `).join('');
             
+            // Attach reliable click handlers for all edit buttons (avoid inline parsing edge cases)
+            tbody.addEventListener('click', (e) => {
+                const btn = e.target.closest('.edit-btn');
+                if (!btn) return;
+                e.preventDefault();
+                e.stopPropagation();
+                const tr = btn.closest('tr');
+                const id = tr && tr.getAttribute('data-row-id');
+                if (id) startEdit(id);
+            });
+            
             // Clear any editing state when data is refreshed
             currentEditRow = null;
             currentEditData = null;
@@ -3043,6 +3076,17 @@
                     </td>
                 </tr>
             `).join('');
+            
+            // Attach reliable click handlers for all edit buttons (avoid inline parsing edge cases)
+            tbody.addEventListener('click', (e) => {
+                const btn = e.target.closest('.edit-btn');
+                if (!btn) return;
+                e.preventDefault();
+                e.stopPropagation();
+                const tr = btn.closest('tr');
+                const id = tr && tr.getAttribute('data-row-id');
+                if (id) startEdit(id);
+            });
             
             // Clear any editing state when data is refreshed
             currentEditRow = null;
@@ -4311,25 +4355,25 @@
             const actionCell = row.querySelector('td:last-child');
             if (currentTab.includes('Students')) {
                 actionCell.innerHTML = `
-                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}', ${JSON.stringify(originalData).replace(/"/g, '&quot;')})" title="Edit">✏️</button>
+                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}')" title="Edit">✏️</button>
                     <button class="icon-btn delete-btn" onclick="deleteRecord('${originalData.id}', 'student')" title="Delete">🗑️</button>
                     <button class="icon-btn" onclick="viewStudent(${originalData.id})" title="View">👁️</button>
                 `;
             } else if (currentTab.includes('Interview Sessions')) {
                 actionCell.innerHTML = `
-                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}', ${JSON.stringify(originalData).replace(/"/g, '&quot;')})" title="Edit">✏️</button>
+                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}')" title="Edit">✏️</button>
                     <button class="icon-btn delete-btn" onclick="deleteSession('${originalData.id}')" title="Delete">🗑️</button>
                     <button class="icon-btn" onclick="viewSession(${originalData.id})" title="View">👁️</button>
                 `;
             } else if (currentTab.includes('Interviews') || currentTab.includes('My Interviews')) {
                 actionCell.innerHTML = `
-                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}', ${JSON.stringify(originalData).replace(/"/g, '&quot;')})" title="Edit">✏️</button>
+                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}')" title="Edit">✏️</button>
                     <button class="icon-btn delete-btn" onclick="deleteInterview('${originalData.id}')" title="Delete">🗑️</button>
                     <button class="icon-btn" onclick="viewInterview(${originalData.id})" title="View">👁️</button>
                 `;
             } else if (currentTab.includes('Questions')) {
                 actionCell.innerHTML = `
-                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}', ${JSON.stringify(originalData).replace(/"/g, '&quot;')})" title="Edit">✏️</button>
+                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}')" title="Edit">✏️</button>
                     <button class="icon-btn delete-btn" onclick="deleteQuestion('${originalData.id}')" title="Delete">🗑️</button>
                     <button class="icon-btn" onclick="viewQuestion(${originalData.id})" title="View">👁️</button>
                 `;
