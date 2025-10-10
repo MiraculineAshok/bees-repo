@@ -313,6 +313,51 @@ class AdminService {
         }
     }
 
+    static async updateSession(sessionId, updateData) {
+        console.log('✏️ AdminService.updateSession called with sessionId:', sessionId, 'updateData:', updateData);
+        
+        if (!(await this.isDatabaseAvailable())) {
+            console.log('📝 Database unavailable, using mock data');
+            return mockDataService.updateSession(sessionId, updateData);
+        }
+
+        try {
+            // Define allowed fields for sessions table
+            const allowedFields = ['name', 'description', 'status'];
+            
+            // Filter out invalid fields
+            const validUpdateData = {};
+            Object.keys(updateData).forEach(field => {
+                if (allowedFields.includes(field)) {
+                    validUpdateData[field] = updateData[field];
+                } else {
+                    console.warn(`Field "${field}" is not allowed for session updates`);
+                }
+            });
+
+            if (Object.keys(validUpdateData).length === 0) {
+                throw new Error('No valid fields to update');
+            }
+
+            const fields = Object.keys(validUpdateData);
+            const values = Object.values(validUpdateData);
+            const setClause = fields.map((field, index) => `${field} = $${index + 2}`).join(', ');
+            
+            const query = `UPDATE interview_sessions SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *`;
+            const result = await pool.query(query, [sessionId, ...values]);
+            
+            if (result.rows.length === 0) {
+                throw new Error('Session not found');
+            }
+            
+            console.log('✅ Session updated successfully');
+            return result.rows[0];
+        } catch (error) {
+            console.error('❌ Error updating session:', error);
+            throw error;
+        }
+    }
+
     static async deleteSession(sessionId) {
         console.log('🗑️ AdminService.deleteSession called with sessionId:', sessionId);
         

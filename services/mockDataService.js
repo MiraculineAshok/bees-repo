@@ -641,6 +641,22 @@ class MockDataService {
         return Promise.resolve(newSession);
     }
 
+    updateSession(sessionId, updateData) {
+        const sessionIndex = this.sessions.findIndex(s => s.id === parseInt(sessionId));
+        if (sessionIndex === -1) {
+            throw new Error('Session not found');
+        }
+        
+        // Update the session with new data
+        this.sessions[sessionIndex] = {
+            ...this.sessions[sessionIndex],
+            ...updateData,
+            updated_at: new Date().toISOString()
+        };
+        
+        return Promise.resolve(this.sessions[sessionIndex]);
+    }
+
     deleteSession(sessionId) {
         const index = this.sessions.findIndex(s => s.id === parseInt(sessionId));
         if (index === -1) {

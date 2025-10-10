@@ -729,11 +729,10 @@ app.put('/api/sessions/:id', async (req, res) => {
     const { id } = req.params;
     const updateData = req.body;
 
-    // For now, return a mock response since we don't have a SessionService
-    // In a real implementation, you would create a SessionService
+    const session = await AdminService.updateSession(id, updateData);
     res.json({
       success: true,
-      data: { id: parseInt(id), ...updateData }
+      data: session
     });
   } catch (error) {
     console.error('Error updating session:', error);
