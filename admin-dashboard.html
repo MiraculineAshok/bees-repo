@@ -2338,6 +2338,10 @@
                     </tr>
                 `).join('');
                 
+                // Clear any editing state when data is refreshed
+                currentEditRow = null;
+                currentEditData = null;
+                
                 // Reinitialize bulk edit controls after data is loaded
                 initializeBulkEditControls();
             } catch (err) {
@@ -2622,6 +2626,10 @@
                 </tr>
             `).join('');
             
+            // Clear any editing state when data is refreshed
+            currentEditRow = null;
+            currentEditData = null;
+            
             // Reinitialize bulk edit controls after data is loaded
             initializeBulkEditControls();
         }
@@ -2856,6 +2864,10 @@
                 </tr>
             `).join('');
             
+            // Clear any editing state when data is refreshed
+            currentEditRow = null;
+            currentEditData = null;
+            
             // Reinitialize bulk edit controls after data is loaded
             initializeBulkEditControls();
         }
@@ -2957,6 +2969,10 @@
                 </tr>
             `).join('');
             
+            // Clear any editing state when data is refreshed
+            currentEditRow = null;
+            currentEditData = null;
+            
             // Reinitialize bulk edit controls after data is loaded
             initializeBulkEditControls();
         }
@@ -3000,6 +3016,10 @@
                     </td>
                 </tr>
             `).join('');
+            
+            // Clear any editing state when data is refreshed
+            currentEditRow = null;
+            currentEditData = null;
             
             // Reinitialize bulk edit controls after data is loaded
             initializeBulkEditControls();
@@ -4171,16 +4191,19 @@
             if (!currentEditRow) return;
             
             const row = document.querySelector(`[data-row-id="${currentEditRow}"]`);
-            row.classList.remove('editing');
+            if (row) {
+                row.classList.remove('editing');
+            }
+            
+            // Clear edit state
+            currentEditRow = null;
+            currentEditData = null;
             
             // Restore original content by reloading the current tab
             const activeTab = document.querySelector('.nav-link.active');
             if (activeTab) {
                 activeTab.click();
             }
-            
-            currentEditRow = null;
-            currentEditData = null;
         }
 
         async function saveEdit(rowId) {
@@ -4246,9 +4269,9 @@
                 
                 if (result.success) {
                     showSuccess('Record updated successfully');
+                    // Exit edit mode and refresh data
                     currentEditRow = null;
                     currentEditData = null;
-                    // Refresh current tab data
                     const activeTab = document.querySelector('.nav-link.active');
                     if (activeTab) {
                         activeTab.click();
