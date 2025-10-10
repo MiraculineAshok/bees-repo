@@ -4234,8 +4234,9 @@
             // Derive row data if not provided to avoid inline JSON issues
             let resolvedData = data;
             if (!resolvedData) {
+                // Prefer currentSection for robustness across tabs
                 const active = document.querySelector('.nav-link.active');
-                const section = active ? active.dataset.section : '';
+                const section = (typeof currentSection !== 'undefined' && currentSection) ? currentSection : (active ? active.dataset.section : '');
                 if (section === 'sessions') {
                     resolvedData = (sessions || []).find(s => String(s.id) === String(rowId));
                 } else if (section === 'students') {
@@ -4266,13 +4267,29 @@
             
             // Replace content with edit form
             const cells = row.querySelectorAll('td:not(:last-child)');
-            cells.forEach((cell, index) => {
+            cells.forEach((cell) => {
                 const field = cell.dataset.field;
-                if (field && field !== 'id' && field !== 'interview_count' && field !== 'created_by_name' && field !== 'created_at' && field !== 'student_name' && field !== 'zeta_id' && field !== 'session_name' && field !== 'duration_seconds' && field !== 'interviewer_name' && field !== 'interview_date') {
-                    const currentValue = cell.textContent.trim();
-                    const inputId = `edit-${rowId}-${field}`;
-                    cell.innerHTML = `<input type="text" id="${inputId}" name="${field}" class="edit-input" value="${currentValue}" data-field="${field}">`;
+                if (!field) return;
+
+                // Skip non-editable/computed fields
+                const nonEditable = ['id', 'interview_count', 'created_by_name', 'created_at', 'student_name', 'zeta_id', 'session_name', 'duration_seconds', 'interviewer_name', 'interview_date'];
+                if (nonEditable.includes(field)) return;
+
+                // Special handling for Students: split name into first_name and last_name
+                if ((typeof currentSection !== 'undefined' && currentSection === 'students') && field === 'name') {
+                    const first = (currentEditData && currentEditData.first_name) ? currentEditData.first_name : '';
+                    const last = (currentEditData && currentEditData.last_name) ? currentEditData.last_name : '';
+                    cell.innerHTML = `
+                        <input type="text" id="edit-${rowId}-first_name" name="first_name" class="edit-input" value="${first}" data-field="first_name" placeholder="First name" style="margin-right:6px;">
+                        <input type="text" id="edit-${rowId}-last_name" name="last_name" class="edit-input" value="${last}" data-field="last_name" placeholder="Last name">
+                    `;
+                    return;
                 }
+
+                // Default text input for other editable fields
+                const currentValue = cell.textContent.trim();
+                const inputId = `edit-${rowId}-${field}`;
+                cell.innerHTML = `<input type="text" id="${inputId}" name="${field}" class="edit-input" value="${currentValue}" data-field="${field}">`;
             });
             
             // Replace action buttons
@@ -4310,7 +4327,7 @@
         }
 
         function restoreRowContent(row, originalData) {
-            const currentTab = document.querySelector('.nav-link.active').textContent.trim();
+            const section = (typeof currentSection !== 'undefined' && currentSection) ? currentSection : (document.querySelector('.nav-link.active') ? document.querySelector('.nav-link.active').dataset.section : '');
             
             // Restore cells based on current tab
             const cells = row.querySelectorAll('td:not(:last-child)');
@@ -4328,11 +4345,11 @@
                     } else if (field === 'duration_seconds') {
                         displayValue = formatDuration(originalData[field]);
                         cell.textContent = displayValue;
-                    } else if (field === 'name' && currentTab.includes('Students')) {
+                    } else if (field === 'name' && section === 'students') {
                         // For students, name is computed from first_name + last_name
                         displayValue = `${originalData.first_name || ''} ${originalData.last_name || ''}`.trim();
                         cell.textContent = displayValue;
-                    } else if (field === 'question' && currentTab.includes('Questions')) {
+                    } else if (field === 'question' && section === 'questions') {
                         // For questions, handle favorite button
                         const favoriteBtn = favoriteQuestionIds && favoriteQuestionIds.has(originalData.id) ? '★' : '☆';
                         const favoriteClass = favoriteQuestionIds && favoriteQuestionIds.has(originalData.id) ? 'favorited' : '';
@@ -4353,25 +4370,25 @@
             
             // Restore action buttons based on current tab
             const actionCell = row.querySelector('td:last-child');
-            if (currentTab.includes('Students')) {
+            if (section === 'students') {
                 actionCell.innerHTML = `
                     <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}')" title="Edit">✏️</button>
                     <button class="icon-btn delete-btn" onclick="deleteRecord('${originalData.id}', 'student')" title="Delete">🗑️</button>
                     <button class="icon-btn" onclick="viewStudent(${originalData.id})" title="View">👁️</button>
                 `;
-            } else if (currentTab.includes('Interview Sessions')) {
+            } else if (section === 'sessions') {
                 actionCell.innerHTML = `
                     <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}')" title="Edit">✏️</button>
                     <button class="icon-btn delete-btn" onclick="deleteSession('${originalData.id}')" title="Delete">🗑️</button>
                     <button class="icon-btn" onclick="viewSession(${originalData.id})" title="View">👁️</button>
                 `;
-            } else if (currentTab.includes('Interviews') || currentTab.includes('My Interviews')) {
+            } else if (section === 'interviews' || section === 'my-interviews') {
                 actionCell.innerHTML = `
                     <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}')" title="Edit">✏️</button>
                     <button class="icon-btn delete-btn" onclick="deleteInterview('${originalData.id}')" title="Delete">🗑️</button>
                     <button class="icon-btn" onclick="viewInterview(${originalData.id})" title="View">👁️</button>
                 `;
-            } else if (currentTab.includes('Questions')) {
+            } else if (section === 'questions') {
                 actionCell.innerHTML = `
                     <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}')" title="Edit">✏️</button>
                     <button class="icon-btn delete-btn" onclick="deleteQuestion('${originalData.id}')" title="Delete">🗑️</button>
@@ -4387,23 +4404,16 @@
                 const updateData = {};
 
                 // Define valid database fields for each tab
-                const validFields = {
-                    'Students': ['first_name', 'last_name', 'email', 'phone', 'address', 'zeta_id'],
-                    'Interview Sessions': ['name', 'description', 'status'],
-                    'Interviews': ['verdict', 'status', 'overall_notes'],
-                    'My Interviews': ['verdict', 'status', 'overall_notes'],
-                    'Questions': ['question', 'category']
+                const validFieldsBySection = {
+                    'students': ['first_name', 'last_name', 'email', 'phone', 'address', 'zeta_id'],
+                    'sessions': ['name', 'description', 'status'],
+                    'interviews': ['verdict', 'status', 'overall_notes'],
+                    'my-interviews': ['verdict', 'status', 'overall_notes'],
+                    'questions': ['question', 'category']
                 };
 
-                const currentTab = document.querySelector('.nav-link.active').textContent.trim();
-                let allowedFields = [];
-                
-                for (const [tabName, fields] of Object.entries(validFields)) {
-                    if (currentTab.includes(tabName)) {
-                        allowedFields = fields;
-                        break;
-                    }
-                }
+                const section = (typeof currentSection !== 'undefined' && currentSection) ? currentSection : (document.querySelector('.nav-link.active') ? document.querySelector('.nav-link.active').dataset.section : '');
+                const allowedFields = validFieldsBySection[section] || [];
 
                 inputs.forEach(input => {
                     const field = input.dataset.field;
@@ -4421,13 +4431,13 @@
                 
                 let endpoint = '';
                 
-                if (currentTab.includes('Students')) {
+                if (section === 'students') {
                     endpoint = `/api/students/${rowId}`;
-                } else if (currentTab.includes('Interview Sessions')) {
+                } else if (section === 'sessions') {
                     endpoint = `/api/sessions/${rowId}`;
-                } else if (currentTab.includes('Interviews') || currentTab.includes('My Interviews')) {
+                } else if (section === 'interviews' || section === 'my-interviews') {
                     endpoint = `/api/interviews/${rowId}`;
-                } else if (currentTab.includes('Questions')) {
+                } else if (section === 'questions') {
                     endpoint = `/api/question-bank/${rowId}`;
                 }
                 
