@@ -533,16 +533,12 @@
 
         /* Bulk edit controls */
         .bulk-edit-controls {
-            display: none;
+            display: flex; /* Always visible */
             padding: 1rem;
             background: #f8fafc;
             border-bottom: 1px solid #e5e7eb;
             align-items: center;
             gap: 1rem;
-        }
-
-        .bulk-edit-controls.active {
-            display: flex;
         }
 
         .bulk-edit-info {
@@ -4016,15 +4012,12 @@
         }
 
         function updateBulkEditControls() {
-            const controls = document.querySelector('.bulk-edit-controls');
-            const count = document.getElementById('bulk-edit-selected-count');
-            
-            if (selectedRows.size > 0) {
-                controls.classList.add('active');
-                count.textContent = `${selectedRows.size} records selected`;
-            } else {
-                controls.classList.remove('active');
-            }
+            const controlsList = document.querySelectorAll('.bulk-edit-controls');
+            const label = selectedRows.size > 0 ? `${selectedRows.size} records selected` : '0 records selected';
+            controlsList.forEach(ctrl => {
+                const count = ctrl.querySelector('#bulk-edit-selected-count');
+                if (count) count.textContent = label;
+            });
         }
 
         function openBulkEditModal() {
