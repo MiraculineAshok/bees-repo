@@ -2635,7 +2635,7 @@
                     <td data-field="status"><span class="status-badge status-${interview.status}">${interview.status}</span></td>
                     <td data-field="verdict">${interview.verdict || 'N/A'}</td>
                     <td>
-                        <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}', ${JSON.stringify(interview).replace(/"/g, '&quot;')})" title="Edit">✏️</button>
+                        <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit">✏️</button>
                         <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete">🗑️</button>
                         <button class="icon-btn" onclick="viewInterview(${interview.id})" title="View">👁️</button>
                     </td>
@@ -2873,7 +2873,7 @@
                     <td data-field="incorrect_answers">${question.incorrect_answers || question.times_answered_incorrectly || 0}</td>
                     <td data-field="success_rate">${question.success_rate || 0}%</td>
                     <td>
-                        <button class="icon-btn edit-btn" onclick="startEdit('${question.id}', ${JSON.stringify(question).replace(/"/g, '&quot;')})" title="Edit">✏️</button>
+                        <button class="icon-btn edit-btn" onclick="startEdit('${question.id}')" title="Edit">✏️</button>
                         <button class="icon-btn delete-btn" onclick="deleteQuestion('${question.id}')" title="Delete">🗑️</button>
                         <button class="icon-btn" onclick="viewQuestion(${question.id})" title="View">👁️</button>
                     </td>
@@ -2985,15 +2985,15 @@
                 </tr>
             `).join('');
 
-            // Attach reliable click handlers for all edit buttons (avoids inline/onHTML parsing edge cases)
-            tbody.querySelectorAll('.edit-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const tr = e.currentTarget.closest('tr');
-                    const id = tr && tr.getAttribute('data-row-id');
-                    if (id) startEdit(id);
-                }, { once: false });
+            // Attach reliable click handlers for all edit buttons (avoid inline parsing edge cases)
+            tbody.addEventListener('click', (e) => {
+                const btn = e.target.closest('.edit-btn');
+                if (!btn) return;
+                e.preventDefault();
+                e.stopPropagation();
+                const tr = btn.closest('tr');
+                const id = tr && tr.getAttribute('data-row-id');
+                if (id) startEdit(id);
             });
             
             // Clear any editing state when data is refreshed
@@ -3037,7 +3037,7 @@
                     <td data-field="phone">${student.phone || 'N/A'}</td>
                     <td data-field="interview_count">${student.interview_count || 0}</td>
                     <td>
-                        <button class="icon-btn edit-btn" onclick="startEdit('${student.id}', ${JSON.stringify(student).replace(/"/g, '&quot;')})" title="Edit">✏️</button>
+                        <button class="icon-btn edit-btn" onclick="startEdit('${student.id}')" title="Edit">✏️</button>
                         <button class="icon-btn delete-btn" onclick="deleteRecord('${student.id}', 'student')" title="Delete">🗑️</button>
                         <button class="icon-btn" onclick="viewStudent(${student.id})" title="View">👁️</button>
                     </td>
@@ -4226,7 +4226,8 @@
                 const field = cell.dataset.field;
                 if (field && field !== 'id' && field !== 'interview_count' && field !== 'created_by_name' && field !== 'created_at' && field !== 'student_name' && field !== 'zeta_id' && field !== 'session_name' && field !== 'duration_seconds' && field !== 'interviewer_name' && field !== 'interview_date') {
                     const currentValue = cell.textContent.trim();
-                    cell.innerHTML = `<input type="text" class="edit-input" value="${currentValue}" data-field="${field}">`;
+                    const inputId = `edit-${rowId}-${field}`;
+                    cell.innerHTML = `<input type="text" id="${inputId}" name="${field}" class="edit-input" value="${currentValue}" data-field="${field}">`;
                 }
             });
             
