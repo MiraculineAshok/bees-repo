@@ -2157,6 +2157,26 @@
             });
         }
 
+        // Reload only the currently active tab's data (avoids relying on click side-effects)
+        function reloadCurrentTab() {
+            const active = document.querySelector('.nav-link.active');
+            if (!active) return;
+            const section = active.dataset.section || '';
+            if (section === 'students') {
+                loadStudents();
+            } else if (section === 'sessions') {
+                loadSessions();
+            } else if (section === 'interviews') {
+                loadInterviews();
+            } else if (section === 'questions') {
+                loadQuestions();
+            } else if (section === 'my-interviews') {
+                loadMyInterviewsForAdmin();
+            } else if (section === 'overview') {
+                loadOverviewStats();
+            }
+        }
+
         function setupEventListeners() {
             // Navigation
             document.querySelectorAll('.nav-link').forEach(link => {
@@ -4347,13 +4367,13 @@
                 
                 if (result.success) {
                     showSuccess('Record updated successfully');
-                    // Exit edit mode and refresh data
+                    // Exit edit mode (remove editing class for the row, clear state)
+                    const editedRow = document.querySelector(`[data-row-id="${rowId}"]`);
+                    if (editedRow) editedRow.classList.remove('editing');
                     currentEditRow = null;
                     currentEditData = null;
-                    const activeTab = document.querySelector('.nav-link.active');
-                    if (activeTab) {
-                        activeTab.click();
-                    }
+                    // Reload the active tab's data to reflect latest DB values
+                    reloadCurrentTab();
                 } else {
                     showError('Error updating record: ' + result.error);
                 }
