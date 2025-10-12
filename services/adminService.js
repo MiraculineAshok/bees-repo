@@ -289,16 +289,31 @@ class AdminService {
 
             const session = sessionResult.rows[0];
 
-            // Add panelists if provided
+            // Add panelists if provided (skip gracefully if table doesn't exist)
             if (sessionData.panelists && sessionData.panelists.length > 0) {
-                for (const panelist of sessionData.panelists) {
-                    await client.query(`
-                        INSERT INTO session_panelists (session_id, user_id)
-                        VALUES ($1, $2)
-                        ON CONFLICT (session_id, user_id) DO NOTHING
-                    `, [session.id, panelist.id]);
+                try {
+                    const reg = await client.query(`SELECT to_regclass('public.session_panelists') as reg`);
+                    const hasTable = !!reg.rows[0]?.reg;
+                    if (!hasTable) {
+                        console.warn('⚠️ session_panelists table not found. Skipping panelist inserts.');
+                    } else {
+                        for (const panelist of sessionData.panelists) {
+                            await client.query(`
+                                INSERT INTO session_panelists (session_id, user_id)
+                                VALUES ($1, $2)
+                                ON CONFLICT (session_id, user_id) DO NOTHING
+                            `, [session.id, panelist.id]);
+                        }
+                        console.log(`✅ Added ${sessionData.panelists.length} panelists to session`);
+                    }
+                } catch (panelErr) {
+                    // If table truly doesn't exist or any error occurs, log and continue
+                    if (panelErr.code === '42P01') {
+                        console.warn('⚠️ session_panelists table missing, continuing without panelists');
+                    } else {
+                        console.warn('⚠️ Error adding panelists (continuing):', panelErr.message);
+                    }
                 }
-                console.log(`✅ Added ${sessionData.panelists.length} panelists to session`);
             }
 
             await client.query('COMMIT');
