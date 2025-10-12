@@ -2965,15 +2965,18 @@
             }
             
             console.log('Displaying', questions.length, 'questions');
-            listContainer.innerHTML = questions.map(question => `
-                <div class="question-bank-item" onclick="selectQuestionFromBank(${question.id}, ${JSON.stringify(question.question)}, this)">
+            listContainer.innerHTML = questions.map(question => {
+                const escapedQuestion = question.question.replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n');
+                return `
+                <div class="question-bank-item" onclick="selectQuestionFromBank(${question.id}, '${escapedQuestion}', this)">
                     <div class="question-text">${question.question}</div>
                     <div class="question-meta">
                         <span class="question-category">${question.category}</span>
                         <span class="question-times-asked">Asked ${question.times_asked} times</span>
                     </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
             console.log('Question bank list updated in DOM');
         }
 
