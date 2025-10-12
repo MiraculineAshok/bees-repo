@@ -4668,17 +4668,21 @@
                 inputs.forEach(input => {
                     const field = input.dataset.field;
                     if (allowedFields.includes(field)) {
-                        if (field === 'panelists') {
-                            const select = document.querySelector(`#panelist-select-${rowId}`);
-                            const ids = Array.from(select ? select.selectedOptions : []).map(o => parseInt(o.value));
-                            updateData['panelist_ids'] = ids;
-                        } else {
-                            updateData[field] = input.value;
-                        }
+                        updateData[field] = input.value;
                     } else {
-                        console.warn(`Field "${field}" is not editable in section: ${section}`);
+                        // panelists is handled separately for sessions
+                        if (!(section === 'sessions' && field === 'panelists')) {
+                            console.warn(`Field "${field}" is not editable in section: ${section}`);
+                        }
                     }
                 });
+
+                // Always capture panelists selection for sessions, even if not in allowedFields
+                if (section === 'sessions') {
+                    const select = document.querySelector(`#panelist-select-${rowId}`);
+                    const ids = Array.from(select ? select.selectedOptions : []).map(o => parseInt(o.value)).filter(n => !Number.isNaN(n));
+                    updateData['panelist_ids'] = ids;
+                }
 
                 if (Object.keys(updateData).length === 0) {
                     showError('No valid fields to update');
@@ -4709,12 +4713,12 @@
                 
                 if (result.success) {
                     // Update panelists if provided
-                    if (section === 'sessions' && Array.isArray(updateData.panelist_ids)) {
+                    if (section === 'sessions') {
                         try {
                             await fetch(`/api/sessions/${rowId}/panelists`, {
                                 method: 'PUT',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ panelist_ids: updateData.panelist_ids })
+                                body: JSON.stringify({ panelist_ids: Array.isArray(updateData.panelist_ids) ? updateData.panelist_ids : [] })
                             });
                         } catch (e) { console.warn('Panelists update failed:', e); }
                     }
