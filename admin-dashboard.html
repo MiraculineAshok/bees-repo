@@ -4501,8 +4501,23 @@
 
                 // Special handling for Students: split name into first_name and last_name
                 if ((typeof currentSection !== 'undefined' && currentSection === 'students') && field === 'name') {
-                    const first = (currentEditData && currentEditData.first_name) ? currentEditData.first_name : '';
-                    const last = (currentEditData && currentEditData.last_name) ? currentEditData.last_name : '';
+                    // Handle both cases: if name field exists or if first_name/last_name exist separately
+                    let first = '';
+                    let last = '';
+                    
+                    if (currentEditData) {
+                        if (currentEditData.name) {
+                            // If name field exists, split it
+                            const nameParts = currentEditData.name.split(' ');
+                            first = nameParts[0] || '';
+                            last = nameParts.slice(1).join(' ') || '';
+                        } else {
+                            // If separate first_name/last_name fields exist
+                            first = currentEditData.first_name || '';
+                            last = currentEditData.last_name || '';
+                        }
+                    }
+                    
                     cell.innerHTML = `
                         <input type="text" id="edit-${rowId}-first_name" name="first_name" class="edit-input" value="${first}" data-field="first_name" placeholder="First name" style="margin-right:6px;">
                         <input type="text" id="edit-${rowId}-last_name" name="last_name" class="edit-input" value="${last}" data-field="last_name" placeholder="Last name">
