@@ -2452,30 +2452,36 @@
             console.log('File selected:', file.name, file.type, file.size);
 
             try {
+                // Direct Cloudinary upload using unsigned preset
+                const cloudName = 'dokomrjyc';
+                const uploadPreset = 'ml_default';
+                
                 const formData = new FormData();
-                formData.append('photo', file);
+                formData.append('file', file);
+                formData.append('upload_preset', uploadPreset);
+                formData.append('folder', 'interview-answers'); // Optional: organize in folder
 
-                console.log('Uploading photo...');
-                const response = await fetch('/api/upload-photo', {
+                console.log('Uploading directly to Cloudinary...');
+                const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
                     method: 'POST',
                     body: formData
                 });
 
-                console.log('Upload response status:', response.status);
+                console.log('Cloudinary upload response status:', response.status);
                 const result = await response.json();
-                console.log('Upload response:', result);
+                console.log('Cloudinary upload response:', result);
 
-                if (response.ok && result.success) {
-                    // Update the answer with the photo URL
+                if (response.ok && result.secure_url) {
+                    // Update the answer with the Cloudinary URL
                     const currentAnswer = questions.find(q => q.id === questionId)?.student_answer || '';
-                    const photoUrl = result.data.photoUrl || result.data.path; // Handle both formats
-                    console.log('Photo URL:', photoUrl);
+                    const photoUrl = result.secure_url;
+                    console.log('✅ Cloudinary photo URL:', photoUrl);
                     
                     // Update the local questions array immediately
                     const questionIndex = questions.findIndex(q => q.id == questionId); // Use == for type coercion
                     if (questionIndex !== -1) {
                         questions[questionIndex].answer_photo_url = photoUrl;
-                        console.log('✅ Updated local question with photo URL:', questions[questionIndex]);
+                        console.log('✅ Updated local question with Cloudinary URL:', questions[questionIndex]);
                         console.log('📸 Photo URL set to:', photoUrl);
                     } else {
                         console.error('❌ Question not found in local array. QuestionId:', questionId, 'Available IDs:', questions.map(q => q.id));
@@ -2487,14 +2493,14 @@
                     // Refresh the display
                     console.log('🔄 Refreshing display with questions:', questions);
                     displayQuestions();
-                    showSuccess('Image uploaded successfully!');
+                    showSuccess('Image uploaded to Cloudinary successfully!');
                 } else {
-                    console.error('Upload failed:', result);
-                    showError('Failed to upload photo: ' + (result.error || 'Unknown error'));
+                    console.error('Cloudinary upload failed:', result);
+                    showError('Failed to upload photo to Cloudinary: ' + (result.error?.message || 'Unknown error'));
                 }
             } catch (error) {
-                console.error('Error uploading photo:', error);
-                showError('Error uploading photo: ' + error.message);
+                console.error('Error uploading photo to Cloudinary:', error);
+                showError('Error uploading photo to Cloudinary: ' + error.message);
             }
         }
 
