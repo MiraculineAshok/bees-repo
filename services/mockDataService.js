@@ -444,6 +444,19 @@ class MockDataService {
         return Promise.resolve({ ...this.interviewQuestions[index] });
     }
 
+    updateQuestionText(questionId, questionText) {
+        const index = this.interviewQuestions.findIndex(q => q.id === parseInt(questionId));
+        if (index === -1) {
+            throw new Error('Question not found');
+        }
+        this.interviewQuestions[index] = {
+            ...this.interviewQuestions[index],
+            question_text: questionText,
+            updated_at: new Date().toISOString()
+        };
+        return Promise.resolve({ ...this.interviewQuestions[index] });
+    }
+
     getInterviewQuestions(interviewId) {
         const questions = this.interviewQuestions
             .filter(q => q.interview_id === parseInt(interviewId))

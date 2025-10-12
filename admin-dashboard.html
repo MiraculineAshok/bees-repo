@@ -1160,6 +1160,46 @@
             margin-top: 0.5rem;
             border: 1px solid #cccccc;
         }
+        
+        .question-answer-item {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: #f7fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .question-header, .answer-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+        
+        .question-header p, .answer-section p {
+            flex: 1;
+            margin: 0;
+            margin-right: 0.5rem;
+        }
+        
+        .question-text-display, .answer-text-display {
+            word-wrap: break-word;
+        }
+        
+        .question-edit-input, .answer-edit-input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .edit-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
 
         .panel-overlay {
             position: fixed;
@@ -3813,9 +3853,15 @@
                     const questionsData = await questionsResponse.json();
                     if (questionsData.success && questionsData.data.length > 0) {
                         questionsHtml = questionsData.data.map((q, index) => `
-                            <div class="question-answer-item">
-                                <p><strong>Q${index + 1}:</strong> ${q.question_text}</p>
-                                <p><strong>Answer:</strong> ${q.student_answer || 'No answer provided'}</p>
+                            <div class="question-answer-item" id="question-${q.id}">
+                                <div class="question-header">
+                                    <p><strong>Q${index + 1}:</strong> <span class="question-text-display">${q.question_text}</span></p>
+                                    <button class="icon-btn edit-btn" onclick="editQuestionText(${q.id}, '${q.question_text.replace(/'/g, "\\'")}')" title="Edit Question">✏️</button>
+                                </div>
+                                <div class="answer-section">
+                                    <p><strong>Answer:</strong> <span class="answer-text-display">${q.student_answer || 'No answer provided'}</span></p>
+                                    <button class="icon-btn edit-btn" onclick="editQuestionAnswer(${q.id}, '${(q.student_answer || '').replace(/'/g, "\\'")}')" title="Edit Answer">✏️</button>
+                                </div>
                                 ${q.answer_photo_url ? `<img src="${q.answer_photo_url}" alt="Answer photo" class="answer-image" onclick="openImageModal('${q.answer_photo_url.replace(/'/g, "\\'")}')">` : ''}
                             </div>
                         `).join('');
@@ -3880,6 +3926,189 @@
                 console.error('❌ Error message:', error.message);
                 showError(`Error loading interview details: ${error.message}`);
             }
+        }
+
+        // Edit question text in interview details
+        async function editQuestionText(questionId, currentText) {
+            const questionElement = document.getElementById(`question-${questionId}`);
+            const questionDisplay = questionElement.querySelector('.question-text-display');
+            const editButton = questionElement.querySelector('.question-header .edit-btn');
+            
+            // Create input field
+            const input = document.createElement('textarea');
+            input.className = 'question-edit-input';
+            input.value = currentText;
+            input.rows = 3;
+            
+            // Create action buttons
+            const actions = document.createElement('div');
+            actions.className = 'edit-actions';
+            actions.innerHTML = `
+                <button class="btn btn-success" onclick="saveQuestionText(${questionId})">Save</button>
+                <button class="btn btn-secondary" onclick="cancelQuestionTextEdit(${questionId}, '${currentText.replace(/'/g, "\\'")}')">Cancel</button>
+            `;
+            
+            // Replace display with input
+            questionDisplay.style.display = 'none';
+            editButton.style.display = 'none';
+            questionDisplay.parentNode.insertBefore(input, questionDisplay);
+            questionDisplay.parentNode.insertBefore(actions, questionDisplay);
+            
+            // Focus and select text
+            input.focus();
+            input.select();
+        }
+        
+        // Save question text
+        async function saveQuestionText(questionId) {
+            const questionElement = document.getElementById(`question-${questionId}`);
+            const input = questionElement.querySelector('.question-edit-input');
+            const newText = input.value.trim();
+            
+            if (!newText) {
+                showError('Question text cannot be empty');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/interview-questions/${questionId}/text`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        question_text: newText
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    // Update display
+                    const questionDisplay = questionElement.querySelector('.question-text-display');
+                    questionDisplay.textContent = newText;
+                    questionDisplay.style.display = 'inline';
+                    
+                    // Show edit button
+                    const editButton = questionElement.querySelector('.question-header .edit-btn');
+                    editButton.style.display = 'inline-block';
+                    
+                    // Remove input and actions
+                    input.remove();
+                    questionElement.querySelector('.edit-actions').remove();
+                    
+                    showSuccess('Question updated successfully');
+                } else {
+                    showError(result.error || 'Error updating question');
+                }
+            } catch (error) {
+                console.error('Error updating question:', error);
+                showError('Error updating question');
+            }
+        }
+        
+        // Cancel question text edit
+        function cancelQuestionTextEdit(questionId, originalText) {
+            const questionElement = document.getElementById(`question-${questionId}`);
+            const questionDisplay = questionElement.querySelector('.question-text-display');
+            const editButton = questionElement.querySelector('.question-header .edit-btn');
+            
+            // Restore display
+            questionDisplay.style.display = 'inline';
+            editButton.style.display = 'inline-block';
+            
+            // Remove input and actions
+            questionElement.querySelector('.question-edit-input').remove();
+            questionElement.querySelector('.edit-actions').remove();
+        }
+        
+        // Edit question answer in interview details
+        async function editQuestionAnswer(questionId, currentAnswer) {
+            const questionElement = document.getElementById(`question-${questionId}`);
+            const answerDisplay = questionElement.querySelector('.answer-text-display');
+            const editButton = questionElement.querySelector('.answer-section .edit-btn');
+            
+            // Create input field
+            const input = document.createElement('textarea');
+            input.className = 'answer-edit-input';
+            input.value = currentAnswer;
+            input.rows = 3;
+            
+            // Create action buttons
+            const actions = document.createElement('div');
+            actions.className = 'edit-actions';
+            actions.innerHTML = `
+                <button class="btn btn-success" onclick="saveQuestionAnswer(${questionId})">Save</button>
+                <button class="btn btn-secondary" onclick="cancelQuestionAnswerEdit(${questionId}, '${currentAnswer.replace(/'/g, "\\'")}')">Cancel</button>
+            `;
+            
+            // Replace display with input
+            answerDisplay.style.display = 'none';
+            editButton.style.display = 'none';
+            answerDisplay.parentNode.insertBefore(input, answerDisplay);
+            answerDisplay.parentNode.insertBefore(actions, answerDisplay);
+            
+            // Focus and select text
+            input.focus();
+            input.select();
+        }
+        
+        // Save question answer
+        async function saveQuestionAnswer(questionId) {
+            const questionElement = document.getElementById(`question-${questionId}`);
+            const input = questionElement.querySelector('.answer-edit-input');
+            const newAnswer = input.value.trim();
+            
+            try {
+                const response = await fetch(`/api/interview-questions/${questionId}/answer`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        student_answer: newAnswer
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    // Update display
+                    const answerDisplay = questionElement.querySelector('.answer-text-display');
+                    answerDisplay.textContent = newAnswer || 'No answer provided';
+                    answerDisplay.style.display = 'inline';
+                    
+                    // Show edit button
+                    const editButton = questionElement.querySelector('.answer-section .edit-btn');
+                    editButton.style.display = 'inline-block';
+                    
+                    // Remove input and actions
+                    input.remove();
+                    questionElement.querySelector('.edit-actions').remove();
+                    
+                    showSuccess('Answer updated successfully');
+                } else {
+                    showError(result.error || 'Error updating answer');
+                }
+            } catch (error) {
+                console.error('Error updating answer:', error);
+                showError('Error updating answer');
+            }
+        }
+        
+        // Cancel question answer edit
+        function cancelQuestionAnswerEdit(questionId, originalAnswer) {
+            const questionElement = document.getElementById(`question-${questionId}`);
+            const answerDisplay = questionElement.querySelector('.answer-text-display');
+            const editButton = questionElement.querySelector('.answer-section .edit-btn');
+            
+            // Restore display
+            answerDisplay.style.display = 'inline';
+            editButton.style.display = 'inline-block';
+            
+            // Remove input and actions
+            questionElement.querySelector('.answer-edit-input').remove();
+            questionElement.querySelector('.edit-actions').remove();
         }
 
         // Question Detail View

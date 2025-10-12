@@ -252,6 +252,34 @@ class InterviewService {
         }
     }
 
+    static async updateQuestionText(questionId, questionText) {
+        if (!(await this.isDatabaseAvailable())) {
+            return mockDataService.updateQuestionText(questionId, questionText);
+        }
+
+        try {
+            console.log('🔄 Updating question text:', { questionId, questionText });
+            
+            const result = await pool.query(
+                `UPDATE interview_questions 
+                 SET question_text = $1, updated_at = CURRENT_TIMESTAMP
+                 WHERE id = $2 
+                 RETURNING *`,
+                [questionText, questionId]
+            );
+            
+            if (result.rows.length === 0) {
+                throw new Error('Question not found');
+            }
+            
+            console.log('✅ Question text updated successfully');
+            return result.rows[0];
+        } catch (error) {
+            console.error('❌ Error updating question text:', error);
+            throw error;
+        }
+    }
+
     static async updateQuestionBankStatistics(questionId, isCorrect) {
         if (!(await this.isDatabaseAvailable())) {
             return; // Skip for mock data

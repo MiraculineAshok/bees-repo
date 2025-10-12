@@ -779,6 +779,31 @@ app.put('/api/interview-questions/:questionId/correctness', async (req, res) => 
   }
 });
 
+// Update question text
+app.put('/api/interview-questions/:questionId/text', async (req, res) => {
+  try {
+    const { question_text } = req.body;
+    console.log('🔍 Server: updateQuestionText API called with:', {
+      questionId: req.params.questionId,
+      question_text
+    });
+
+    const question = await InterviewService.updateQuestionText(req.params.questionId, question_text);
+    console.log('✅ Server: updateQuestionText successful, returning:', question);
+    
+    res.json({
+      success: true,
+      data: question
+    });
+  } catch (error) {
+    console.error('❌ Server: updateQuestionText error:', error);
+    res.status(400).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Individual edit endpoints
 app.put('/api/students/:id', async (req, res) => {
   try {
