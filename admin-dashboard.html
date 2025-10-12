@@ -2152,6 +2152,7 @@
                     actions.innerHTML = `
                         <button class="btn btn-secondary" onclick="selectAllRows()">Select All</button>
                         <button class="btn btn-secondary" onclick="clearSelection()">Clear</button>
+                        <button class="btn btn-danger" onclick="bulkDelete()">Bulk Delete</button>
                         <button class="btn btn-primary" onclick="openBulkEditModal()">Bulk Edit</button>
                     `;
                     control.appendChild(actions);
@@ -4180,6 +4181,53 @@
             modal.classList.add('active');
         }
 
+        async function bulkDelete() {
+            if (selectedRows.size === 0) {
+                showError('Please select records to delete');
+                return;
+            }
+            const proceed = await new Promise(resolve => {
+                const overlay = document.createElement('div');
+                overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
+                overlay.innerHTML = `
+                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;min-width:300px;max-width:90%;padding:16px;box-shadow:0 10px 20px rgba(0,0,0,0.15)">
+                    <div style="font-weight:600;margin-bottom:8px;color:#111827">Delete ${selectedRows.size} records?</div>
+                    <div style="font-size:14px;color:#374151;margin-bottom:12px">Are you sure you want to delete the selected records? This cannot be undone.</div>
+                    <div style="display:flex;gap:8px;justify-content:flex-end">
+                      <button id="bd-cancel" style="border:1px solid #e5e7eb;background:#fff;padding:6px 10px;border-radius:6px;cursor:pointer">Cancel</button>
+                      <button id="bd-ok" style="background:#dc2626;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer">Delete</button>
+                    </div>
+                  </div>`;
+                document.body.appendChild(overlay);
+                overlay.querySelector('#bd-cancel').onclick = ()=> { overlay.remove(); resolve(false); };
+                overlay.querySelector('#bd-ok').onclick = ()=> { overlay.remove(); resolve(true); };
+            });
+            if (!proceed) return;
+
+            const section = (typeof currentSection !== 'undefined' && currentSection) ? currentSection : (document.querySelector('.nav-link.active') ? document.querySelector('.nav-link.active').dataset.section : '');
+            const prefixBySection = {
+                'students': '/api/students/',
+                'sessions': '/api/sessions/',
+                'interviews': '/api/interviews/',
+                'my-interviews': '/api/interviews/',
+                'questions': '/api/question-bank/'
+            };
+            const prefix = prefixBySection[section];
+            if (!prefix) { showError('Cannot resolve delete endpoint'); return; }
+
+            let successCount = 0;
+            for (const id of Array.from(selectedRows)) {
+                try {
+                    const res = await fetch(`${prefix}${id}`, { method: 'DELETE' });
+                    const json = await res.json().catch(()=>({success:res.ok}));
+                    if (res.ok && json.success !== false) successCount++;
+                } catch {}
+            }
+            showSuccess(`Deleted ${successCount} of ${selectedRows.size} records`);
+            clearSelection();
+            reloadCurrentTab();
+        }
+
         function closeBulkEditModal() {
             const modal = document.getElementById('bulk-edit-modal');
             if (modal) {
@@ -4606,16 +4654,16 @@
             if (!proceed) return;
 
             try {
-                const currentTab = document.querySelector('.nav-link.active').textContent.trim();
+                const section = (typeof currentSection !== 'undefined' && currentSection) ? currentSection : (document.querySelector('.nav-link.active') ? document.querySelector('.nav-link.active').dataset.section : '');
                 let endpoint = '';
 
-                if (currentTab.includes('Students')) {
+                if (section === 'students') {
                     endpoint = `/api/students/${rowId}`;
-                } else if (currentTab.includes('Interview Sessions')) {
+                } else if (section === 'sessions') {
                     endpoint = `/api/sessions/${rowId}`;
-                } else if (currentTab.includes('Interviews') || currentTab.includes('My Interviews')) {
+                } else if (section === 'interviews' || section === 'my-interviews') {
                     endpoint = `/api/interviews/${rowId}`;
-                } else if (currentTab.includes('Questions')) {
+                } else if (section === 'questions') {
                     endpoint = `/api/question-bank/${rowId}`;
                 }
 
@@ -4627,11 +4675,7 @@
 
                 if (result.success) {
                     showSuccess(`${type} deleted successfully`);
-                    // Refresh current tab data
-                    const activeTab = document.querySelector('.nav-link.active');
-                    if (activeTab) {
-                        activeTab.click();
-                    }
+                    reloadCurrentTab();
                 } else {
                     showError(`Error deleting ${type}: ${result.error}`);
                 }

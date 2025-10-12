@@ -864,38 +864,39 @@ app.put('/api/question-bank/bulk', async (req, res) => {
 app.delete('/api/interviews/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    
-    // For now, return a mock response since we don't have a delete interview method
-    // In a real implementation, you would add this to InterviewService
-    res.json({
-      success: true,
-      message: 'Interview deleted successfully'
-    });
+    if (!(await InterviewService.isDatabaseAvailable())) {
+      return res.json({ success: true, message: 'Interview deleted (mock)' });
+    }
+    const result = await pool.query('DELETE FROM interviews WHERE id = $1 RETURNING id', [id]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ success: false, error: 'Interview not found' });
+    }
+    res.json({ success: true, message: 'Interview deleted successfully' });
   } catch (error) {
     console.error('Error deleting interview:', error);
-    res.status(400).json({
-      success: false,
-      error: error.message
-    });
+    res.status(400).json({ success: false, error: error.message });
   }
 });
 
 app.delete('/api/sessions/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    
-    // For now, return a mock response since we don't have a delete session method
-    // In a real implementation, you would add this to SessionService
-    res.json({
-      success: true,
-      message: 'Session deleted successfully'
-    });
+    if (!(await AdminService.isDatabaseAvailable())) {
+      return res.json({ success: true, message: 'Session deleted (mock)' });
+    }
+    // Prevent deleting sessions with interviews
+    const cnt = await pool.query('SELECT COUNT(*) AS c FROM interviews WHERE session_id = $1', [id]);
+    if (parseInt(cnt.rows[0].c) > 0) {
+      return res.status(400).json({ success: false, error: 'Cannot delete session with existing interviews' });
+    }
+    const result = await pool.query('DELETE FROM interview_sessions WHERE id = $1 RETURNING id', [id]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ success: false, error: 'Session not found' });
+    }
+    res.json({ success: true, message: 'Session deleted successfully' });
   } catch (error) {
     console.error('Error deleting session:', error);
-    res.status(400).json({
-      success: false,
-      error: error.message
-    });
+    res.status(400).json({ success: false, error: error.message });
   }
 });
 
