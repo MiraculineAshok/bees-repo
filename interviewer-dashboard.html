@@ -702,6 +702,38 @@
                    margin: 0.5rem 0;
                    color: #000000;
                }
+               
+               .question-header, .answer-section {
+                   display: flex;
+                   justify-content: space-between;
+                   align-items: flex-start;
+                   margin-bottom: 0.5rem;
+               }
+               
+               .question-header p, .answer-section p {
+                   flex: 1;
+                   margin: 0;
+                   margin-right: 0.5rem;
+               }
+               
+               .question-text-display, .answer-text-display {
+                   word-wrap: break-word;
+               }
+               
+               .question-edit-input, .answer-edit-input {
+                   width: 100%;
+                   padding: 0.5rem;
+                   border: 1px solid #d1d5db;
+                   border-radius: 4px;
+                   font-size: 0.9rem;
+                   margin-bottom: 0.5rem;
+               }
+               
+               .edit-actions {
+                   display: flex;
+                   gap: 0.5rem;
+                   margin-top: 0.5rem;
+               }
 
                .answer-image {
                    max-width: 100%;
@@ -2290,9 +2322,15 @@
                     const questionsData = await questionsResponse.json();
                     if (questionsData.success && questionsData.data.length > 0) {
                         questionsHtml = questionsData.data.map((q, index) => `
-                            <div class="question-answer-item">
-                                <p><strong>Q${index + 1}:</strong> ${q.question_text}</p>
-                                <p><strong>Answer:</strong> ${q.student_answer || 'No answer provided'}</p>
+                            <div class="question-answer-item" id="question-${q.id}">
+                                <div class="question-header">
+                                    <p><strong>Q${index + 1}:</strong> <span class="question-text-display">${q.question_text}</span></p>
+                                    <button class="icon-btn edit-btn" onclick="editQuestionText(${q.id}, '${q.question_text.replace(/'/g, "\\'")}')" title="Edit Question">✏️</button>
+                                </div>
+                                <div class="answer-section">
+                                    <p><strong>Answer:</strong> <span class="answer-text-display">${q.student_answer || 'No answer provided'}</span></p>
+                                    <button class="icon-btn edit-btn" onclick="editQuestionAnswer(${q.id}, '${(q.student_answer || '').replace(/'/g, "\\'")}')" title="Edit Answer">✏️</button>
+                                </div>
                                 ${q.answer_photo_url ? `<img src="${q.answer_photo_url}" alt="Answer photo" class="answer-image" onclick="openImageModal('${q.answer_photo_url}')">` : ''}
                             </div>
                         `).join('');
@@ -2726,6 +2764,204 @@
             // Implementation depends on the specific delete functionality
             // This would call the appropriate delete API endpoint
             console.log(`Delete ${type} with ID: ${rowId}`);
+        }
+
+        // Edit question text in interview details
+        async function editQuestionText(questionId, currentText) {
+            const questionElement = document.getElementById(`question-${questionId}`);
+            const questionDisplay = questionElement.querySelector('.question-text-display');
+            const editButton = questionElement.querySelector('.question-header .edit-btn');
+            
+            // Create input field
+            const input = document.createElement('textarea');
+            input.className = 'question-edit-input';
+            input.value = currentText;
+            input.rows = 3;
+            
+            // Create action buttons
+            const actions = document.createElement('div');
+            actions.className = 'edit-actions';
+            actions.innerHTML = `
+                <button class="btn btn-success" onclick="saveQuestionText(${questionId})">Save</button>
+                <button class="btn btn-secondary" onclick="cancelQuestionTextEdit(${questionId}, '${currentText.replace(/'/g, "\\'")}')">Cancel</button>
+            `;
+            
+            // Replace display with input
+            questionDisplay.style.display = 'none';
+            editButton.style.display = 'none';
+            questionDisplay.parentNode.insertBefore(input, questionDisplay);
+            questionDisplay.parentNode.insertBefore(actions, questionDisplay);
+            
+            // Focus and select text
+            input.focus();
+            input.select();
+        }
+        
+        // Save question text
+        async function saveQuestionText(questionId) {
+            const questionElement = document.getElementById(`question-${questionId}`);
+            const input = questionElement.querySelector('.question-edit-input');
+            const newText = input.value.trim();
+            
+            if (!newText) {
+                showError('Question text cannot be empty');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/interview-questions/${questionId}/text`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        question_text: newText
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    // Update display
+                    const questionDisplay = questionElement.querySelector('.question-text-display');
+                    questionDisplay.textContent = newText;
+                    questionDisplay.style.display = 'inline';
+                    
+                    // Show edit button
+                    const editButton = questionElement.querySelector('.question-header .edit-btn');
+                    editButton.style.display = 'inline-block';
+                    
+                    // Remove input and actions
+                    input.remove();
+                    questionElement.querySelector('.edit-actions').remove();
+                    
+                    showSuccess('Question updated successfully');
+                } else {
+                    showError(result.error || 'Error updating question');
+                }
+            } catch (error) {
+                console.error('Error updating question:', error);
+                showError('Error updating question');
+            }
+        }
+        
+        // Cancel question text edit
+        function cancelQuestionTextEdit(questionId, originalText) {
+            const questionElement = document.getElementById(`question-${questionId}`);
+            const questionDisplay = questionElement.querySelector('.question-text-display');
+            const editButton = questionElement.querySelector('.question-header .edit-btn');
+            
+            // Restore display
+            questionDisplay.style.display = 'inline';
+            editButton.style.display = 'inline-block';
+            
+            // Remove input and actions
+            questionElement.querySelector('.question-edit-input').remove();
+            questionElement.querySelector('.edit-actions').remove();
+        }
+        
+        // Edit question answer in interview details
+        async function editQuestionAnswer(questionId, currentAnswer) {
+            const questionElement = document.getElementById(`question-${questionId}`);
+            const answerDisplay = questionElement.querySelector('.answer-text-display');
+            const editButton = questionElement.querySelector('.answer-section .edit-btn');
+            
+            // Create input field
+            const input = document.createElement('textarea');
+            input.className = 'answer-edit-input';
+            input.value = currentAnswer;
+            input.rows = 3;
+            
+            // Create action buttons
+            const actions = document.createElement('div');
+            actions.className = 'edit-actions';
+            actions.innerHTML = `
+                <button class="btn btn-success" onclick="saveQuestionAnswer(${questionId})">Save</button>
+                <button class="btn btn-secondary" onclick="cancelQuestionAnswerEdit(${questionId}, '${currentAnswer.replace(/'/g, "\\'")}')">Cancel</button>
+            `;
+            
+            // Replace display with input
+            answerDisplay.style.display = 'none';
+            editButton.style.display = 'none';
+            answerDisplay.parentNode.insertBefore(input, answerDisplay);
+            answerDisplay.parentNode.insertBefore(actions, answerDisplay);
+            
+            // Focus and select text
+            input.focus();
+            input.select();
+        }
+        
+        // Save question answer
+        async function saveQuestionAnswer(questionId) {
+            const questionElement = document.getElementById(`question-${questionId}`);
+            const input = questionElement.querySelector('.answer-edit-input');
+            const newAnswer = input.value.trim();
+            
+            try {
+                const response = await fetch(`/api/interview-questions/${questionId}/answer`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        student_answer: newAnswer
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    // Update display
+                    const answerDisplay = questionElement.querySelector('.answer-text-display');
+                    answerDisplay.textContent = newAnswer || 'No answer provided';
+                    answerDisplay.style.display = 'inline';
+                    
+                    // Show edit button
+                    const editButton = questionElement.querySelector('.answer-section .edit-btn');
+                    editButton.style.display = 'inline-block';
+                    
+                    // Remove input and actions
+                    input.remove();
+                    questionElement.querySelector('.edit-actions').remove();
+                    
+                    showSuccess('Answer updated successfully');
+                } else {
+                    showError(result.error || 'Error updating answer');
+                }
+            } catch (error) {
+                console.error('Error updating answer:', error);
+                showError('Error updating answer');
+            }
+        }
+        
+        // Cancel question answer edit
+        function cancelQuestionAnswerEdit(questionId, originalAnswer) {
+            const questionElement = document.getElementById(`question-${questionId}`);
+            const answerDisplay = questionElement.querySelector('.answer-text-display');
+            const editButton = questionElement.querySelector('.answer-section .edit-btn');
+            
+            // Restore display
+            answerDisplay.style.display = 'inline';
+            editButton.style.display = 'inline-block';
+            
+            // Remove input and actions
+            questionElement.querySelector('.answer-edit-input').remove();
+            questionElement.querySelector('.edit-actions').remove();
+        }
+        
+        // Show success message (replace alert with modal)
+        function showSuccess(message) {
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
+            modal.innerHTML = `
+                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;min-width:280px;max-width:90%;padding:16px;box-shadow:0 10px 20px rgba(0,0,0,0.15)">
+                    <div style="font-weight:600;margin-bottom:8px;color:#059669">Success</div>
+                    <div style="font-size:14px;color:#374151;margin-bottom:12px">${message}</div>
+                    <div style="display:flex;gap:8px;justify-content:flex-end">
+                        <button onclick="this.closest('div[style*=\"position:fixed\"]').remove()" style="background:#059669;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer">OK</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(modal);
         }
     </script>
 
