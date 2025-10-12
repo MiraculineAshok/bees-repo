@@ -734,6 +734,27 @@
                    gap: 0.5rem;
                    margin-top: 0.5rem;
                }
+               
+               .photo-gallery {
+                   display: flex;
+                   flex-wrap: wrap;
+                   gap: 0.5rem;
+                   margin-top: 0.5rem;
+               }
+               
+               .photo-item {
+                   position: relative;
+                   display: inline-block;
+               }
+               
+               .photo-item img {
+                   width: 80px;
+                   height: 80px;
+                   object-fit: cover;
+                   border-radius: 4px;
+                   border: 1px solid #d1d5db;
+                   cursor: pointer;
+               }
 
                .answer-image {
                    max-width: 100%;
@@ -2325,13 +2346,42 @@
                             <div class="question-answer-item" id="question-${q.id}">
                                 <div class="question-header">
                                     <p><strong>Q${index + 1}:</strong> <span class="question-text-display">${q.question_text}</span></p>
-                                    <button class="icon-btn edit-btn" onclick="editQuestionText(${q.id}, '${q.question_text.replace(/'/g, "\\'")}')" title="Edit Question">✏️</button>
+                                    <button class="icon-btn edit-btn" onclick="editQuestionText(${q.id}, '${q.question_text.replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')" title="Edit Question">✏️</button>
                                 </div>
                                 <div class="answer-section">
                                     <p><strong>Answer:</strong> <span class="answer-text-display">${q.student_answer || 'No answer provided'}</span></p>
-                                    <button class="icon-btn edit-btn" onclick="editQuestionAnswer(${q.id}, '${(q.student_answer || '').replace(/'/g, "\\'")}')" title="Edit Answer">✏️</button>
+                                    <button class="icon-btn edit-btn" onclick="editQuestionAnswer(${q.id}, '${(q.student_answer || '').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')" title="Edit Answer">✏️</button>
                                 </div>
-                                ${q.answer_photo_url ? `<img src="${q.answer_photo_url}" alt="Answer photo" class="answer-image" onclick="openImageModal('${q.answer_photo_url}')">` : ''}
+                                ${q.answer_photo_url ? `
+                                    <div class="photo-gallery">
+                                        ${(() => {
+                                            try {
+                                                const photoUrls = JSON.parse(q.answer_photo_url);
+                                                if (Array.isArray(photoUrls)) {
+                                                    return photoUrls.map((url, index) => `
+                                                        <div class="photo-item">
+                                                            <img src="${url}" alt="Answer photo" class="answer-image" onclick="openImageModal('${url}')">
+                                                        </div>
+                                                    `).join('');
+                                                } else {
+                                                    // Handle single image (backward compatibility)
+                                                    return `
+                                                        <div class="photo-item">
+                                                            <img src="${q.answer_photo_url}" alt="Answer photo" class="answer-image" onclick="openImageModal('${q.answer_photo_url}')">
+                                                        </div>
+                                                    `;
+                                                }
+                                            } catch (e) {
+                                                // Handle single image (backward compatibility)
+                                                return `
+                                                    <div class="photo-item">
+                                                        <img src="${q.answer_photo_url}" alt="Answer photo" class="answer-image" onclick="openImageModal('${q.answer_photo_url}')">
+                                                    </div>
+                                                `;
+                                            }
+                                        })()}
+                                    </div>
+                                ` : ''}
                             </div>
                         `).join('');
                     }
@@ -2783,7 +2833,7 @@
             actions.className = 'edit-actions';
             actions.innerHTML = `
                 <button class="btn btn-success" onclick="saveQuestionText(${questionId})">Save</button>
-                <button class="btn btn-secondary" onclick="cancelQuestionTextEdit(${questionId}, '${currentText.replace(/'/g, "\\'")}')">Cancel</button>
+                <button class="btn btn-secondary" onclick="cancelQuestionTextEdit(${questionId}, '${currentText.replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')">Cancel</button>
             `;
             
             // Replace display with input
@@ -2877,7 +2927,7 @@
             actions.className = 'edit-actions';
             actions.innerHTML = `
                 <button class="btn btn-success" onclick="saveQuestionAnswer(${questionId})">Save</button>
-                <button class="btn btn-secondary" onclick="cancelQuestionAnswerEdit(${questionId}, '${currentAnswer.replace(/'/g, "\\'")}')">Cancel</button>
+                <button class="btn btn-secondary" onclick="cancelQuestionAnswerEdit(${questionId}, '${currentAnswer.replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')">Cancel</button>
             `;
             
             // Replace display with input
