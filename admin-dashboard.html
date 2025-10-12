@@ -2210,6 +2210,17 @@
                 });
             });
 
+            // Global delegated handler for all edit buttons
+            document.addEventListener('click', (e) => {
+                const btn = e.target.closest('.edit-btn');
+                if (!btn) return;
+                e.preventDefault();
+                e.stopPropagation();
+                const tr = btn.closest('tr');
+                const id = tr && tr.getAttribute('data-row-id');
+                if (id) startEdit(id);
+            }, { capture: false });
+
             // Create session form
             document.getElementById('create-session-form').addEventListener('submit', function(e) {
                 e.preventDefault();
