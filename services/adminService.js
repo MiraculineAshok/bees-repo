@@ -244,7 +244,23 @@ class AdminService {
         }
 
         try {
-            const result = await pool.query(`
+            // Detect optional tables to avoid 500s in environments without them
+            let panelistsTableExists = false;
+            try {
+                const reg = await pool.query("SELECT to_regclass('public.session_panelists') as reg");
+                panelistsTableExists = !!reg.rows[0]?.reg;
+            } catch (_) {
+                panelistsTableExists = false;
+            }
+
+            const panelistsSelect = panelistsTableExists
+                ? `COALESCE((SELECT STRING_AGG(au2.name, ', ')
+                             FROM session_panelists sp
+                             JOIN authorized_users au2 ON sp.user_id = au2.id
+                             WHERE sp.session_id = ins.id), '') as panelist_names,`
+                : `'' as panelist_names,`;
+
+            const query = `
                 SELECT 
                     ins.id,
                     ins.name,
@@ -253,21 +269,15 @@ class AdminService {
                     ins.created_at,
                     au.name as created_by_name,
                     au.email as created_by_email,
-                    COUNT(i.id) as interview_count,
-                    COALESCE(
-                      (
-                        SELECT STRING_AGG(au2.name, ', ')
-                        FROM session_panelists sp
-                        JOIN authorized_users au2 ON sp.user_id = au2.id
-                        WHERE sp.session_id = ins.id
-                      ), ''
-                    ) as panelist_names
+                    ${panelistsSelect}
+                    COUNT(i.id) as interview_count
                 FROM interview_sessions ins
                 LEFT JOIN authorized_users au ON ins.created_by = au.id
                 LEFT JOIN interviews i ON ins.id = i.session_id
                 GROUP BY ins.id, ins.name, ins.description, ins.status, ins.created_at, au.name, au.email
-                ORDER BY ins.created_at DESC
-            `);
+                ORDER BY ins.created_at DESC`;
+
+            const result = await pool.query(query);
 
             return result.rows;
         } catch (error) {
