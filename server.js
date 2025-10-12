@@ -680,14 +680,16 @@ app.get('/api/interviews/:id', async (req, res) => {
 
 app.get('/api/interviews/student/:studentId', async (req, res) => {
   try {
-    const interview = await InterviewService.getInterviewByStudentId(req.params.studentId);
+    // Get current interviewer ID from query parameter
+    const currentInterviewerId = req.query.interviewer_id ? parseInt(req.query.interviewer_id) : null;
+    const interview = await InterviewService.getInterviewByStudentId(req.params.studentId, currentInterviewerId);
     res.json({
       success: true,
       data: interview
     });
   } catch (error) {
     console.error('Error getting interview by student:', error);
-    res.status(404).json({
+    res.status(400).json({
       success: false,
       error: error.message
     });

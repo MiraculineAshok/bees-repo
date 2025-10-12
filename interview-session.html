@@ -1469,6 +1469,51 @@
         let durationInterval = null;
         let userRole = 'interviewer'; // Default role
 
+        // Helper function to get current interviewer ID
+        async function getCurrentInterviewerId() {
+            let interviewerId = null;
+            
+            // Try to get from URL parameters first (from OAuth callback)
+            const urlParams = new URLSearchParams(window.location.search);
+            const userEmail = urlParams.get('email');
+            
+            if (userEmail) {
+                // Get user ID from API
+                try {
+                    const response = await fetch(`/api/user/id?email=${encodeURIComponent(userEmail)}`);
+                    const result = await response.json();
+                    if (result.success) {
+                        interviewerId = result.userId;
+                        console.log('✅ Got interviewer ID from API:', interviewerId);
+                    }
+                } catch (error) {
+                    console.error('Error getting user ID from API:', error);
+                }
+            }
+            
+            // Fallback: try to get from localStorage
+            if (!interviewerId) {
+                const storedUserData = localStorage.getItem('bees_user_data');
+                if (storedUserData) {
+                    try {
+                        const userData = JSON.parse(storedUserData);
+                        if (userData.email) {
+                            const response = await fetch(`/api/user/id?email=${encodeURIComponent(userData.email)}`);
+                            const result = await response.json();
+                            if (result.success) {
+                                interviewerId = result.userId;
+                                console.log('✅ Got interviewer ID from localStorage:', interviewerId);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error getting user ID from localStorage:', error);
+                    }
+                }
+            }
+            
+            return interviewerId;
+        }
+
         // Load student data and initialize interview
         async function loadStudentData() {
             try {
@@ -1615,8 +1660,16 @@
             try {
                 console.log('Initializing interview for student:', currentStudent.id);
                 
+                // Get current interviewer ID
+                const currentInterviewerId = await getCurrentInterviewerId();
+                if (!currentInterviewerId) {
+                    console.error('❌ Could not determine interviewer ID');
+                    showError('Unable to identify interviewer. Please log in again.');
+                    return;
+                }
+                
                 // Check if there's already an active interview for this student
-                const response = await fetch(`/api/interviews/student/${currentStudent.id}`);
+                const response = await fetch(`/api/interviews/student/${currentStudent.id}?interviewer_id=${currentInterviewerId}`);
                 const result = await response.json();
                 
                 if (response.ok && result.success && result.data) {
@@ -1628,6 +1681,11 @@
                         startDurationTracking();
                     }
                     await loadQuestions();
+                } else if (response.status === 400 && result.error) {
+                    // Handle the case where another interviewer is already conducting the interview
+                    console.error('Interview conflict:', result.error);
+                    showError(result.error);
+                    return;
                 } else {
                     console.log('No existing interview found, creating new one');
                     // Create new interview
@@ -1651,46 +1709,8 @@
                     return;
                 }
 
-                // Get current user info from localStorage or URL parameters
-                let interviewerId = null;
-                
-                // Try to get from URL parameters first (from OAuth callback)
-                const urlParams = new URLSearchParams(window.location.search);
-                const userEmail = urlParams.get('email');
-                
-                if (userEmail) {
-                    // Get user ID from API
-                    try {
-                        const response = await fetch(`/api/user/id?email=${encodeURIComponent(userEmail)}`);
-                        const result = await response.json();
-                        if (result.success) {
-                            interviewerId = result.userId;
-                            console.log('✅ Got interviewer ID from API:', interviewerId);
-                        }
-                    } catch (error) {
-                        console.error('Error getting user ID from API:', error);
-                    }
-                }
-                
-                // Fallback: try to get from localStorage
-                if (!interviewerId) {
-                    const storedUserData = localStorage.getItem('bees_user_data');
-                    if (storedUserData) {
-                        try {
-                            const userData = JSON.parse(storedUserData);
-                            if (userData.email) {
-                                const response = await fetch(`/api/user/id?email=${encodeURIComponent(userData.email)}`);
-                                const result = await response.json();
-                                if (result.success) {
-                                    interviewerId = result.userId;
-                                    console.log('✅ Got interviewer ID from localStorage:', interviewerId);
-                                }
-                            }
-                        } catch (error) {
-                            console.error('Error getting user ID from localStorage:', error);
-                        }
-                    }
-                }
+                // Get current interviewer ID using helper function
+                const interviewerId = await getCurrentInterviewerId();
                 
                 if (!interviewerId) {
                     console.error('❌ Could not determine interviewer ID');

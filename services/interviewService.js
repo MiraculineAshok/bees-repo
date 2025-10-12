@@ -91,7 +91,7 @@ class InterviewService {
         }
     }
 
-    static async getInterviewByStudentId(studentId) {
+    static async getInterviewByStudentId(studentId, currentInterviewerId = null) {
         if (!(await this.isDatabaseAvailable())) {
             return mockDataService.getInterviewByStudentId(studentId);
         }
@@ -107,7 +107,19 @@ class InterviewService {
                  LIMIT 1`,
                 [studentId]
             );
-            return result.rows[0];
+            
+            const interview = result.rows[0];
+            
+            // If there's an active interview and we have a current interviewer ID
+            if (interview && currentInterviewerId) {
+                // Check if the current interviewer is the one conducting this interview
+                if (interview.interviewer_id !== currentInterviewerId) {
+                    // Another interviewer is already conducting this interview
+                    throw new Error(`Student is already being interviewed by ${interview.interviewer_name} (${interview.interviewer_email}). Please choose a different student.`);
+                }
+            }
+            
+            return interview;
         } catch (error) {
             console.error('Error getting interview by student:', error);
             throw error;

@@ -381,8 +381,18 @@ class MockDataService {
         return Promise.resolve({ ...interview });
     }
 
-    getInterviewByStudentId(studentId) {
+    getInterviewByStudentId(studentId, currentInterviewerId = null) {
         const interview = this.interviews.find(i => i.student_id === parseInt(studentId) && i.status === 'in_progress');
+        
+        // If there's an active interview and we have a current interviewer ID
+        if (interview && currentInterviewerId) {
+            // Check if the current interviewer is the one conducting this interview
+            if (interview.interviewer_id !== currentInterviewerId) {
+                // Another interviewer is already conducting this interview
+                throw new Error(`Student is already being interviewed by another interviewer. Please choose a different student.`);
+            }
+        }
+        
         return Promise.resolve(interview ? { ...interview } : null);
     }
 
