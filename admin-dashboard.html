@@ -3036,8 +3036,8 @@
                     <td data-field="name">${session.name}</td>
                     <td data-field="description">${session.description || 'N/A'}</td>
                     <td data-field="status"><span class="status-badge status-${session.status}">${session.status}</span></td>
-                    <td data-field="created_by_name">${session.created_by_name || 'N/A'}</td>
                     <td data-field="panelists">${session.panelist_names || '—'}</td>
+                    <td data-field="created_by_name">${session.created_by_name || 'N/A'}</td>
                     <td data-field="created_at">${formatDate(session.created_at)}</td>
                     <td>
                         <button class="icon-btn edit-btn" onclick="startEdit('${session.id}')" title="Edit">✏️</button>
