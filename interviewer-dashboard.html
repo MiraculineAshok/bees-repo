@@ -1455,18 +1455,34 @@
         });
 
         async function checkUserLoginStatus() {
+            // 1) Prefer URL params (first-time after OAuth redirect)
+            const params = new URLSearchParams(window.location.search);
+            const urlEmail = params.get('email');
+            const urlName = params.get('name');
+            const urlRole = params.get('role');
+            if (urlEmail || urlName) {
+                const userData = {
+                    email: urlEmail || '',
+                    name: urlName || (urlEmail ? urlEmail.split('@')[0] : 'User'),
+                    role: urlRole || 'interviewer'
+                };
+                try { localStorage.setItem('bees_user_data', JSON.stringify(userData)); } catch {}
+                // Clean URL
+                window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+            }
+
+            // 2) Load from storage
             const storedUserData = localStorage.getItem('bees_user_data');
-            
             if (storedUserData) {
                 try {
                     const userData = JSON.parse(storedUserData);
-                    if (userData.name && userData.email) {
-                        // Get user ID from API to ensure consistent avatar
+                    if (userData && (userData.email || userData.name)) {
+                        // Avatar initial
                         try {
                             const userIdResponse = await fetch('/api/user/id');
                             const userIdData = await userIdResponse.json();
                             const userId = userIdData.success ? userIdData.userId : null;
-                            const initial = userId ? userId.toString().charAt(0).toUpperCase() : (userData.email || userData.name).charAt(0).toUpperCase();
+                            const initial = userId ? String(userId).charAt(0).toUpperCase() : (userData.email || userData.name).charAt(0).toUpperCase();
                             document.getElementById('user-avatar').textContent = initial;
                         } catch (error) {
                             console.error('Error fetching user ID:', error);
@@ -1495,17 +1511,17 @@
                                 overlay.querySelector('#lg-confirm').onclick = ()=> { overlay.remove(); try { localStorage.removeItem('bees_user_data'); } catch {}; window.location.href = '/'; };
                             };
                         }
-                        currentUser = { name: userData.name, email: userData.email };
-                        
-                        loadDashboardData();
+                        currentUser = { name: userData.name || 'User', email: userData.email || '' };
+                        await loadDashboardData();
                         return;
                     }
                 } catch (e) {
                     console.error('Error parsing stored user data:', e);
-                    localStorage.removeItem('bees_user_data');
+                    // Do not remove storage blindly; allow retry path below
                 }
             }
-            
+
+            // 3) If still no user, go home to sign in
             window.location.href = '/';
         }
 
