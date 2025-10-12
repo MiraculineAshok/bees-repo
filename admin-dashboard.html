@@ -4076,10 +4076,10 @@
             // Populate field options based on current tab
             fieldSelect.innerHTML = '<option value="">Select field...</option>';
             
-            const currentTab = document.querySelector('.nav-link.active').textContent.trim();
+            const section = (typeof currentSection !== 'undefined' && currentSection) ? currentSection : (document.querySelector('.nav-link.active') ? document.querySelector('.nav-link.active').dataset.section : '');
             let fields = [];
             
-            if (currentTab.includes('Students')) {
+            if (section === 'students') {
                 fields = [
                     { value: 'first_name', text: 'First Name' },
                     { value: 'last_name', text: 'Last Name' },
@@ -4088,19 +4088,19 @@
                     { value: 'address', text: 'Address' },
                     { value: 'zeta_id', text: 'Zeta ID' }
                 ];
-            } else if (currentTab.includes('Interview Sessions')) {
+            } else if (section === 'sessions') {
                 fields = [
                     { value: 'name', text: 'Name' },
                     { value: 'description', text: 'Description' },
                     { value: 'status', text: 'Status' }
                 ];
-            } else if (currentTab.includes('Interviews') || currentTab.includes('My Interviews')) {
+            } else if (section === 'interviews' || section === 'my-interviews') {
                 fields = [
                     { value: 'verdict', text: 'Verdict' },
                     { value: 'status', text: 'Status' },
                     { value: 'overall_notes', text: 'Notes' }
                 ];
-            } else if (currentTab.includes('Questions')) {
+            } else if (section === 'questions') {
                 fields = [
                     { value: 'question', text: 'Question Text' },
                     { value: 'category', text: 'Category' }
@@ -4182,16 +4182,15 @@
                     data: { [dbField]: value }
                 }));
                 
-                const currentTab = document.querySelector('.nav-link.active').textContent.trim();
+                const section = (typeof currentSection !== 'undefined' && currentSection) ? currentSection : (document.querySelector('.nav-link.active') ? document.querySelector('.nav-link.active').dataset.section : '');
                 let endpoint = '';
-                
-                if (currentTab.includes('Students')) {
+                if (section === 'students') {
                     endpoint = '/api/students/bulk';
-                } else if (currentTab.includes('Interview Sessions')) {
+                } else if (section === 'sessions') {
                     endpoint = '/api/sessions/bulk';
-                } else if (currentTab.includes('Interviews') || currentTab.includes('My Interviews')) {
+                } else if (section === 'interviews' || section === 'my-interviews') {
                     endpoint = '/api/interviews/bulk';
-                } else if (currentTab.includes('Questions')) {
+                } else if (section === 'questions') {
                     endpoint = '/api/question-bank/bulk';
                 }
                 
