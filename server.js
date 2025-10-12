@@ -16,6 +16,9 @@ const pool = require('./db/pool');
 let cloudinary = null;
 try {
   cloudinary = require('./config/cloudinary');
+  if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+    console.warn('⚠️ Cloudinary config present but env vars missing; uploads will fall back to local.');
+  }
 } catch (error) {
   console.log('⚠️ Cloudinary config not found, using local storage fallback');
 }

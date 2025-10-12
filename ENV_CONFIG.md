@@ -1,3 +1,15 @@
+Cloudinary (images)
+-------------------
+Set these environment variables for Cloudinary uploads to work (Render → Environment):
+
+```
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+```
+
+Without these, the server will fall back to local uploads (`/uploads` or `/tmp`).
+
 # Environment Variables Configuration
 
 This document lists all the environment variables used in the Zoho OAuth integration.
