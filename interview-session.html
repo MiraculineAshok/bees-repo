@@ -2431,21 +2431,8 @@
             }, 'image/jpeg', 0.8);
         }
 
-        // Test Cloudinary connection
-        async function testCloudinaryConnection() {
-            try {
-                const cloudName = 'dokomrjyc';
-                const testResponse = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/ping`, {
-                    method: 'GET',
-                    mode: 'cors'
-                });
-                console.log('Cloudinary ping test:', testResponse.status);
-                return testResponse.ok;
-            } catch (error) {
-                console.error('Cloudinary ping test failed:', error);
-                return false;
-            }
-        }
+        // Note: Cloudinary ping endpoint doesn't support CORS, so we skip the connection test
+        // and go directly to the upload endpoint which does support CORS
 
         async function handlePhotoUpload(questionId, input) {
             console.log('handlePhotoUpload called with questionId:', questionId, 'type:', typeof questionId);
@@ -2466,15 +2453,6 @@
             }
 
             console.log('File selected:', file.name, file.type, file.size);
-
-            // Test Cloudinary connection first
-            console.log('Testing Cloudinary connection...');
-            const connectionOk = await testCloudinaryConnection();
-            if (!connectionOk) {
-                showError('Unable to connect to Cloudinary. Please check your internet connection and try again.');
-                return;
-            }
-            console.log('✅ Cloudinary connection test passed');
 
             try {
                 // Direct Cloudinary upload using unsigned preset
