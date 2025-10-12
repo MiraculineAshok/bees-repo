@@ -1429,8 +1429,8 @@
             
             <div class="verdict-section" id="verdict-section">
                 <h4 class="verdict-title">Interview Verdict</h4>
-                <select id="verdict-select" class="verdict-select" onchange="updateVerdict()">
-                    <option value="">Select Verdict</option>
+                <select id="verdict-select" class="verdict-select" onchange="updateVerdict()" required>
+                    <option value="">Select Verdict *</option>
                     <option value="Tiger">Tiger</option>
                     <option value="Cow">Cow</option>
                     <option value="Cow+">Cow+</option>
@@ -2671,6 +2671,14 @@
         async function endInterview() {
             if (!currentInterview) return;
 
+            // Check if verdict is selected
+            const verdictSelect = document.getElementById('verdict-select');
+            if (!verdictSelect.value) {
+                showError('Please select a verdict before ending the interview.');
+                verdictSelect.focus();
+                return;
+            }
+
             // Stop duration tracking
             stopDurationTracking();
 
@@ -2958,7 +2966,7 @@
             
             console.log('Displaying', questions.length, 'questions');
             listContainer.innerHTML = questions.map(question => `
-                <div class="question-bank-item" onclick="selectQuestionFromBank(${question.id}, '${question.question.replace(/'/g, "\\'")}', this)">
+                <div class="question-bank-item" onclick="selectQuestionFromBank(${question.id}, ${JSON.stringify(question.question)}, this)">
                     <div class="question-text">${question.question}</div>
                     <div class="question-meta">
                         <span class="question-category">${question.category}</span>
@@ -2970,11 +2978,23 @@
         }
 
         async function selectQuestionFromBank(questionId, questionText, el) {
-            console.log('🔍 selectQuestionFromBank called with:', { questionId, questionText, currentInterview: currentInterview?.id });
+            console.log('🔍 selectQuestionFromBank called with:', { 
+                questionId, 
+                questionText, 
+                questionTextType: typeof questionText,
+                currentInterview: currentInterview?.id 
+            });
             
             if (!currentInterview) {
                 console.error('❌ No current interview found');
                 showError('No active interview found. Please start an interview first.');
+                return;
+            }
+            
+            // Validate questionText
+            if (!questionText || questionText.trim() === '') {
+                console.error('❌ Invalid question text:', questionText);
+                showError('Invalid question text. Please try again.');
                 return;
             }
             
