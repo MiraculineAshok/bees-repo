@@ -107,7 +107,9 @@ try {
 }
 
 // Configure multer for file uploads
-const storage = multer.diskStorage({
+// Prefer in-memory storage when Cloudinary is configured so we can stream upload
+const hasCloudinaryEnv = !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
+const diskStorage = multer.diskStorage({
     destination: function (req, file, cb) {
         // Use uploads directory if it exists, otherwise use temp directory
         const destDir = fs.existsSync(uploadsDir) ? uploadsDir + '/' : '/tmp/';
@@ -120,14 +122,16 @@ const storage = multer.diskStorage({
     }
 });
 
+const storage = (cloudinary && hasCloudinaryEnv) ? multer.memoryStorage() : diskStorage;
+
 const upload = multer({ 
     storage: storage,
     limits: {
-        fileSize: 5 * 1024 * 1024 // 5MB limit
+        fileSize: 10 * 1024 * 1024 // 10MB limit
     },
     fileFilter: function (req, file, cb) {
         // Only allow image files
-        if (file.mimetype.startsWith('image/')) {
+        if (file.mimetype && file.mimetype.startsWith('image/')) {
             cb(null, true);
         } else {
             cb(new Error('Only image files are allowed!'), false);
@@ -1641,21 +1645,43 @@ app.post('/api/upload-photo', upload.single('photo'), async (req, res) => {
       try {
         // Try to upload to Cloudinary first
         console.log('☁️ Attempting Cloudinary upload...');
-        const result = await cloudinary.uploader.upload(req.file.path, {
-          folder: 'interview-photos',
-          resource_type: 'auto',
-          transformation: [
-            { width: 800, height: 600, crop: 'limit' },
-            { quality: 'auto' }
-          ]
-        });
-
-        photoUrl = result.secure_url;
-        publicId = result.public_id;
-        
-        // Delete the local file after successful Cloudinary upload
-        fs.unlinkSync(req.file.path);
-        console.log('✅ Cloudinary upload successful:', photoUrl);
+        if (req.file.buffer) {
+          // Memory -> stream
+          const result = await new Promise((resolve, reject) => {
+            const uploadStream = cloudinary.uploader.upload_stream(
+              {
+                folder: 'interview-photos',
+                resource_type: 'auto',
+                transformation: [
+                  { width: 800, height: 600, crop: 'limit' },
+                  { quality: 'auto' }
+                ]
+              },
+              (error, result) => {
+                if (error) return reject(error);
+                resolve(result);
+              }
+            );
+            require('stream').Readable.from(req.file.buffer).pipe(uploadStream);
+          });
+          photoUrl = result.secure_url;
+          publicId = result.public_id;
+          console.log('✅ Cloudinary upload successful (stream):', photoUrl);
+        } else {
+          // Disk path upload
+          const result = await cloudinary.uploader.upload(req.file.path, {
+            folder: 'interview-photos',
+            resource_type: 'auto',
+            transformation: [
+              { width: 800, height: 600, crop: 'limit' },
+              { quality: 'auto' }
+            ]
+          });
+          photoUrl = result.secure_url;
+          publicId = result.public_id;
+          try { fs.unlinkSync(req.file.path); } catch {}
+          console.log('✅ Cloudinary upload successful (disk):', photoUrl);
+        }
 
       } catch (cloudinaryError) {
         console.warn('⚠️ Cloudinary upload failed, falling back to local storage:', cloudinaryError.message);
