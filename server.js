@@ -71,6 +71,7 @@ app.use(helmet({
         directives: {
             defaultSrc: ["'self'"],
             baseUri: ["'self'"],
+            connectSrc: ["'self'", "https://api.cloudinary.com"], // Allow Cloudinary API calls
             fontSrc: ["'self'", "https:", "data:"],
             formAction: ["'self'"],
             frameAncestors: ["'self'"],
