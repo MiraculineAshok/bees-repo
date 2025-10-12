@@ -1207,6 +1207,67 @@
             display: none;
         }
         
+        .upload-loading {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #059669;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        
+        .loading-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #e5e7eb;
+            border-top: 2px solid #059669;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .photo-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .photo-item {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .photo-item img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #d1d5db;
+            cursor: pointer;
+        }
+        
+        .photo-delete {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
         .photo-preview {
             max-width: 150px;
             max-height: 150px;
@@ -2109,9 +2170,36 @@
                                 style="background: white; border: 1px solid #d1d5db; color: #1f2937; resize: vertical; min-height: 80px;"
                             >${question.student_answer || ''}</textarea>
                             ${question.answer_photo_url ? `
-                                <div class="image-preview">
-                                    <img src="${question.answer_photo_url}" class="message-image" onclick="openImageModal('${question.answer_photo_url}')" title="Click to view full size" onerror="console.error('Image failed to load:', this.src)" onload="console.log('✅ Image loaded successfully:', this.src)">
-                                    <button class="delete-image-btn" onclick="deletePhoto(${question.id})" title="Delete image">❌</button>
+                                <div class="photo-gallery">
+                                    ${(() => {
+                                        try {
+                                            const photoUrls = JSON.parse(question.answer_photo_url);
+                                            if (Array.isArray(photoUrls)) {
+                                                return photoUrls.map((url, index) => `
+                                                    <div class="photo-item">
+                                                        <img src="${url}" class="message-image" onclick="openImageModal('${url}')" title="Click to view full size" onerror="console.error('Image failed to load:', this.src)" onload="console.log('✅ Image loaded successfully:', this.src)">
+                                                        <button class="photo-delete" onclick="deletePhoto(${question.id}, ${index})" title="Delete image">×</button>
+                                                    </div>
+                                                `).join('');
+                                            } else {
+                                                // Handle single image (backward compatibility)
+                                                return `
+                                                    <div class="photo-item">
+                                                        <img src="${question.answer_photo_url}" class="message-image" onclick="openImageModal('${question.answer_photo_url}')" title="Click to view full size" onerror="console.error('Image failed to load:', this.src)" onload="console.log('✅ Image loaded successfully:', this.src)">
+                                                        <button class="photo-delete" onclick="deletePhoto(${question.id})" title="Delete image">×</button>
+                                                    </div>
+                                                `;
+                                            }
+                                        } catch (e) {
+                                            // Handle single image (backward compatibility)
+                                            return `
+                                                <div class="photo-item">
+                                                    <img src="${question.answer_photo_url}" class="message-image" onclick="openImageModal('${question.answer_photo_url}')" title="Click to view full size" onerror="console.error('Image failed to load:', this.src)" onload="console.log('✅ Image loaded successfully:', this.src)">
+                                                    <button class="photo-delete" onclick="deletePhoto(${question.id})" title="Delete image">×</button>
+                                                </div>
+                                            `;
+                                        }
+                                    })()}
                                 </div>
                             ` : ''}
                             <div class="photo-capture">
@@ -2122,7 +2210,7 @@
                                     📷 Camera
                                 </button>
                                 <input type="file" class="photo-input" id="photo-input-${question.id}" 
-                                       accept="image/*" onchange="handlePhotoUpload('${question.id}', this)">
+                                       accept="image/*" multiple onchange="handlePhotoUpload('${question.id}', this)">
                                 <input type="file" class="photo-input" id="camera-input-${question.id}" 
                                        accept="image/*" capture="environment" onchange="handlePhotoUpload('${question.id}', this)">
                             </div>
@@ -2472,87 +2560,122 @@
                 return;
             }
             
-            const file = input.files[0];
-            if (!file) {
-                console.log('No file selected');
+            const files = Array.from(input.files);
+            if (!files || files.length === 0) {
+                console.log('No files selected');
                 return;
             }
 
-            console.log('File selected:', file.name, file.type, file.size);
+            console.log('Files selected:', files.length, 'files');
+
+            // Show loading indicator
+            showUploadLoading(questionId, files.length);
 
             try {
-                // Direct Cloudinary upload using unsigned preset
+                const uploadedUrls = [];
                 const cloudName = 'dokomrjyc';
                 const uploadPreset = 'ml_default';
-                
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('upload_preset', uploadPreset);
-                formData.append('folder', 'interview-answers'); // Optional: organize in folder
 
-                console.log('Uploading directly to Cloudinary...');
-                console.log('Upload URL:', `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`);
-                console.log('FormData contents:', {
-                    file: file.name,
-                    upload_preset: uploadPreset,
-                    folder: 'interview-answers'
-                });
-                
-                const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-                    method: 'POST',
-                    body: formData,
-                    mode: 'cors' // Explicitly set CORS mode
-                });
+                // Upload each file
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    console.log(`Uploading file ${i + 1}/${files.length}:`, file.name, file.type, file.size);
 
-                console.log('Cloudinary upload response status:', response.status);
-                const result = await response.json();
-                console.log('Cloudinary upload response:', result);
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('upload_preset', uploadPreset);
+                    formData.append('folder', 'interview-answers');
 
-                if (response.ok && result.secure_url) {
-                    // Update the answer with the Cloudinary URL
-                    const currentAnswer = questions.find(q => q.id === questionId)?.student_answer || '';
-                    const photoUrl = result.secure_url;
-                    console.log('✅ Cloudinary photo URL:', photoUrl);
-                    
-                    // Update the local questions array immediately
-                    const questionIndex = questions.findIndex(q => q.id == questionId); // Use == for type coercion
-                    if (questionIndex !== -1) {
-                        questions[questionIndex].answer_photo_url = photoUrl;
-                        console.log('✅ Updated local question with Cloudinary URL:', questions[questionIndex]);
-                        console.log('📸 Photo URL set to:', photoUrl);
+                    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+                        method: 'POST',
+                        body: formData,
+                        mode: 'cors'
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.secure_url) {
+                        uploadedUrls.push(result.secure_url);
+                        console.log(`✅ File ${i + 1} uploaded successfully:`, result.secure_url);
                     } else {
-                        console.error('❌ Question not found in local array. QuestionId:', questionId, 'Available IDs:', questions.map(q => q.id));
+                        console.error(`❌ File ${i + 1} upload failed:`, result);
+                        showError(`Failed to upload ${file.name}: ${result.error?.message || 'Unknown error'}`);
+                    }
+                }
+
+                if (uploadedUrls.length > 0) {
+                    // Update the question with all uploaded URLs
+                    const currentAnswer = questions.find(q => q.id === questionId)?.student_answer || '';
+                    const questionIndex = questions.findIndex(q => q.id == questionId);
+                    
+                    if (questionIndex !== -1) {
+                        // Store multiple URLs as JSON string
+                        questions[questionIndex].answer_photo_url = JSON.stringify(uploadedUrls);
+                        console.log('✅ Updated local question with multiple photo URLs:', uploadedUrls);
                     }
                     
                     // Update the database
-                    await updateAnswer(questionId, currentAnswer, photoUrl);
+                    await updateAnswer(questionId, currentAnswer, JSON.stringify(uploadedUrls));
+                    
+                    // Hide loading indicator
+                    hideUploadLoading(questionId);
                     
                     // Refresh the display
-                    console.log('🔄 Refreshing display with questions:', questions);
                     displayQuestions();
-                    showSuccess('Image uploaded to Cloudinary successfully!');
+                    showSuccess(`${uploadedUrls.length} image(s) uploaded successfully!`);
                 } else {
-                    console.error('Cloudinary upload failed:', result);
-                    showError('Failed to upload photo to Cloudinary: ' + (result.error?.message || 'Unknown error'));
+                    hideUploadLoading(questionId);
+                    showError('No images were uploaded successfully');
                 }
+
             } catch (error) {
-                console.error('Error uploading photo to Cloudinary:', error);
+                console.error('Error uploading photos to Cloudinary:', error);
+                hideUploadLoading(questionId);
                 
-                // Check if it's a network error and provide helpful message
                 if (error.name === 'TypeError' && error.message.includes('fetch')) {
                     showError('Network error: Unable to connect to Cloudinary. Please check your internet connection and try again.');
                 } else if (error.name === 'NetworkError') {
                     showError('Network error: Please check your internet connection and try again.');
                 } else {
-                    showError('Error uploading photo to Cloudinary: ' + error.message);
+                    showError('Error uploading photos to Cloudinary: ' + error.message);
                 }
-                
-                // Log additional debugging info
-                console.log('Error details:', {
-                    name: error.name,
-                    message: error.message,
-                    stack: error.stack
-                });
+            }
+        }
+
+        function showUploadLoading(questionId, fileCount) {
+            const questionElement = document.querySelector(`[data-question-id="${questionId}"]`);
+            if (!questionElement) return;
+
+            const photoCapture = questionElement.querySelector('.photo-capture');
+            if (!photoCapture) return;
+
+            // Create loading indicator
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'upload-loading';
+            loadingDiv.id = `upload-loading-${questionId}`;
+            loadingDiv.innerHTML = `
+                <div class="loading-spinner"></div>
+                <span>Uploading ${fileCount} image(s)...</span>
+            `;
+
+            // Disable upload buttons
+            const uploadBtn = photoCapture.querySelector('.photo-btn');
+            if (uploadBtn) uploadBtn.disabled = true;
+
+            photoCapture.appendChild(loadingDiv);
+        }
+
+        function hideUploadLoading(questionId) {
+            const loadingDiv = document.getElementById(`upload-loading-${questionId}`);
+            if (loadingDiv) {
+                loadingDiv.remove();
+            }
+
+            // Re-enable upload buttons
+            const questionElement = document.querySelector(`[data-question-id="${questionId}"]`);
+            if (questionElement) {
+                const uploadBtn = questionElement.querySelector('.photo-btn');
+                if (uploadBtn) uploadBtn.disabled = false;
             }
         }
 
@@ -2590,16 +2713,55 @@
             }
         }
 
-        async function deletePhoto(questionId) {
+        async function deletePhoto(questionId, imageIndex = null) {
             try {
+                const questionIndex = questions.findIndex(q => q.id == questionId);
+                if (questionIndex === -1) {
+                    showError('Question not found');
+                    return;
+                }
+
+                const currentPhotoUrl = questions[questionIndex].answer_photo_url;
+                if (!currentPhotoUrl) {
+                    showError('No images to delete');
+                    return;
+                }
+
+                let newPhotoUrl = null;
+                let deletedCount = 0;
+
+                try {
+                    const photoUrls = JSON.parse(currentPhotoUrl);
+                    if (Array.isArray(photoUrls)) {
+                        // Multiple images - delete specific one or all
+                        if (imageIndex !== null && imageIndex >= 0 && imageIndex < photoUrls.length) {
+                            photoUrls.splice(imageIndex, 1);
+                            deletedCount = 1;
+                            newPhotoUrl = photoUrls.length > 0 ? JSON.stringify(photoUrls) : null;
+                        } else {
+                            // Delete all images
+                            newPhotoUrl = null;
+                            deletedCount = photoUrls.length;
+                        }
+                    } else {
+                        // Single image (backward compatibility)
+                        newPhotoUrl = null;
+                        deletedCount = 1;
+                    }
+                } catch (e) {
+                    // Single image (backward compatibility)
+                    newPhotoUrl = null;
+                    deletedCount = 1;
+                }
+
                 const response = await fetch(`/api/interview-questions/${questionId}/answer`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        student_answer: questions.find(q => q.id == questionId)?.student_answer || '',
-                        answer_photo_url: null
+                        student_answer: questions[questionIndex].student_answer || '',
+                        answer_photo_url: newPhotoUrl
                     })
                 });
                 
@@ -2607,14 +2769,11 @@
                 
                 if (response.ok && result.success) {
                     // Update local questions array
-                    const questionIndex = questions.findIndex(q => q.id == questionId);
-                    if (questionIndex !== -1) {
-                        questions[questionIndex].answer_photo_url = null;
-                    }
+                    questions[questionIndex].answer_photo_url = newPhotoUrl;
                     
                     // Refresh the display
                     displayQuestions();
-                    showSuccess('Image deleted successfully!');
+                    showSuccess(`${deletedCount} image(s) deleted successfully!`);
                 } else {
                     console.error('Error deleting photo:', result);
                     showError('Failed to delete image');
