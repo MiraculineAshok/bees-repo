@@ -1547,6 +1547,19 @@
             document.getElementById('page-title').textContent = titles[sectionName];
         }
 
+        // Activate section from URL param, e.g., ?tab=my-interviews or ?tab=questions
+        document.addEventListener('DOMContentLoaded', function() {
+            const params = new URLSearchParams(window.location.search);
+            const tab = params.get('tab');
+            if (tab) {
+                if (tab === 'my-interviews' || tab === 'interviews') {
+                    showSection('interviews');
+                } else if (tab === 'questions') {
+                    showSection('questions');
+                }
+            }
+        });
+
         // Filter Panel Functions
         function toggleFilterPanel() {
             const panel = document.getElementById('filter-panel');

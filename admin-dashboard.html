@@ -2115,6 +2115,12 @@
             checkUserLoginStatus();
             initializeDashboard();
             setupEventListeners();
+            // Activate tab from URL param, e.g., ?tab=my-interviews
+            const params = new URLSearchParams(window.location.search);
+            const tab = params.get('tab');
+            if (tab) {
+                switchSection(tab);
+            }
         });
 
         function initializeDashboard() {

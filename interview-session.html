@@ -2685,7 +2685,12 @@
         }
             
         function goBack() {
-            window.location.href = '/interview';
+            const isAdmin = userRole === 'admin' || userRole === 'superadmin';
+            const params = new URLSearchParams(window.location.search);
+            const email = params.get('email') || '';
+            const name = params.get('name') || '';
+            const qs = `?tab=my-interviews${email?`&email=${encodeURIComponent(email)}`:''}${name?`&name=${encodeURIComponent(name)}`:''}`;
+            window.location.href = isAdmin ? `/admin-dashboard.html${qs}` : `/interviewer-dashboard.html${qs}`;
         }
 
         function showError(message) {
