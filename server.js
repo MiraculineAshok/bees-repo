@@ -168,6 +168,26 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Cloudinary status (prod verification)
+app.get('/api/cloudinary/status', async (req, res) => {
+  try {
+    const hasEnv = !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
+    const hasConfig = !!cloudinary;
+    let ping = null;
+    if (hasConfig && hasEnv) {
+      try {
+        // Admin API ping
+        ping = await cloudinary.api.ping();
+      } catch (e) {
+        ping = { ok: false, error: e.message };
+      }
+    }
+    res.json({ success: true, data: { hasEnv, hasConfig, ping } });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
 // Serve unauthorized page
 app.get('/unauthorized', (req, res) => {
   res.sendFile(path.join(__dirname, 'unauthorized.html'));
