@@ -1765,6 +1765,7 @@
                                 <th>Name</th>
                                 <th>Description</th>
                                 <th>Status</th>
+                                <th>Panelists</th>
                                 <th>Created By</th>
                                 <th>Created At</th>
                                 <th>Actions</th>
@@ -2120,6 +2121,7 @@
         let allInterviewers = [];
         let sessions = [];
         let students = [];
+        let currentUserId = null;
 
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
@@ -2265,6 +2267,7 @@
                     const userIdResponse = await fetch('/api/user/id');
                     const userIdData = await userIdResponse.json();
                     const userId = userIdData.success ? userIdData.userId : null;
+                    currentUserId = userId;
                     const initial = userId ? userId.toString().charAt(0).toUpperCase() : (userData.email || userData.name || 'A').trim().charAt(0).toUpperCase();
                     avatar.textContent = initial || 'A';
                 } catch (error) {
@@ -3034,6 +3037,7 @@
                     <td data-field="description">${session.description || 'N/A'}</td>
                     <td data-field="status"><span class="status-badge status-${session.status}">${session.status}</span></td>
                     <td data-field="created_by_name">${session.created_by_name || 'N/A'}</td>
+                    <td data-field="panelists">${session.panelist_names || '—'}</td>
                     <td data-field="created_at">${formatDate(session.created_at)}</td>
                     <td>
                         <button class="icon-btn edit-btn" onclick="startEdit('${session.id}')" title="Edit">✏️</button>
@@ -3147,6 +3151,7 @@
                     body: JSON.stringify({
                         name: name,
                         description: description,
+                        created_by: currentUserId || undefined,
                         panelists: selectedPanelists
                     })
                 });
@@ -3318,6 +3323,25 @@
                 console.error('Error adding interviewer:', error);
                 showError('Error adding interviewer');
             }
+        }
+
+        async function addNewInterviewerFromEdit(rowId) {
+            const input = document.getElementById(`new-panelist-email-${rowId}`);
+            if (!input) return;
+            const email = (input.value || '').trim();
+            if (!email) { showError('Please enter an email'); return; }
+            await addNewInterviewer(email);
+            // Refresh multi-select options by appending the new interviewer if present
+            const latest = allInterviewers[allInterviewers.length - 1];
+            const select = document.getElementById(`panelist-select-${rowId}`);
+            if (latest && select && !Array.from(select.options).some(o => String(o.value) === String(latest.id))) {
+                const opt = document.createElement('option');
+                opt.value = latest.id;
+                opt.textContent = `${latest.name} (${latest.email})`;
+                opt.selected = true;
+                select.appendChild(opt);
+            }
+            input.value = '';
         }
 
         // Add Question Modal Functions
@@ -4413,7 +4437,7 @@
             }
         }
 
-        function startEdit(rowId, data) {
+        async function startEdit(rowId, data) {
             if (currentEditRow) {
                 cancelEdit();
             }
@@ -4456,7 +4480,7 @@
             
             // Replace content with edit form
             const cells = row.querySelectorAll('td:not(:last-child)');
-            cells.forEach((cell) => {
+            for (const cell of cells) {
                 const field = cell.dataset.field;
                 if (!field) return;
 
@@ -4472,14 +4496,36 @@
                         <input type="text" id="edit-${rowId}-first_name" name="first_name" class="edit-input" value="${first}" data-field="first_name" placeholder="First name" style="margin-right:6px;">
                         <input type="text" id="edit-${rowId}-last_name" name="last_name" class="edit-input" value="${last}" data-field="last_name" placeholder="Last name">
                     `;
-                    return;
+                    continue;
+                }
+
+                // Special handling for Sessions: panelists multi-select
+                if ((typeof currentSection !== 'undefined' && currentSection === 'sessions') && field === 'panelists') {
+                    if (!allInterviewers || allInterviewers.length === 0) {
+                        try { await loadAllInterviewers(); } catch {}
+                    }
+                    const selectedIds = Array.isArray(currentEditData?.panelist_ids) ? currentEditData.panelist_ids.map(String) : [];
+                    const selectId = `panelist-select-${rowId}`;
+                    const options = (allInterviewers || []).map(interv => `<option value="${interv.id}" ${selectedIds.includes(String(interv.id)) ? 'selected' : ''}>${interv.name} (${interv.email})</option>`).join('');
+                    cell.innerHTML = `
+                        <div>
+                            <select id="${selectId}" class="edit-select" multiple size="4" data-field="panelists" style="min-width:260px">
+                                ${options}
+                            </select>
+                            <div style="margin-top:6px;display:flex;gap:6px;align-items:center">
+                                <input type="email" id="new-panelist-email-${rowId}" class="edit-input" placeholder="new.panelist@example.com" style="flex:1">
+                                <button class="btn btn-secondary" type="button" onclick="addNewInterviewerFromEdit('${rowId}')">Add New</button>
+                            </div>
+                        </div>
+                    `;
+                    continue;
                 }
 
                 // Default text input for other editable fields
                 const currentValue = cell.textContent.trim();
                 const inputId = `edit-${rowId}-${field}`;
                 cell.innerHTML = `<input type="text" id="${inputId}" name="${field}" class="edit-input" value="${currentValue}" data-field="${field}">`;
-            });
+            }
             
             // Replace action buttons
             const actionCell = row.querySelector('td:last-child');
@@ -4611,7 +4657,13 @@
                 inputs.forEach(input => {
                     const field = input.dataset.field;
                     if (allowedFields.includes(field)) {
-                        updateData[field] = input.value;
+                        if (field === 'panelists') {
+                            const select = document.querySelector(`#panelist-select-${rowId}`);
+                            const ids = Array.from(select ? select.selectedOptions : []).map(o => parseInt(o.value));
+                            updateData['panelist_ids'] = ids;
+                        } else {
+                            updateData[field] = input.value;
+                        }
                     } else {
                         console.warn(`Field "${field}" is not editable in section: ${section}`);
                     }
@@ -4645,6 +4697,16 @@
                 const result = await response.json();
                 
                 if (result.success) {
+                    // Update panelists if provided
+                    if (section === 'sessions' && Array.isArray(updateData.panelist_ids)) {
+                        try {
+                            await fetch(`/api/sessions/${rowId}/panelists`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ panelist_ids: updateData.panelist_ids })
+                            });
+                        } catch (e) { console.warn('Panelists update failed:', e); }
+                    }
                     showSuccess('Record updated successfully');
                     // Exit edit mode (remove editing class for the row, clear state)
                     const activeSection = (typeof currentSection !== 'undefined' && currentSection) ? currentSection : (document.querySelector('.nav-link.active') ? document.querySelector('.nav-link.active').dataset.section : '');

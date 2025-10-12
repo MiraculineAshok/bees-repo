@@ -743,6 +743,19 @@ app.put('/api/sessions/:id', async (req, res) => {
   }
 });
 
+// Update session panelists
+app.put('/api/sessions/:id/panelists', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { panelist_ids = [] } = req.body;
+    const result = await AdminService.updateSessionPanelists(id, panelist_ids);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('Error updating session panelists:', error);
+    res.status(400).json({ success: false, error: error.message });
+  }
+});
+
 app.put('/api/interviews/:id', async (req, res) => {
   try {
     const { id } = req.params;

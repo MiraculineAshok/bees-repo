@@ -251,13 +251,21 @@ class AdminService {
                     ins.description,
                     ins.status,
                     ins.created_at,
-                    u.name as created_by_name,
-                    u.email as created_by_email,
-                    COUNT(i.id) as interview_count
+                    au.name as created_by_name,
+                    au.email as created_by_email,
+                    COUNT(i.id) as interview_count,
+                    COALESCE(
+                      (
+                        SELECT STRING_AGG(au2.name, ', ')
+                        FROM session_panelists sp
+                        JOIN authorized_users au2 ON sp.user_id = au2.id
+                        WHERE sp.session_id = ins.id
+                      ), ''
+                    ) as panelist_names
                 FROM interview_sessions ins
-                LEFT JOIN users u ON ins.created_by = u.id
+                LEFT JOIN authorized_users au ON ins.created_by = au.id
                 LEFT JOIN interviews i ON ins.id = i.session_id
-                GROUP BY ins.id, ins.name, ins.description, ins.status, ins.created_at, u.name, u.email
+                GROUP BY ins.id, ins.name, ins.description, ins.status, ins.created_at, au.name, au.email
                 ORDER BY ins.created_at DESC
             `);
 
@@ -281,11 +289,12 @@ class AdminService {
             await client.query('BEGIN');
 
             // Create the session
+            const createdBy = sessionData.created_by || 1;
             const sessionResult = await client.query(`
                 INSERT INTO interview_sessions (name, description, created_by)
                 VALUES ($1, $2, $3)
                 RETURNING *
-            `, [sessionData.name, sessionData.description, 1]); // Using user ID 1 as default
+            `, [sessionData.name, sessionData.description, createdBy]);
 
             const session = sessionResult.rows[0];
 
@@ -323,6 +332,34 @@ class AdminService {
             await client.query('ROLLBACK');
             console.error('❌ Error creating session:', error);
             throw error;
+        } finally {
+            client.release();
+        }
+    }
+
+    static async updateSessionPanelists(sessionId, panelistIds) {
+        if (!(await this.isDatabaseAvailable())) {
+            // Mock: accept and return success
+            return { success: true };
+        }
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+            // Ensure table exists
+            const reg = await client.query(`SELECT to_regclass('public.session_panelists') as reg`);
+            if (!reg.rows[0]?.reg) {
+                await client.query('COMMIT');
+                return { success: true };
+            }
+            await client.query('DELETE FROM session_panelists WHERE session_id = $1', [sessionId]);
+            for (const uid of panelistIds) {
+                await client.query('INSERT INTO session_panelists (session_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [sessionId, uid]);
+            }
+            await client.query('COMMIT');
+            return { success: true };
+        } catch (e) {
+            await client.query('ROLLBACK');
+            throw e;
         } finally {
             client.release();
         }
