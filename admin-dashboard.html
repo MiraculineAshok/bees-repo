@@ -558,6 +558,27 @@
             cursor: pointer;
         }
 
+        /* Floating bulk actions (always visible when selections exist) */
+        .bulk-fab {
+            position: fixed;
+            right: 16px;
+            bottom: 16px;
+            display: none;
+            gap: 8px;
+            align-items: center;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.15);
+            padding: 8px 12px;
+            z-index: 3000;
+        }
+        .bulk-fab .count {
+            color: #374151;
+            font-weight: 600;
+            margin-right: 4px;
+        }
+
         /* Modal styling for bulk edit */
         .bulk-edit-modal {
             position: fixed;
@@ -2158,6 +2179,20 @@
                     control.appendChild(actions);
                 }
             });
+
+            // Create floating bulk actions if not present
+            if (!document.getElementById('bulk-fab')) {
+                const fab = document.createElement('div');
+                fab.id = 'bulk-fab';
+                fab.className = 'bulk-fab';
+                fab.innerHTML = `
+                    <span class="count" id="bulk-fab-count">0 selected</span>
+                    <button class="btn btn-secondary" onclick="clearSelection()">Clear</button>
+                    <button class="btn btn-primary" onclick="openBulkEditModal()">Bulk Edit</button>
+                    <button class="btn btn-danger" onclick="bulkDelete()">Bulk Delete</button>
+                `;
+                document.body.appendChild(fab);
+            }
         }
 
         // Reload only the currently active tab's data (avoids relying on click side-effects)
@@ -4120,6 +4155,18 @@
                 const count = ctrl.querySelector('#bulk-edit-selected-count');
                 if (count) count.textContent = label;
             });
+
+            // Update floating bar visibility/count
+            const fab = document.getElementById('bulk-fab');
+            const fabCount = document.getElementById('bulk-fab-count');
+            if (fab && fabCount) {
+                if (selectedRows.size > 0) {
+                    fab.style.display = 'flex';
+                    fabCount.textContent = `${selectedRows.size} selected`;
+                } else {
+                    fab.style.display = 'none';
+                }
+            }
         }
 
         function openBulkEditModal() {
