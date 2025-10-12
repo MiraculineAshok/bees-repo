@@ -4209,30 +4209,73 @@
                 }
                 
                 console.log('Bulk edit request:', { endpoint, updates });
-                
-                const response = await fetch(endpoint, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ updates })
-                });
-                
-                const result = await response.json();
-                console.log('Bulk edit response:', result);
-                
-                if (result.success) {
-                    showSuccess(`Successfully updated ${updates.length} records`);
-                    closeBulkEditModal();
-                    clearSelection();
-                    // Refresh current tab data
-                    const activeTab = document.querySelector('.nav-link.active');
-                    if (activeTab) {
-                        activeTab.click();
+
+                let usedBulk = false;
+                if (endpoint) {
+                    try {
+                        const response = await fetch(endpoint, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ updates })
+                        });
+                        const result = await response.json();
+                        console.log('Bulk edit response:', result);
+                        if (response.ok && result.success) {
+                            usedBulk = true;
+                            showSuccess(`Successfully updated ${updates.length} records`);
+                        } else {
+                            console.warn('Bulk edit failed, falling back to individual updates:', result.error);
+                        }
+                    } catch (e) {
+                        console.warn('Bulk request error, falling back to individual updates:', e);
                     }
-                } else {
-                    showError('Error updating records: ' + result.error);
                 }
+
+                if (!usedBulk) {
+                    // Fallback: perform individual updates using single-record endpoints
+                    const ids = Array.from(selectedRows).map(id => parseInt(id));
+                    const prefixBySection = {
+                        'students': '/api/students/',
+                        'sessions': '/api/sessions/',
+                        'interviews': '/api/interviews/',
+                        'my-interviews': '/api/interviews/',
+                        'questions': '/api/question-bank/'
+                    };
+                    const prefix = prefixBySection[section] || '';
+                    if (!prefix) {
+                        showError('Error: Cannot resolve endpoint for section');
+                        return;
+                    }
+
+                    let successCount = 0;
+                    for (const id of ids) {
+                        try {
+                            const res = await fetch(`${prefix}${id}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ [dbField]: value })
+                            });
+                            const json = await res.json();
+                            if (res.ok && json.success) successCount++;
+                        } catch (e) {
+                            console.warn('Individual update failed for id', id, e);
+                        }
+                    }
+
+                    if (successCount > 0) {
+                        showSuccess(`Successfully updated ${successCount} of ${ids.length} records`);
+                    } else {
+                        showError('Error updating records: No valid fields to update');
+                    }
+                }
+
+                // Common post-update refresh
+                closeBulkEditModal();
+                clearSelection();
+                const activeTab = document.querySelector('.nav-link.active');
+                if (activeTab) activeTab.click();
             } catch (error) {
                 console.error('Error applying bulk edit:', error);
                 showError('Error applying bulk edit');
