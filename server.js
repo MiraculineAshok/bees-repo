@@ -973,6 +973,35 @@ app.put('/api/question-bank/bulk', async (req, res) => {
   }
 });
 
+// Bulk import questions from CSV/Excel
+app.post('/api/question-bank/bulk-import', async (req, res) => {
+  try {
+    const { questions } = req.body;
+    
+    if (!questions || !Array.isArray(questions)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Questions array is required'
+      });
+    }
+
+    console.log(`📥 Bulk import request: ${questions.length} questions`);
+    
+    const results = await QuestionBankService.bulkImportQuestions(questions);
+    
+    res.json({
+      success: true,
+      data: results
+    });
+  } catch (error) {
+    console.error('Error bulk importing questions:', error);
+    res.status(400).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Delete endpoints
 app.delete('/api/interviews/:id', async (req, res) => {
   try {

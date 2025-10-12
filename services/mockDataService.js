@@ -799,6 +799,64 @@ class MockDataService {
         const user = this.authorizedUsers.find(u => u.email === email);
         return user ? user.id : null;
     }
+
+    // Bulk import questions
+    bulkImportQuestions(questions) {
+        console.log(`📥 Mock: Bulk importing ${questions.length} questions`);
+        
+        const results = {
+            successCount: 0,
+            errorCount: 0,
+            errors: [],
+            importedQuestions: []
+        };
+
+        for (let i = 0; i < questions.length; i++) {
+            const questionData = questions[i];
+            
+            try {
+                // Validate required fields
+                if (!questionData.question || !questionData.category) {
+                    results.errors.push(`Row ${i + 1}: Missing required fields (question, category)`);
+                    results.errorCount++;
+                    continue;
+                }
+
+                // Check for duplicate questions
+                const duplicate = this.questionBank.find(q => q.question === questionData.question.trim());
+                if (duplicate) {
+                    results.errors.push(`Row ${i + 1}: Duplicate question found`);
+                    results.errorCount++;
+                    continue;
+                }
+
+                // Create new question
+                const newQuestion = {
+                    id: this.questionBank.length + 1,
+                    question: questionData.question.trim(),
+                    category: questionData.category.trim(),
+                    times_asked: 0,
+                    correct_answers: 0,
+                    incorrect_answers: 0,
+                    success_rate: 0,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                };
+
+                this.questionBank.push(newQuestion);
+                results.importedQuestions.push(newQuestion);
+                results.successCount++;
+
+            } catch (error) {
+                console.error(`Error importing question ${i + 1}:`, error);
+                results.errors.push(`Row ${i + 1}: ${error.message}`);
+                results.errorCount++;
+            }
+        }
+
+        console.log(`✅ Mock: Bulk import completed: ${results.successCount} successful, ${results.errorCount} failed`);
+        return results;
+    }
 }
 
 module.exports = new MockDataService();

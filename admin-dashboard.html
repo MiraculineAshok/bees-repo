@@ -582,6 +582,113 @@
             display: flex;
         }
 
+        /* Bulk Import Styles */
+        .form-help {
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+
+        .format-info {
+            background: #f3f4f6;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 0.5rem;
+        }
+
+        .format-info p {
+            margin: 0.25rem 0;
+            font-size: 0.9rem;
+        }
+
+        .import-preview {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .import-preview h4 {
+            margin: 0 0 0.5rem 0;
+            color: #374151;
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .preview-table th,
+        .preview-table td {
+            padding: 0.5rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .preview-table th {
+            background: #f3f4f6;
+            font-weight: 600;
+        }
+
+        .import-progress {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f0f9ff;
+            border-radius: 6px;
+            border: 1px solid #0ea5e9;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #0ea5e9;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 0.9rem;
+            color: #0c4a6e;
+            text-align: center;
+        }
+
+        .import-results {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .import-results h4 {
+            margin: 0 0 0.5rem 0;
+            color: #374151;
+        }
+
+        .results-success {
+            background: #f0fdf4;
+            border-color: #22c55e;
+        }
+
+        .results-error {
+            background: #fef2f2;
+            border-color: #ef4444;
+        }
+
+        .results-warning {
+            background: #fffbeb;
+            border-color: #f59e0b;
+        }
+
         .bulk-edit-content {
             background: white;
             border-radius: 8px;
@@ -1740,6 +1847,7 @@
                     <h2 class="section-title">Questions Analytics</h2>
                     <div class="header-actions">
                         <button class="btn btn-success" onclick="openAddQuestionModal()">Add Question</button>
+                        <button class="btn btn-info" onclick="openBulkImportModal()">Bulk Import</button>
                         <button class="btn btn-primary" onclick="refreshQuestions()">Refresh</button>
                     </div>
                 </div>
@@ -5049,6 +5157,323 @@
         async function deleteQuestion(questionId) {
             await deleteRecord(questionId, 'question');
         }
+
+        // Bulk Import Functions
+        let selectedFile = null;
+        let parsedData = [];
+
+        function openBulkImportModal() {
+            const modal = document.getElementById('bulk-import-modal');
+            modal.classList.add('active');
+            resetImportModal();
+        }
+
+        function closeBulkImportModal() {
+            const modal = document.getElementById('bulk-import-modal');
+            modal.classList.remove('active');
+            resetImportModal();
+        }
+
+        function resetImportModal() {
+            selectedFile = null;
+            parsedData = [];
+            document.getElementById('import-file').value = '';
+            document.getElementById('import-btn').disabled = true;
+            document.getElementById('import-preview').style.display = 'none';
+            document.getElementById('import-progress').style.display = 'none';
+            document.getElementById('import-results').style.display = 'none';
+        }
+
+        async function handleFileSelect() {
+            const fileInput = document.getElementById('import-file');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                resetImportModal();
+                return;
+            }
+
+            selectedFile = file;
+            document.getElementById('import-btn').disabled = false;
+
+            try {
+                // Parse the file based on its type
+                if (file.name.toLowerCase().endsWith('.csv')) {
+                    parsedData = await parseCSV(file);
+                } else if (file.name.toLowerCase().endsWith('.xlsx') || file.name.toLowerCase().endsWith('.xls')) {
+                    parsedData = await parseExcel(file);
+                } else {
+                    showError('Unsupported file format. Please use CSV or Excel files.');
+                    return;
+                }
+
+                // Show preview
+                showImportPreview(parsedData);
+            } catch (error) {
+                console.error('Error parsing file:', error);
+                showError('Error parsing file: ' + error.message);
+            }
+        }
+
+        async function parseCSV(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const text = e.target.result;
+                        const lines = text.split('\n').filter(line => line.trim());
+                        const data = [];
+                        
+                        for (let i = 0; i < lines.length; i++) {
+                            const line = lines[i].trim();
+                            if (!line) continue;
+                            
+                            // Simple CSV parsing (handles basic cases)
+                            const columns = line.split(',').map(col => col.trim().replace(/^"|"$/g, ''));
+                            if (columns.length >= 2) {
+                                data.push({
+                                    question: columns[0],
+                                    category: columns[1] || 'General'
+                                });
+                            }
+                        }
+                        
+                        resolve(data);
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                reader.onerror = () => reject(new Error('Failed to read file'));
+                reader.readAsText(file);
+            });
+        }
+
+        async function parseExcel(file) {
+            // For Excel files, we'll use a simple approach
+            // In a real implementation, you'd use a library like SheetJS
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        // This is a simplified Excel parser
+                        // For production, use a proper Excel parsing library
+                        const data = e.target.result;
+                        
+                        // For now, we'll show an error and suggest CSV
+                        reject(new Error('Excel parsing not fully implemented. Please use CSV format for now.'));
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                reader.onerror = () => reject(new Error('Failed to read file'));
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        function showImportPreview(data) {
+            const previewDiv = document.getElementById('import-preview');
+            const contentDiv = document.getElementById('preview-content');
+            
+            if (data.length === 0) {
+                contentDiv.innerHTML = '<p>No data found in file.</p>';
+                previewDiv.style.display = 'block';
+                return;
+            }
+
+            const previewData = data.slice(0, 5); // Show first 5 rows
+            const tableHTML = `
+                <table class="preview-table">
+                    <thead>
+                        <tr>
+                            <th>Question</th>
+                            <th>Category</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${previewData.map(row => `
+                            <tr>
+                                <td>${row.question}</td>
+                                <td>${row.category}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                ${data.length > 5 ? `<p><em>... and ${data.length - 5} more rows</em></p>` : ''}
+            `;
+            
+            contentDiv.innerHTML = tableHTML;
+            previewDiv.style.display = 'block';
+        }
+
+        async function startBulkImport() {
+            if (!selectedFile || parsedData.length === 0) {
+                showError('No file selected or no data to import');
+                return;
+            }
+
+            const importBtn = document.getElementById('import-btn');
+            const progressDiv = document.getElementById('import-progress');
+            const resultsDiv = document.getElementById('import-results');
+            
+            // Show progress
+            importBtn.disabled = true;
+            progressDiv.style.display = 'block';
+            resultsDiv.style.display = 'none';
+
+            try {
+                // Validate data first
+                const validationResult = validateImportData(parsedData);
+                if (!validationResult.isValid) {
+                    showImportResults({
+                        success: false,
+                        message: 'Validation failed',
+                        errors: validationResult.errors
+                    });
+                    return;
+                }
+
+                // Import data in batches
+                const batchSize = 10;
+                const totalBatches = Math.ceil(parsedData.length / batchSize);
+                let successCount = 0;
+                let errorCount = 0;
+                const errors = [];
+
+                for (let i = 0; i < totalBatches; i++) {
+                    const batch = parsedData.slice(i * batchSize, (i + 1) * batchSize);
+                    
+                    // Update progress
+                    const progress = ((i + 1) / totalBatches) * 100;
+                    updateProgress(progress, `Importing batch ${i + 1} of ${totalBatches}`);
+
+                    try {
+                        const response = await fetch('/api/question-bank/bulk-import', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ questions: batch })
+                        });
+
+                        const result = await response.json();
+                        
+                        if (response.ok && result.success) {
+                            successCount += result.data.successCount || batch.length;
+                            if (result.data.errors) {
+                                errors.push(...result.data.errors);
+                                errorCount += result.data.errors.length;
+                            }
+                        } else {
+                            errorCount += batch.length;
+                            errors.push(`Batch ${i + 1}: ${result.error || 'Unknown error'}`);
+                        }
+                    } catch (error) {
+                        errorCount += batch.length;
+                        errors.push(`Batch ${i + 1}: ${error.message}`);
+                    }
+                }
+
+                // Show results
+                showImportResults({
+                    success: errorCount === 0,
+                    message: `Import completed: ${successCount} successful, ${errorCount} failed`,
+                    successCount,
+                    errorCount,
+                    errors: errors.slice(0, 10) // Show first 10 errors
+                });
+
+                // Refresh questions if any were imported successfully
+                if (successCount > 0) {
+                    setTimeout(() => {
+                        refreshQuestions();
+                    }, 1000);
+                }
+
+            } catch (error) {
+                console.error('Import error:', error);
+                showImportResults({
+                    success: false,
+                    message: 'Import failed: ' + error.message
+                });
+            } finally {
+                importBtn.disabled = false;
+            }
+        }
+
+        function validateImportData(data) {
+            const errors = [];
+            
+            for (let i = 0; i < data.length; i++) {
+                const row = data[i];
+                const rowNum = i + 1;
+                
+                if (!row.question || row.question.trim() === '') {
+                    errors.push(`Row ${rowNum}: Question is required`);
+                }
+                
+                if (!row.category || row.category.trim() === '') {
+                    errors.push(`Row ${rowNum}: Category is required`);
+                }
+                
+                if (row.question && row.question.length > 1000) {
+                    errors.push(`Row ${rowNum}: Question is too long (max 1000 characters)`);
+                }
+            }
+            
+            return {
+                isValid: errors.length === 0,
+                errors
+            };
+        }
+
+        function updateProgress(percentage, text) {
+            const progressFill = document.getElementById('progress-fill');
+            const progressText = document.getElementById('progress-text');
+            
+            progressFill.style.width = percentage + '%';
+            progressText.textContent = text;
+        }
+
+        function showImportResults(result) {
+            const resultsDiv = document.getElementById('import-results');
+            const contentDiv = document.getElementById('results-content');
+            const progressDiv = document.getElementById('import-progress');
+            
+            // Hide progress
+            progressDiv.style.display = 'none';
+            
+            // Set result styling
+            resultsDiv.className = 'import-results';
+            if (result.success) {
+                resultsDiv.classList.add('results-success');
+            } else if (result.errorCount > 0 && result.successCount > 0) {
+                resultsDiv.classList.add('results-warning');
+            } else {
+                resultsDiv.classList.add('results-error');
+            }
+            
+            // Build results content
+            let content = `<p><strong>${result.message}</strong></p>`;
+            
+            if (result.successCount !== undefined) {
+                content += `<p>✅ Successfully imported: ${result.successCount} questions</p>`;
+            }
+            
+            if (result.errorCount > 0) {
+                content += `<p>❌ Failed to import: ${result.errorCount} questions</p>`;
+            }
+            
+            if (result.errors && result.errors.length > 0) {
+                content += '<h5>Errors:</h5><ul>';
+                result.errors.forEach(error => {
+                    content += `<li>${error}</li>`;
+                });
+                content += '</ul>';
+            }
+            
+            contentDiv.innerHTML = content;
+            resultsDiv.style.display = 'block';
+        }
     </script>
 
     <!-- Bulk Edit Modal -->
@@ -5077,6 +5502,48 @@
             <div class="bulk-edit-footer">
                 <button class="btn btn-secondary" onclick="closeBulkEditModal()">Cancel</button>
                 <button class="btn btn-primary" onclick="applyBulkEdit()">Apply Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Import Modal -->
+    <div id="bulk-import-modal" class="bulk-edit-modal" onclick="closeBulkImportModal()">
+        <div class="bulk-edit-content" onclick="event.stopPropagation()">
+            <div class="bulk-edit-header">
+                <h3 class="bulk-edit-title">Bulk Import Questions</h3>
+                <button class="close-modal" onclick="closeBulkImportModal()">&times;</button>
+            </div>
+            <form id="bulk-import-form" class="bulk-edit-form">
+                <div class="form-group">
+                    <label class="form-label">Select File:</label>
+                    <input type="file" id="import-file" class="form-input" accept=".csv,.xlsx,.xls" onchange="handleFileSelect()">
+                    <div class="form-help">Supported formats: CSV, Excel (.xlsx, .xls)</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">File Format:</label>
+                    <div class="format-info">
+                        <p><strong>CSV Format:</strong> question,category</p>
+                        <p><strong>Excel Format:</strong> Column A = Question, Column B = Category</p>
+                    </div>
+                </div>
+                <div id="import-preview" class="import-preview" style="display: none;">
+                    <h4>Preview (First 5 rows):</h4>
+                    <div id="preview-content"></div>
+                </div>
+                <div id="import-progress" class="import-progress" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <div class="progress-text" id="progress-text">Importing...</div>
+                </div>
+                <div id="import-results" class="import-results" style="display: none;">
+                    <h4>Import Results:</h4>
+                    <div id="results-content"></div>
+                </div>
+            </form>
+            <div class="bulk-edit-footer">
+                <button class="btn btn-secondary" onclick="closeBulkImportModal()">Cancel</button>
+                <button class="btn btn-primary" id="import-btn" onclick="startBulkImport()" disabled>Import Questions</button>
             </div>
         </div>
     </div>

@@ -264,6 +264,90 @@ class QuestionBankService {
             throw error;
         }
     }
+
+    // Bulk import questions
+    static async bulkImportQuestions(questions) {
+        try {
+            if (!(await this.isDatabaseAvailable())) {
+                return mockDataService.bulkImportQuestions(questions);
+            }
+
+            console.log(`📥 Bulk importing ${questions.length} questions`);
+            
+            const results = {
+                successCount: 0,
+                errorCount: 0,
+                errors: [],
+                importedQuestions: []
+            };
+
+            // Use transaction for better performance and rollback capability
+            const client = await pool.connect();
+            
+            try {
+                await client.query('BEGIN');
+
+                for (let i = 0; i < questions.length; i++) {
+                    const questionData = questions[i];
+                    
+                    try {
+                        // Validate required fields
+                        if (!questionData.question || !questionData.category) {
+                            results.errors.push(`Row ${i + 1}: Missing required fields (question, category)`);
+                            results.errorCount++;
+                            continue;
+                        }
+
+                        // Check for duplicate questions
+                        const duplicateCheck = await client.query(
+                            'SELECT id FROM question_bank WHERE question = $1',
+                            [questionData.question.trim()]
+                        );
+
+                        if (duplicateCheck.rows.length > 0) {
+                            results.errors.push(`Row ${i + 1}: Duplicate question found`);
+                            results.errorCount++;
+                            continue;
+                        }
+
+                        // Insert the question
+                        const insertResult = await client.query(`
+                            INSERT INTO question_bank (question, category, created_at, updated_at)
+                            VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                            RETURNING *
+                        `, [
+                            questionData.question.trim(),
+                            questionData.category.trim()
+                        ]);
+
+                        results.importedQuestions.push(insertResult.rows[0]);
+                        results.successCount++;
+
+                    } catch (error) {
+                        console.error(`Error importing question ${i + 1}:`, error);
+                        results.errors.push(`Row ${i + 1}: ${error.message}`);
+                        results.errorCount++;
+                    }
+                }
+
+                await client.query('COMMIT');
+                console.log(`✅ Bulk import completed: ${results.successCount} successful, ${results.errorCount} failed`);
+
+            } catch (error) {
+                await client.query('ROLLBACK');
+                console.error('❌ Bulk import transaction failed:', error);
+                throw error;
+            } finally {
+                client.release();
+            }
+
+            return results;
+
+        } catch (error) {
+            console.error('Error bulk importing questions:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = QuestionBankService;
