@@ -1673,7 +1673,7 @@
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th><input type="checkbox" onchange="selectAllRows()" title="Select All"></th>
+                                <th><input type="checkbox" onchange="toggleAllRows(this.checked)" title="Select All"></th>
                                 <th>ID</th>
                                 <th>Student</th>
                                 <th>Interviewer</th>
@@ -1719,7 +1719,7 @@
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th><input type="checkbox" onchange="selectAllRows()" title="Select All"></th>
+                                <th><input type="checkbox" onchange="toggleAllRows(this.checked)" title="Select All"></th>
                                 <th>Question</th>
                                 <th>Category</th>
                                 <th>Times Asked</th>
@@ -1760,7 +1760,7 @@
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th><input type="checkbox" onchange="selectAllRows()" title="Select All"></th>
+                                <th><input type="checkbox" onchange="toggleAllRows(this.checked)" title="Select All"></th>
                                 <th>ID</th>
                                 <th>Name</th>
                                 <th>Description</th>
@@ -1801,7 +1801,7 @@
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th><input type="checkbox" onchange="selectAllRows()" title="Select All"></th>
+                                <th><input type="checkbox" onchange="toggleAllRows(this.checked)" title="Select All"></th>
                                 <th>ID</th>
                                 <th>Name</th>
                                 <th>Email</th>
@@ -1841,7 +1841,7 @@
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th><input type="checkbox" onchange="selectAllRows()" title="Select All"></th>
+                                <th><input type="checkbox" onchange="toggleAllRows(this.checked)" title="Select All"></th>
                                 <th>Date</th>
                                 <th>Student</th>
                                 <th>Zeta ID</th>
@@ -4112,6 +4112,18 @@
                 checkbox.checked = true;
                 selectedRows.add(checkbox.dataset.rowId);
             });
+            updateBulkEditControls();
+        }
+
+        function toggleAllRows(checked) {
+            const section = (typeof currentSection !== 'undefined' && currentSection) ? currentSection : (document.querySelector('.nav-link.active') ? document.querySelector('.nav-link.active').dataset.section : '');
+            const scope = section ? document.getElementById(section) : document;
+            const checkboxes = scope.querySelectorAll('.row-checkbox');
+            if (checked) {
+                checkboxes.forEach(cb => { cb.checked = true; selectedRows.add(cb.dataset.rowId); });
+            } else {
+                checkboxes.forEach(cb => { cb.checked = false; selectedRows.delete(cb.dataset.rowId); });
+            }
             updateBulkEditControls();
         }
 
