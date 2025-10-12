@@ -3211,7 +3211,7 @@
                             <div class="search-result-name">No interviewers found</div>
                             <div class="search-result-email">Add "${searchTerm}" as new interviewer</div>
                         </div>
-                        <button class="add-new-interviewer" onclick="addNewInterviewer('${searchTerm}')">
+                        <button type="button" class="add-new-interviewer" onclick="event.stopPropagation(); addNewInterviewer('${searchTerm}')">
                             Add New
                         </button>
                     </div>
@@ -3258,14 +3258,19 @@
                 container.innerHTML = selectedPanelists.map(panelist => `
                     <div class="selected-panelist">
                         <span class="selected-panelist-name">${panelist.name}</span>
-                        <button class="remove-panelist" onclick="removePanelist(${panelist.id})" title="Remove panelist">×</button>
+                        <button type="button" class="remove-panelist" onclick="removePanelist(${panelist.id})" title="Remove panelist">×</button>
                     </div>
                 `).join('');
             }
         }
 
         async function addNewInterviewer(email) {
-            const name = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            const normalized = (email || '').trim();
+            if (!normalized || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(normalized)) {
+                showError('Please provide a valid email to add a new interviewer');
+                return;
+            }
+            const name = normalized.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
             
             try {
                 const response = await fetch('/api/admin/users/interviewers', {
@@ -3275,22 +3280,25 @@
                     },
                     body: JSON.stringify({
                         name: name,
-                        email: email,
+                        email: normalized,
                         role: 'interviewer'
                     })
                 });
 
                 const data = await response.json();
-                if (data.success) {
-                    // Add to allInterviewers list
+                if (response.ok && data.success) {
+                    // Add to master list and selected list but DO NOT submit session here
                     allInterviewers.push(data.data);
-                    
-                    // Add as panelist
                     addPanelist(data.data.id, data.data.name, data.data.email);
                     
-                    showSuccess('New interviewer added successfully');
+                    // Keep modal open, clear search box and results so user can add more
+                    const searchInput = document.getElementById('panelist-search');
+                    const results = document.getElementById('panelist-search-results');
+                    if (searchInput) searchInput.value = '';
+                    if (results) results.style.display = 'none';
+                    showSuccess('New interviewer added. You can add more or click Create Session.');
                 } else {
-                    showError('Error adding interviewer: ' + data.error);
+                    showError('Error adding interviewer: ' + (data.error || 'Unknown error'));
                 }
             } catch (error) {
                 console.error('Error adding interviewer:', error);
