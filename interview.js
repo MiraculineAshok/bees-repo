@@ -245,11 +245,17 @@ class InterviewPage {
 
     async loadInterviewSessions() {
         try {
-            const response = await fetch('/api/admin/sessions');
-            const data = await response.json();
-            
+            // Prefer interviewer-specific sessions where they are a panelist
+            let response = await fetch('/api/interviewer/sessions');
+            let data = await response.json();
+            if (!response.ok || !data.success) {
+                // Fallback to all sessions if needed
+                response = await fetch('/api/admin/sessions');
+                data = await response.json();
+            }
             if (data.success) {
-                this.sessions = data.data.filter(session => session.status === 'active');
+                const all = Array.isArray(data.data) ? data.data : [];
+                this.sessions = all.filter(s => s.status === 'active');
                 this.displaySessions();
             } else {
                 console.log('No active sessions found');

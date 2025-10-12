@@ -189,6 +189,47 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
+// Interviewer: list sessions where interviewer is a panelist
+app.get('/api/interviewer/sessions', async (req, res) => {
+  try {
+    const interviewerId = await getCurrentUserId(req);
+    if (!interviewerId) {
+      return res.status(401).json({ success: false, error: 'User not authenticated' });
+    }
+
+    // Ensure DB available
+    try {
+      await pool.query('SELECT 1');
+    } catch (_) {
+      return res.json({ success: true, data: [] });
+    }
+
+    // Check if session_panelists exists; if not, return none
+    let hasPanel = false;
+    try {
+      const reg = await pool.query("SELECT to_regclass('public.session_panelists') AS reg");
+      hasPanel = !!reg.rows[0]?.reg;
+    } catch (_) { hasPanel = false; }
+
+    if (!hasPanel) {
+      return res.json({ success: true, data: [] });
+    }
+
+    const result = await pool.query(
+      `SELECT ins.id, ins.name, ins.description, ins.status, ins.created_at
+         FROM interview_sessions ins
+         JOIN session_panelists sp ON sp.session_id = ins.id
+        WHERE sp.user_id = $1
+        ORDER BY ins.created_at DESC`,
+      [interviewerId]
+    );
+    res.json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error('Error getting interviewer sessions:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Student API endpoints
 app.get('/api/students', async (req, res) => {
   try {
