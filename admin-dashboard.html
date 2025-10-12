@@ -2941,7 +2941,7 @@
                 }
 
                 if (!email) {
-                    alert('User email not available. Please log in again.');
+                    showError('User email not available. Please log in again.');
                     return;
                 }
 
@@ -2961,7 +2961,7 @@
                 displayQuestions();
             } catch (e) {
                 console.error('Error toggling favorite:', e);
-                alert(`Failed to update favorite: ${e.message || 'Unknown error'}`);
+                showError(`Failed to update favorite: ${e.message || 'Unknown error'}`);
             }
         }
 
@@ -3442,13 +3442,33 @@
         }
 
         function showSuccess(message) {
-            // Simple success notification - you can enhance this
-            alert('Success: ' + message);
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;z-index:2000;';
+            overlay.innerHTML = `
+              <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;min-width:300px;max-width:90%;padding:16px;box-shadow:0 10px 20px rgba(0,0,0,0.15)">
+                <div style="font-weight:600;margin-bottom:8px;color:#111827">Success</div>
+                <div style="font-size:14px;color:#374151;margin-bottom:12px">${message}</div>
+                <div style="display:flex;gap:8px;justify-content:flex-end">
+                  <button id="succ-ok" style="background:#111827;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer">OK</button>
+                </div>
+              </div>`;
+            document.body.appendChild(overlay);
+            overlay.querySelector('#succ-ok').onclick = ()=> overlay.remove();
         }
 
         function showError(message) {
-            // Simple error notification - you can enhance this
-            alert('Error: ' + message);
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
+            overlay.innerHTML = `
+              <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;min-width:300px;max-width:90%;padding:16px;box-shadow:0 10px 20px rgba(0,0,0,0.15)">
+                <div style="font-weight:600;margin-bottom:8px;color:#111827">Error</div>
+                <div style="font-size:14px;color:#374151;margin-bottom:12px">${message}</div>
+                <div style="display:flex;gap:8px;justify-content:flex-end">
+                  <button id="err-ok" style="background:#111827;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer">OK</button>
+                </div>
+              </div>`;
+            document.body.appendChild(overlay);
+            overlay.querySelector('#err-ok').onclick = ()=> overlay.remove();
         }
 
         // Detail Panel Functions
@@ -4005,9 +4025,23 @@
         // viewStudent is already implemented above
 
         async function deleteSession(sessionId) {
-            if (!confirm('Are you sure you want to delete this session?')) {
-                return;
-            }
+            const proceed = await new Promise(resolve => {
+                const overlay = document.createElement('div');
+                overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
+                overlay.innerHTML = `
+                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;min-width:300px;max-width:90%;padding:16px;box-shadow:0 10px 20px rgba(0,0,0,0.15)">
+                    <div style="font-weight:600;margin-bottom:8px;color:#111827">Delete Session?</div>
+                    <div style="font-size:14px;color:#374151;margin-bottom:12px">Are you sure you want to delete this session?</div>
+                    <div style="display:flex;gap:8px;justify-content:flex-end">
+                      <button id="ds-cancel" style="border:1px solid #e5e7eb;background:#fff;padding:6px 10px;border-radius:6px;cursor:pointer">Cancel</button>
+                      <button id="ds-ok" style="background:#dc2626;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer">Delete</button>
+                    </div>
+                  </div>`;
+                document.body.appendChild(overlay);
+                overlay.querySelector('#ds-cancel').onclick = ()=> { overlay.remove(); resolve(false); };
+                overlay.querySelector('#ds-ok').onclick = ()=> { overlay.remove(); resolve(true); };
+            });
+            if (!proceed) return;
 
             try {
                 const response = await fetch(`/api/admin/sessions/${sessionId}`, {
@@ -4538,9 +4572,24 @@
         }
 
         async function deleteRecord(rowId, type) {
-            if (!confirm(`Are you sure you want to delete this ${type}?`)) {
-                return;
-            }
+            // Confirm delete popup
+            const proceed = await new Promise(resolve => {
+                const overlay = document.createElement('div');
+                overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
+                overlay.innerHTML = `
+                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;min-width:300px;max-width:90%;padding:16px;box-shadow:0 10px 20px rgba(0,0,0,0.15)">
+                    <div style="font-weight:600;margin-bottom:8px;color:#111827">Delete ${type}?</div>
+                    <div style="font-size:14px;color:#374151;margin-bottom:12px">Are you sure you want to delete this ${type}?</div>
+                    <div style="display:flex;gap:8px;justify-content:flex-end">
+                      <button id="del-cancel" style="border:1px solid #e5e7eb;background:#fff;padding:6px 10px;border-radius:6px;cursor:pointer">Cancel</button>
+                      <button id="del-ok" style="background:#dc2626;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer">Delete</button>
+                    </div>
+                  </div>`;
+                document.body.appendChild(overlay);
+                overlay.querySelector('#del-cancel').onclick = ()=> { overlay.remove(); resolve(false); };
+                overlay.querySelector('#del-ok').onclick = ()=> { overlay.remove(); resolve(true); };
+            });
+            if (!proceed) return;
 
             try {
                 const currentTab = document.querySelector('.nav-link.active').textContent.trim();
