@@ -533,13 +533,17 @@
 
         /* Bulk edit controls */
         .bulk-edit-controls {
-            display: flex; /* Always visible */
+            display: none; /* Hidden until selection exists */
             padding: 1rem;
             background: #f8fafc;
             border-bottom: 1px solid #e5e7eb;
             align-items: center;
             gap: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 5;
         }
+        .bulk-edit-controls.active { display: flex; }
 
         .bulk-edit-info {
             color: #6b7280;
@@ -558,26 +562,7 @@
             cursor: pointer;
         }
 
-        /* Floating bulk actions (always visible when selections exist) */
-        .bulk-fab {
-            position: fixed;
-            right: 16px;
-            bottom: 16px;
-            display: none;
-            gap: 8px;
-            align-items: center;
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-            box-shadow: 0 10px 24px rgba(0,0,0,0.15);
-            padding: 8px 12px;
-            z-index: 3000;
-        }
-        .bulk-fab .count {
-            color: #374151;
-            font-weight: 600;
-            margin-right: 4px;
-        }
+        /* Remove floating bulk actions approach */
 
         /* Modal styling for bulk edit */
         .bulk-edit-modal {
@@ -1680,6 +1665,7 @@
                         <div class="bulk-edit-actions">
                             <button class="btn btn-secondary" onclick="selectAllRows()">Select All</button>
                             <button class="btn btn-secondary" onclick="clearSelection()">Clear</button>
+                            <button class="btn btn-danger" onclick="bulkDelete()">Bulk Delete</button>
                             <button class="btn btn-primary" onclick="openBulkEditModal()">Bulk Edit</button>
                         </div>
                     </div>
@@ -1725,6 +1711,7 @@
                         <div class="bulk-edit-actions">
                             <button class="btn btn-secondary" onclick="selectAllRows()">Select All</button>
                             <button class="btn btn-secondary" onclick="clearSelection()">Clear</button>
+                            <button class="btn btn-danger" onclick="bulkDelete()">Bulk Delete</button>
                             <button class="btn btn-primary" onclick="openBulkEditModal()">Bulk Edit</button>
                         </div>
                     </div>
@@ -1765,6 +1752,7 @@
                         <div class="bulk-edit-actions">
                             <button class="btn btn-secondary" onclick="selectAllRows()">Select All</button>
                             <button class="btn btn-secondary" onclick="clearSelection()">Clear</button>
+                            <button class="btn btn-danger" onclick="bulkDelete()">Bulk Delete</button>
                             <button class="btn btn-primary" onclick="openBulkEditModal()">Bulk Edit</button>
                         </div>
                     </div>
@@ -1805,6 +1793,7 @@
                         <div class="bulk-edit-actions">
                             <button class="btn btn-secondary" onclick="selectAllRows()">Select All</button>
                             <button class="btn btn-secondary" onclick="clearSelection()">Clear</button>
+                            <button class="btn btn-danger" onclick="bulkDelete()">Bulk Delete</button>
                             <button class="btn btn-primary" onclick="openBulkEditModal()">Bulk Edit</button>
                         </div>
                     </div>
@@ -1844,6 +1833,7 @@
                         <div class="bulk-edit-actions">
                             <button class="btn btn-secondary" onclick="selectAllRows()">Select All</button>
                             <button class="btn btn-secondary" onclick="clearSelection()">Clear</button>
+                            <button class="btn btn-danger" onclick="bulkDelete()">Bulk Delete</button>
                             <button class="btn btn-primary" onclick="openBulkEditModal()">Bulk Edit</button>
                         </div>
                     </div>
@@ -2180,19 +2170,7 @@
                 }
             });
 
-            // Create floating bulk actions if not present
-            if (!document.getElementById('bulk-fab')) {
-                const fab = document.createElement('div');
-                fab.id = 'bulk-fab';
-                fab.className = 'bulk-fab';
-                fab.innerHTML = `
-                    <span class="count" id="bulk-fab-count">0 selected</span>
-                    <button class="btn btn-secondary" onclick="clearSelection()">Clear</button>
-                    <button class="btn btn-primary" onclick="openBulkEditModal()">Bulk Edit</button>
-                    <button class="btn btn-danger" onclick="bulkDelete()">Bulk Delete</button>
-                `;
-                document.body.appendChild(fab);
-            }
+            // Remove floating actions creation
         }
 
         // Reload only the currently active tab's data (avoids relying on click side-effects)
@@ -4156,17 +4134,11 @@
                 if (count) count.textContent = label;
             });
 
-            // Update floating bar visibility/count
-            const fab = document.getElementById('bulk-fab');
-            const fabCount = document.getElementById('bulk-fab-count');
-            if (fab && fabCount) {
-                if (selectedRows.size > 0) {
-                    fab.style.display = 'flex';
-                    fabCount.textContent = `${selectedRows.size} selected`;
-                } else {
-                    fab.style.display = 'none';
-                }
-            }
+            // Toggle per-section bars
+            const perBars = document.querySelectorAll('.bulk-edit-controls');
+            perBars.forEach(bar => {
+                if (selectedRows.size > 0) bar.classList.add('active'); else bar.classList.remove('active');
+            });
         }
 
         function openBulkEditModal() {
