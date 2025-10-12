@@ -1463,7 +1463,7 @@
     <script>
         let currentInterview = null;
         let currentStudent = null;
-        let questions = [];
+        let questions = []; // Session-specific questions for the current interview
         let previousInterviews = [];
         let interviewStartTime = null;
         let durationInterval = null;
@@ -1473,6 +1473,9 @@
         async function loadStudentData() {
             try {
                 console.log('loadStudentData called');
+                
+                // Reset questions array for this session to prevent cross-session contamination
+                questions = [];
                 
                 // First try to get from sessionStorage
             const studentData = sessionStorage.getItem('currentStudent');
@@ -1720,6 +1723,9 @@
                     
                     // Start duration tracking
                     startDurationTracking();
+                    
+                    // Load questions for this new interview (will be empty initially)
+                    await loadQuestions();
                 } else {
                     console.error('Error creating interview:', result);
                     showError('Error creating interview: ' + (result.error || 'Unknown error'));
@@ -1989,8 +1995,8 @@
                 const result = await response.json();
                 
                 if (response.ok && result.success) {
-                    questions.push(result.data);
-                    displayQuestions();
+                    // Reload questions from server to get the latest state for this specific interview
+                    await loadQuestions();
                     document.getElementById('new-question').value = '';
                     showSuccess('Question added successfully!');
                 } else {
@@ -3031,7 +3037,7 @@
                         method: 'POST'
                     });
                     
-                    // Reload questions to show the new one
+                    // Reload questions from server to get the latest state for this specific interview
                     await loadQuestions();
                     showSuccess('Question added successfully');
                     
