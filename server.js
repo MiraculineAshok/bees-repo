@@ -6,6 +6,8 @@ require('dotenv').config({ path: path.resolve(__dirname, `.env.${env}`) });
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+// Load environment variables from .env (local dev)
+try { require('dotenv').config(); } catch (e) {}
 const morgan = require('morgan');
 const request = require('request');
 const jwt = require('jsonwebtoken');
@@ -1973,33 +1975,45 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
-app.listen(PORT, async () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
-  console.log(`📍 Local: http://localhost:${PORT}`);
-  console.log(`🏥 Health check: http://localhost:${PORT}/health`);
-  
-  // Initialize database
-  try {
-    await initializeDatabase();
-  } catch (error) {
-    console.error('❌ Database initialization failed:', error);
-    console.error('This is likely due to missing DATABASE_URL environment variable.');
-    console.error('Please check your Render environment variables.');
-    // Continue running even if DB init fails (for development)
-  }
-  
-  console.log('\n📋 Environment Configuration:');
-  console.log(`  BASE_URL: ${BASE_URL}`);
-  console.log(`  DATABASE_URL: ${process.env.DATABASE_URL ? '[SET]' : '[NOT SET]'}`);
-  console.log(`  DATABASE_POOL_URL: ${process.env.DATABASE_POOL_URL ? '[SET]' : '[NOT SET]'}`);
-  console.log(`  ZOHO_CLIENT_ID: ${process.env.ZOHO_CLIENT_ID ? '[SET]' : '[NOT SET]'}`);
-  console.log(`  ZOHO_CLIENT_SECRET: ${process.env.ZOHO_CLIENT_SECRET ? '[SET]' : '[NOT SET]'}`);
-  console.log(`  ZOHO_REDIRECT_URL: ${process.env.ZOHO_REDIRECT_URL || '[DEFAULT]'}`);
-  console.log(`  ZOHO_SCOPE: ${process.env.ZOHO_SCOPE || '[DEFAULT]'}`);
-  console.log(`  ZOHO_AUTH_URL: ${process.env.ZOHO_AUTH_URL || '[DEFAULT]'}`);
-  console.log(`  ZOHO_TOKEN_URL: ${process.env.ZOHO_TOKEN_URL || '[DEFAULT]'}`);
-  console.log(`  NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
-});
+// Start server with fallback when port in use (local dev)
+function startServer(port) {
+  const server = app.listen(port, async () => {
+    console.log(`🚀 Server is running on port ${port}`);
+    console.log(`📍 Local: http://localhost:${port}`);
+    console.log(`🏥 Health check: http://localhost:${port}/health`);
+
+    try {
+      await initializeDatabase();
+    } catch (error) {
+      console.error('❌ Database initialization failed:', error);
+      console.error('This is likely due to missing DATABASE_URL environment variable.');
+      console.error('Please check your Render environment variables.');
+    }
+
+    console.log('\n📋 Environment Configuration:');
+    console.log(`  BASE_URL: ${BASE_URL}`);
+    console.log(`  DATABASE_URL: ${process.env.DATABASE_URL ? '[SET]' : '[NOT SET]'}`);
+    console.log(`  DATABASE_POOL_URL: ${process.env.DATABASE_POOL_URL ? '[SET]' : '[NOT SET]'}`);
+    console.log(`  ZOHO_CLIENT_ID: ${process.env.ZOHO_CLIENT_ID ? '[SET]' : '[NOT SET]'}`);
+    console.log(`  ZOHO_CLIENT_SECRET: ${process.env.ZOHO_CLIENT_SECRET ? '[SET]' : '[NOT SET]'}`);
+    console.log(`  ZOHO_REDIRECT_URL: ${process.env.ZOHO_REDIRECT_URL || '[DEFAULT]'}`);
+    console.log(`  ZOHO_SCOPE: ${process.env.ZOHO_SCOPE || '[DEFAULT]'}`);
+    console.log(`  ZOHO_AUTH_URL: ${process.env.ZOHO_AUTH_URL || '[DEFAULT]'}`);
+    console.log(`  ZOHO_TOKEN_URL: ${process.env.ZOHO_TOKEN_URL || '[DEFAULT]'}`);
+    console.log(`  NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
+  });
+
+  server.on('error', (err) => {
+    if (err && err.code === 'EADDRINUSE') {
+      const nextPort = Number(port) + 1;
+      console.warn(`⚠️ Port ${port} in use, trying ${nextPort}...`);
+      startServer(nextPort);
+    } else {
+      throw err;
+    }
+  });
+}
+
+startServer(PORT);
 
 module.exports = app;
