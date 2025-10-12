@@ -4038,7 +4038,9 @@
         }
 
         function selectAllRows() {
-            const checkboxes = document.querySelectorAll('.row-checkbox');
+            const section = (typeof currentSection !== 'undefined' && currentSection) ? currentSection : (document.querySelector('.nav-link.active') ? document.querySelector('.nav-link.active').dataset.section : '');
+            const scope = section ? document.getElementById(section) : document;
+            const checkboxes = scope.querySelectorAll('.row-checkbox');
             checkboxes.forEach(checkbox => {
                 checkbox.checked = true;
                 selectedRows.add(checkbox.dataset.rowId);
@@ -4048,7 +4050,9 @@
 
         function clearSelection() {
             selectedRows.clear();
-            const checkboxes = document.querySelectorAll('.row-checkbox');
+            const section = (typeof currentSection !== 'undefined' && currentSection) ? currentSection : (document.querySelector('.nav-link.active') ? document.querySelector('.nav-link.active').dataset.section : '');
+            const scope = section ? document.getElementById(section) : document;
+            const checkboxes = scope.querySelectorAll('.row-checkbox');
             checkboxes.forEach(checkbox => {
                 checkbox.checked = false;
             });
@@ -4114,6 +4118,12 @@
                 fieldSelect.appendChild(option);
             });
             
+            // Reflect selected count inside modal
+            const modalCount = modal.querySelector('#bulk-edit-selected-count');
+            if (modalCount) {
+                modalCount.textContent = `${selectedRows.size} records selected`;
+            }
+
             modal.classList.add('active');
         }
 
@@ -4144,6 +4154,10 @@
         }
 
         async function applyBulkEdit() {
+            if (selectedRows.size === 0) {
+                showError('No records selected');
+                return;
+            }
             const field = document.getElementById('bulk-edit-field').value;
             const value = document.getElementById('bulk-edit-value').value;
             
