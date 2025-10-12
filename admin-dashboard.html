@@ -4493,11 +4493,11 @@
             const cells = row.querySelectorAll('td:not(:last-child)');
             for (const cell of cells) {
                 const field = cell.dataset.field;
-                if (!field) return;
+                if (!field) continue;
 
                 // Skip non-editable/computed fields
                 const nonEditable = ['id', 'interview_count', 'created_by_name', 'created_at', 'student_name', 'zeta_id', 'session_name', 'duration_seconds', 'interviewer_name', 'interview_date'];
-                if (nonEditable.includes(field)) return;
+                if (nonEditable.includes(field)) continue;
 
                 // Special handling for Students: split name into first_name and last_name
                 if ((typeof currentSection !== 'undefined' && currentSection === 'students') && field === 'name') {
