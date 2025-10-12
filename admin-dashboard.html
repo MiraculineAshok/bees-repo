@@ -2179,6 +2179,11 @@
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
                     const section = this.dataset.section;
+                    // Clear any cross-tab selection/edit state
+                    selectedRows.clear();
+                    currentEditRow = null;
+                    currentEditData = null;
+                    updateBulkEditControls();
                     switchSection(section);
                 });
             });
@@ -4274,8 +4279,7 @@
                 // Common post-update refresh
                 closeBulkEditModal();
                 clearSelection();
-                const activeTab = document.querySelector('.nav-link.active');
-                if (activeTab) activeTab.click();
+                reloadCurrentTab();
             } catch (error) {
                 console.error('Error applying bulk edit:', error);
                 showError('Error applying bulk edit');
@@ -4516,7 +4520,9 @@
                 if (result.success) {
                     showSuccess('Record updated successfully');
                     // Exit edit mode (remove editing class for the row, clear state)
-                    const editedRow = document.querySelector(`[data-row-id="${rowId}"]`);
+                    const activeSection = (typeof currentSection !== 'undefined' && currentSection) ? currentSection : (document.querySelector('.nav-link.active') ? document.querySelector('.nav-link.active').dataset.section : '');
+                    const sectionEl = activeSection ? document.getElementById(activeSection) : null;
+                    const editedRow = sectionEl ? sectionEl.querySelector(`[data-row-id="${rowId}"]`) : document.querySelector(`#${activeSection} [data-row-id="${rowId}"]`);
                     if (editedRow) editedRow.classList.remove('editing');
                     currentEditRow = null;
                     currentEditData = null;
