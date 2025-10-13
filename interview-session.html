@@ -761,7 +761,7 @@
         }
         
         .delete-question-btn {
-            background: #ef4444;
+            background: #dc2626;
             color: white;
             border: none;
             padding: 0.25rem 0.5rem;
@@ -773,7 +773,7 @@
         }
         
         .delete-question-btn:hover {
-            background: #dc2626;
+            background: #b91c1c;
         }
 
         /* Question Bank Sliding Panel */
@@ -1010,6 +1010,14 @@
         
         .btn-danger:hover {
             background: #b91c1c;
+        }
+        
+        .btn-warning {
+            background: #d97706;
+        }
+        
+        .btn-warning:hover {
+            background: #b45309;
         }
         
         .right-panel {
@@ -1635,6 +1643,7 @@
                             <button id="add-question-btn" class="btn btn-primary" onclick="addQuestion()">Add Question</button>
                             <button id="save-interview-btn" class="btn btn-success" onclick="saveInterview()">Save Interview</button>
                             <button class="btn btn-danger" onclick="endInterview()">End Interview</button>
+                            <button class="btn btn-warning" onclick="cancelInterview()">Cancel Interview</button>
                             <div class="interview-clock" id="interview-clock">
                                 <span class="clock-icon">⏱️</span>
                                 <span id="duration-display">00:00:00</span>
@@ -3114,6 +3123,54 @@
                 showError('Error completing interview');
             }
         }
+
+        async function cancelInterview() {
+            if (!currentInterview) return;
+
+            // Show confirmation dialog
+            const proceed = await (async () => {
+                return new Promise((resolve) => {
+                    const overlay = document.createElement('div');
+                    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
+                    overlay.innerHTML = `
+                        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;min-width:320px;max-width:90%;padding:20px;box-shadow:0 10px 20px rgba(0,0,0,0.15)">
+                            <div style="font-weight:600;margin-bottom:8px;color:#111827;font-size:1.1rem">Cancel Interview?</div>
+                            <div style="font-size:14px;color:#374151;margin-bottom:16px">Are you sure you want to cancel this interview? All progress will be lost and the interview will not be saved.</div>
+                            <div style="display:flex;gap:8px;justify-content:flex-end">
+                                <button id="cancel-cancel" style="border:1px solid #e5e7eb;background:#fff;padding:8px 16px;border-radius:6px;cursor:pointer">Keep Interview</button>
+                                <button id="cancel-confirm" style="background:#d97706;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer">Cancel Interview</button>
+                            </div>
+                        </div>`;
+                    document.body.appendChild(overlay);
+                    overlay.querySelector('#cancel-cancel').onclick = ()=> { overlay.remove(); resolve(false); };
+                    overlay.querySelector('#cancel-confirm').onclick = ()=> { overlay.remove(); resolve(true); };
+                });
+            })();
+            
+            if (!proceed) return;
+
+            try {
+                // Stop duration tracking
+                stopDurationTracking();
+
+                // Delete the interview from the database
+                const response = await fetch(`/api/interviews/${currentInterview.id}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    showSuccess('Interview cancelled successfully!');
+                    setTimeout(() => { goBack(); }, 1000);
+                } else {
+                    showError('Error cancelling interview');
+                }
+            } catch (error) {
+                console.error('Error cancelling interview:', error);
+                showError('Error cancelling interview');
+            }
+        }
             
         function goBack() {
             const isAdmin = userRole === 'admin' || userRole === 'superadmin';
@@ -3400,6 +3457,16 @@
             if (!questionText || questionText.trim() === '') {
                 console.error('❌ Invalid question text:', questionText);
                 showError('Invalid question text. Please try again.');
+                return;
+            }
+            
+            // Check for duplicate questions
+            const isDuplicate = questions.some(q => 
+                q.question_text && q.question_text.trim().toLowerCase() === questionText.trim().toLowerCase()
+            );
+            
+            if (isDuplicate) {
+                showError('This question has already been added to the interview. Please select a different question.');
                 return;
             }
             
@@ -3970,6 +4037,16 @@
             
             if (!currentInterview) {
                 showError('No active interview found');
+                return;
+            }
+
+            // Check for duplicate questions
+            const isDuplicate = questions.some(q => 
+                q.question_text && q.question_text.trim().toLowerCase() === questionText.trim().toLowerCase()
+            );
+            
+            if (isDuplicate) {
+                showError('This question has already been added to the interview. Please select a different question.');
                 return;
             }
 
