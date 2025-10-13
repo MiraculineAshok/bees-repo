@@ -1787,14 +1787,15 @@
         // Load student data and initialize interview
         async function loadStudentData() {
             try {
-                console.log('loadStudentData called');
+                console.log('🔄 loadStudentData called');
+                console.log('URL params:', window.location.search);
                 
                 // Reset questions array for this session to prevent cross-session contamination
                 questions = [];
                 
                 // First try to get from sessionStorage
             const studentData = sessionStorage.getItem('currentStudent');
-                console.log('sessionStorage studentData:', studentData);
+                console.log('📦 sessionStorage studentData:', studentData);
                 
             if (studentData) {
                     currentStudent = JSON.parse(studentData);
@@ -1829,11 +1830,13 @@
 
         async function fetchStudentByZetaId(zetaId) {
             try {
-                console.log('Fetching student with zeta_id:', zetaId);
+                console.log('🔍 Fetching student with zeta_id:', zetaId);
+                console.log('🌐 Making request to:', `/api/students/search/${zetaId}`);
                 const response = await fetch(`/api/students/search/${zetaId}`);
+                console.log('📡 Response status:', response.status, response.statusText);
                 const result = await response.json();
                 
-                console.log('API response:', result);
+                console.log('📥 API response:', result);
                 
                 if (response.ok && result.success && result.data && result.data.length > 0) {
                     currentStudent = result.data[0];
@@ -1897,6 +1900,7 @@
             console.log('🕐 initializeInterview called, currentStudent:', currentStudent);
             console.log('currentStudent type:', typeof currentStudent);
             console.log('currentStudent.id:', currentStudent?.id);
+            console.log('currentStudent.zeta_id:', currentStudent?.zeta_id);
             
             if (!currentStudent) {
                 console.error('currentStudent is null/undefined');
@@ -3231,6 +3235,20 @@
         }
 
         if (typeof window !== 'undefined') window.saveInterview = saveInterview;
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 DOMContentLoaded - Starting initialization');
+            console.log('URL params:', window.location.search);
+            console.log('Zeta ID:', getUrlParameter('zeta_id'));
+            console.log('Session ID:', getUrlParameter('session_id'));
+            
+            loadStudentData();
+            // Initialize question bank tab as inactive
+            document.getElementById('question-bank-tab').classList.remove('active');
+            // Initialize avatar
+            initializeAvatar();
+        });
     </script>
 </body>
 </html>
