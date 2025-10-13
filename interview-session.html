@@ -3729,17 +3729,26 @@
                     data = panelQuestionBankData || [];
                 } else if (category === 'Favorites') {
                     const email = (JSON.parse(localStorage.getItem('bees_user_data') || '{}')?.email) || '';
-                    const res = await fetch(`/api/interviewer/favorites${email ? `?email=${encodeURIComponent(email)}` : ''}`);
+                    const res = await fetch(`/api/interviewer/favorites${email ? `?email=${encodeURIComponent(email)}` : ''}` , {
+                        headers: email ? { 'x-user-email': email } : {}
+                    });
                     const json = await res.json();
                     if (json.success) {
-                        data = (json.data || []).map(f => ({
-                            id: f.id || f.question_id,
-                            question_text: f.question,
-                            question: f.question,
-                            category: f.category,
-                            times_asked: f.times_asked ?? 0,
-                            success_rate: f.success_rate ?? 0
-                        }));
+                        const favs = json.data || [];
+                        // If API returns only IDs, enrich from already loaded panelQuestionBankData
+                        const byId = new Map((panelQuestionBankData || []).map(q => [q.id, q]));
+                        data = favs.map(f => {
+                            const fid = f.question_id || f.id;
+                            const base = byId.get(fid) || {};
+                            return {
+                                id: fid,
+                                question: f.question || base.question || base.question_text || '',
+                                question_text: f.question || base.question_text || base.question || '',
+                                category: f.category || base.category || 'Uncategorized',
+                                times_asked: (f.times_asked ?? base.times_asked ?? 0),
+                                success_rate: (f.success_rate ?? base.success_rate ?? 0)
+                            };
+                        }).filter(q => (q.question || q.question_text));
                     }
                 } else {
                     const res = await fetch(`/api/question-bank/category/${encodeURIComponent(category)}`);
