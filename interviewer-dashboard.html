@@ -1512,6 +1512,7 @@
         let allQuestions = [];
         let favoriteQuestionIds = new Set();
         let currentUser = null;
+        let sessions = []; // Add sessions array
 
         document.addEventListener('DOMContentLoaded', () => {
             checkUserLoginStatus();
@@ -1594,7 +1595,8 @@
                     loadMyInterviews(),
                     loadQuestions(),
                     loadFavoriteQuestions(),
-                    loadStats()
+                    loadStats(),
+                    loadSessions() // Add this to load sessions
                 ]);
             } catch (error) {
                 console.error('Error loading dashboard data:', error);
@@ -1750,7 +1752,6 @@
                         <label>Session:</label>
                         <select id="session-filter" class="form-select">
                             <option value="">All Sessions</option>
-                            ${[...new Set((interviews || []).map(i => i.session_name).filter(Boolean))].map(name => `<option value="${name}">${name}</option>`).join('')}
                         </select>
                     </div>
                     <div class="filter-group">
@@ -2422,6 +2423,37 @@
         // Alias for backward compatibility
         function loadInterviews() {
             loadMyInterviews();
+        }
+
+        async function loadSessions() {
+            try {
+                const response = await fetch('/api/admin/sessions');
+                const data = await response.json();
+                
+                if (data.success) {
+                    sessions = data.data;
+                    populateSessionFilter();
+                }
+            } catch (error) {
+                console.error('Error loading sessions:', error);
+            }
+        }
+
+        function populateSessionFilter() {
+            const sessionFilter = document.getElementById('session-filter');
+            if (!sessionFilter) return;
+            
+            // Clear existing options except "All Sessions"
+            sessionFilter.innerHTML = '<option value="">All Sessions</option>';
+            
+            // Add unique session names from all sessions
+            const uniqueSessions = [...new Set(sessions.map(session => session.name))];
+            uniqueSessions.forEach(sessionName => {
+                const option = document.createElement('option');
+                option.value = sessionName;
+                option.textContent = sessionName;
+                sessionFilter.appendChild(option);
+            });
         }
 
         async function loadStats() {

@@ -2711,6 +2711,7 @@
                 }
 
                 displayMyInterviews(items);
+                populateMyInterviewsSessionFilter(); // Add this to populate session filter for my interviews
                 
                 // Attach reliable click handlers for all edit buttons (avoid inline parsing edge cases)
                 tbody.addEventListener('click', (e) => {
@@ -2874,6 +2875,7 @@
                     interviews = data.data;
                     displayInterviews();
                     populateInterviewerFilter();
+                    populateSessionFilter(); // Add this to populate session filter
                 }
             } catch (error) {
                 console.error('Error loading interviews:', error);
@@ -3352,7 +3354,24 @@
             // Clear existing options except "All Sessions"
             sessionFilter.innerHTML = '<option value="">All Sessions</option>';
             
-            // Add unique session names
+            // Add unique session names from all sessions (not just interviews)
+            const uniqueSessions = [...new Set(sessions.map(session => session.name))];
+            uniqueSessions.forEach(sessionName => {
+                const option = document.createElement('option');
+                option.value = sessionName;
+                option.textContent = sessionName;
+                sessionFilter.appendChild(option);
+            });
+        }
+
+        function populateMyInterviewsSessionFilter() {
+            const sessionFilter = document.getElementById('my-session-filter');
+            if (!sessionFilter) return;
+            
+            // Clear existing options except "All Sessions"
+            sessionFilter.innerHTML = '<option value="">All Sessions</option>';
+            
+            // Add unique session names from all sessions (not just my interviews)
             const uniqueSessions = [...new Set(sessions.map(session => session.name))];
             uniqueSessions.forEach(sessionName => {
                 const option = document.createElement('option');
