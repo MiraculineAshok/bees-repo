@@ -3416,6 +3416,148 @@
             }
         }
 
+        // Add Question Modal Functions
+        function openAddQuestionModal() {
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
+            modal.innerHTML = `
+                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;min-width:500px;max-width:90%;padding:24px;box-shadow:0 10px 20px rgba(0,0,0,0.15)">
+                    <div style="font-weight:600;margin-bottom:16px;color:#111827;font-size:1.2rem">Add New Question</div>
+                    <div style="margin-bottom:16px">
+                        <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Question Text *</label>
+                        <textarea id="new-question-text" style="width:100%;padding:12px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;min-height:100px;resize:vertical" placeholder="Enter your question here..."></textarea>
+                    </div>
+                    <div style="margin-bottom:16px">
+                        <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Category</label>
+                        <select id="new-question-category" style="width:100%;padding:12px;border:1px solid #d1d5db;border-radius:6px;font-size:14px">
+                            <option value="">Select Category</option>
+                            <option value="Technical">Technical</option>
+                            <option value="Behavioral">Behavioral</option>
+                            <option value="Problem Solving">Problem Solving</option>
+                            <option value="Communication">Communication</option>
+                            <option value="Leadership">Leadership</option>
+                            <option value="General">General</option>
+                        </select>
+                    </div>
+                    <div style="display:flex;gap:8px;justify-content:flex-end">
+                        <button id="add-question-cancel" style="border:1px solid #e5e7eb;background:#fff;padding:8px 16px;border-radius:6px;cursor:pointer">Cancel</button>
+                        <button id="add-question-save" style="background:#059669;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer">Add Question</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(modal);
+            
+            modal.querySelector('#add-question-cancel').onclick = () => modal.remove();
+            modal.querySelector('#add-question-save').onclick = async () => {
+                const questionText = document.getElementById('new-question-text').value.trim();
+                const category = document.getElementById('new-question-category').value;
+                
+                if (!questionText) {
+                    alert('Please enter a question text');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/api/question-bank', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            question: questionText,
+                            category: category || 'General'
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        modal.remove();
+                        showSuccess('Question added successfully!');
+                        loadQuestions(); // Refresh the question list
+                    } else {
+                        showError('Error adding question: ' + (result.error || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Error adding question:', error);
+                    showError('Error adding question');
+                }
+            };
+        }
+
+        // Bulk Import Modal Functions
+        function openBulkImportModal() {
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
+            modal.innerHTML = `
+                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;min-width:600px;max-width:90%;padding:24px;box-shadow:0 10px 20px rgba(0,0,0,0.15)">
+                    <div style="font-weight:600;margin-bottom:16px;color:#111827;font-size:1.2rem">Bulk Import Questions</div>
+                    <div style="margin-bottom:16px;padding:12px;background:#f3f4f6;border-radius:6px;font-size:14px;color:#374151">
+                        <strong>Instructions:</strong><br>
+                        • Enter one question per line<br>
+                        • Use format: "Question text | Category" (category is optional)<br>
+                        • Example: "What is JavaScript? | Technical"<br>
+                        • If no category is specified, "General" will be used
+                    </div>
+                    <div style="margin-bottom:16px">
+                        <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Questions *</label>
+                        <textarea id="bulk-questions-text" style="width:100%;padding:12px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;min-height:200px;resize:vertical;font-family:monospace" placeholder="Enter questions here, one per line..."></textarea>
+                    </div>
+                    <div style="display:flex;gap:8px;justify-content:flex-end">
+                        <button id="bulk-import-cancel" style="border:1px solid #e5e7eb;background:#fff;padding:8px 16px;border-radius:6px;cursor:pointer">Cancel</button>
+                        <button id="bulk-import-save" style="background:#3b82f6;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer">Import Questions</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(modal);
+            
+            modal.querySelector('#bulk-import-cancel').onclick = () => modal.remove();
+            modal.querySelector('#bulk-import-save').onclick = async () => {
+                const questionsText = document.getElementById('bulk-questions-text').value.trim();
+                
+                if (!questionsText) {
+                    alert('Please enter questions to import');
+                    return;
+                }
+                
+                // Parse questions
+                const lines = questionsText.split('\n').filter(line => line.trim());
+                const questions = lines.map(line => {
+                    const parts = line.split('|').map(part => part.trim());
+                    return {
+                        question: parts[0],
+                        category: parts[1] || 'General'
+                    };
+                });
+                
+                if (questions.length === 0) {
+                    alert('No valid questions found');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/api/question-bank/bulk', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ questions })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        modal.remove();
+                        showSuccess(`Successfully imported ${result.imported || questions.length} questions!`);
+                        loadQuestions(); // Refresh the question list
+                    } else {
+                        showError('Error importing questions: ' + (result.error || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Error importing questions:', error);
+                    showError('Error importing questions');
+                }
+            };
+        }
+
         // Edit functionality
         let selectedRows = new Set();
         let currentEditRow = null;
