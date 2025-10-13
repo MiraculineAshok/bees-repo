@@ -97,7 +97,18 @@ app.get('/interviewer-dashboard.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'interviewer-dashboard.html'));
 });
 
-app.use(express.static(path.join(__dirname))); // Serve static files
+// Serve static files with explicit MIME types
+app.use(express.static(path.join(__dirname), {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.png')) {
+      res.setHeader('Content-Type', 'image/png');
+    } else if (path.endsWith('.jpg') || path.endsWith('.jpeg')) {
+      res.setHeader('Content-Type', 'image/jpeg');
+    } else if (path.endsWith('.svg')) {
+      res.setHeader('Content-Type', 'image/svg+xml');
+    }
+  }
+}));
 
 // Ensure uploads directory exists
 const uploadsDir = 'uploads';
