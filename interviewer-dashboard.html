@@ -2474,6 +2474,7 @@
                     <td>${interview.verdict || 'N/A'}</td>
                     <td>${formatDuration(interview.duration_seconds)}</td>
                     <td>
+                        ${interview.status === 'in_progress' ? `<button class="btn btn-primary btn-sm" onclick="resumeMyInterview(${interview.id})">Resume</button>` : ''}
                         <button class="btn btn-primary btn-sm" onclick="viewInterview(${interview.id})">View</button>
                     </td>
                 </tr>
@@ -3101,6 +3102,27 @@
                     showError('Interview not found');
                     return;
                 }
+
+        function resumeMyInterview(interviewId) {
+            try {
+                const item = (interviews || []).find(i => i.id === interviewId);
+                if (!item) {
+                    showError('Interview not found');
+                    return;
+                }
+                const zeta = item.zeta_id || '';
+                const sessionId = item.session_id || item.session || '';
+                if (!zeta || !sessionId) {
+                    showError('Missing Zeta ID or Session');
+                    return;
+                }
+                const url = `/interview-session.html?zeta_id=${encodeURIComponent(zeta)}&session_id=${encodeURIComponent(sessionId)}&resume=1`;
+                window.location.href = url;
+            } catch (e) {
+                console.error('Error resuming interview', e);
+                showError('Unable to resume interview');
+            }
+        }
 
                 const interview = interviewData.data;
 
