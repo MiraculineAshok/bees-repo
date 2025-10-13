@@ -3126,6 +3126,18 @@
                     console.log('✅ Interview duration saved:', durationSeconds, 'seconds');
                 }
 
+                // Save all current question states (including images)
+                if (Array.isArray(questions) && questions.length > 0) {
+                    console.log('💾 Saving all question states...');
+                    for (const question of questions) {
+                        if (question.student_answer || question.answer_photo_url) {
+                            await updateAnswer(question.id, question.student_answer, question.answer_photo_url);
+                            console.log(`✅ Saved question ${question.id} with answer and images`);
+                        }
+                    }
+                    console.log('✅ All question states saved successfully');
+                }
+
                 showSuccess('Interview saved successfully!');
             } catch (error) {
                 console.error('Error saving interview:', error);
@@ -3193,6 +3205,26 @@
                     });
                 })();
                 if (!proceed) return;
+
+                // Save verdict if not already saved
+                const verdict = document.getElementById('verdict-select').value;
+                if (verdict && verdict !== currentInterview.verdict) {
+                    console.log('💾 Saving verdict before completing interview...');
+                    await updateVerdict();
+                    console.log('✅ Verdict saved before completion');
+                }
+
+                // Save all current question states (including images) before completing
+                if (Array.isArray(questions) && questions.length > 0) {
+                    console.log('💾 Saving all question states before completing interview...');
+                    for (const question of questions) {
+                        if (question.student_answer || question.answer_photo_url) {
+                            await updateAnswer(question.id, question.student_answer, question.answer_photo_url);
+                            console.log(`✅ Saved question ${question.id} with answer and images`);
+                        }
+                    }
+                    console.log('✅ All question states saved before completion');
+                }
 
                 const response = await fetch(`/api/interviews/${currentInterview.id}/complete`, {
                     method: 'PUT'
