@@ -3743,20 +3743,21 @@
                     if (json && json.success) {
                         const favs = json.data || [];
                         console.log('[Panel][Favorites] Raw favorites count =', favs.length);
-                        // If API returns only IDs, enrich from already loaded panelQuestionBankData
-                        const byId = new Map((panelQuestionBankData || []).map(q => [q.id, q]));
+                        // Normalize ID keys to strings to avoid number/string mismatch
+                        const byId = new Map((panelQuestionBankData || []).map(q => [String(q.id), q]));
                         data = favs.map(f => {
-                            const fid = f.question_id || f.id;
+                            const fid = String(f.question_id != null ? f.question_id : f.id);
                             const base = byId.get(fid) || {};
+                            const text = f.question || base.question || base.question_text || `Favorite Question #${fid}`;
                             return {
-                                id: fid,
-                                question: f.question || base.question || base.question_text || '',
-                                question_text: f.question || base.question_text || base.question || '',
+                                id: Number(fid),
+                                question: text,
+                                question_text: text,
                                 category: f.category || base.category || 'Uncategorized',
                                 times_asked: (f.times_asked ?? base.times_asked ?? 0),
                                 success_rate: (f.success_rate ?? base.success_rate ?? 0)
                             };
-                        }).filter(q => (q.question || q.question_text));
+                        });
                         console.log('[Panel][Favorites] Enriched favorites count =', data.length);
                     } else {
                         console.warn('[Panel][Favorites] Favorite API not success');
