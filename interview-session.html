@@ -2450,8 +2450,17 @@
                     console.log(`Question ${q.id}:`, {
                         questionItem: !!questionItem,
                         content: !!content,
-                        header: !!header
+                        header: !!header,
+                        questionItemElement: questionItem,
+                        contentElement: content,
+                        headerElement: header
                     });
+                    
+                    // Test if click handler works
+                    if (header) {
+                        console.log(`Testing click handler for question ${q.id}`);
+                        // Don't actually trigger the click, just verify the element exists
+                    }
                 });
             }, 100);
         }
@@ -3305,39 +3314,61 @@
 
         function toggleQuestion(questionId) {
             console.log('toggleQuestion called with questionId:', questionId);
-            const questionItem = document.querySelector(`[data-question-id="${questionId}"]`);
             
-            if (!questionItem) {
-                console.error('Question item not found for ID:', questionId);
-                return;
-            }
+            // Try to find elements with retry mechanism
+            const tryToggle = (retryCount = 0) => {
+                const questionItem = document.querySelector(`[data-question-id="${questionId}"]`);
+                
+                if (!questionItem) {
+                    if (retryCount < 3) {
+                        console.log(`Question item not found for ID: ${questionId}, retrying... (${retryCount + 1}/3)`);
+                        setTimeout(() => tryToggle(retryCount + 1), 100);
+                        return;
+                    }
+                    console.error('Question item not found for ID:', questionId);
+                    return;
+                }
+                
+                const header = questionItem.querySelector('.question-header');
+                const content = questionItem.querySelector('.question-content');
+                
+                if (!content) {
+                    if (retryCount < 3) {
+                        console.log(`Question content not found for ID: ${questionId}, retrying... (${retryCount + 1}/3)`);
+                        setTimeout(() => tryToggle(retryCount + 1), 100);
+                        return;
+                    }
+                    console.error('Question content not found for ID:', questionId);
+                    return;
+                }
+                
+                if (!header) {
+                    if (retryCount < 3) {
+                        console.log(`Question header not found for ID: ${questionId}, retrying... (${retryCount + 1}/3)`);
+                        setTimeout(() => tryToggle(retryCount + 1), 100);
+                        return;
+                    }
+                    console.error('Question header not found for ID:', questionId);
+                    return;
+                }
+                
+                // All elements found, proceed with toggle
+                if (content.classList.contains('expanded')) {
+                    // Collapse
+                    content.classList.remove('expanded');
+                    header.classList.remove('expanded');
+                    questionItem.classList.remove('expanded');
+                    console.log('Question collapsed:', questionId);
+                } else {
+                    // Expand
+                    content.classList.add('expanded');
+                    header.classList.add('expanded');
+                    questionItem.classList.add('expanded');
+                    console.log('Question expanded:', questionId);
+                }
+            };
             
-            const header = questionItem.querySelector('.question-header');
-            const content = questionItem.querySelector('.question-content');
-            
-            if (!content) {
-                console.error('Question content not found for ID:', questionId);
-                return;
-            }
-            
-            if (!header) {
-                console.error('Question header not found for ID:', questionId);
-                return;
-            }
-            
-            if (content.classList.contains('expanded')) {
-                // Collapse
-                content.classList.remove('expanded');
-                header.classList.remove('expanded');
-                questionItem.classList.remove('expanded');
-                console.log('Question collapsed:', questionId);
-            } else {
-                // Expand
-                content.classList.add('expanded');
-                header.classList.add('expanded');
-                questionItem.classList.add('expanded');
-                console.log('Question expanded:', questionId);
-            }
+            tryToggle();
         }
 
         function switchQuestionSource(source) {
