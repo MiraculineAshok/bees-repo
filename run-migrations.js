@@ -23,7 +23,7 @@ async function runMigration() {
     const statements = migrationSQL
       .split(';')
       .map(stmt => stmt.trim())
-      .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'));
+      .filter(stmt => stmt.length > 0 && !stmt.startsWith('--') && !stmt.match(/^\s*--/));
     
     console.log(`📝 Found ${statements.length} SQL statements to execute`);
     
