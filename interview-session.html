@@ -3758,6 +3758,22 @@
                                 success_rate: (f.success_rate ?? base.success_rate ?? 0)
                             };
                         });
+                        // If enrichment produced empty list but we had raw favorites, fall back to building rows from raw favorites directly
+                        if (data.length === 0 && favs.length > 0) {
+                            console.warn('[Panel][Favorites] Enrichment yielded empty; falling back to raw favorites rendering');
+                            data = favs.map(f => {
+                                const fid = Number(f.question_id != null ? f.question_id : f.id);
+                                const text = f.question || `Favorite Question #${fid}`;
+                                return {
+                                    id: fid,
+                                    question: text,
+                                    question_text: text,
+                                    category: f.category || 'Uncategorized',
+                                    times_asked: f.times_asked ?? 0,
+                                    success_rate: f.success_rate ?? 0
+                                };
+                            });
+                        }
                         console.log('[Panel][Favorites] Enriched favorites count =', data.length);
                     } else {
                         console.warn('[Panel][Favorites] Favorite API not success');
