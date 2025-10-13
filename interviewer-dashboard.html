@@ -1218,6 +1218,61 @@
         .results-summary strong {
             color: #000000;
         }
+        
+        /* Pagination Styles */
+        .pagination-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin: 20px 0;
+            padding: 16px;
+        }
+        
+        .pagination-btn {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            background: #ffffff;
+            color: #374151;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        
+        .pagination-btn:hover {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+        }
+        
+        .pagination-btn.active {
+            background: #3b82f6;
+            color: #ffffff;
+            border-color: #3b82f6;
+        }
+        
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .pagination-ellipsis {
+            padding: 8px 4px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        
+        .pagination-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 16px 0;
+            padding: 12px 16px;
+            background: #f9fafb;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #374151;
+        }
     </style>
 </head>
 <body>
@@ -1528,6 +1583,94 @@
         let favoriteQuestionIds = new Set();
         let currentUser = null;
         let sessions = []; // Add sessions array
+        
+        // Pagination variables
+        const ITEMS_PER_PAGE = 10;
+        let currentPage = {
+            interviews: 1,
+            questions: 1
+        };
+        let totalPages = {
+            interviews: 1,
+            questions: 1
+        };
+
+        // Pagination utility functions
+        function getPaginatedData(data, section) {
+            const startIndex = (currentPage[section] - 1) * ITEMS_PER_PAGE;
+            const endIndex = startIndex + ITEMS_PER_PAGE;
+            return data.slice(startIndex, endIndex);
+        }
+        
+        function updateTotalPages(data, section) {
+            totalPages[section] = Math.ceil(data.length / ITEMS_PER_PAGE);
+            if (currentPage[section] > totalPages[section] && totalPages[section] > 0) {
+                currentPage[section] = totalPages[section];
+            }
+        }
+        
+        function createPaginationControls(section) {
+            const totalPagesCount = totalPages[section];
+            if (totalPagesCount <= 1) return '';
+            
+            let controls = '<div class="pagination-controls">';
+            
+            // Previous button
+            if (currentPage[section] > 1) {
+                controls += `<button class="pagination-btn" onclick="changePage('${section}', ${currentPage[section] - 1})">Previous</button>`;
+            }
+            
+            // Page numbers
+            const startPage = Math.max(1, currentPage[section] - 2);
+            const endPage = Math.min(totalPagesCount, currentPage[section] + 2);
+            
+            if (startPage > 1) {
+                controls += `<button class="pagination-btn" onclick="changePage('${section}', 1)">1</button>`;
+                if (startPage > 2) {
+                    controls += '<span class="pagination-ellipsis">...</span>';
+                }
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const activeClass = i === currentPage[section] ? 'active' : '';
+                controls += `<button class="pagination-btn ${activeClass}" onclick="changePage('${section}', ${i})">${i}</button>`;
+            }
+            
+            if (endPage < totalPagesCount) {
+                if (endPage < totalPagesCount - 1) {
+                    controls += '<span class="pagination-ellipsis">...</span>';
+                }
+                controls += `<button class="pagination-btn" onclick="changePage('${section}', ${totalPagesCount})">${totalPagesCount}</button>`;
+            }
+            
+            // Next button
+            if (currentPage[section] < totalPagesCount) {
+                controls += `<button class="pagination-btn" onclick="changePage('${section}', ${currentPage[section] + 1})">Next</button>`;
+            }
+            
+            controls += '</div>';
+            return controls;
+        }
+        
+        function changePage(section, page) {
+            currentPage[section] = page;
+            refreshCurrentSection();
+        }
+        
+        function refreshCurrentSection() {
+            const activeSection = document.querySelector('.content-section.active');
+            if (activeSection) {
+                const sectionId = activeSection.id;
+                switch(sectionId) {
+                    case 'interviews':
+                        displayInterviews();
+                        break;
+                    case 'questions':
+                        displayQuestionAnalytics();
+                        break;
+                }
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             checkUserLoginStatus();
@@ -2546,6 +2689,7 @@
 
         function displayInterviews(interviewsToDisplay, groupBy = '') {
             const tbody = document.getElementById('interviews-table-body');
+            const container = document.querySelector('#interviews .table-container');
             if (!tbody) return;
 
             if (interviewsToDisplay.length === 0) {
@@ -2560,7 +2704,18 @@
                 return;
             }
 
-            tbody.innerHTML = interviewsToDisplay.map(interview => `
+            // Sort by created_at descending (recent first)
+            interviewsToDisplay.sort((a, b) => {
+                const dateA = new Date(a.created_at || a.interview_date);
+                const dateB = new Date(b.created_at || b.interview_date);
+                return dateB - dateA;
+            });
+            
+            // Update pagination
+            updateTotalPages(interviewsToDisplay, 'interviews');
+            const paginatedData = getPaginatedData(interviewsToDisplay, 'interviews');
+
+            tbody.innerHTML = paginatedData.map(interview => `
                 <tr>
                     <td>${new Date(interview.created_at).toLocaleDateString()}</td>
                     <td>${interview.student_name}</td>
@@ -2575,6 +2730,35 @@
                     </td>
                 </tr>
             `).join('');
+            
+            // Add pagination controls
+            if (container) {
+                const existingPagination = container.querySelector('.pagination-controls');
+                if (existingPagination) {
+                    existingPagination.remove();
+                }
+                
+                const paginationHTML = createPaginationControls('interviews');
+                if (paginationHTML) {
+                    container.insertAdjacentHTML('beforeend', paginationHTML);
+                }
+                
+                // Add pagination info
+                const existingInfo = container.querySelector('.pagination-info');
+                if (existingInfo) {
+                    existingInfo.remove();
+                }
+                
+                const startIndex = (currentPage['interviews'] - 1) * ITEMS_PER_PAGE + 1;
+                const endIndex = Math.min(currentPage['interviews'] * ITEMS_PER_PAGE, interviewsToDisplay.length);
+                const infoHTML = `
+                    <div class="pagination-info">
+                        <span>Showing ${startIndex}-${endIndex} of ${interviewsToDisplay.length} interviews</span>
+                        <span>Page ${currentPage['interviews']} of ${totalPages['interviews']}</span>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', infoHTML);
+            }
         }
 
         // Enhanced Filter, Sort, and Group Functions
@@ -3071,7 +3255,18 @@
                 return;
             }
 
-            const rows = questionsToDisplay.map(q => {
+            // Sort by created_at descending (recent first)
+            questionsToDisplay.sort((a, b) => {
+                const dateA = new Date(a.created_at || a.created_date);
+                const dateB = new Date(b.created_at || b.created_date);
+                return dateB - dateA;
+            });
+            
+            // Update pagination
+            updateTotalPages(questionsToDisplay, 'questions');
+            const paginatedData = getPaginatedData(questionsToDisplay, 'questions');
+
+            const rows = paginatedData.map(q => {
                 const timesAsked = q.times_asked ?? q.count_of_times_asked ?? 0;
                 const correct = q.correct_answers ?? q.times_answered_correctly ?? 0;
                 const incorrect = q.incorrect_answers ?? q.times_answered_incorrectly ?? 0;
@@ -3117,6 +3312,11 @@
                             ${rows}
                         </tbody>
                     </table>
+                    ${createPaginationControls('questions')}
+                    <div class="pagination-info">
+                        <span>Showing ${(currentPage['questions'] - 1) * ITEMS_PER_PAGE + 1}-${Math.min(currentPage['questions'] * ITEMS_PER_PAGE, questionsToDisplay.length)} of ${questionsToDisplay.length} questions</span>
+                        <span>Page ${currentPage['questions']} of ${totalPages['questions']}</span>
+                    </div>
                 </div>
             `;
         }
