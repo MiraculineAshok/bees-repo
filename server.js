@@ -534,6 +534,80 @@ app.delete('/api/authorized-users/:email', async (req, res) => {
   }
 });
 
+// Get authorized user by ID
+app.get('/api/authorized-users/:id', async (req, res) => {
+  try {
+    const user = await AuthService.getAuthorizedUserById(req.params.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+    res.json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    console.error('Error fetching authorized user:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch user'
+    });
+  }
+});
+
+// Update authorized user by ID
+app.put('/api/authorized-users/:id', async (req, res) => {
+  try {
+    const user = await AuthService.updateAuthorizedUserById(req.params.id, req.body);
+    res.json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    console.error('Error updating authorized user:', error);
+    res.status(400).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Delete authorized user by ID
+app.delete('/api/authorized-users/:id', async (req, res) => {
+  try {
+    const user = await AuthService.deleteAuthorizedUserById(req.params.id);
+    res.json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    console.error('Error deleting authorized user:', error);
+    res.status(404).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Bulk update authorized users
+app.put('/api/authorized-users/bulk', async (req, res) => {
+  try {
+    const result = await AuthService.bulkUpdateAuthorizedUsers(req.body);
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    console.error('Error bulk updating authorized users:', error);
+    res.status(400).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Helper function to get current user ID from request
 async function getCurrentUserId(req) {
   try {

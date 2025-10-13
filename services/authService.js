@@ -137,6 +137,79 @@ class AuthService {
       return false;
     }
   }
+
+  // Get authorized user by ID
+  static async getAuthorizedUserById(id) {
+    try {
+      const result = await pool.query(`
+        SELECT * FROM authorized_users WHERE id = $1
+      `, [id]);
+      
+      return result.rows[0] || null;
+    } catch (error) {
+      console.error('❌ Error getting authorized user by ID:', error.message);
+      throw error;
+    }
+  }
+
+  // Update authorized user by ID
+  static async updateAuthorizedUserById(id, updateData) {
+    try {
+      const { name, email, role, is_superadmin } = updateData;
+      
+      const result = await pool.query(`
+        UPDATE authorized_users 
+        SET name = $1, email = $2, role = $3, is_superadmin = $4, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $5
+        RETURNING *
+      `, [name, email, role, is_superadmin, id]);
+      
+      if (result.rows.length === 0) {
+        throw new Error('User not found');
+      }
+      
+      return result.rows[0];
+    } catch (error) {
+      console.error('❌ Error updating authorized user by ID:', error.message);
+      throw error;
+    }
+  }
+
+  // Delete authorized user by ID
+  static async deleteAuthorizedUserById(id) {
+    try {
+      const result = await pool.query(`
+        DELETE FROM authorized_users WHERE id = $1 RETURNING *
+      `, [id]);
+      
+      if (result.rows.length === 0) {
+        throw new Error('User not found');
+      }
+      
+      return result.rows[0];
+    } catch (error) {
+      console.error('❌ Error deleting authorized user by ID:', error.message);
+      throw error;
+    }
+  }
+
+  // Bulk update authorized users
+  static async bulkUpdateAuthorizedUsers(updates) {
+    try {
+      const results = [];
+      
+      for (const update of updates) {
+        const { id, ...updateData } = update;
+        const result = await this.updateAuthorizedUserById(id, updateData);
+        results.push(result);
+      }
+      
+      return results;
+    } catch (error) {
+      console.error('❌ Error bulk updating authorized users:', error.message);
+      throw error;
+    }
+  }
 }
 
 module.exports = AuthService;
