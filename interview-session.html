@@ -1545,7 +1545,7 @@
                     </div>
                     <button id="login-btn" class="login-btn hidden">Sign in with Zoho</button>
                 </div>
-                <button id="dashboard-btn" class="btn btn-primary hidden">Dashboard</button>
+                
             </div>
         </div>
     </header>
@@ -3895,7 +3895,7 @@
             `).join('');
         }
 
-        function selectPanelQuestion(questionId) {
+        async function selectPanelQuestion(questionId) {
             // Remove previous selection
             document.querySelectorAll('.question-bank-panel-item').forEach(item => {
                 item.classList.remove('selected');
@@ -3910,7 +3910,7 @@
                 const question = panelQuestionBankData.find(q => q.id === questionId);
                 if (question) {
                     // Add the question to the interview
-                    addQuestionFromPanel(question.question_text);
+                    await addQuestionFromPanel(question.question_text);
                     
                     // Close the panel
                     closeQuestionBankPanel();
@@ -3918,25 +3918,39 @@
             }
         }
 
-        function addQuestionFromPanel(questionText) {
+        async function addQuestionFromPanel(questionText) {
             console.log('➕ Adding question from panel:', questionText);
             
-            // Add the question to the interview
-            const questionData = {
-                question_text: questionText,
-                student_answer: '',
-                answer_photo_url: null,
-                correct_status: null
-            };
-            
-            console.log('📝 Question data:', questionData);
-            questions.push(questionData);
-            console.log('📋 Total questions after adding:', questions.length);
-            
-            displayQuestions();
-            
-            // Show success message
-            showSuccessMessage('Question added from Question Bank!');
+            if (!currentInterview) {
+                showError('No active interview found');
+                return;
+            }
+
+            try {
+                // Save the question to the server first
+                const response = await fetch(`/api/interviews/${currentInterview.id}/questions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        question_text: questionText
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    // Reload questions from server to get the latest state
+                    await loadQuestions();
+                    showSuccessMessage('Question added from Question Bank!');
+                } else {
+                    showError('Error adding question from bank');
+                }
+            } catch (error) {
+                console.error('Error adding question from panel:', error);
+                showError('Error adding question from bank');
+            }
         }
 
         // removed old simple loadPanelQuestionsByCategory (replaced by async version above)
