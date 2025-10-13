@@ -2259,15 +2259,15 @@
                     <textarea id="question-text" class="form-textarea" placeholder="Enter the question text..." required rows="4"></textarea>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="question-category">Category</label>
+                    <label class="form-label" for="question-category">Category <span style="color:#6b7280;font-size:12px">(optional if creating new)</span></label>
                     <div style="display:flex;gap:8px;align-items:center">
-                        <select id="question-category" class="form-select" required style="flex:1">
+                        <select id="question-category" class="form-select" style="flex:1">
                             <option value="">Loading categories...</option>
                         </select>
                         <button type="button" id="add-new-category-btn" style="background:#3b82f6;color:#fff;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:12px">+ New</button>
                     </div>
                     <div id="new-category-input" style="display:none;margin-top:8px">
-                        <input type="text" id="new-category-name" placeholder="Enter new category name" style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:4px;font-size:14px">
+                        <input type="text" id="new-category-name" placeholder="Enter new category name" required style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:4px;font-size:14px">
                     </div>
                 </div>
                 <div class="form-group">
@@ -3851,9 +3851,15 @@
                 console.log('Using selected category:', category);
             }
 
-            if (!questionText || !category) {
-                console.log('Validation failed:', { questionText: !!questionText, category: !!category });
-                showError('Please fill in all fields');
+            if (!questionText) {
+                console.log('Validation failed: Question text is required');
+                showError('Please enter the question text');
+                return;
+            }
+            
+            if (!category) {
+                console.log('Validation failed: Category is required');
+                showError('Please select a category or create a new one');
                 return;
             }
 
