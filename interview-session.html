@@ -3723,18 +3723,26 @@
             const selectEl = document.getElementById('panel-category-select');
             if (!selectEl) return;
             const category = selectEl.value;
+            console.log('[Panel] Category changed ->', category);
             try {
                 let data = [];
                 if (!category) {
                     data = panelQuestionBankData || [];
+                    console.log('[Panel] Using all questions, count =', data.length);
                 } else if (category === 'Favorites') {
                     const email = (JSON.parse(localStorage.getItem('bees_user_data') || '{}')?.email) || '';
-                    const res = await fetch(`/api/interviewer/favorites${email ? `?email=${encodeURIComponent(email)}` : ''}` , {
+                    console.log('[Panel][Favorites] Using email =', email);
+                    const url = `/api/interviewer/favorites${email ? `?email=${encodeURIComponent(email)}` : ''}`;
+                    console.log('[Panel][Favorites] Fetch URL =', url);
+                    const res = await fetch(url , {
                         headers: email ? { 'x-user-email': email } : {}
                     });
+                    console.log('[Panel][Favorites] Response status =', res.status);
                     const json = await res.json();
-                    if (json.success) {
+                    console.log('[Panel][Favorites] JSON =', json);
+                    if (json && json.success) {
                         const favs = json.data || [];
+                        console.log('[Panel][Favorites] Raw favorites count =', favs.length);
                         // If API returns only IDs, enrich from already loaded panelQuestionBankData
                         const byId = new Map((panelQuestionBankData || []).map(q => [q.id, q]));
                         data = favs.map(f => {
@@ -3749,15 +3757,23 @@
                                 success_rate: (f.success_rate ?? base.success_rate ?? 0)
                             };
                         }).filter(q => (q.question || q.question_text));
+                        console.log('[Panel][Favorites] Enriched favorites count =', data.length);
+                    } else {
+                        console.warn('[Panel][Favorites] Favorite API not success');
                     }
                 } else {
-                    const res = await fetch(`/api/question-bank/category/${encodeURIComponent(category)}`);
+                    const catUrl = `/api/question-bank/category/${encodeURIComponent(category)}`;
+                    console.log('[Panel][Category] Fetch URL =', catUrl);
+                    const res = await fetch(catUrl);
+                    console.log('[Panel][Category] Response status =', res.status);
                     const json = await res.json();
-                    if (json.success) data = json.data || [];
+                    console.log('[Panel][Category] JSON =', json);
+                    if (json && json.success) data = json.data || [];
                 }
+                console.log('[Panel] Final list length =', data.length);
                 displayPanelQuestionBankList(data);
             } catch (e) {
-                console.error('Error filtering panel questions:', e);
+                console.error('[Panel] Error filtering panel questions:', e);
             }
         }
 
@@ -3765,6 +3781,7 @@
             const listContainer = document.getElementById('question-bank-panel-list');
             
             if (!questions || questions.length === 0) {
+                console.warn('[Panel] No questions to display for current filter');
                 listContainer.innerHTML = '<div class="empty-state">No questions found</div>';
                 return;
             }
