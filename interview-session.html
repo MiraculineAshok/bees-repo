@@ -1563,7 +1563,7 @@
     <div class="question-bank-panel" id="question-bank-panel">
         <div class="question-bank-panel-header">
             <div class="question-bank-panel-title">📚 Question Bank</div>
-            <button class="question-bank-close-btn" onclick="closeQuestionBankPanel()">×</button>
+            <button class="question-bank-close-btn" onclick="closeQuestionBankPanel()">✕</button>
         </div>
         <div class="question-bank-panel-content">
             <div class="question-bank-panel-filters">
@@ -1639,14 +1639,18 @@
                                 <button class="add-to-bank-btn" onclick="addToQuestionBank()" title="Add to Question Bank">📚</button>
                             </div>
                         </div>
-                        <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
-                            <button id="add-question-btn" class="btn btn-primary" onclick="addQuestion()">Add Question</button>
-                            <button id="save-interview-btn" class="btn btn-success" onclick="saveInterview()">Save Interview</button>
-                            <button class="btn btn-danger" onclick="endInterview()">End Interview</button>
-                            <button class="btn btn-warning" onclick="cancelInterview()">Cancel Interview</button>
-                            <div class="interview-clock" id="interview-clock">
-                                <span class="clock-icon">⏱️</span>
-                                <span id="duration-display">00:00:00</span>
+                        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem">
+                            <div style="display:flex;gap:0.5rem;align-items:center">
+                                <button id="add-question-btn" class="btn btn-primary" onclick="addQuestion()">Add Question</button>
+                            </div>
+                            <div style="display:flex;gap:0.5rem;align-items:center">
+                                <div class="interview-clock" id="interview-clock">
+                                    <span class="clock-icon">⏱️</span>
+                                    <span id="duration-display">00:00:00</span>
+                                </div>
+                                <button id="save-interview-btn" class="btn btn-success" onclick="saveInterview()">Save Interview</button>
+                                <button class="btn btn-danger" onclick="endInterview()">End Interview</button>
+                                <button class="btn btn-warning" onclick="cancelInterview()">Cancel Interview</button>
                             </div>
                         </div>
                     </div>
@@ -2318,7 +2322,7 @@
                                 📚
                             </button>
                             <button class="delete-question-btn" onclick="event.stopPropagation(); deleteQuestion(${question.id})" title="Delete Question">
-                                🗑️
+                                🗑
                             </button>
                             <span class="expand-icon">▼</span>
                         </div>
@@ -2342,7 +2346,7 @@
                                                 return photoUrls.map((url, index) => `
                                                     <div class="photo-item">
                                                         <img src="${url}" class="message-image" onclick="openImageModal('${url}')" title="Click to view full size" onerror="console.error('Image failed to load:', this.src)" onload="console.log('✅ Image loaded successfully:', this.src)">
-                                                        <button class="photo-delete" onclick="deletePhoto(${question.id}, ${index})" title="Delete image">×</button>
+                                                        <button class="photo-delete" onclick="deletePhoto(${question.id}, ${index})" title="Delete image">🗑</button>
                                                     </div>
                                                 `).join('');
                                             } else {
@@ -2350,7 +2354,7 @@
                                                 return `
                                                     <div class="photo-item">
                                                         <img src="${question.answer_photo_url}" class="message-image" onclick="openImageModal('${question.answer_photo_url}')" title="Click to view full size" onerror="console.error('Image failed to load:', this.src)" onload="console.log('✅ Image loaded successfully:', this.src)">
-                                                        <button class="photo-delete" onclick="deletePhoto(${question.id})" title="Delete image">×</button>
+                                                        <button class="photo-delete" onclick="deletePhoto(${question.id})" title="Delete image">🗑</button>
                                                     </div>
                                                 `;
                                             }
@@ -2359,7 +2363,7 @@
                                             return `
                                                 <div class="photo-item">
                                                     <img src="${question.answer_photo_url}" class="message-image" onclick="openImageModal('${question.answer_photo_url}')" title="Click to view full size" onerror="console.error('Image failed to load:', this.src)" onload="console.log('✅ Image loaded successfully:', this.src)">
-                                                    <button class="photo-delete" onclick="deletePhoto(${question.id})" title="Delete image">×</button>
+                                                    <button class="photo-delete" onclick="deletePhoto(${question.id})" title="Delete image">🗑</button>
                                                 </div>
                                             `;
                                         }
@@ -2538,8 +2542,8 @@
                 <div style="position: relative; max-width: 90vw; max-height: 90vh;">
                     <img src="${imageUrl}" style="max-width: 100%; max-height: 100%; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
                     <button onclick="this.closest('div').parentElement.remove()" 
-                            style="position: absolute; top: -10px; right: -10px; background: #dc3545; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 18px; font-weight: bold;">
-                        ×
+                            style="position: absolute; top: -10px; right: -10px; background: #dc3545; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 16px; font-weight: bold;">
+                        ✕
                     </button>
                 </div>
             `;
@@ -2634,7 +2638,7 @@
                     <div class="camera-container">
                         <div class="camera-header">
                             <h3>Take Photo</h3>
-                            <button class="close-camera" onclick="closeCamera()">×</button>
+                            <button class="close-camera" onclick="closeCamera()">✕</button>
                         </div>
                         <div class="camera-preview">
                             <video id="camera-video" autoplay playsinline></video>

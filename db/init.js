@@ -147,6 +147,17 @@ async function initializeDatabase() {
       )
     `);
     
+    // Fix created_by column constraint in interview_sessions table
+    try {
+      await pool.query(`
+        ALTER TABLE interview_sessions 
+        ALTER COLUMN created_by DROP NOT NULL
+      `);
+      console.log('✅ Fixed created_by column constraint');
+    } catch (error) {
+      console.log('⚠️ created_by column constraint may already be correct:', error.message);
+    }
+
     // Add missing columns to existing table if they don't exist
     try {
       await pool.query(`
