@@ -2007,8 +2007,21 @@
                 return; // Already started
             }
             
-            interviewStartTime = new Date();
-            console.log('⏱️ Interview started at:', interviewStartTime);
+            // Check if this is a resume scenario
+            const urlParams = new URLSearchParams(window.location.search);
+            const isResume = urlParams.get('resume') === '1';
+            
+            if (isResume && currentInterview && currentInterview.duration_seconds) {
+                // For resume, set start time to account for existing duration
+                const existingDurationMs = currentInterview.duration_seconds * 1000;
+                interviewStartTime = new Date(Date.now() - existingDurationMs);
+                console.log('⏱️ Resuming interview with existing duration:', currentInterview.duration_seconds, 'seconds');
+                console.log('⏱️ Adjusted start time:', interviewStartTime);
+            } else {
+                // For new interviews, start from current time
+                interviewStartTime = new Date();
+                console.log('⏱️ New interview started at:', interviewStartTime);
+            }
             
             // Update clock every second
             durationInterval = setInterval(updateDurationDisplay, 1000);
