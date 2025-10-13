@@ -2327,6 +2327,15 @@
                     return;
                 }
 
+            // Track which questions are currently expanded
+            const expandedQuestions = new Set();
+            questions.forEach(question => {
+                const questionItem = document.querySelector(`[data-question-id="${question.id}"]`);
+                if (questionItem && questionItem.classList.contains('expanded')) {
+                    expandedQuestions.add(question.id);
+                }
+            });
+
             chatMessages.innerHTML = questions.map((question, index) => `
                 <div class="question-item" data-question-id="${question.id}">
                     <div class="question-header" onclick="toggleQuestion(${question.id})">
@@ -2413,6 +2422,23 @@
                     </div>
                 </div>
             `).join('');
+            
+            // Restore expanded state for questions that were previously expanded
+            setTimeout(() => {
+                expandedQuestions.forEach(questionId => {
+                    const questionItem = document.querySelector(`[data-question-id="${questionId}"]`);
+                    if (questionItem) {
+                        const content = questionItem.querySelector('.question-content');
+                        const header = questionItem.querySelector('.question-header');
+                        if (content && header) {
+                            content.classList.add('expanded');
+                            header.classList.add('expanded');
+                            questionItem.classList.add('expanded');
+                            console.log(`Restored expanded state for question ${questionId}`);
+                        }
+                    }
+                });
+            }, 50);
             
             // Debug: Check if elements were created
             setTimeout(() => {
