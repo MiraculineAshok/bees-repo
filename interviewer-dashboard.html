@@ -4007,6 +4007,14 @@
             
             modal.querySelector('#bulk-import-cancel').onclick = () => modal.remove();
             modal.querySelector('#bulk-import-save').onclick = async () => {
+                const saveBtn = modal.querySelector('#bulk-import-save');
+                
+                // Prevent multiple simultaneous imports
+                if (saveBtn.disabled) {
+                    console.log('⚠️ Import already in progress, ignoring duplicate request');
+                    return;
+                }
+                
                 const textSection = document.getElementById('text-import-section');
                 const fileSection = document.getElementById('file-import-section');
                 let questions = [];
@@ -4052,6 +4060,11 @@
                     return;
                 }
                 
+                // Disable button and show progress
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Importing...';
+                console.log(`🚀 Starting bulk import of ${questions.length} questions at ${new Date().toISOString()}`);
+                
                 try {
                     const response = await fetch('/api/question-bank/bulk', {
                         method: 'POST',
@@ -4073,6 +4086,10 @@
                 } catch (error) {
                     console.error('Error importing questions:', error);
                     showError('Error importing questions');
+                } finally {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Import Questions';
+                    console.log(`✅ Bulk import completed at ${new Date().toISOString()}`);
                 }
             };
         }

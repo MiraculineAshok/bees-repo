@@ -317,7 +317,10 @@ class QuestionBankService {
                 return mockDataService.bulkImportQuestions(questions);
             }
 
-            console.log(`📥 Bulk importing ${questions.length} questions`);
+            console.log(`📥 Bulk importing ${questions.length} questions at ${new Date().toISOString()}`);
+            
+            // Add a small delay to prevent rapid successive imports
+            await new Promise(resolve => setTimeout(resolve, 100));
             
             const results = {
                 successCount: 0,
@@ -343,9 +346,9 @@ class QuestionBankService {
                             continue;
                         }
 
-                        // Check for duplicate questions
+                        // Check for duplicate questions (case-insensitive, trimmed)
                         const duplicateCheck = await client.query(
-                            'SELECT id FROM question_bank WHERE question = $1',
+                            'SELECT id FROM question_bank WHERE LOWER(TRIM(question)) = LOWER(TRIM($1))',
                             [questionData.question.trim()]
                         );
 

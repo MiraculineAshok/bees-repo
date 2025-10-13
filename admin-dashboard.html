@@ -8146,6 +8146,14 @@
         }
 
         async function startBulkImport() {
+            const importBtn = document.getElementById('import-btn');
+            
+            // Prevent multiple simultaneous imports
+            if (importBtn.disabled) {
+                console.log('⚠️ Import already in progress, ignoring duplicate request');
+                return;
+            }
+            
             const textSection = document.getElementById('text-import-section');
             const fileSection = document.getElementById('file-import-section');
             let questions = [];
@@ -8182,14 +8190,16 @@
                 return;
             }
 
-            const importBtn = document.getElementById('import-btn');
             const progressDiv = document.getElementById('import-progress');
             const resultsDiv = document.getElementById('import-results');
             
-            // Show progress
+            // Show progress and disable button
             importBtn.disabled = true;
+            importBtn.textContent = 'Importing...';
             progressDiv.style.display = 'block';
             resultsDiv.style.display = 'none';
+            
+            console.log(`🚀 Starting bulk import of ${questions.length} questions at ${new Date().toISOString()}`);
 
             try {
                 // Validate data first
@@ -8245,6 +8255,8 @@
                 });
             } finally {
                 importBtn.disabled = false;
+                importBtn.textContent = 'Import Questions';
+                console.log(`✅ Bulk import completed at ${new Date().toISOString()}`);
             }
         }
 
