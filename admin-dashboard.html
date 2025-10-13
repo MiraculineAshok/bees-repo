@@ -2912,6 +2912,7 @@
         // Display function for my interviews
         function displayMyInterviews(interviewsData = myInterviews, groupBy = '') {
             const tbody = document.getElementById('my-interviews-table-body');
+            const container = document.querySelector('#my-interviews .table-container');
             if (!tbody) return;
 
             if (!interviewsData || interviewsData.length === 0) {
@@ -2923,25 +2924,66 @@
             if (groupBy) {
                 const groupedData = groupMyInterviews(interviewsData, groupBy);
                 displayGroupedMyInterviews(groupedData, tbody);
-            } else {
-                tbody.innerHTML = interviewsData.map(interview => `
-                    <tr data-row-id="${interview.id}">
-                        <td><input type="checkbox" class="row-checkbox" data-row-id="${interview.id}" onchange="toggleRowSelection('${interview.id}')"></td>
-                        <td data-field="created_at">${formatDate(interview.created_at || interview.interview_date)}</td>
-                        <td data-field="student_name">${interview.student_name || 'N/A'}</td>
-                        <td data-field="zeta_id">${interview.zeta_id || 'N/A'}</td>
-                        <td data-field="session_name">${interview.session_name || 'N/A'}</td>
-                        <td data-field="status"><span class="status-badge status-${interview.status}">${interview.status}</span></td>
-                        <td data-field="verdict">${interview.verdict || 'N/A'}</td>
-                        <td data-field="duration_seconds">${formatDuration(interview.duration_seconds)}</td>
-                        <td>
-                            ${interview.status === 'in_progress' ? `<button class="icon-btn" onclick="resumeInterviewAdmin(${interview.id})" title="Resume">⏵</button>` : ''}
-                            <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit">✏️</button>
-                            <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete">🗑️</button>
-                            <button class="icon-btn" onclick="viewInterview(${interview.id})" title="View">👁️</button>
-                        </td>
-                    </tr>
-                `).join('');
+                return;
+            }
+
+            // Sort by created_at descending (recent first)
+            interviewsData.sort((a, b) => {
+                const dateA = new Date(a.created_at || a.interview_date);
+                const dateB = new Date(b.created_at || b.interview_date);
+                return dateB - dateA;
+            });
+            
+            // Update pagination
+            updateTotalPages(interviewsData, 'my-interviews');
+            const paginatedData = getPaginatedData(interviewsData, 'my-interviews');
+
+            tbody.innerHTML = paginatedData.map(interview => `
+                <tr data-row-id="${interview.id}">
+                    <td><input type="checkbox" class="row-checkbox" data-row-id="${interview.id}" onchange="toggleRowSelection('${interview.id}')"></td>
+                    <td data-field="created_at">${formatDate(interview.created_at || interview.interview_date)}</td>
+                    <td data-field="student_name">${interview.student_name || 'N/A'}</td>
+                    <td data-field="zeta_id">${interview.zeta_id || 'N/A'}</td>
+                    <td data-field="session_name">${interview.session_name || 'N/A'}</td>
+                    <td data-field="status"><span class="status-badge status-${interview.status}">${interview.status}</span></td>
+                    <td data-field="verdict">${interview.verdict || 'N/A'}</td>
+                    <td data-field="duration_seconds">${formatDuration(interview.duration_seconds)}</td>
+                    <td>
+                        ${interview.status === 'in_progress' ? `<button class="icon-btn" onclick="resumeInterviewAdmin(${interview.id})" title="Resume">⏵</button>` : ''}
+                        <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit">✏️</button>
+                        <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete">🗑️</button>
+                        <button class="icon-btn" onclick="viewInterview(${interview.id})" title="View">👁️</button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            // Add pagination controls
+            if (container) {
+                const existingPagination = container.querySelector('.pagination-controls');
+                if (existingPagination) {
+                    existingPagination.remove();
+                }
+                
+                const paginationHTML = createPaginationControls('my-interviews');
+                if (paginationHTML) {
+                    container.insertAdjacentHTML('beforeend', paginationHTML);
+                }
+                
+                // Add pagination info
+                const existingInfo = container.querySelector('.pagination-info');
+                if (existingInfo) {
+                    existingInfo.remove();
+                }
+                
+                const startIndex = (currentPage['my-interviews'] - 1) * ITEMS_PER_PAGE + 1;
+                const endIndex = Math.min(currentPage['my-interviews'] * ITEMS_PER_PAGE, interviewsData.length);
+                const infoHTML = `
+                    <div class="pagination-info">
+                        <span>Showing ${startIndex}-${endIndex} of ${interviewsData.length} interviews</span>
+                        <span>Page ${currentPage['my-interviews']} of ${totalPages['my-interviews']}</span>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', infoHTML);
             }
         }
 

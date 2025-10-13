@@ -557,14 +557,6 @@
             flex-wrap: wrap;
         }
 
-        .question-bank-list {
-            max-height: 600px;
-            overflow-y: auto;
-            border: 1px solid #000;
-            border-radius: 5px;
-            padding: 1rem;
-            background: #fdfdfd;
-        }
 
         .question-item {
             padding: 0.75rem 0;
@@ -1403,8 +1395,23 @@
                     <div id="question-results-summary" class="results-summary" style="display: none;">
                         <strong>0</strong> questions found
                     </div>
-                    <div id="question-bank-list" class="question-bank-list">
-                        <div class="loading">Loading questions...</div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Question</th>
+                                    <th>Category</th>
+                                    <th>Times Asked</th>
+                                    <th>Correct Answers</th>
+                                    <th>Incorrect Answers</th>
+                                    <th>Success Rate</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="question-bank-list">
+                                <tr><td colspan="7" class="loading">Loading questions...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </section>
@@ -3162,8 +3169,10 @@
         // REMOVED: Old conflicting exportInterviews function
 
         async function loadQuestions() {
-            const questionListDiv = document.getElementById('question-bank-list');
-            questionListDiv.innerHTML = '<div class="loading">Loading questions...</div>';
+            const tbody = document.getElementById('question-bank-list');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="7" class="loading">Loading questions...</td></tr>';
+            }
 
             try {
                 // Always load analytics for Question Analysis view
@@ -3180,11 +3189,15 @@
                     displayQuestionAnalytics(questions);
                 } else {
                     console.error('Failed to load questions analytics:', result.error);
-                    questionListDiv.innerHTML = `<div class="empty-state">Failed to load questions.</div>`;
+                    if (tbody) {
+                        tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Failed to load questions.</td></tr>';
+                    }
                 }
             } catch (error) {
                 console.error('Error loading questions analytics:', error);
-                questionListDiv.innerHTML = `<div class="empty-state">Error loading questions.</div>`;
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Error loading questions.</td></tr>';
+                }
             }
         }
 
@@ -3250,11 +3263,12 @@
         }
 
         function displayQuestionAnalytics(questionsToDisplay) {
-            const questionListDiv = document.getElementById('question-bank-list');
-            if (!questionListDiv) return;
+            const tbody = document.getElementById('question-bank-list');
+            const container = document.querySelector('#questions-section .table-container');
+            if (!tbody) return;
 
             if (!questionsToDisplay.length) {
-                questionListDiv.innerHTML = '<div class="empty-state">No questions found.</div>';
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No questions found.</td></tr>';
                 return;
             }
 
@@ -3269,7 +3283,7 @@
             updateTotalPages(questionsToDisplay, 'questions');
             const paginatedData = getPaginatedData(questionsToDisplay, 'questions');
 
-            const rows = paginatedData.map(q => {
+            tbody.innerHTML = paginatedData.map(q => {
                 const timesAsked = q.times_asked ?? q.count_of_times_asked ?? 0;
                 const correct = q.correct_answers ?? q.times_answered_correctly ?? 0;
                 const incorrect = q.incorrect_answers ?? q.times_answered_incorrectly ?? 0;
@@ -3296,32 +3310,35 @@
                     </tr>
                 `;
             }).join('');
-
-            questionListDiv.innerHTML = `
-                <div class="table-container">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Question</th>
-                                <th>Category</th>
-                                <th>Times Asked</th>
-                                <th>Correct Answers</th>
-                                <th>Incorrect Answers</th>
-                                <th>Success Rate</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${rows}
-                        </tbody>
-                    </table>
-                    ${createPaginationControls('questions')}
+            
+            // Add pagination controls
+            if (container) {
+                const existingPagination = container.querySelector('.pagination-controls');
+                if (existingPagination) {
+                    existingPagination.remove();
+                }
+                
+                const paginationHTML = createPaginationControls('questions');
+                if (paginationHTML) {
+                    container.insertAdjacentHTML('beforeend', paginationHTML);
+                }
+                
+                // Add pagination info
+                const existingInfo = container.querySelector('.pagination-info');
+                if (existingInfo) {
+                    existingInfo.remove();
+                }
+                
+                const startIndex = (currentPage['questions'] - 1) * ITEMS_PER_PAGE + 1;
+                const endIndex = Math.min(currentPage['questions'] * ITEMS_PER_PAGE, questionsToDisplay.length);
+                const infoHTML = `
                     <div class="pagination-info">
-                        <span>Showing ${(currentPage['questions'] - 1) * ITEMS_PER_PAGE + 1}-${Math.min(currentPage['questions'] * ITEMS_PER_PAGE, questionsToDisplay.length)} of ${questionsToDisplay.length} questions</span>
+                        <span>Showing ${startIndex}-${endIndex} of ${questionsToDisplay.length} questions</span>
                         <span>Page ${currentPage['questions']} of ${totalPages['questions']}</span>
                     </div>
-                </div>
-            `;
+                `;
+                container.insertAdjacentHTML('beforeend', infoHTML);
+            }
         }
 
         async function viewQuestionDetails(questionId) {
