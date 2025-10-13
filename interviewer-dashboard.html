@@ -2441,20 +2441,20 @@
 
         async function loadSessions() {
             try {
-                console.log('Loading sessions...');
+                console.log('loadSessions() called - Loading sessions...');
                 const response = await fetch('/api/admin/sessions');
                 const data = await response.json();
-                console.log('Sessions response:', data);
+                console.log('loadSessions() - Sessions response:', data);
                 
                 if (data.success) {
                     sessions = data.data;
-                    console.log('Sessions loaded:', sessions.length);
+                    console.log('loadSessions() - Sessions loaded:', sessions.length);
                     await populateSessionFilter();
                 } else {
-                    console.error('Failed to load sessions:', data.error);
+                    console.error('loadSessions() - Failed to load sessions:', data.error);
                 }
             } catch (error) {
-                console.error('Error loading sessions:', error);
+                console.error('loadSessions() - Error loading sessions:', error);
             }
         }
 
@@ -2474,8 +2474,11 @@
                 const response = await fetch('/api/admin/sessions');
                 const data = await response.json();
                 
+                console.log('Sessions API response in populateSessionFilter:', data);
+                
                 if (data.success) {
                     sessions = data.data;
+                    console.log('Sessions data:', sessions);
                     // Clear and add "All Sessions" option
                     sessionFilter.innerHTML = '<option value="">All Sessions</option>';
                     
