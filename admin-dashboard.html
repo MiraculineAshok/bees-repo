@@ -5180,10 +5180,18 @@
         }
 
         function generateUserRow(user) {
+            // Debug: Log user role to console
+            console.log('User role for', user.name, ':', user.role, 'Type:', typeof user.role);
+            
             const statusClass = user.status === 'active' ? 'status-active' : 
                                user.status === 'inactive' ? 'status-inactive' : 'status-suspended';
             const roleClass = user.role === 'superadmin' ? 'role-superadmin' :
                              user.role === 'admin' ? 'role-admin' : 'role-interviewer';
+            
+            // Debug: Check menu conditions
+            const isInterviewer = user.role && (user.role.toLowerCase() === 'interviewer' || user.role === 'interviewer');
+            const isAdmin = user.role && (user.role.toLowerCase() === 'admin' || user.role === 'admin');
+            console.log('Menu conditions for', user.name, '- isInterviewer:', isInterviewer, 'isAdmin:', isAdmin);
 
             return `
                 <tr data-row-id="${user.id}">
@@ -5199,8 +5207,8 @@
                         <div class="action-menu-container">
                             <button class="icon-btn menu-btn" onclick="toggleUserMenu(${user.id})" title="More Actions">⋮</button>
                             <div id="user-menu-${user.id}" class="user-action-menu hidden">
-                                ${user.role === 'interviewer' ? `<button onclick="promoteToAdmin(${user.id})" class="menu-item">Make as Admin</button>` : ''}
-                                ${user.role === 'admin' ? `<button onclick="promoteToSuperAdmin(${user.id})" class="menu-item">Make as Super Admin</button>` : ''}
+                                ${isInterviewer ? `<button onclick="promoteToAdmin(${user.id})" class="menu-item">Make as Admin</button>` : ''}
+                                ${isAdmin ? `<button onclick="promoteToSuperAdmin(${user.id})" class="menu-item">Make as Super Admin</button>` : ''}
                                 <button onclick="deactivateUser(${user.id})" class="menu-item">Deactivate User</button>
                             </div>
                         </div>
