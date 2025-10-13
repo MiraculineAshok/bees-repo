@@ -1348,11 +1348,11 @@
                 <div class="filter-row">
                     <div class="filter-group">
                         <label>Search:</label>
-                        <input type="text" id="search-interviews" class="form-input" placeholder="Search by student name, Zeta ID, or session..." onkeyup="applyFilters()">
+                        <input type="text" id="search-interviews" class="form-input" placeholder="Search by student name, Zeta ID, or session..." onkeyup="applyFilters('interviews')">
                     </div>
                     <div class="filter-group">
                         <label>Status:</label>
-                        <select id="status-filter" class="form-select" onchange="applyFilters()">
+                        <select id="status-filter" class="form-select" onchange="applyFilters('interviews')">
                             <option value="">All Statuses</option>
                             <option value="completed">Completed</option>
                             <option value="in_progress">In Progress</option>
@@ -1361,7 +1361,7 @@
                     </div>
                     <div class="filter-group">
                         <label>Verdict:</label>
-                        <select id="verdict-filter" class="form-select" onchange="applyFilters()">
+                        <select id="verdict-filter" class="form-select" onchange="applyFilters('interviews')">
                             <option value="">All Verdicts</option>
                             <option value="Tiger">Tiger</option>
                             <option value="Cow">Cow</option>
@@ -1373,15 +1373,15 @@
                 <div class="filter-row">
                     <div class="filter-group">
                         <label>Date From:</label>
-                        <input type="date" id="date-from" class="form-input" onchange="applyFilters()">
+                        <input type="date" id="date-from" class="form-input" onchange="applyFilters('interviews')">
                     </div>
                     <div class="filter-group">
                         <label>Date To:</label>
-                        <input type="date" id="date-to" class="form-input" onchange="applyFilters()">
+                        <input type="date" id="date-to" class="form-input" onchange="applyFilters('interviews')">
                     </div>
                     <div class="filter-group">
                         <label>Duration (min):</label>
-                        <input type="number" id="duration-min" class="form-input" placeholder="Minutes" min="0" onchange="applyFilters()">
+                        <input type="number" id="duration-min" class="form-input" placeholder="Minutes" min="0" onchange="applyFilters('interviews')">
                     </div>
                 </div>
             </div>
@@ -1392,7 +1392,7 @@
                 <div class="sort-options">
                     <div class="sort-option">
                         <label>Primary Sort:</label>
-                        <select id="sort-by" class="form-select" onchange="applySorting()">
+                        <select id="sort-by" class="form-select" onchange="applyFilters('interviews')">
                             <option value="created_at_desc">Date (Newest First)</option>
                             <option value="created_at_asc">Date (Oldest First)</option>
                             <option value="student_name_asc">Student Name (A-Z)</option>
@@ -1405,7 +1405,7 @@
                     </div>
                     <div class="sort-option">
                         <label>Secondary Sort:</label>
-                        <select id="sort-by-2" class="form-select" onchange="applySorting()">
+                        <select id="sort-by-2" class="form-select" onchange="applyFilters('interviews')">
                             <option value="">None</option>
                             <option value="student_name_asc">Student Name (A-Z)</option>
                             <option value="student_name_desc">Student Name (Z-A)</option>
@@ -1423,23 +1423,23 @@
                 <div class="filter-section-title">📋 Group By</div>
                 <div class="group-by-options">
                     <div class="group-by-option">
-                        <input type="radio" id="group-none" name="group-by" value="" onchange="applyGrouping()" checked>
+                        <input type="radio" id="group-none" name="group-by" value="" onchange="applyFilters('interviews')" checked>
                         <label for="group-none">No Grouping</label>
                     </div>
                     <div class="group-by-option">
-                        <input type="radio" id="group-status" name="group-by" value="status" onchange="applyGrouping()">
+                        <input type="radio" id="group-status" name="group-by" value="status" onchange="applyFilters('interviews')">
                         <label for="group-status">Status</label>
                     </div>
                     <div class="group-by-option">
-                        <input type="radio" id="group-verdict" name="group-by" value="verdict" onchange="applyGrouping()">
+                        <input type="radio" id="group-verdict" name="group-by" value="verdict" onchange="applyFilters('interviews')">
                         <label for="group-verdict">Verdict</label>
                     </div>
                     <div class="group-by-option">
-                        <input type="radio" id="group-date" name="group-by" value="date" onchange="applyGrouping()">
+                        <input type="radio" id="group-date" name="group-by" value="date" onchange="applyFilters('interviews')">
                         <label for="group-date">Date</label>
                     </div>
                     <div class="group-by-option">
-                        <input type="radio" id="group-duration" name="group-by" value="duration" onchange="applyGrouping()">
+                        <input type="radio" id="group-duration" name="group-by" value="duration" onchange="applyFilters('interviews')">
                         <label for="group-duration">Duration Range</label>
                     </div>
                 </div>
@@ -1447,7 +1447,7 @@
 
             <!-- Action Buttons -->
             <div class="filter-actions">
-                <button class="btn-filter" onclick="applyFilters()">Apply Filters</button>
+                <button class="btn-filter" onclick="applyFilters('interviews', true)">Apply Filters</button>
                 <button class="btn-clear" onclick="clearAllFilters()">Clear All</button>
                 <button class="btn-export" onclick="exportInterviews()">Export CSV</button>
                 <button class="btn btn-secondary" onclick="loadInterviews()">Refresh Data</button>
@@ -1704,7 +1704,7 @@
                 </div>
                 
                 <div class="filter-actions">
-                    <button class="btn-filter" onclick="applyFilters('${tab}')">Apply Filters</button>
+                    <button class="btn-filter" onclick="applyFilters('${tab}', true)">Apply Filters</button>
                     <button class="btn-clear" onclick="clearAllFilters('${tab}')">Clear All</button>
                     <button class="btn-export" onclick="exportData('${tab}')">Export Data</button>
                 </div>
@@ -1863,7 +1863,7 @@
         }
 
         // Dynamic filter functions
-        function applyFilters(tab) {
+        function applyFilters(tab, closePanel = false) {
             console.log(`Applying filters for tab: ${tab}`);
             
             switch(tab) {
@@ -1877,7 +1877,10 @@
                     console.log('Unknown tab:', tab);
             }
             
-            closeFilterPanel();
+            // Only close panel if explicitly requested (from Apply button)
+            if (closePanel) {
+                closeFilterPanel();
+            }
         }
 
         function clearAllFilters(tab) {
