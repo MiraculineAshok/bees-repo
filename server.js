@@ -9,7 +9,7 @@ const helmet = require('helmet');
 // Load environment variables from .env (local dev)
 try { require('dotenv').config(); } catch (e) {}
 const morgan = require('morgan');
-const request = require('request');
+// Using built-in fetch instead of deprecated request package
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const fs = require('fs');
@@ -2105,19 +2105,33 @@ app.get('/getCode', async (req, res) => {
     }
   };
 
-  request(options, async function (error, response) {
-    if (error) {
-      console.error('Error making token request:', error);
-      return res.status(500).json({
-        error: 'Failed to exchange authorization code for token',
-        details: error.message
-      });
+  try {
+    // Convert form data to URLSearchParams for fetch
+    const formData = new URLSearchParams();
+    formData.append('client_id', clientId);
+    formData.append('client_secret', clientSecret);
+    formData.append('grant_type', grantType);
+    formData.append('redirect_uri', redirectUrl);
+    formData.append('code', code);
+
+    const response = await fetch(zohoTokenUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Cookie': cookieHeader
+      },
+      body: formData
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
-    console.log('Token response:', response.body);
+
+    const responseText = await response.text();
+    console.log('Token response:', responseText);
     
     try {
-      const tokenData = JSON.parse(response.body);
+      const tokenData = JSON.parse(responseText);
       
       // Decode and console the JWT id_token if it exists
       if (tokenData.id_token) {
@@ -2229,7 +2243,13 @@ app.get('/getCode', async (req, res) => {
       const baseUrl = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
       res.redirect(`${baseUrl}/?login=success`);
     }
-  });
+  } catch (error) {
+    console.error('Error making token request:', error);
+    return res.status(500).json({
+      error: 'Failed to exchange authorization code for token',
+      details: error.message
+    });
+  }
 });
 
 // 404 handler
