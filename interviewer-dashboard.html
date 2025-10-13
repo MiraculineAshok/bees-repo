@@ -2841,6 +2841,7 @@
         
         // NEW: Function to populate question filter options
         async function populateQuestionFilterOptions() {
+            console.log('populateQuestionFilterOptions called, questions length:', questions?.length);
             if (!questions || questions.length === 0) return;
             
             // Populate category filter for questions
@@ -2849,6 +2850,7 @@
 
         // Function to populate category filter from API
         async function populateCategoryFilter() {
+            console.log('populateCategoryFilter called');
             const categoryFilter = document.getElementById('category-filter');
             if (!categoryFilter) {
                 console.error('Category filter element not found');
@@ -2862,6 +2864,8 @@
                 // Fetch categories from API
                 const response = await fetch('/api/question-bank/categories');
                 const result = await response.json();
+                
+                console.log('Categories API response:', result);
                 
                 if (result.success && result.data) {
                     categoryFilter.innerHTML = '<option value="">All Categories</option>';
