@@ -2284,6 +2284,7 @@
             const chatMessages = document.getElementById('chat-messages');
             
             console.log('displayQuestions called with questions:', questions);
+            console.log('Number of questions:', questions.length);
             questions.forEach((q, i) => {
                 console.log(`Question ${i}:`, {
                     id: q.id,
@@ -2386,6 +2387,21 @@
                     </div>
                 </div>
             `).join('');
+            
+            // Debug: Check if elements were created
+            setTimeout(() => {
+                console.log('Checking created question elements...');
+                questions.forEach(q => {
+                    const questionItem = document.querySelector(`[data-question-id="${q.id}"]`);
+                    const content = questionItem?.querySelector('.question-content');
+                    const header = questionItem?.querySelector('.question-header');
+                    console.log(`Question ${q.id}:`, {
+                        questionItem: !!questionItem,
+                        content: !!content,
+                        header: !!header
+                    });
+                });
+            }, 100);
         }
 
 
@@ -3236,20 +3252,39 @@
         };
 
         function toggleQuestion(questionId) {
+            console.log('toggleQuestion called with questionId:', questionId);
             const questionItem = document.querySelector(`[data-question-id="${questionId}"]`);
+            
+            if (!questionItem) {
+                console.error('Question item not found for ID:', questionId);
+                return;
+            }
+            
             const header = questionItem.querySelector('.question-header');
             const content = questionItem.querySelector('.question-content');
+            
+            if (!content) {
+                console.error('Question content not found for ID:', questionId);
+                return;
+            }
+            
+            if (!header) {
+                console.error('Question header not found for ID:', questionId);
+                return;
+            }
             
             if (content.classList.contains('expanded')) {
                 // Collapse
                 content.classList.remove('expanded');
                 header.classList.remove('expanded');
                 questionItem.classList.remove('expanded');
+                console.log('Question collapsed:', questionId);
             } else {
                 // Expand
                 content.classList.add('expanded');
                 header.classList.add('expanded');
                 questionItem.classList.add('expanded');
+                console.log('Question expanded:', questionId);
             }
         }
 
