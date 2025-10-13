@@ -4396,10 +4396,109 @@
 
         // Tab-specific filter functions
         function applyInterviewsFilters() {
-            // Use existing interview filter logic
-            if (typeof displayFilteredInterviews === 'function') {
-                displayFilteredInterviews();
+            const searchTerm = document.getElementById('search-interviews')?.value || '';
+            const status = document.getElementById('status-filter')?.value || '';
+            const verdict = document.getElementById('verdict-filter')?.value || '';
+            const dateFrom = document.getElementById('date-from')?.value || '';
+            const dateTo = document.getElementById('date-to')?.value || '';
+            const sortBy = document.getElementById('sort-by')?.value || 'created_at_desc';
+            const groupBy = document.querySelector('input[name="group-by"]:checked')?.value || '';
+
+            console.log('Interviews filters:', { searchTerm, status, verdict, dateFrom, dateTo, sortBy, groupBy });
+            
+            // Apply filters to interviews data
+            let filteredInterviews = [...interviews];
+            
+            // Search filter
+            if (searchTerm) {
+                filteredInterviews = filteredInterviews.filter(i => 
+                    i.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    i.student_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    i.zeta_id.toLowerCase().includes(searchTerm.toLowerCase())
+                );
             }
+            
+            // Status filter
+            if (status) {
+                filteredInterviews = filteredInterviews.filter(i => i.status === status);
+            }
+            
+            // Verdict filter
+            if (verdict) {
+                filteredInterviews = filteredInterviews.filter(i => i.verdict === verdict);
+            }
+            
+            // Date filters
+            if (dateFrom) {
+                filteredInterviews = filteredInterviews.filter(i => new Date(i.created_at) >= new Date(dateFrom));
+            }
+            if (dateTo) {
+                filteredInterviews = filteredInterviews.filter(i => new Date(i.created_at) <= new Date(dateTo));
+            }
+            
+            // Sort
+            const sortedInterviews = sortInterviews(filteredInterviews, sortBy);
+            
+            // Group
+            const groupedInterviews = groupInterviews(sortedInterviews, groupBy);
+            
+            // Display filtered results
+            displayInterviews();
+        }
+
+        function sortInterviews(interviews, sortBy) {
+            return interviews.sort((a, b) => {
+                const [field, direction] = sortBy.split('_');
+                let aVal, bVal;
+                
+                if (field === 'student_name') {
+                    aVal = a.student_name;
+                    bVal = b.student_name;
+                } else if (field === 'created_at') {
+                    aVal = new Date(a.created_at);
+                    bVal = new Date(b.created_at);
+                } else if (field === 'status') {
+                    aVal = a.status;
+                    bVal = b.status;
+                } else if (field === 'verdict') {
+                    aVal = a.verdict;
+                    bVal = b.verdict;
+                } else {
+                    aVal = a[field];
+                    bVal = b[field];
+                }
+                
+                if (direction === 'asc') {
+                    return aVal > bVal ? 1 : -1;
+                } else {
+                    return aVal < bVal ? 1 : -1;
+                }
+            });
+        }
+
+        function groupInterviews(interviews, groupBy) {
+            if (!groupBy) return interviews;
+            
+            const groups = {};
+            interviews.forEach(interview => {
+                let key;
+                if (groupBy === 'status') {
+                    key = interview.status || 'Unknown';
+                } else if (groupBy === 'verdict') {
+                    key = interview.verdict || 'Unknown';
+                } else if (groupBy === 'date') {
+                    key = new Date(interview.created_at).toLocaleDateString();
+                } else {
+                    key = 'All';
+                }
+                
+                if (!groups[key]) {
+                    groups[key] = [];
+                }
+                groups[key].push(interview);
+            });
+            
+            return { groups };
         }
 
         function applyQuestionsFilters() {

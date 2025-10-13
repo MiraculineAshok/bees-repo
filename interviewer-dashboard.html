@@ -1644,13 +1644,22 @@
         let currentFilterTab = 'interviews'; // Default tab
         
         function toggleFilterPanel(tab = 'interviews') {
-            const panel = document.getElementById('filter-panel');
+            // Close all filter panels first
+            document.querySelectorAll('.filter-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            document.getElementById('filter-panel-overlay').classList.remove('active');
+            
+            // Determine which panel to show
+            let panelId = 'filter-panel';
+            if (tab === 'questions') {
+                panelId = 'question-filter-panel';
+            }
+            
+            const panel = document.getElementById(panelId);
             const overlay = document.getElementById('filter-panel-overlay');
             
-            if (panel.classList.contains('active') && currentFilterTab === tab) {
-                panel.classList.remove('active');
-                overlay.classList.remove('active');
-            } else {
+            if (panel && !panel.classList.contains('active')) {
                 currentFilterTab = tab;
                 generateFilterContent(tab);
                 panel.classList.add('active');
@@ -1659,7 +1668,14 @@
         }
 
         function generateFilterContent(tab) {
-            const content = document.querySelector('.filter-panel-content');
+            // Determine which panel content to update
+            let content;
+            if (tab === 'questions') {
+                content = document.querySelector('#question-filter-panel .filter-panel-content');
+            } else {
+                content = document.querySelector('#filter-panel .filter-panel-content');
+            }
+            
             const titles = {
                 'interviews': 'My Interviews',
                 'questions': 'Question Analysis'
@@ -1835,7 +1851,14 @@
         }
 
         function closeFilterPanel() {
-            document.getElementById('filter-panel').classList.remove('active');
+            document.querySelectorAll('.filter-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            document.getElementById('filter-panel-overlay').classList.remove('active');
+        }
+
+        function closeQuestionFilterPanel() {
+            document.getElementById('question-filter-panel').classList.remove('active');
             document.getElementById('filter-panel-overlay').classList.remove('active');
         }
 
@@ -1861,7 +1884,13 @@
             console.log(`Clearing filters for tab: ${tab}`);
             
             // Clear all filter inputs in the current filter panel
-            const filterPanel = document.getElementById('filter-panel');
+            let filterPanel;
+            if (tab === 'questions') {
+                filterPanel = document.getElementById('question-filter-panel');
+            } else {
+                filterPanel = document.getElementById('filter-panel');
+            }
+            
             const inputs = filterPanel.querySelectorAll('input, select');
             inputs.forEach(input => {
                 if (input.type === 'radio') {
