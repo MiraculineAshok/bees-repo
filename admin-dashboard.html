@@ -3007,6 +3007,7 @@
                     <td data-field="status"><span class="status-badge status-${interview.status}">${interview.status}</span></td>
                     <td data-field="verdict">${interview.verdict || 'N/A'}</td>
                     <td>
+                        ${interview.status === 'in_progress' ? `<button class="icon-btn" onclick="resumeInterviewAdmin(${interview.id})" title="Resume">⏵</button>` : ''}
                         <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit">✏️</button>
                         <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete">🗑️</button>
                         <button class="icon-btn" onclick="viewInterview(${interview.id})" title="View">👁️</button>
@@ -6060,6 +6061,27 @@
                     showError(`HTTP Error: ${interviewResponse.status} ${interviewResponse.statusText}`);
                     return;
                 }
+
+        function resumeInterviewAdmin(interviewId) {
+            try {
+                const item = (interviews || []).find(i => i.id === interviewId) || (myInterviews || []).find(i => i.id === interviewId);
+                if (!item) {
+                    showError('Interview not found');
+                    return;
+                }
+                const zeta = item.zeta_id || '';
+                const sessionId = item.session_id || item.session || '';
+                if (!zeta || !sessionId) {
+                    showError('Missing Zeta ID or Session');
+                    return;
+                }
+                const url = `/interview-session.html?zeta_id=${encodeURIComponent(zeta)}&session_id=${encodeURIComponent(sessionId)}&resume=1`;
+                window.location.href = url;
+            } catch (e) {
+                console.error('Error resuming interview', e);
+                showError('Unable to resume interview');
+            }
+        }
                 
                 const interviewData = await interviewResponse.json();
                 console.log('📊 Interview API response:', interviewData);
