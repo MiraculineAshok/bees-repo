@@ -2228,6 +2228,9 @@
 
         async function addQuestion() {
             const questionText = document.getElementById('new-question').value.trim();
+            console.log('➕ Adding custom question:', questionText);
+            console.log('➕ Current questions count before adding:', questions.length);
+            
             if (!questionText) {
                 showError('Please enter a question');
                     return;
@@ -2245,6 +2248,7 @@
             addButton.disabled = true;
 
             try {
+                console.log('📤 Sending POST request to save custom question...');
                 const response = await fetch(`/api/interviews/${currentInterview.id}/questions`, {
                     method: 'POST',
                     headers: {
@@ -2256,17 +2260,20 @@
                 });
                 
                 const result = await response.json();
+                console.log('📥 Server response for custom question:', result);
                 
                 if (response.ok && result.success) {
+                    console.log('✅ Custom question saved successfully, reloading questions...');
                     // Reload questions from server to get the latest state for this specific interview
                     await loadQuestions();
                     document.getElementById('new-question').value = '';
                     showSuccess('Question added successfully!');
                 } else {
+                    console.error('❌ Error saving custom question:', result);
                     showError('Error adding question');
                 }
             } catch (error) {
-                console.error('Error adding question:', error);
+                console.error('❌ Error adding custom question:', error);
                 showError('Error adding question');
             } finally {
                 // Restore button state
@@ -2279,17 +2286,21 @@
             if (!currentInterview) return;
 
             try {
+                console.log('🔄 Loading questions for interview:', currentInterview.id);
                 const response = await fetch(`/api/interviews/${currentInterview.id}/questions`);
                 const result = await response.json();
                 
                 if (response.ok && result.success) {
+                    console.log('📋 Loaded questions from server:', result.data.length, 'questions');
+                    console.log('📋 Questions data:', result.data);
                     questions = result.data;
                     displayQuestions();
                 } else {
+                    console.error('❌ Error loading questions:', result);
                     showError('Error loading questions');
                 }
             } catch (error) {
-                console.error('Error loading questions:', error);
+                console.error('❌ Error loading questions:', error);
                 showError('Error loading questions');
             }
         }
@@ -3920,6 +3931,8 @@
 
         async function addQuestionFromPanel(questionText) {
             console.log('➕ Adding question from panel:', questionText);
+            console.log('➕ Current interview ID:', currentInterview?.id);
+            console.log('➕ Current questions count before adding:', questions.length);
             
             if (!currentInterview) {
                 showError('No active interview found');
@@ -3928,6 +3941,7 @@
 
             try {
                 // Save the question to the server first
+                console.log('📤 Sending POST request to save question...');
                 const response = await fetch(`/api/interviews/${currentInterview.id}/questions`, {
                     method: 'POST',
                     headers: {
@@ -3939,16 +3953,19 @@
                 });
                 
                 const result = await response.json();
+                console.log('📥 Server response:', result);
                 
                 if (response.ok && result.success) {
+                    console.log('✅ Question saved successfully, reloading questions...');
                     // Reload questions from server to get the latest state
                     await loadQuestions();
                     showSuccessMessage('Question added from Question Bank!');
                 } else {
+                    console.error('❌ Error saving question:', result);
                     showError('Error adding question from bank');
                 }
             } catch (error) {
-                console.error('Error adding question from panel:', error);
+                console.error('❌ Error adding question from panel:', error);
                 showError('Error adding question from bank');
             }
         }
