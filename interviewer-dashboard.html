@@ -1614,7 +1614,7 @@
                     loadQuestions(),
                     loadFavoriteQuestions(),
                     loadStats(),
-                    loadSessions() // Add this to load sessions
+                    loadSessions() // Load sessions data but don't populate filters yet
                 ]);
             } catch (error) {
                 console.error('Error loading dashboard data:', error);
@@ -1738,6 +1738,15 @@
                     <button class="btn-export" onclick="exportData('${tab}')">Export Data</button>
                 </div>
             `;
+            
+            // Populate filters with data after they are created
+            setTimeout(() => {
+                if (tab === 'interviews') {
+                    populateSessionFilter();
+                } else if (tab === 'questions') {
+                    populateCategoryFilter();
+                }
+            }, 100);
         }
 
         function generateFilterFields(tab) {
@@ -2449,7 +2458,7 @@
                 if (data.success) {
                     sessions = data.data;
                     console.log('loadSessions() - Sessions loaded:', sessions.length);
-                    await populateSessionFilter();
+                    // Don't populate filter here - it will be populated when filter panel is opened
                 } else {
                     console.error('loadSessions() - Failed to load sessions:', data.error);
                 }
@@ -2978,8 +2987,7 @@
                     questions = result.data || []; // Store in global questions variable
                     allQuestions = questions; // Keep for backward compatibility
 
-                    // Populate filter options with real data
-                    await populateQuestionFilterOptions();
+                    // Don't populate filter here - it will be populated when filter panel is opened
 
                     // Display questions using the new unified system
                     displayQuestionAnalytics(questions);
