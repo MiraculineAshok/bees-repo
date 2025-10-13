@@ -3296,6 +3296,8 @@
                     const res = await fetch(`/api/question-bank/category/${encodeURIComponent(category)}`);
                     const json = await res.json();
                     if (json.success) data = json.data || [];
+                    console.log('[Panel] Questions by category =', data.length);
+                    console.log('[Panel] Questions by category =', JSON.stringify(data.slice(0,3), null, 2));
                 }
                 displayQuestionBankList(data);
             } catch (error) {
