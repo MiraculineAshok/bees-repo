@@ -3414,11 +3414,20 @@
                 const result = await response.json();
                 console.log('📥 Response result:', result);
                 
+                if (!response.ok) {
+                    console.error('❌ HTTP Error:', response.status, response.statusText);
+                }
+                
                 if (result.success) {
-                    // Increment the times asked counter
-                    await fetch(`/api/question-bank/${questionId}/increment`, {
-                        method: 'POST'
-                    });
+                    // Increment the times asked counter (don't fail if this doesn't work)
+                    try {
+                        await fetch(`/api/question-bank/${questionId}/increment`, {
+                            method: 'POST'
+                        });
+                    } catch (incrementError) {
+                        console.warn('Failed to increment times asked:', incrementError);
+                        // Don't show error to user, question was added successfully
+                    }
                     
                     // Reload questions from server to get the latest state for this specific interview
                     await loadQuestions();
@@ -3430,7 +3439,8 @@
                     // Switch back to custom question tab
                     switchQuestionSource('custom');
                 } else {
-                    showError('Error adding question');
+                    console.error('❌ Error adding question from bank:', result);
+                    showError('Error adding question from bank');
                 }
             } catch (error) {
                 console.error('Error adding question from bank:', error);
