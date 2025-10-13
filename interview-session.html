@@ -2448,17 +2448,22 @@
                 });
             }, 50);
             
-            // Debug: Check if elements were created
+            // Debug: Check if elements were created and ensure DOM is ready
             setTimeout(() => {
                 console.log('Checking created question elements...');
+                let allElementsReady = true;
                 questions.forEach(q => {
                     const questionItem = document.querySelector(`[data-question-id="${q.id}"]`);
                     const content = questionItem?.querySelector('.question-content');
                     const header = questionItem?.querySelector('.question-header');
+                    const isReady = !!(questionItem && content && header);
+                    allElementsReady = allElementsReady && isReady;
+                    
                     console.log(`Question ${q.id}:`, {
                         questionItem: !!questionItem,
                         content: !!content,
                         header: !!header,
+                        isReady: isReady,
                         questionItemElement: questionItem,
                         contentElement: content,
                         headerElement: header
@@ -2470,6 +2475,12 @@
                         // Don't actually trigger the click, just verify the element exists
                     }
                 });
+                
+                if (allElementsReady) {
+                    console.log('✅ All question elements are ready for interaction');
+                } else {
+                    console.warn('⚠️ Some question elements are not ready for interaction');
+                }
             }, 100);
         }
 
@@ -3354,18 +3365,30 @@
 
         function toggleQuestion(questionId) {
             console.log('toggleQuestion called with questionId:', questionId);
+            console.log('Current questions array:', questions.map(q => ({ id: q.id, text: q.question_text?.substring(0, 50) })));
+            
+            // Validate that the question exists in our data
+            const questionExists = questions.some(q => q.id == questionId);
+            if (!questionExists) {
+                console.error('Question ID not found in current questions array:', questionId);
+                console.error('Available question IDs:', questions.map(q => q.id));
+                return;
+            }
             
             // Try to find elements with retry mechanism
             const tryToggle = (retryCount = 0) => {
                 const questionItem = document.querySelector(`[data-question-id="${questionId}"]`);
                 
                 if (!questionItem) {
-                    if (retryCount < 3) {
-                        console.log(`Question item not found for ID: ${questionId}, retrying... (${retryCount + 1}/3)`);
-                        setTimeout(() => tryToggle(retryCount + 1), 100);
+                    if (retryCount < 5) {
+                        console.log(`Question item not found for ID: ${questionId}, retrying... (${retryCount + 1}/5)`);
+                        console.log('Available question items in DOM:', Array.from(document.querySelectorAll('[data-question-id]')).map(el => el.getAttribute('data-question-id')));
+                        setTimeout(() => tryToggle(retryCount + 1), 200);
                         return;
                     }
                     console.error('Question item not found for ID:', questionId);
+                    console.error('Available question items in DOM:', Array.from(document.querySelectorAll('[data-question-id]')).map(el => el.getAttribute('data-question-id')));
+                    console.error('Current questions array:', questions.map(q => ({ id: q.id, text: q.question_text?.substring(0, 50) })));
                     return;
                 }
                 
@@ -3373,22 +3396,26 @@
                 const content = questionItem.querySelector('.question-content');
                 
                 if (!content) {
-                    if (retryCount < 3) {
-                        console.log(`Question content not found for ID: ${questionId}, retrying... (${retryCount + 1}/3)`);
-                        setTimeout(() => tryToggle(retryCount + 1), 100);
+                    if (retryCount < 5) {
+                        console.log(`Question content not found for ID: ${questionId}, retrying... (${retryCount + 1}/5)`);
+                        console.log('Question item found but content missing:', questionItem);
+                        setTimeout(() => tryToggle(retryCount + 1), 200);
                         return;
                     }
                     console.error('Question content not found for ID:', questionId);
+                    console.error('Question item HTML:', questionItem.outerHTML);
                     return;
                 }
                 
                 if (!header) {
-                    if (retryCount < 3) {
-                        console.log(`Question header not found for ID: ${questionId}, retrying... (${retryCount + 1}/3)`);
-                        setTimeout(() => tryToggle(retryCount + 1), 100);
+                    if (retryCount < 5) {
+                        console.log(`Question header not found for ID: ${questionId}, retrying... (${retryCount + 1}/5)`);
+                        console.log('Question item found but header missing:', questionItem);
+                        setTimeout(() => tryToggle(retryCount + 1), 200);
                         return;
                     }
                     console.error('Question header not found for ID:', questionId);
+                    console.error('Question item HTML:', questionItem.outerHTML);
                     return;
                 }
                 
