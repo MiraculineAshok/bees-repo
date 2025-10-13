@@ -2705,23 +2705,7 @@
                     return;
                 }
 
-                tbody.innerHTML = items.map(interview => `
-                    <tr data-row-id="${interview.id}">
-                        <td><input type="checkbox" class="row-checkbox" data-row-id="${interview.id}" onchange="toggleRowSelection('${interview.id}')"></td>
-                        <td data-field="created_at">${formatDate(interview.created_at || interview.interview_date)}</td>
-                        <td data-field="student_name">${interview.student_name || 'N/A'}</td>
-                        <td data-field="zeta_id">${interview.zeta_id || 'N/A'}</td>
-                        <td data-field="session_name">${interview.session_name || 'N/A'}</td>
-                        <td data-field="status"><span class="status-badge status-${interview.status}">${interview.status}</span></td>
-                        <td data-field="verdict">${interview.verdict || 'N/A'}</td>
-                        <td data-field="duration_seconds">${formatDuration(interview.duration_seconds)}</td>
-                        <td>
-                            <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit">✏️</button>
-                            <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete">🗑️</button>
-                            <button class="icon-btn" onclick="viewInterview(${interview.id})" title="View">👁️</button>
-                        </td>
-                    </tr>
-                `).join('');
+                displayMyInterviews(items);
                 
                 // Attach reliable click handlers for all edit buttons (avoid inline parsing edge cases)
                 tbody.addEventListener('click', (e) => {
@@ -2745,6 +2729,109 @@
                 const tbody = document.getElementById('my-interviews-table-body');
                 if (tbody) tbody.innerHTML = `<tr><td colspan="9" class="error">${err.message}</td></tr>`;
             }
+        }
+
+        // Display function for my interviews
+        function displayMyInterviews(interviewsData = myInterviews, groupBy = '') {
+            const tbody = document.getElementById('my-interviews-table-body');
+            if (!tbody) return;
+
+            if (!interviewsData || interviewsData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No interviews found.</td></tr>';
+                return;
+            }
+
+            // Apply grouping if specified
+            if (groupBy) {
+                const groupedData = groupMyInterviews(interviewsData, groupBy);
+                displayGroupedMyInterviews(groupedData, tbody);
+            } else {
+                tbody.innerHTML = interviewsData.map(interview => `
+                    <tr data-row-id="${interview.id}">
+                        <td><input type="checkbox" class="row-checkbox" data-row-id="${interview.id}" onchange="toggleRowSelection('${interview.id}')"></td>
+                        <td data-field="created_at">${formatDate(interview.created_at || interview.interview_date)}</td>
+                        <td data-field="student_name">${interview.student_name || 'N/A'}</td>
+                        <td data-field="zeta_id">${interview.zeta_id || 'N/A'}</td>
+                        <td data-field="session_name">${interview.session_name || 'N/A'}</td>
+                        <td data-field="status"><span class="status-badge status-${interview.status}">${interview.status}</span></td>
+                        <td data-field="verdict">${interview.verdict || 'N/A'}</td>
+                        <td data-field="duration_seconds">${formatDuration(interview.duration_seconds)}</td>
+                        <td>
+                            <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit">✏️</button>
+                            <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete">🗑️</button>
+                            <button class="icon-btn" onclick="viewInterview(${interview.id})" title="View">👁️</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // Group my interviews function
+        function groupMyInterviews(interviews, groupBy) {
+            const groups = {};
+            
+            interviews.forEach(interview => {
+                let groupKey = '';
+                switch (groupBy) {
+                    case 'status':
+                        groupKey = interview.status || 'Unknown';
+                        break;
+                    case 'verdict':
+                        groupKey = interview.verdict || 'No Verdict';
+                        break;
+                    case 'date':
+                        groupKey = formatDate(interview.created_at || interview.interview_date);
+                        break;
+                    default:
+                        groupKey = 'All Interviews';
+                }
+                
+                if (!groups[groupKey]) {
+                    groups[groupKey] = [];
+                }
+                groups[groupKey].push(interview);
+            });
+            
+            return { groups, interviews };
+        }
+
+        // Display grouped my interviews
+        function displayGroupedMyInterviews(groupedData, tbody) {
+            const { groups } = groupedData;
+            let html = '';
+            
+            Object.keys(groups).forEach(groupKey => {
+                const groupInterviews = groups[groupKey];
+                html += `
+                    <tr class="group-header">
+                        <td colspan="9" style="background: #f3f4f6; font-weight: 600; padding: 12px;">
+                            ${groupKey} (${groupInterviews.length} interviews)
+                        </td>
+                    </tr>
+                `;
+                
+                groupInterviews.forEach(interview => {
+                    html += `
+                        <tr data-row-id="${interview.id}">
+                            <td><input type="checkbox" class="row-checkbox" data-row-id="${interview.id}" onchange="toggleRowSelection('${interview.id}')"></td>
+                            <td data-field="created_at">${formatDate(interview.created_at || interview.interview_date)}</td>
+                            <td data-field="student_name">${interview.student_name || 'N/A'}</td>
+                            <td data-field="zeta_id">${interview.zeta_id || 'N/A'}</td>
+                            <td data-field="session_name">${interview.session_name || 'N/A'}</td>
+                            <td data-field="status"><span class="status-badge status-${interview.status}">${interview.status}</span></td>
+                            <td data-field="verdict">${interview.verdict || 'N/A'}</td>
+                            <td data-field="duration_seconds">${formatDuration(interview.duration_seconds)}</td>
+                            <td>
+                                <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit">✏️</button>
+                                <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete">🗑️</button>
+                                <button class="icon-btn" onclick="viewInterview(${interview.id})" title="View">👁️</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            });
+            
+            tbody.innerHTML = html;
         }
 
         // Overview functions
