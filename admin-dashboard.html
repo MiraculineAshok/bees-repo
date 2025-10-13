@@ -1329,6 +1329,11 @@
             color: #dc2626;
         }
         
+        /* Group headers for filtering */
+        .group-header { background: #f3f4f6; font-weight: 600; }
+        .group-title { padding: 12px 16px; color: #374151; border-bottom: 2px solid #e5e7eb; }
+        .group-title:first-child { border-top: 2px solid #e5e7eb; }
+        
         /* User Action Menu Styles */
         .action-menu-container { position: relative; display: inline-block; }
         .menu-btn { background: #f3f4f6; border: 1px solid #d1d5db; color: #374151; font-size: 16px; font-weight: bold; }
@@ -3218,15 +3223,22 @@
             }
         }
 
-        function displayQuestions() {
+        function displayQuestions(questionsData = questions, groupBy = '') {
             const tbody = document.getElementById('questions-table-body');
             
-            if (questions.length === 0) {
+            if (!questionsData || questionsData.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No questions found</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = questions.map(question => `
+            // Handle grouping if specified
+            if (groupBy) {
+                const groupedData = groupQuestions(questionsData, groupBy);
+                displayGroupedQuestions(groupedData, tbody);
+                return;
+            }
+
+            tbody.innerHTML = questionsData.map(question => `
                 <tr data-row-id="${question.id}">
                     <td><input type="checkbox" class="row-checkbox" data-row-id="${question.id}" onchange="toggleRowSelection('${question.id}')"></td>
                     <td data-field="question">
@@ -3342,15 +3354,22 @@
             });
         }
 
-        function displaySessions() {
+        function displaySessions(sessionsData = sessions, groupBy = '') {
             const tbody = document.getElementById('sessions-table-body');
             
-            if (sessions.length === 0) {
+            if (!sessionsData || sessionsData.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No sessions found</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = sessions.map(session => `
+            // Handle grouping if specified
+            if (groupBy) {
+                const groupedData = groupSessions(sessionsData, groupBy);
+                displayGroupedSessions(groupedData, tbody);
+                return;
+            }
+
+            tbody.innerHTML = sessionsData.map(session => `
                 <tr data-row-id="${session.id}">
                     <td><input type="checkbox" class="row-checkbox" data-row-id="${session.id}" onchange="toggleRowSelection('${session.id}')"></td>
                     <td data-field="id">${session.id}</td>
@@ -3402,15 +3421,22 @@
             }
         }
 
-        function displayStudents() {
+        function displayStudents(studentsData = students, groupBy = '') {
             const tbody = document.getElementById('students-table-body');
             
-            if (students.length === 0) {
+            if (!studentsData || studentsData.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No students found</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = students.map(student => `
+            // Handle grouping if specified
+            if (groupBy) {
+                const groupedData = groupStudents(studentsData, groupBy);
+                displayGroupedStudents(groupedData, tbody);
+                return;
+            }
+
+            tbody.innerHTML = studentsData.map(student => `
                 <tr data-row-id="${student.id}">
                     <td><input type="checkbox" class="row-checkbox" data-row-id="${student.id}" onchange="toggleRowSelection('${student.id}')"></td>
                     <td data-field="id">${student.id}</td>
@@ -4660,6 +4686,196 @@
         }
 
         // REMOVED: Old conflicting filter functions - replaced with unified system
+
+        // Grouping functions
+        function groupQuestions(questions, groupBy) {
+            if (!groupBy || groupBy === 'none') {
+                return { questions };
+            }
+            
+            const groups = {};
+            questions.forEach(question => {
+                let groupKey = '';
+                switch (groupBy) {
+                    case 'category':
+                        groupKey = question.category || 'Uncategorized';
+                        break;
+                    case 'times_asked':
+                        const timesAsked = question.times_asked || 0;
+                        if (timesAsked === 0) groupKey = 'Never Asked';
+                        else if (timesAsked <= 5) groupKey = '1-5 Times';
+                        else if (timesAsked <= 10) groupKey = '6-10 Times';
+                        else groupKey = '10+ Times';
+                        break;
+                    default:
+                        groupKey = 'All Questions';
+                }
+                
+                if (!groups[groupKey]) {
+                    groups[groupKey] = [];
+                }
+                groups[groupKey].push(question);
+            });
+            
+            return { groups, questions };
+        }
+
+        function groupSessions(sessions, groupBy) {
+            if (!groupBy || groupBy === 'none') {
+                return { sessions };
+            }
+            
+            const groups = {};
+            sessions.forEach(session => {
+                let groupKey = '';
+                switch (groupBy) {
+                    case 'status':
+                        groupKey = session.status || 'Unknown';
+                        break;
+                    case 'created_date':
+                        groupKey = formatDate(session.created_at);
+                        break;
+                    default:
+                        groupKey = 'All Sessions';
+                }
+                
+                if (!groups[groupKey]) {
+                    groups[groupKey] = [];
+                }
+                groups[groupKey].push(session);
+            });
+            
+            return { groups, sessions };
+        }
+
+        function groupStudents(students, groupBy) {
+            if (!groupBy || groupBy === 'none') {
+                return { students };
+            }
+            
+            const groups = {};
+            students.forEach(student => {
+                let groupKey = '';
+                switch (groupBy) {
+                    case 'created_date':
+                        groupKey = formatDate(student.created_at);
+                        break;
+                    default:
+                        groupKey = 'All Students';
+                }
+                
+                if (!groups[groupKey]) {
+                    groups[groupKey] = [];
+                }
+                groups[groupKey].push(student);
+            });
+            
+            return { groups, students };
+        }
+
+        // Display grouped data functions
+        function displayGroupedQuestions(groupedData, tbody) {
+            if (groupedData.groups) {
+                tbody.innerHTML = Object.entries(groupedData.groups).map(([groupName, groupQuestions]) => `
+                    <tr class="group-header">
+                        <td colspan="8" class="group-title">${groupName} (${groupQuestions.length})</td>
+                    </tr>
+                    ${groupQuestions.map(question => generateQuestionRow(question)).join('')}
+                `).join('');
+            } else {
+                tbody.innerHTML = groupedData.questions.map(question => generateQuestionRow(question)).join('');
+            }
+        }
+
+        function displayGroupedSessions(groupedData, tbody) {
+            if (groupedData.groups) {
+                tbody.innerHTML = Object.entries(groupedData.groups).map(([groupName, groupSessions]) => `
+                    <tr class="group-header">
+                        <td colspan="8" class="group-title">${groupName} (${groupSessions.length})</td>
+                    </tr>
+                    ${groupSessions.map(session => generateSessionRow(session)).join('')}
+                `).join('');
+            } else {
+                tbody.innerHTML = groupedData.sessions.map(session => generateSessionRow(session)).join('');
+            }
+        }
+
+        function displayGroupedStudents(groupedData, tbody) {
+            if (groupedData.groups) {
+                tbody.innerHTML = Object.entries(groupedData.groups).map(([groupName, groupStudents]) => `
+                    <tr class="group-header">
+                        <td colspan="8" class="group-title">${groupName} (${groupStudents.length})</td>
+                    </tr>
+                    ${groupStudents.map(student => generateStudentRow(student)).join('')}
+                `).join('');
+            } else {
+                tbody.innerHTML = groupedData.students.map(student => generateStudentRow(student)).join('');
+            }
+        }
+
+        // Helper functions to generate rows
+        function generateQuestionRow(question) {
+            return `
+                <tr data-row-id="${question.id}">
+                    <td><input type="checkbox" class="row-checkbox" data-row-id="${question.id}" onchange="toggleRowSelection('${question.id}')"></td>
+                    <td data-field="question">
+                        <span>${question.question || 'N/A'}</span>
+                        <button class="icon-btn edit-btn" onclick="startEdit('${question.id}', 'questions')" title="Edit">✏️</button>
+                    </td>
+                    <td data-field="category">${question.category || 'N/A'}</td>
+                    <td data-field="times_asked">${question.times_asked || 0}</td>
+                    <td data-field="times_answered_correctly">${question.times_answered_correctly || 0}</td>
+                    <td data-field="times_answered_incorrectly">${question.times_answered_incorrectly || 0}</td>
+                    <td data-field="success_rate">${question.success_rate || 0}%</td>
+                    <td>
+                        <button class="icon-btn favorite-btn ${favoriteQuestionIds.has(question.id) ? 'favorited' : ''}" 
+                                onclick="toggleFavorite('${question.id}')" title="Toggle Favorite">
+                            ${favoriteQuestionIds.has(question.id) ? '⭐' : '☆'}
+                        </button>
+                        <button class="icon-btn view-btn" onclick="viewQuestion('${question.id}')" title="View">👁️</button>
+                        <button class="icon-btn delete-btn" onclick="deleteQuestion('${question.id}')" title="Delete">🗑️</button>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function generateSessionRow(session) {
+            return `
+                <tr data-row-id="${session.id}">
+                    <td><input type="checkbox" class="row-checkbox" data-row-id="${session.id}" onchange="toggleRowSelection('${session.id}')"></td>
+                    <td data-field="id">${session.id}</td>
+                    <td data-field="name">${session.name}</td>
+                    <td data-field="description">${session.description || 'N/A'}</td>
+                    <td data-field="status"><span class="status-badge status-${session.status}">${session.status}</span></td>
+                    <td data-field="panelists">${session.panelist_names || '—'}</td>
+                    <td data-field="created_at">${formatDate(session.created_at)}</td>
+                    <td>
+                        <button class="icon-btn edit-btn" onclick="startEdit('${session.id}', 'sessions')" title="Edit">✏️</button>
+                        <button class="icon-btn view-btn" onclick="viewSession('${session.id}')" title="View">👁️</button>
+                        <button class="icon-btn delete-btn" onclick="deleteSession('${session.id}')" title="Delete">🗑️</button>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function generateStudentRow(student) {
+            return `
+                <tr data-row-id="${student.id}">
+                    <td><input type="checkbox" class="row-checkbox" data-row-id="${student.id}" onchange="toggleRowSelection('${student.id}')"></td>
+                    <td data-field="id">${student.id}</td>
+                    <td data-field="name">${student.name}</td>
+                    <td data-field="email">${student.email}</td>
+                    <td data-field="zeta_id">${student.zeta_id}</td>
+                    <td data-field="phone">${student.phone || 'N/A'}</td>
+                    <td data-field="created_at">${formatDate(student.created_at)}</td>
+                    <td>
+                        <button class="icon-btn edit-btn" onclick="startEdit('${student.id}', 'students')" title="Edit">✏️</button>
+                        <button class="icon-btn view-btn" onclick="viewStudent('${student.id}')" title="View">👁️</button>
+                        <button class="icon-btn delete-btn" onclick="deleteStudent('${student.id}')" title="Delete">🗑️</button>
+                    </td>
+                </tr>
+            `;
+        }
 
         function sortInterviews(interviews, sortBy) {
             return interviews.sort((a, b) => {
