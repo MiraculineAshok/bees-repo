@@ -1518,6 +1518,9 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             checkUserLoginStatus();
+            // Debug: Check if functions are available
+            console.log('openAddQuestionModal available:', typeof openAddQuestionModal);
+            console.log('openBulkImportModal available:', typeof openBulkImportModal);
         });
 
         async function checkUserLoginStatus() {
@@ -2429,12 +2432,17 @@
 
         async function loadSessions() {
             try {
+                console.log('Loading sessions...');
                 const response = await fetch('/api/admin/sessions');
                 const data = await response.json();
+                console.log('Sessions response:', data);
                 
                 if (data.success) {
                     sessions = data.data;
+                    console.log('Sessions loaded:', sessions.length);
                     populateSessionFilter();
+                } else {
+                    console.error('Failed to load sessions:', data.error);
                 }
             } catch (error) {
                 console.error('Error loading sessions:', error);
@@ -2443,19 +2451,25 @@
 
         function populateSessionFilter() {
             const sessionFilter = document.getElementById('session-filter');
-            if (!sessionFilter) return;
+            console.log('populateSessionFilter called, sessionFilter element:', sessionFilter);
+            if (!sessionFilter) {
+                console.error('Session filter element not found');
+                return;
+            }
             
             // Clear existing options except "All Sessions"
             sessionFilter.innerHTML = '<option value="">All Sessions</option>';
             
             // Add unique session names from all sessions
             const uniqueSessions = [...new Set(sessions.map(session => session.name))];
+            console.log('Unique sessions to add:', uniqueSessions);
             uniqueSessions.forEach(sessionName => {
                 const option = document.createElement('option');
                 option.value = sessionName;
                 option.textContent = sessionName;
                 sessionFilter.appendChild(option);
             });
+            console.log('Session filter populated with', uniqueSessions.length, 'sessions');
         }
 
         async function loadStats() {
@@ -3418,6 +3432,7 @@
 
         // Add Question Modal Functions
         function openAddQuestionModal() {
+            console.log('openAddQuestionModal called');
             const modal = document.createElement('div');
             modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
             modal.innerHTML = `
@@ -3486,6 +3501,7 @@
 
         // Bulk Import Modal Functions
         function openBulkImportModal() {
+            console.log('openBulkImportModal called');
             const modal = document.createElement('div');
             modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
             modal.innerHTML = `
