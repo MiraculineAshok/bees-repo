@@ -780,19 +780,19 @@
         .question-bank-panel {
             position: fixed;
             top: 0;
-            left: -400px;
+            right: -400px;
             width: 400px;
             height: 100vh;
             background: #ffffff;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
             z-index: 1000;
-            transition: left 0.3s ease;
+            transition: right 0.3s ease;
             overflow-y: auto;
-            border-right: 1px solid #e2e8f0;
+            border-left: 1px solid #e2e8f0;
         }
 
         .question-bank-panel.open {
-            left: 0;
+            right: 0;
         }
 
         .question-bank-panel-header {
@@ -1607,7 +1607,7 @@
                             <button class="tab-btn active" onclick="switchQuestionSource('custom')">Custom Question</button>
                             <button class="question-bank-trigger-btn" onclick="openQuestionBankPanel()">
                                 📚 Question Bank
-                            </button>
+                </button>
                         </div>
                     </div>
                     
@@ -3652,12 +3652,17 @@
             console.log('🔍 Loading panel question bank data...');
             try {
                 // Load categories
+                console.log('📂 Fetching categories...');
                 const categoriesResponse = await fetch('/api/question-bank/categories');
+                console.log('📂 Categories response status:', categoriesResponse.status);
+                
                 if (!categoriesResponse.ok) {
                     throw new Error(`HTTP ${categoriesResponse.status}: ${categoriesResponse.statusText}`);
                 }
                 
                 const categoriesResult = await categoriesResponse.json();
+                console.log('📂 Categories result:', categoriesResult);
+                
                 if (categoriesResult.success && categoriesResult.data) {
                     const categorySelect = document.getElementById('panel-category-select');
                     // Clear existing options except "All Categories" and "My Favorites"
@@ -3672,14 +3677,20 @@
                 }
                 
                 // Load all questions
+                console.log('❓ Fetching questions...');
                 const questionsResponse = await fetch('/api/question-bank');
+                console.log('❓ Questions response status:', questionsResponse.status);
+                
                 if (!questionsResponse.ok) {
                     throw new Error(`HTTP ${questionsResponse.status}: ${questionsResponse.statusText}`);
                 }
                 
                 const questionsResult = await questionsResponse.json();
+                console.log('❓ Questions result:', questionsResult);
+                
                 if (questionsResult.success && questionsResult.data) {
                     panelQuestionBankData = questionsResult.data;
+                    console.log('✅ Loaded questions:', panelQuestionBankData.length);
                     displayPanelQuestionBankList(panelQuestionBankData);
                 } else {
                     throw new Error(questionsResult.error || 'Failed to load questions');
@@ -3738,6 +3749,8 @@
         }
 
         function addQuestionFromPanel(questionText) {
+            console.log('➕ Adding question from panel:', questionText);
+            
             // Add the question to the interview
             const questionData = {
                 question_text: questionText,
@@ -3746,7 +3759,10 @@
                 correct_status: null
             };
             
+            console.log('📝 Question data:', questionData);
             questions.push(questionData);
+            console.log('📋 Total questions after adding:', questions.length);
+            
             displayQuestions();
             
             // Show success message

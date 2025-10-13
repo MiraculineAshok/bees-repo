@@ -66,6 +66,21 @@ async function initializeDatabase() {
       )
     `);
     
+    // Create question_bank table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS question_bank (
+        id SERIAL PRIMARY KEY,
+        question TEXT NOT NULL,
+        category VARCHAR(100) NOT NULL,
+        times_asked INTEGER DEFAULT 0,
+        times_answered_correctly INTEGER DEFAULT 0,
+        times_answered_incorrectly INTEGER DEFAULT 0,
+        is_favorite BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
     // Create index on email for faster lookups
     await pool.query(`
       CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)
@@ -94,6 +109,15 @@ async function initializeDatabase() {
       CREATE INDEX IF NOT EXISTS idx_authorized_users_email ON authorized_users(email)
     `);
     
+    // Create indexes for question_bank table
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_question_bank_category ON question_bank(category)
+    `);
+    
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_question_bank_times_asked ON question_bank(times_asked)
+    `);
+    
     // Insert default authorized users
     await pool.query(`
       INSERT INTO authorized_users (email, name, role, is_superadmin) 
@@ -101,6 +125,28 @@ async function initializeDatabase() {
         ('miraculine.j@zohocorp.com', 'Miraculine J', 'superadmin', TRUE),
         ('rajendran@zohocorp.com', 'Rajendran', 'admin', FALSE)
       ON CONFLICT (email) DO NOTHING
+    `);
+    
+    // Insert sample questions
+    await pool.query(`
+      INSERT INTO question_bank (question, category, times_asked, times_answered_correctly, times_answered_incorrectly) 
+      VALUES 
+        ('What is your greatest strength?', 'General', 0, 0, 0),
+        ('Tell me about a challenging project you worked on.', 'General', 0, 0, 0),
+        ('How do you handle stress and pressure?', 'General', 0, 0, 0),
+        ('What is your experience with JavaScript?', 'Technical', 0, 0, 0),
+        ('Explain the concept of closures in JavaScript.', 'Technical', 0, 0, 0),
+        ('What is the difference between let, const, and var?', 'Technical', 0, 0, 0),
+        ('How do you approach debugging a complex issue?', 'Technical', 0, 0, 0),
+        ('Describe a time when you had to work with a difficult team member.', 'Behavioral', 0, 0, 0),
+        ('How do you prioritize tasks when you have multiple deadlines?', 'Behavioral', 0, 0, 0),
+        ('Tell me about a time you failed and what you learned from it.', 'Behavioral', 0, 0, 0),
+        ('What is your approach to learning new technologies?', 'Behavioral', 0, 0, 0),
+        ('Can you describe your experience with database design?', 'Technical', 0, 0, 0),
+        ('How do you ensure code quality in your projects?', 'Technical', 0, 0, 0),
+        ('What are your career goals for the next 5 years?', 'General', 0, 0, 0),
+        ('How do you stay updated with industry trends?', 'General', 0, 0, 0)
+      ON CONFLICT DO NOTHING
     `);
     
     console.log('✅ Database initialized successfully');

@@ -26,7 +26,13 @@ class QuestionBankService {
             }
             
             const query = `
-                SELECT id, question, category, times_asked, created_at, updated_at
+                SELECT id, question as question_text, category, times_asked, 
+                       times_answered_correctly, times_answered_incorrectly,
+                       CASE 
+                           WHEN times_asked > 0 THEN ROUND((times_answered_correctly::DECIMAL / times_asked) * 100, 2)
+                           ELSE 0 
+                       END as success_rate,
+                       is_favorite, created_at, updated_at
                 FROM question_bank
                 ORDER BY category, question
             `;
@@ -48,7 +54,13 @@ class QuestionBankService {
             }
             
             const query = `
-                SELECT id, question, category, times_asked, created_at, updated_at
+                SELECT id, question as question_text, category, times_asked,
+                       times_answered_correctly, times_answered_incorrectly,
+                       CASE 
+                           WHEN times_asked > 0 THEN ROUND((times_answered_correctly::DECIMAL / times_asked) * 100, 2)
+                           ELSE 0 
+                       END as success_rate,
+                       is_favorite, created_at, updated_at
                 FROM question_bank
                 WHERE category = $1
                 ORDER BY times_asked DESC, question
