@@ -2437,6 +2437,7 @@
         let allInterviewers = [];
         let sessions = [];
         let students = [];
+        let myInterviews = []; // Add missing myInterviews variable
         let currentUserId = null;
 
         // Initialize dashboard
@@ -2462,6 +2463,9 @@
             
             // Initialize bulk edit controls
             initializeBulkEditControls();
+            
+            // Populate filter dropdowns with actual data
+            populateFilterDropdowns();
         }
 
         function initializeBulkEditControls() {
@@ -2695,6 +2699,7 @@
                 if (!res.ok || !json.success) throw new Error(json.error || `HTTP ${res.status}`);
 
                 const items = json.data || [];
+                myInterviews = items; // Store in global variable for filtering
                 if (!items.length) {
                     tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No interviews found.</td></tr>';
                     return;
@@ -3887,6 +3892,10 @@
             } else {
                 currentFilterTab = tab;
                 generateFilterContent(tab);
+                
+                // Add event listeners to the newly generated filter inputs
+                addFilterEventListeners(tab);
+                
                 panel.classList.add('active');
                 overlay.classList.add('active');
             }
@@ -3943,19 +3952,14 @@
                         <label>Status:</label>
                         <select id="status-filter" class="form-select">
                             <option value="">All Statuses</option>
-                            <option value="completed">Completed</option>
-                            <option value="in_progress">In Progress</option>
-                            <option value="cancelled">Cancelled</option>
+                            ${getUniqueValues(interviews, 'status').map(status => `<option value="${status}">${status}</option>`).join('')}
                         </select>
                     </div>
                     <div class="filter-group">
                         <label>Verdict:</label>
                         <select id="verdict-filter" class="form-select">
                             <option value="">All Verdicts</option>
-                            <option value="Tiger">Tiger</option>
-                            <option value="Cow">Cow</option>
-                            <option value="Cow+">Cow+</option>
-                            <option value="Sheep">Sheep</option>
+                            ${getUniqueValues(interviews, 'verdict').map(verdict => `<option value="${verdict}">${verdict}</option>`).join('')}
                         </select>
                     </div>
                     <div class="filter-group">
@@ -3976,10 +3980,7 @@
                         <label>Category:</label>
                         <select id="category-filter" class="form-select">
                             <option value="">All Categories</option>
-                            <option value="Technical">Technical</option>
-                            <option value="General">General</option>
-                            <option value="Behavioral">Behavioral</option>
-                            <option value="English">English</option>
+                            ${getUniqueValues(questions, 'category').map(category => `<option value="${category}">${category}</option>`).join('')}
                         </select>
                     </div>
                     <div class="filter-group">
@@ -4000,9 +4001,7 @@
                         <label>Status:</label>
                         <select id="session-status-filter" class="form-select">
                             <option value="">All Statuses</option>
-                            <option value="active">Active</option>
-                            <option value="completed">Completed</option>
-                            <option value="cancelled">Cancelled</option>
+                            ${getUniqueValues(sessions, 'status').map(status => `<option value="${status}">${status}</option>`).join('')}
                         </select>
                     </div>
                     <div class="filter-group">
@@ -4045,19 +4044,14 @@
                         <label>Status:</label>
                         <select id="my-status-filter" class="form-select">
                             <option value="">All Statuses</option>
-                            <option value="completed">Completed</option>
-                            <option value="in_progress">In Progress</option>
-                            <option value="cancelled">Cancelled</option>
+                            ${getUniqueValues(myInterviews, 'status').map(status => `<option value="${status}">${status}</option>`).join('')}
                         </select>
                     </div>
                     <div class="filter-group">
                         <label>Verdict:</label>
                         <select id="my-verdict-filter" class="form-select">
                             <option value="">All Verdicts</option>
-                            <option value="Tiger">Tiger</option>
-                            <option value="Cow">Cow</option>
-                            <option value="Cow+">Cow+</option>
-                            <option value="Sheep">Sheep</option>
+                            ${getUniqueValues(myInterviews, 'verdict').map(verdict => `<option value="${verdict}">${verdict}</option>`).join('')}
                         </select>
                     </div>
                     <div class="filter-group">
@@ -4078,9 +4072,7 @@
                         <label>Role:</label>
                         <select id="role-filter" class="form-select">
                             <option value="">All Roles</option>
-                            <option value="superadmin">Super Admin</option>
-                            <option value="admin">Admin</option>
-                            <option value="interviewer">Interviewer</option>
+                            ${getUniqueValues(users, 'role').map(role => `<option value="${role}">${role}</option>`).join('')}
                         </select>
                     </div>
                     <div class="filter-group">
@@ -4088,8 +4080,6 @@
                         <select id="user-status-filter" class="form-select">
                             <option value="">All Statuses</option>
                             <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                            <option value="suspended">Suspended</option>
                         </select>
                     </div>
                     <div class="filter-group">
@@ -4313,6 +4303,52 @@
         function closeFilterPanel() {
             document.getElementById('filter-panel').classList.remove('active');
             document.getElementById('filter-panel-overlay').classList.remove('active');
+        }
+
+        // Helper function to get unique values from an array of objects
+        function getUniqueValues(data, field) {
+            if (!data || !Array.isArray(data)) return [];
+            const values = data.map(item => item[field]).filter(value => value !== null && value !== undefined && value !== '');
+            return [...new Set(values)].sort();
+        }
+
+        // Function to populate filter dropdowns with actual database values
+        function populateFilterDropdowns() {
+            // This function will be called after data is loaded to update filter dropdowns
+            // The generateFilterFields function now uses dynamic data
+        }
+
+        // Function to add event listeners to filter inputs
+        function addFilterEventListeners(tab) {
+            // Add event listeners to search inputs
+            const searchInputs = document.querySelectorAll('input[type="text"]');
+            searchInputs.forEach(input => {
+                input.addEventListener('keyup', () => applyFilters(tab));
+            });
+
+            // Add event listeners to select dropdowns
+            const selectInputs = document.querySelectorAll('select');
+            selectInputs.forEach(select => {
+                select.addEventListener('change', () => applyFilters(tab));
+            });
+
+            // Add event listeners to date inputs
+            const dateInputs = document.querySelectorAll('input[type="date"]');
+            dateInputs.forEach(input => {
+                input.addEventListener('change', () => applyFilters(tab));
+            });
+
+            // Add event listeners to number inputs
+            const numberInputs = document.querySelectorAll('input[type="number"]');
+            numberInputs.forEach(input => {
+                input.addEventListener('change', () => applyFilters(tab));
+            });
+
+            // Add event listeners to radio buttons
+            const radioInputs = document.querySelectorAll('input[type="radio"]');
+            radioInputs.forEach(input => {
+                input.addEventListener('change', () => applyFilters(tab));
+            });
         }
 
         // Dynamic filter functions
