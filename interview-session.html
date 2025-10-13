@@ -3265,27 +3265,33 @@
         }
 
         async function loadQuestionsByCategory() {
-            const category = document.getElementById('bank-category-select').value;
-            if (!category) {
-                displayQuestionBankList(questionBankData);
-                return;
-            }
-            
+            const selectEl = document.getElementById('bank-category-select');
+            if (!selectEl) return;
+            const category = selectEl.value;
             try {
-                let response;
-                if (category === 'Favorites') {
-                    // Load favorite questions
-                    response = await fetch('/api/interviewer/favorites');
+                let data = [];
+                if (!category) {
+                    // All
+                    data = questionBankData || [];
+                } else if (category === 'Favorites') {
+                    const email = (JSON.parse(localStorage.getItem('bees_user_data') || '{}')?.email) || '';
+                    const res = await fetch(`/api/interviewer/favorites${email ? `?email=${encodeURIComponent(email)}` : ''}`);
+                    const json = await res.json();
+                    if (json.success) {
+                        data = (json.data || []).map(f => ({
+                            id: f.id || f.question_id,
+                            question: f.question,
+                            question_text: f.question,
+                            category: f.category,
+                            times_asked: f.times_asked ?? 0
+                        }));
+                    }
                 } else {
-                    // Load questions by category
-                    response = await fetch(`/api/question-bank/category/${encodeURIComponent(category)}`);
+                    const res = await fetch(`/api/question-bank/category/${encodeURIComponent(category)}`);
+                    const json = await res.json();
+                    if (json.success) data = json.data || [];
                 }
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    displayQuestionBankList(result.data);
-                }
+                displayQuestionBankList(data);
             } catch (error) {
                 console.error('Error loading questions by category:', error);
                 showError('Error loading questions');
@@ -3329,13 +3335,14 @@
             
             console.log('Displaying', questions.length, 'questions');
             listContainer.innerHTML = questions.map(question => {
-                const escapedQuestion = question.question.replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n');
+                const qText = (question.question || question.question_text || '').toString();
+                const escapedQuestion = qText.replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n');
                 return `
                 <div class="question-bank-item" onclick="selectQuestionFromBank(${question.id}, '${escapedQuestion}', this)">
-                    <div class="question-text">${question.question}</div>
+                    <div class="question-text">${qText}</div>
                     <div class="question-meta">
-                        <span class="question-category">${question.category}</span>
-                        <span class="question-times-asked">Asked ${question.times_asked} times</span>
+                        <span class="question-category">${question.category || 'Uncategorized'}</span>
+                        <span class="question-times-asked">Asked ${(question.times_asked ?? question.count_of_times_asked ?? 0)} times</span>
                     </div>
                 </div>
             `;
@@ -3703,6 +3710,39 @@
                 console.error('❌ Error loading panel question bank data:', error);
                 document.getElementById('question-bank-panel-list').innerHTML = 
                     `<div class="error">Error loading questions: ${error.message}</div>`;
+            }
+        }
+
+        async function loadPanelQuestionsByCategory() {
+            const selectEl = document.getElementById('panel-category-select');
+            if (!selectEl) return;
+            const category = selectEl.value;
+            try {
+                let data = [];
+                if (!category) {
+                    data = panelQuestionBankData || [];
+                } else if (category === 'Favorites') {
+                    const email = (JSON.parse(localStorage.getItem('bees_user_data') || '{}')?.email) || '';
+                    const res = await fetch(`/api/interviewer/favorites${email ? `?email=${encodeURIComponent(email)}` : ''}`);
+                    const json = await res.json();
+                    if (json.success) {
+                        data = (json.data || []).map(f => ({
+                            id: f.id || f.question_id,
+                            question_text: f.question,
+                            question: f.question,
+                            category: f.category,
+                            times_asked: f.times_asked ?? 0,
+                            success_rate: f.success_rate ?? 0
+                        }));
+                    }
+                } else {
+                    const res = await fetch(`/api/question-bank/category/${encodeURIComponent(category)}`);
+                    const json = await res.json();
+                    if (json.success) data = json.data || [];
+                }
+                displayPanelQuestionBankList(data);
+            } catch (e) {
+                console.error('Error filtering panel questions:', e);
             }
         }
 
