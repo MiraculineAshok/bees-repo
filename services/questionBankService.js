@@ -101,6 +101,37 @@ class QuestionBankService {
         }
     }
 
+    // Add a new category
+    static async addCategory(categoryName) {
+        try {
+            if (!(await this.isDatabaseAvailable())) {
+                // For mock data, just return success
+                return { success: true, data: { category: categoryName } };
+            }
+
+            // Check if category already exists
+            const checkQuery = 'SELECT id FROM question_bank WHERE category = $1 LIMIT 1';
+            const existing = await pool.query(checkQuery, [categoryName]);
+            
+            if (existing.rows.length > 0) {
+                return { success: true, data: { category: categoryName }, message: 'Category already exists' };
+            }
+
+            // Add a dummy question with this category to create the category
+            const insertQuery = `
+                INSERT INTO question_bank (question, category)
+                VALUES ($1, $2)
+                RETURNING id, category
+            `;
+            const result = await pool.query(insertQuery, [`Sample question for ${categoryName}`, categoryName]);
+            
+            return { success: true, data: { category: categoryName } };
+        } catch (error) {
+            console.error('Error adding category:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
     // Add a new question to the question bank
     static async addQuestion(question, category) {
         try {

@@ -1124,6 +1124,32 @@ app.put('/api/question-bank/bulk', async (req, res) => {
   }
 });
 
+app.post('/api/question-bank/bulk', async (req, res) => {
+  try {
+    const { questions } = req.body;
+    
+    if (!questions || !Array.isArray(questions)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Questions array is required'
+      });
+    }
+
+    const results = await QuestionBankService.bulkImportQuestions(questions);
+    res.json({
+      success: true,
+      imported: results.length,
+      data: results
+    });
+  } catch (error) {
+    console.error('Error bulk importing questions:', error);
+    res.status(400).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Bulk import questions from CSV/Excel
 app.post('/api/question-bank/bulk-import', async (req, res) => {
   try {
@@ -1331,6 +1357,27 @@ app.get('/api/question-bank/categories', async (req, res) => {
     res.status(500).json({
       success: false,
       error: error.message
+    });
+  }
+});
+
+app.post('/api/question-bank/categories', async (req, res) => {
+  try {
+    const { category } = req.body;
+    if (!category) {
+      return res.status(400).json({
+        success: false,
+        error: 'Category name is required'
+      });
+    }
+    
+    const result = await QuestionBankService.addCategory(category);
+    res.json(result);
+  } catch (error) {
+    console.error('Error adding category:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to add category'
     });
   }
 });

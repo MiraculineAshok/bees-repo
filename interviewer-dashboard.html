@@ -3431,7 +3431,7 @@
         }
 
         // Add Question Modal Functions
-        function openAddQuestionModal() {
+        async function openAddQuestionModal() {
             console.log('openAddQuestionModal called');
             const modal = document.createElement('div');
             modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
@@ -3444,15 +3444,15 @@
                     </div>
                     <div style="margin-bottom:16px">
                         <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Category</label>
-                        <select id="new-question-category" style="width:100%;padding:12px;border:1px solid #d1d5db;border-radius:6px;font-size:14px">
-                            <option value="">Select Category</option>
-                            <option value="Technical">Technical</option>
-                            <option value="Behavioral">Behavioral</option>
-                            <option value="Problem Solving">Problem Solving</option>
-                            <option value="Communication">Communication</option>
-                            <option value="Leadership">Leadership</option>
-                            <option value="General">General</option>
-                        </select>
+                        <div style="display:flex;gap:8px;align-items:center">
+                            <select id="new-question-category" style="flex:1;padding:12px;border:1px solid #d1d5db;border-radius:6px;font-size:14px">
+                                <option value="">Loading categories...</option>
+                            </select>
+                            <button id="add-new-category-btn" style="background:#3b82f6;color:#fff;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:12px">+ New</button>
+                        </div>
+                        <div id="new-category-input" style="display:none;margin-top:8px">
+                            <input type="text" id="new-category-name" placeholder="Enter new category name" style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:4px;font-size:14px">
+                        </div>
                     </div>
                     <div style="display:flex;gap:8px;justify-content:flex-end">
                         <button id="add-question-cancel" style="border:1px solid #e5e7eb;background:#fff;padding:8px 16px;border-radius:6px;cursor:pointer">Cancel</button>
@@ -3461,10 +3461,45 @@
                 </div>`;
             document.body.appendChild(modal);
             
+            // Load categories from database
+            await loadCategoriesForModal();
+            
             modal.querySelector('#add-question-cancel').onclick = () => modal.remove();
+            
+            // Handle new category button
+            modal.querySelector('#add-new-category-btn').onclick = () => {
+                const inputDiv = document.getElementById('new-category-input');
+                const input = document.getElementById('new-category-name');
+                if (inputDiv.style.display === 'none') {
+                    inputDiv.style.display = 'block';
+                    input.focus();
+                } else {
+                    inputDiv.style.display = 'none';
+                    input.value = '';
+                }
+            };
+            
+            // Handle new category input
+            document.getElementById('new-category-name').addEventListener('keypress', async (e) => {
+                if (e.key === 'Enter') {
+                    const newCategory = e.target.value.trim();
+                    if (newCategory) {
+                        await addNewCategory(newCategory, modal);
+                    }
+                }
+            });
+            
             modal.querySelector('#add-question-save').onclick = async () => {
                 const questionText = document.getElementById('new-question-text').value.trim();
-                const category = document.getElementById('new-question-category').value;
+                const categorySelect = document.getElementById('new-question-category');
+                const newCategoryInput = document.getElementById('new-category-name');
+                
+                let category = categorySelect.value;
+                
+                // Check if user is adding a new category
+                if (newCategoryInput.style.display !== 'none' && newCategoryInput.value.trim()) {
+                    category = newCategoryInput.value.trim();
+                }
                 
                 if (!questionText) {
                     alert('Please enter a question text');
@@ -3499,25 +3534,125 @@
             };
         }
 
+        // Load categories for the modal
+        async function loadCategoriesForModal() {
+            try {
+                const response = await fetch('/api/question-bank/categories');
+                const result = await response.json();
+                
+                const categorySelect = document.getElementById('new-question-category');
+                if (result.success && result.data) {
+                    categorySelect.innerHTML = '<option value="">Select Category</option>';
+                    result.data.forEach(categoryData => {
+                        const categoryName = typeof categoryData === 'string' ? categoryData : categoryData.category;
+                        const option = document.createElement('option');
+                        option.value = categoryName;
+                        option.textContent = categoryName;
+                        categorySelect.appendChild(option);
+                    });
+                } else {
+                    categorySelect.innerHTML = '<option value="">No categories found</option>';
+                }
+            } catch (error) {
+                console.error('Error loading categories:', error);
+                document.getElementById('new-question-category').innerHTML = '<option value="">Error loading categories</option>';
+            }
+        }
+
+        // Add new category
+        async function addNewCategory(categoryName, modal) {
+            try {
+                const response = await fetch('/api/question-bank/categories', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ category: categoryName })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Add to dropdown
+                    const categorySelect = document.getElementById('new-question-category');
+                    const option = document.createElement('option');
+                    option.value = categoryName;
+                    option.textContent = categoryName;
+                    option.selected = true;
+                    categorySelect.appendChild(option);
+                    
+                    // Hide input
+                    document.getElementById('new-category-input').style.display = 'none';
+                    document.getElementById('new-category-name').value = '';
+                    
+                    showSuccess('Category added successfully!');
+                } else {
+                    showError('Error adding category: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error adding category:', error);
+                showError('Error adding category');
+            }
+        }
+
         // Bulk Import Modal Functions
         function openBulkImportModal() {
             console.log('openBulkImportModal called');
             const modal = document.createElement('div');
             modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
             modal.innerHTML = `
-                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;min-width:600px;max-width:90%;padding:24px;box-shadow:0 10px 20px rgba(0,0,0,0.15)">
+                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;min-width:700px;max-width:90%;padding:24px;box-shadow:0 10px 20px rgba(0,0,0,0.15)">
                     <div style="font-weight:600;margin-bottom:16px;color:#111827;font-size:1.2rem">Bulk Import Questions</div>
-                    <div style="margin-bottom:16px;padding:12px;background:#f3f4f6;border-radius:6px;font-size:14px;color:#374151">
-                        <strong>Instructions:</strong><br>
-                        • Enter one question per line<br>
-                        • Use format: "Question text | Category" (category is optional)<br>
-                        • Example: "What is JavaScript? | Technical"<br>
-                        • If no category is specified, "General" will be used
-                    </div>
+                    
+                    <!-- Import Method Tabs -->
                     <div style="margin-bottom:16px">
-                        <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Questions *</label>
-                        <textarea id="bulk-questions-text" style="width:100%;padding:12px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;min-height:200px;resize:vertical;font-family:monospace" placeholder="Enter questions here, one per line..."></textarea>
+                        <div style="display:flex;gap:8px;margin-bottom:16px">
+                            <button id="text-import-tab" class="import-tab active" style="padding:8px 16px;border:1px solid #d1d5db;background:#f9fafb;border-radius:6px;cursor:pointer">Text Input</button>
+                            <button id="file-import-tab" class="import-tab" style="padding:8px 16px;border:1px solid #d1d5db;background:#f9fafb;border-radius:6px;cursor:pointer">File Upload</button>
+                        </div>
                     </div>
+                    
+                    <!-- Text Input Section -->
+                    <div id="text-import-section">
+                        <div style="margin-bottom:16px;padding:12px;background:#f3f4f6;border-radius:6px;font-size:14px;color:#374151">
+                            <strong>Instructions:</strong><br>
+                            • Enter one question per line<br>
+                            • Use format: "Question text | Category" (category is optional)<br>
+                            • Example: "What is JavaScript? | Technical"<br>
+                            • If no category is specified, "General" will be used
+                        </div>
+                        <div style="margin-bottom:16px">
+                            <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Questions *</label>
+                            <textarea id="bulk-questions-text" style="width:100%;padding:12px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;min-height:200px;resize:vertical;font-family:monospace" placeholder="Enter questions here, one per line..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- File Upload Section -->
+                    <div id="file-import-section" style="display:none">
+                        <div style="margin-bottom:16px;padding:12px;background:#f3f4f6;border-radius:6px;font-size:14px;color:#374151">
+                            <strong>Supported Formats:</strong><br>
+                            • CSV files (.csv) - First row should be headers: "Question,Category"<br>
+                            • Excel files (.xlsx, .xls) - First row should be headers: "Question,Category"<br>
+                            • Category column is optional
+                        </div>
+                        <div style="margin-bottom:16px">
+                            <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Upload File *</label>
+                            <div style="border:2px dashed #d1d5db;border-radius:8px;padding:24px;text-align:center;background:#f9fafb">
+                                <input type="file" id="bulk-import-file" accept=".csv,.xlsx,.xls" style="display:none">
+                                <div style="margin-bottom:8px">
+                                    <span style="font-size:24px">📁</span>
+                                </div>
+                                <div style="margin-bottom:8px;font-weight:500">Click to select file or drag and drop</div>
+                                <div style="font-size:12px;color:#6b7280">CSV, XLSX, XLS files only</div>
+                                <button id="file-select-btn" style="margin-top:12px;background:#3b82f6;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer">Select File</button>
+                            </div>
+                            <div id="selected-file-info" style="margin-top:8px;padding:8px;background:#e0f2fe;border-radius:4px;display:none">
+                                <span id="selected-file-name"></span>
+                                <button id="remove-file-btn" style="margin-left:8px;background:#ef4444;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div style="display:flex;gap:8px;justify-content:flex-end">
                         <button id="bulk-import-cancel" style="border:1px solid #e5e7eb;background:#fff;padding:8px 16px;border-radius:6px;cursor:pointer">Cancel</button>
                         <button id="bulk-import-save" style="background:#3b82f6;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer">Import Questions</button>
@@ -3525,24 +3660,84 @@
                 </div>`;
             document.body.appendChild(modal);
             
+            // Tab switching
+            modal.querySelector('#text-import-tab').onclick = () => {
+                document.getElementById('text-import-section').style.display = 'block';
+                document.getElementById('file-import-section').style.display = 'none';
+                modal.querySelector('#text-import-tab').style.background = '#3b82f6';
+                modal.querySelector('#text-import-tab').style.color = '#fff';
+                modal.querySelector('#file-import-tab').style.background = '#f9fafb';
+                modal.querySelector('#file-import-tab').style.color = '#000';
+            };
+            
+            modal.querySelector('#file-import-tab').onclick = () => {
+                document.getElementById('text-import-section').style.display = 'none';
+                document.getElementById('file-import-section').style.display = 'block';
+                modal.querySelector('#file-import-tab').style.background = '#3b82f6';
+                modal.querySelector('#file-import-tab').style.color = '#fff';
+                modal.querySelector('#text-import-tab').style.background = '#f9fafb';
+                modal.querySelector('#text-import-tab').style.color = '#000';
+            };
+            
+            // File selection
+            modal.querySelector('#file-select-btn').onclick = () => {
+                document.getElementById('bulk-import-file').click();
+            };
+            
+            document.getElementById('bulk-import-file').onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    document.getElementById('selected-file-name').textContent = file.name;
+                    document.getElementById('selected-file-info').style.display = 'block';
+                }
+            };
+            
+            modal.querySelector('#remove-file-btn').onclick = () => {
+                document.getElementById('bulk-import-file').value = '';
+                document.getElementById('selected-file-info').style.display = 'none';
+            };
+            
             modal.querySelector('#bulk-import-cancel').onclick = () => modal.remove();
             modal.querySelector('#bulk-import-save').onclick = async () => {
-                const questionsText = document.getElementById('bulk-questions-text').value.trim();
+                const textSection = document.getElementById('text-import-section');
+                const fileSection = document.getElementById('file-import-section');
+                let questions = [];
                 
-                if (!questionsText) {
-                    alert('Please enter questions to import');
-                    return;
+                if (textSection.style.display !== 'none') {
+                    // Text import
+                    const questionsText = document.getElementById('bulk-questions-text').value.trim();
+                    
+                    if (!questionsText) {
+                        alert('Please enter questions to import');
+                        return;
+                    }
+                    
+                    // Parse questions
+                    const lines = questionsText.split('\n').filter(line => line.trim());
+                    questions = lines.map(line => {
+                        const parts = line.split('|').map(part => part.trim());
+                        return {
+                            question: parts[0],
+                            category: parts[1] || 'General'
+                        };
+                    });
+                } else {
+                    // File import
+                    const fileInput = document.getElementById('bulk-import-file');
+                    const file = fileInput.files[0];
+                    
+                    if (!file) {
+                        alert('Please select a file to import');
+                        return;
+                    }
+                    
+                    try {
+                        questions = await parseFile(file);
+                    } catch (error) {
+                        showError('Error parsing file: ' + error.message);
+                        return;
+                    }
                 }
-                
-                // Parse questions
-                const lines = questionsText.split('\n').filter(line => line.trim());
-                const questions = lines.map(line => {
-                    const parts = line.split('|').map(part => part.trim());
-                    return {
-                        question: parts[0],
-                        category: parts[1] || 'General'
-                    };
-                });
                 
                 if (questions.length === 0) {
                     alert('No valid questions found');
@@ -3572,6 +3767,39 @@
                     showError('Error importing questions');
                 }
             };
+        }
+
+        // Parse uploaded file
+        async function parseFile(file) {
+            const questions = [];
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+            
+            if (fileExtension === 'csv') {
+                const text = await file.text();
+                const lines = text.split('\n').filter(line => line.trim());
+                
+                // Skip header row
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (line) {
+                        const parts = line.split(',').map(part => part.trim().replace(/"/g, ''));
+                        if (parts[0]) {
+                            questions.push({
+                                question: parts[0],
+                                category: parts[1] || 'General'
+                            });
+                        }
+                    }
+                }
+            } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
+                // For Excel files, we'll need to use a library like SheetJS
+                // For now, show an error message
+                throw new Error('Excel file support requires additional setup. Please use CSV format for now.');
+            } else {
+                throw new Error('Unsupported file format. Please use CSV, XLSX, or XLS files.');
+            }
+            
+            return questions;
         }
 
         // Edit functionality
