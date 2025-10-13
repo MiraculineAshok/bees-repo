@@ -1740,7 +1740,7 @@
                     const result = await response.json();
                     if (result.success) {
                         interviewerId = result.userId;
-                        console.log('✅ Got interviewer ID from API:', interviewerId);
+                        console.log('✅ Got interviewer ID from API using email:', interviewerId);
                     }
                 } catch (error) {
                     console.error('Error getting user ID from API:', error);
@@ -1758,12 +1758,26 @@
                             const result = await response.json();
                             if (result.success) {
                                 interviewerId = result.userId;
-                                console.log('✅ Got interviewer ID from localStorage:', interviewerId);
+                                console.log('✅ Got interviewer ID from localStorage email:', interviewerId);
                             }
                         }
                     } catch (error) {
                         console.error('Error getting user ID from localStorage:', error);
                     }
+                }
+            }
+
+            // Final fallback: ask server to resolve current authenticated user without email
+            if (!interviewerId) {
+                try {
+                    const response = await fetch('/api/user/id');
+                    const result = await response.json();
+                    if (result.success && result.userId) {
+                        interviewerId = result.userId;
+                        console.log('✅ Got interviewer ID from session (no email):', interviewerId);
+                    }
+                } catch (error) {
+                    console.error('Error resolving interviewer ID from session:', error);
                 }
             }
             
@@ -1890,38 +1904,20 @@
                 return;
             }
 
-            // Check user role for verdict access
-            await checkUserRole();
+            // Always render candidate card immediately
+            try {
+                await displayStudentData(currentStudent);
+            } catch (e) { console.warn('displayStudentData failed (non-blocking):', e); }
             
-            if (!currentStudent.id) {
-                console.error('currentStudent exists but has no id property');
-                console.error('currentStudent keys:', Object.keys(currentStudent));
-                console.error('currentStudent full object:', JSON.stringify(currentStudent, null, 2));
-                
-                // Try to reload student data as a fallback
-                console.log('Attempting to reload student data...');
-                const urlParams = new URLSearchParams(window.location.search);
-                const zetaId = urlParams.get('zeta_id');
-                
-                if (zetaId) {
-                    console.log('Retrying with zeta_id:', zetaId);
-                    await fetchStudentByZetaId(zetaId);
-                    return;
-                }
-                
-                showError('No student data available');
-                return;
-            }
-
             try {
                 console.log('Initializing interview for student:', currentStudent.id);
                 
                 // Get current interviewer ID
                 const currentInterviewerId = await getCurrentInterviewerId();
                 if (!currentInterviewerId) {
-                    console.error('❌ Could not determine interviewer ID');
-                    showError('Unable to identify interviewer. Please log in again.');
-                    return;
+                    console.warn('⚠️ Could not determine interviewer ID. Proceeding to load previous interviews only.');
+                    await loadPreviousInterviews();
+                    return; // Skip interview start/resume path but page remains usable
                 }
                 
                 // Check if there's already an active interview for this student
@@ -1941,14 +1937,36 @@
                     // Handle the case where another interviewer is already conducting the interview
                     console.error('Interview conflict:', result.error);
                     showError(result.error);
-                    return;
                 } else {
-                    console.log('No existing interview found, creating new one');
-                    // Create new interview
-                    await createInterview();
+                    // No existing interview; create one
+                    const sessionId = getUrlParameter('session_id') || currentStudent.sessionId;
+                    try {
+                        const createRes = await fetch('/api/interviews', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                student_id: currentStudent.id,
+                                interviewer_id: currentInterviewerId,
+                                session_id: sessionId
+                            })
+                        });
+                        const createResult = await createRes.json();
+                        if (createRes.ok && createResult.success) {
+                            currentInterview = createResult.data;
+                            console.log('Interview created:', currentInterview);
+                            startDurationTracking();
+                            await loadQuestions();
+                        } else {
+                            console.error('Error creating interview:', createResult);
+                            showError('Error creating interview: ' + (createResult.error || 'Unknown error'));
+                        }
+                    } catch (createErr) {
+                        console.error('Error creating interview:', createErr);
+                        showError('Error creating interview');
+                    }
                 }
                 
-                // Load previous interviews
+                // Load previous interviews regardless
                 await loadPreviousInterviews();
             } catch (error) {
                 console.error('Error initializing interview:', error);
