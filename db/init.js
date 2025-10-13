@@ -11,11 +11,32 @@ async function initializeDatabase() {
         email VARCHAR(255) UNIQUE NOT NULL,
         name VARCHAR(255) NOT NULL,
         role VARCHAR(50) DEFAULT 'user',
+        status VARCHAR(50) DEFAULT 'active',
         zoho_user_id VARCHAR(255),
+        last_login_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Add missing columns if they don't exist (for existing databases)
+    try {
+      await pool.query(`
+        ALTER TABLE users 
+        ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'active'
+      `);
+    } catch (error) {
+      // Column might already exist, ignore error
+    }
+
+    try {
+      await pool.query(`
+        ALTER TABLE users 
+        ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP
+      `);
+    } catch (error) {
+      // Column might already exist, ignore error
+    }
     
     // Create students table
     await pool.query(`

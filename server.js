@@ -221,6 +221,83 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
+app.get('/api/users/:id', async (req, res) => {
+  try {
+    const user = await UserService.getUserById(req.params.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+    res.json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch user'
+    });
+  }
+});
+
+app.put('/api/users/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+    
+    const user = await UserService.updateUser(id, updateData);
+    res.json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update user'
+    });
+  }
+});
+
+app.delete('/api/users/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await UserService.deleteUser(id);
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete user'
+    });
+  }
+});
+
+app.put('/api/users/bulk', async (req, res) => {
+  try {
+    const { updates } = req.body; // Array of {id, data} objects
+    
+    const results = await UserService.bulkUpdateUsers(updates);
+    res.json({
+      success: true,
+      data: results
+    });
+  } catch (error) {
+    console.error('Error bulk updating users:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to bulk update users'
+    });
+  }
+});
+
 // Interviewer: list sessions where interviewer is a panelist
 app.get('/api/interviewer/sessions', async (req, res) => {
   try {
