@@ -3833,16 +3833,26 @@
             const categorySelect = document.getElementById('question-category');
             const newCategoryInput = document.getElementById('new-category-name');
             
+            console.log('Add Question Debug:', {
+                questionText: questionText,
+                categorySelectValue: categorySelect.value,
+                newCategoryValue: newCategoryInput.value,
+                newCategoryDisplay: newCategoryInput.style.display
+            });
+            
             let category = '';
             
             // Check if user is adding a new category
-            if (newCategoryInput.style.display !== 'none' && newCategoryInput.value.trim()) {
+            if (newCategoryInput.value.trim()) {
                 category = newCategoryInput.value.trim();
+                console.log('Using new category:', category);
             } else {
                 category = categorySelect.value;
+                console.log('Using selected category:', category);
             }
 
             if (!questionText || !category) {
+                console.log('Validation failed:', { questionText: !!questionText, category: !!category });
                 showError('Please fill in all fields');
                 return;
             }
@@ -7642,7 +7652,6 @@
         function resetImportModal() {
             selectedFile = null;
             parsedData = [];
-            document.getElementById('import-file').value = '';
             document.getElementById('bulk-import-file').value = '';
             document.getElementById('bulk-questions-text').value = '';
             document.getElementById('selected-file-info').style.display = 'none';
