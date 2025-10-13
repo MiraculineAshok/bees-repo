@@ -1330,9 +1330,9 @@
         }
         
         /* Group headers for filtering */
-        .group-header { background: #f3f4f6; font-weight: 600; }
-        .group-title { padding: 12px 16px; color: #374151; border-bottom: 2px solid #e5e7eb; }
-        .group-title:first-child { border-top: 2px solid #e5e7eb; }
+        .group-header { background: #2d3748; color: white; font-weight: 600; }
+        .group-title { padding: 12px 16px; color: white; border-bottom: 2px solid #4a5568; }
+        .group-title:first-child { border-top: 2px solid #4a5568; }
         
         /* User Action Menu Styles */
         .action-menu-container { position: relative; display: inline-block; }
@@ -1747,7 +1747,7 @@
         }
 
         .group-header {
-            background: #000000;
+            background: #2d3748;
             color: white;
             padding: 0.75rem 1rem;
             font-weight: 600;
@@ -2809,7 +2809,7 @@
                 const groupInterviews = groups[groupKey];
                 html += `
                     <tr class="group-header">
-                        <td colspan="9" style="background: #f3f4f6; font-weight: 600; padding: 12px;">
+                        <td colspan="9" style="background: #2d3748; color: white; font-weight: 600; padding: 12px;">
                             ${groupKey} (${groupInterviews.length} interviews)
                         </td>
                     </tr>
@@ -2982,9 +2982,16 @@
             return { groups, interviews: interviewList };
         }
 
-        function displayRegularInterviews(interviewList, tbody) {
+        function displayRegularInterviews(interviewList, tbody, groupBy = '') {
             if (interviewList.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No interviews match the current filters</td></tr>';
+                return;
+            }
+
+            // Handle grouping if specified
+            if (groupBy) {
+                const groupedData = groupInterviews(interviewList, groupBy);
+                displayGroupedInterviews(groupedData, tbody);
                 return;
             }
 
@@ -4264,27 +4271,11 @@
                         <input type="radio" id="group-none" name="group-by" value="" checked onchange="applyFilters('sessions')">
                         <label for="group-none">No Grouping</label>
                     </div>
-                    <div class="group-by-option">
-                        <input type="radio" id="group-status" name="group-by" value="status" onchange="applyFilters('sessions')">
-                        <label for="group-status">By Status</label>
-                    </div>
-                    <div class="group-by-option">
-                        <input type="radio" id="group-date" name="group-by" value="created_date" onchange="applyFilters('sessions')">
-                        <label for="group-date">By Date</label>
-                    </div>
                 `,
                 'students': `
                     <div class="group-by-option">
                         <input type="radio" id="group-none" name="group-by" value="" checked onchange="applyFilters('students')">
                         <label for="group-none">No Grouping</label>
-                    </div>
-                    <div class="group-by-option">
-                        <input type="radio" id="group-email-domain" name="group-by" value="email_domain" onchange="applyFilters('students')">
-                        <label for="group-email-domain">By Email Domain</label>
-                    </div>
-                    <div class="group-by-option">
-                        <input type="radio" id="group-date" name="group-by" value="created_date" onchange="applyFilters('students')">
-                        <label for="group-date">By Creation Date</label>
                     </div>
                 `,
                 'my-interviews': `
@@ -4627,7 +4618,7 @@
             switch(tab) {
                 case 'interviews':
                     filteredData = applyUnifiedFilters('interviews', interviews);
-                    displayFunction = () => displayRegularInterviews(filteredData, document.getElementById('interviews-table-body'));
+                    displayFunction = () => displayRegularInterviews(filteredData, document.getElementById('interviews-table-body'), groupBy);
                     break;
                 case 'questions':
                     filteredData = applyUnifiedFilters('questions', questions);
