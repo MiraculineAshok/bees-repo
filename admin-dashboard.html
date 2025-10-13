@@ -3833,11 +3833,13 @@
             const categorySelect = document.getElementById('question-category');
             const newCategoryInput = document.getElementById('new-category-name');
             
-            let category = categorySelect.value;
+            let category = '';
             
             // Check if user is adding a new category
             if (newCategoryInput.style.display !== 'none' && newCategoryInput.value.trim()) {
                 category = newCategoryInput.value.trim();
+            } else {
+                category = categorySelect.value;
             }
 
             if (!questionText || !category) {
@@ -7586,18 +7588,49 @@
                 document.getElementById('bulk-import-file').click();
             };
             
-            document.getElementById('bulk-import-file').onchange = (e) => {
+            document.getElementById('bulk-import-file').onchange = async (e) => {
                 const file = e.target.files[0];
                 if (file) {
                     document.getElementById('selected-file-name').textContent = file.name;
                     document.getElementById('selected-file-info').style.display = 'block';
+                    
+                    // Parse the file
+                    try {
+                        selectedFile = file;
+                        parsedData = await parseFile(file);
+                        console.log('Parsed data:', parsedData);
+                        
+                        // Show preview
+                        if (parsedData.length > 0) {
+                            showImportPreview(parsedData);
+                        }
+                    } catch (error) {
+                        console.error('Error parsing file:', error);
+                        showError('Error parsing file: ' + error.message);
+                        selectedFile = null;
+                        parsedData = [];
+                    }
                 }
+                updateImportButtonState();
             };
             
             document.getElementById('remove-file-btn').onclick = () => {
                 document.getElementById('bulk-import-file').value = '';
                 document.getElementById('selected-file-info').style.display = 'none';
+                updateImportButtonState();
             };
+            
+            // Add event listeners to enable/disable import button
+            document.getElementById('bulk-questions-text').addEventListener('input', updateImportButtonState);
+            document.getElementById('bulk-import-file').addEventListener('change', updateImportButtonState);
+        }
+        
+        function updateImportButtonState() {
+            const textInput = document.getElementById('bulk-questions-text').value.trim();
+            const fileInput = document.getElementById('bulk-import-file').files.length > 0;
+            const importBtn = document.getElementById('import-btn');
+            
+            importBtn.disabled = !(textInput || fileInput);
         }
 
         function closeBulkImportModal() {
@@ -7613,10 +7646,10 @@
             document.getElementById('bulk-import-file').value = '';
             document.getElementById('bulk-questions-text').value = '';
             document.getElementById('selected-file-info').style.display = 'none';
-            document.getElementById('import-btn').disabled = false;
             document.getElementById('import-preview').style.display = 'none';
             document.getElementById('import-progress').style.display = 'none';
             document.getElementById('import-results').style.display = 'none';
+            updateImportButtonState();
         }
 
         // Parse uploaded file
