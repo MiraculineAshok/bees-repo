@@ -1597,7 +1597,7 @@
             }
         }
 
-        function showSection(sectionName) {
+        window.showSection = function(sectionName) {
             // Hide all sections
             document.querySelectorAll('.content-section').forEach(section => {
                 section.classList.remove('active');
