@@ -4107,27 +4107,40 @@
                 'interviews': `
                     <div class="sort-option">
                         <label>Sort by:</label>
-                        <select id="sort-by" class="form-select">
+                        <select id="sort-by" class="form-select" onchange="applyFilters('interviews')">
                             <option value="created_at_desc">Date (Newest First)</option>
                             <option value="created_at_asc">Date (Oldest First)</option>
                             <option value="student_name_asc">Student Name (A-Z)</option>
                             <option value="student_name_desc">Student Name (Z-A)</option>
-                            <option value="status_asc">Status</option>
-                            <option value="verdict_asc">Verdict</option>
-                            <option value="duration_asc">Duration (Shortest)</option>
-                            <option value="duration_desc">Duration (Longest)</option>
+                            <option value="student_email_asc">Student Email (A-Z)</option>
+                            <option value="student_email_desc">Student Email (Z-A)</option>
+                            <option value="zeta_id_asc">Zeta ID (A-Z)</option>
+                            <option value="zeta_id_desc">Zeta ID (Z-A)</option>
+                            <option value="status_asc">Status (A-Z)</option>
+                            <option value="status_desc">Status (Z-A)</option>
+                            <option value="verdict_asc">Verdict (A-Z)</option>
+                            <option value="verdict_desc">Verdict (Z-A)</option>
+                            <option value="interviewer_name_asc">Interviewer (A-Z)</option>
+                            <option value="interviewer_name_desc">Interviewer (Z-A)</option>
                         </select>
                     </div>
                 `,
                 'questions': `
                     <div class="sort-option">
                         <label>Sort by:</label>
-                        <select id="sort-by" class="form-select">
-                            <option value="times_asked_desc">Most Asked</option>
-                            <option value="times_asked_asc">Least Asked</option>
-                            <option value="success_rate_desc">Highest Success Rate</option>
-                            <option value="success_rate_asc">Lowest Success Rate</option>
+                        <select id="sort-by" class="form-select" onchange="applyFilters('questions')">
+                            <option value="question_text_asc">Question (A-Z)</option>
+                            <option value="question_text_desc">Question (Z-A)</option>
                             <option value="category_asc">Category (A-Z)</option>
+                            <option value="category_desc">Category (Z-A)</option>
+                            <option value="times_asked_desc">Times Asked (Most)</option>
+                            <option value="times_asked_asc">Times Asked (Least)</option>
+                            <option value="times_answered_correctly_desc">Correct Answers (Most)</option>
+                            <option value="times_answered_correctly_asc">Correct Answers (Least)</option>
+                            <option value="times_answered_incorrectly_desc">Incorrect Answers (Most)</option>
+                            <option value="times_answered_incorrectly_asc">Incorrect Answers (Least)</option>
+                            <option value="success_rate_desc">Success Rate (Highest)</option>
+                            <option value="success_rate_asc">Success Rate (Lowest)</option>
                             <option value="created_at_desc">Date Added (Newest)</option>
                             <option value="created_at_asc">Date Added (Oldest)</option>
                         </select>
@@ -4136,61 +4149,70 @@
                 'sessions': `
                     <div class="sort-option">
                         <label>Sort by:</label>
-                        <select id="sort-by" class="form-select">
+                        <select id="sort-by" class="form-select" onchange="applyFilters('sessions')">
                             <option value="created_at_desc">Date Created (Newest)</option>
                             <option value="created_at_asc">Date Created (Oldest)</option>
-                            <option value="session_name_asc">Session Name (A-Z)</option>
-                            <option value="session_name_desc">Session Name (Z-A)</option>
-                            <option value="status_asc">Status</option>
+                            <option value="name_asc">Session Name (A-Z)</option>
+                            <option value="name_desc">Session Name (Z-A)</option>
+                            <option value="description_asc">Description (A-Z)</option>
+                            <option value="description_desc">Description (Z-A)</option>
+                            <option value="status_asc">Status (A-Z)</option>
+                            <option value="status_desc">Status (Z-A)</option>
                         </select>
                     </div>
                 `,
                 'students': `
                     <div class="sort-option">
                         <label>Sort by:</label>
-                        <select id="sort-by" class="form-select">
+                        <select id="sort-by" class="form-select" onchange="applyFilters('students')">
+                            <option value="created_at_desc">Date Created (Newest)</option>
+                            <option value="created_at_asc">Date Created (Oldest)</option>
                             <option value="first_name_asc">First Name (A-Z)</option>
                             <option value="first_name_desc">First Name (Z-A)</option>
                             <option value="last_name_asc">Last Name (A-Z)</option>
                             <option value="last_name_desc">Last Name (Z-A)</option>
-                            <option value="zeta_id_asc">Zeta ID (A-Z)</option>
-                            <option value="zeta_id_desc">Zeta ID (Z-A)</option>
                             <option value="email_asc">Email (A-Z)</option>
                             <option value="email_desc">Email (Z-A)</option>
-                            <option value="created_at_desc">Date Created (Newest)</option>
-                            <option value="created_at_asc">Date Created (Oldest)</option>
+                            <option value="zeta_id_asc">Zeta ID (A-Z)</option>
+                            <option value="zeta_id_desc">Zeta ID (Z-A)</option>
+                            <option value="phone_asc">Phone (A-Z)</option>
+                            <option value="phone_desc">Phone (Z-A)</option>
                         </select>
                     </div>
                 `,
                 'my-interviews': `
                     <div class="sort-option">
                         <label>Sort by:</label>
-                        <select id="sort-by" class="form-select">
+                        <select id="sort-by" class="form-select" onchange="applyFilters('my-interviews')">
                             <option value="created_at_desc">Date (Newest First)</option>
                             <option value="created_at_asc">Date (Oldest First)</option>
                             <option value="student_name_asc">Student Name (A-Z)</option>
                             <option value="student_name_desc">Student Name (Z-A)</option>
-                            <option value="status_asc">Status</option>
-                            <option value="verdict_asc">Verdict</option>
-                            <option value="duration_asc">Duration (Shortest)</option>
-                            <option value="duration_desc">Duration (Longest)</option>
+                            <option value="student_email_asc">Student Email (A-Z)</option>
+                            <option value="student_email_desc">Student Email (Z-A)</option>
+                            <option value="zeta_id_asc">Zeta ID (A-Z)</option>
+                            <option value="zeta_id_desc">Zeta ID (Z-A)</option>
+                            <option value="status_asc">Status (A-Z)</option>
+                            <option value="status_desc">Status (Z-A)</option>
+                            <option value="verdict_asc">Verdict (A-Z)</option>
+                            <option value="verdict_desc">Verdict (Z-A)</option>
                         </select>
                     </div>
                 `,
                 'users': `
                     <div class="sort-option">
                         <label>Sort by:</label>
-                        <select id="sort-by" class="form-select">
+                        <select id="sort-by" class="form-select" onchange="applyFilters('users')">
+                            <option value="created_at_desc">Date Created (Newest)</option>
+                            <option value="created_at_asc">Date Created (Oldest)</option>
                             <option value="name_asc">Name (A-Z)</option>
                             <option value="name_desc">Name (Z-A)</option>
                             <option value="email_asc">Email (A-Z)</option>
                             <option value="email_desc">Email (Z-A)</option>
-                            <option value="role_asc">Role</option>
-                            <option value="status_asc">Status</option>
-                            <option value="created_at_desc">Date Created (Newest)</option>
-                            <option value="created_at_asc">Date Created (Oldest)</option>
-                            <option value="last_login_desc">Last Login (Recent)</option>
-                            <option value="last_login_asc">Last Login (Oldest)</option>
+                            <option value="role_asc">Role (A-Z)</option>
+                            <option value="role_desc">Role (Z-A)</option>
+                            <option value="updated_at_desc">Last Updated (Newest)</option>
+                            <option value="updated_at_asc">Last Updated (Oldest)</option>
                         </select>
                     </div>
                 `
@@ -4203,101 +4225,101 @@
             const groupConfigs = {
                 'interviews': `
                     <div class="group-by-option">
-                        <input type="radio" id="group-none" name="group-by" value="" checked>
+                        <input type="radio" id="group-none" name="group-by" value="" checked onchange="applyFilters('interviews')">
                         <label for="group-none">No Grouping</label>
                     </div>
                     <div class="group-by-option">
-                        <input type="radio" id="group-status" name="group-by" value="status">
+                        <input type="radio" id="group-status" name="group-by" value="status" onchange="applyFilters('interviews')">
                         <label for="group-status">By Status</label>
                     </div>
                     <div class="group-by-option">
-                        <input type="radio" id="group-verdict" name="group-by" value="verdict">
+                        <input type="radio" id="group-verdict" name="group-by" value="verdict" onchange="applyFilters('interviews')">
                         <label for="group-verdict">By Verdict</label>
                     </div>
                     <div class="group-by-option">
-                        <input type="radio" id="group-interviewer" name="group-by" value="interviewer">
+                        <input type="radio" id="group-interviewer" name="group-by" value="interviewer" onchange="applyFilters('interviews')">
                         <label for="group-interviewer">By Interviewer</label>
                     </div>
                     <div class="group-by-option">
-                        <input type="radio" id="group-date" name="group-by" value="date">
+                        <input type="radio" id="group-date" name="group-by" value="date" onchange="applyFilters('interviews')">
                         <label for="group-date">By Date</label>
                     </div>
                 `,
                 'questions': `
                     <div class="group-by-option">
-                        <input type="radio" id="group-none" name="group-by" value="" checked>
+                        <input type="radio" id="group-none" name="group-by" value="" checked onchange="applyFilters('questions')">
                         <label for="group-none">No Grouping</label>
                     </div>
                     <div class="group-by-option">
-                        <input type="radio" id="group-category" name="group-by" value="category">
+                        <input type="radio" id="group-category" name="group-by" value="category" onchange="applyFilters('questions')">
                         <label for="group-category">By Category</label>
                     </div>
                     <div class="group-by-option">
-                        <input type="radio" id="group-success-rate" name="group-by" value="success_rate">
-                        <label for="group-success-rate">By Success Rate</label>
+                        <input type="radio" id="group-times-asked" name="group-by" value="times_asked" onchange="applyFilters('questions')">
+                        <label for="group-times-asked">By Times Asked</label>
                     </div>
                 `,
                 'sessions': `
                     <div class="group-by-option">
-                        <input type="radio" id="group-none" name="group-by" value="" checked>
+                        <input type="radio" id="group-none" name="group-by" value="" checked onchange="applyFilters('sessions')">
                         <label for="group-none">No Grouping</label>
                     </div>
                     <div class="group-by-option">
-                        <input type="radio" id="group-status" name="group-by" value="status">
+                        <input type="radio" id="group-status" name="group-by" value="status" onchange="applyFilters('sessions')">
                         <label for="group-status">By Status</label>
                     </div>
                     <div class="group-by-option">
-                        <input type="radio" id="group-date" name="group-by" value="date">
+                        <input type="radio" id="group-date" name="group-by" value="created_date" onchange="applyFilters('sessions')">
                         <label for="group-date">By Date</label>
                     </div>
                 `,
                 'students': `
                     <div class="group-by-option">
-                        <input type="radio" id="group-none" name="group-by" value="" checked>
+                        <input type="radio" id="group-none" name="group-by" value="" checked onchange="applyFilters('students')">
                         <label for="group-none">No Grouping</label>
                     </div>
                     <div class="group-by-option">
-                        <input type="radio" id="group-email-domain" name="group-by" value="email_domain">
+                        <input type="radio" id="group-email-domain" name="group-by" value="email_domain" onchange="applyFilters('students')">
                         <label for="group-email-domain">By Email Domain</label>
                     </div>
                     <div class="group-by-option">
-                        <input type="radio" id="group-date" name="group-by" value="date">
+                        <input type="radio" id="group-date" name="group-by" value="created_date" onchange="applyFilters('students')">
                         <label for="group-date">By Creation Date</label>
                     </div>
                 `,
                 'my-interviews': `
                     <div class="group-by-option">
-                        <input type="radio" id="group-none" name="group-by" value="" checked>
+                        <input type="radio" id="group-none" name="group-by" value="" checked onchange="applyFilters('my-interviews')">
                         <label for="group-none">No Grouping</label>
                     </div>
                     <div class="group-by-option">
-                        <input type="radio" id="group-status" name="group-by" value="status">
+                        <input type="radio" id="group-status" name="group-by" value="status" onchange="applyFilters('my-interviews')">
                         <label for="group-status">By Status</label>
                     </div>
                     <div class="group-by-option">
-                        <input type="radio" id="group-verdict" name="group-by" value="verdict">
+                        <input type="radio" id="group-verdict" name="group-by" value="verdict" onchange="applyFilters('my-interviews')">
                         <label for="group-verdict">By Verdict</label>
                     </div>
                     <div class="group-by-option">
-                        <input type="radio" id="group-date" name="group-by" value="date">
+                        <input type="radio" id="group-date" name="group-by" value="created_date" onchange="applyFilters('my-interviews')">
                         <label for="group-date">By Date</label>
                     </div>
                 `,
                 'users': `
                     <div class="group-by-option">
-                        <input type="radio" id="group-none" name="group-by" value="" checked>
+                        <input type="radio" id="group-none" name="group-by" value="" checked onchange="applyFilters('users')">
                         <label for="group-none">No Grouping</label>
                     </div>
                     <div class="group-by-option">
-                        <input type="radio" id="group-role" name="group-by" value="role">
+                        <input type="radio" id="group-role" name="group-by" value="role" onchange="applyFilters('users')">
                         <label for="group-role">By Role</label>
                     </div>
                     <div class="group-by-option">
-                        <input type="radio" id="group-status" name="group-by" value="status">
+                        <input type="radio" id="group-status" name="group-by" value="status" onchange="applyFilters('users')">
                         <label for="group-status">By Status</label>
                     </div>
                     <div class="group-by-option">
-                        <input type="radio" id="group-date" name="group-by" value="date">
+                        <input type="radio" id="group-date" name="group-by" value="created_date" onchange="applyFilters('users')">
                         <label for="group-date">By Creation Date</label>
                     </div>
                 `
@@ -4591,6 +4613,13 @@
         function applyFilters(tab, closePanel = false) {
             console.log(`Applying filters for tab: ${tab}`);
             
+            // Get group by value
+            const getRadioValue = (name) => {
+                const element = document.querySelector(`input[name="${name}"]:checked`);
+                return element ? element.value : '';
+            };
+            const groupBy = getRadioValue('group-by');
+            
             // Use the new unified system
             let filteredData = [];
             let displayFunction = null;
@@ -4602,23 +4631,23 @@
                     break;
                 case 'questions':
                     filteredData = applyUnifiedFilters('questions', questions);
-                    displayFunction = () => displayQuestions(filteredData);
+                    displayFunction = () => displayQuestions(filteredData, groupBy);
                     break;
                 case 'sessions':
                     filteredData = applyUnifiedFilters('sessions', sessions);
-                    displayFunction = () => displaySessions(filteredData);
+                    displayFunction = () => displaySessions(filteredData, groupBy);
                     break;
                 case 'students':
                     filteredData = applyUnifiedFilters('students', students);
-                    displayFunction = () => displayStudents(filteredData);
+                    displayFunction = () => displayStudents(filteredData, groupBy);
                     break;
                 case 'my-interviews':
                     filteredData = applyUnifiedFilters('my-interviews', myInterviews);
-                    displayFunction = () => displayMyInterviews(filteredData);
+                    displayFunction = () => displayMyInterviews(filteredData, groupBy);
                     break;
                 case 'users':
                     filteredData = applyUnifiedFilters('users', users);
-                    displayFunction = () => displayUsers(filteredData);
+                    displayFunction = () => displayUsers(filteredData, groupBy);
                     break;
                 default:
                     console.log('Unknown tab:', tab);
