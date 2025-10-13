@@ -3760,19 +3760,87 @@
                         });
                         // If enrichment produced empty list but we had raw favorites, fall back to building rows from raw favorites directly
                         if (data.length === 0 && favs.length > 0) {
-                            console.warn('[Panel][Favorites] Enrichment yielded empty; falling back to raw favorites rendering');
-                            data = favs.map(f => {
-                                const fid = Number(f.question_id != null ? f.question_id : f.id);
-                                const text = f.question || `Favorite Question #${fid}`;
-                                return {
-                                    id: fid,
-                                    question: text,
-                                    question_text: text,
-                                    category: f.category || 'Uncategorized',
-                                    times_asked: f.times_asked ?? 0,
-                                    success_rate: f.success_rate ?? 0
-                                };
-                            });
+                            console.warn('[Panel][Favorites] Enrichment yielded empty; attempting backend details join');
+                            try {
+                                const ids = favs.map(f => (f.question_id != null ? f.question_id : f.id)).filter(Boolean);
+                                // Fallback 1: if backend supports bulk by ids
+                                let built = [];
+                                try {
+                                    const bulkUrl = `/api/admin/questions/details?ids=${encodeURIComponent(ids.join(','))}`;
+                                    console.log('[Panel][Favorites] Trying bulk details URL =', bulkUrl);
+                                    const bulkRes = await fetch(bulkUrl);
+                                    if (bulkRes.ok) {
+                                        const bulkJson = await bulkRes.json();
+                                        if (bulkJson && bulkJson.success && Array.isArray(bulkJson.data)) {
+                                            built = bulkJson.data.map(q => ({
+                                                id: q.id,
+                                                question: q.question || q.question_text || `Favorite Question #${q.id}`,
+                                                question_text: q.question || q.question_text || `Favorite Question #${q.id}`,
+                                                category: q.category || 'Uncategorized',
+                                                times_asked: q.times_asked ?? 0,
+                                                success_rate: q.success_rate ?? 0
+                                            }));
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.warn('[Panel][Favorites] Bulk details not available:', e);
+                                }
+                                // Fallback 2: per-id details as last resort
+                                if (built.length === 0) {
+                                    console.log('[Panel][Favorites] Falling back to per-id details fetch');
+                                    const details = await Promise.all(ids.map(async (qid) => {
+                                        try {
+                                            const r = await fetch(`/api/admin/questions/${qid}/details`);
+                                            if (!r.ok) return null;
+                                            const j = await r.json();
+                                            const q = j.data || j;
+                                            return {
+                                                id: qid,
+                                                question: q.question || q.question_text || `Favorite Question #${qid}`,
+                                                question_text: q.question || q.question_text || `Favorite Question #${qid}`,
+                                                category: q.category || 'Uncategorized',
+                                                times_asked: q.times_asked ?? 0,
+                                                success_rate: q.success_rate ?? 0
+                                            };
+                                        } catch {
+                                            return null;
+                                        }
+                                    }));
+                                    built = details.filter(Boolean);
+                                }
+                                if (built.length > 0) {
+                                    data = built;
+                                } else {
+                                    // Final fallback: raw favorites
+                                    data = favs.map(f => {
+                                        const fid = Number(f.question_id != null ? f.question_id : f.id);
+                                        const text = f.question || `Favorite Question #${fid}`;
+                                        return {
+                                            id: fid,
+                                            question: text,
+                                            question_text: text,
+                                            category: f.category || 'Uncategorized',
+                                            times_asked: f.times_asked ?? 0,
+                                            success_rate: f.success_rate ?? 0
+                                        };
+                                    });
+                                }
+                            } catch (e) {
+                                console.warn('[Panel][Favorites] Details join fallback failed:', e);
+                                // Keep raw favorites rendering as last resort
+                                data = favs.map(f => {
+                                    const fid = Number(f.question_id != null ? f.question_id : f.id);
+                                    const text = f.question || `Favorite Question #${fid}`;
+                                    return {
+                                        id: fid,
+                                        question: text,
+                                        question_text: text,
+                                        category: f.category || 'Uncategorized',
+                                        times_asked: f.times_asked ?? 0,
+                                        success_rate: f.success_rate ?? 0
+                                    };
+                                });
+                            }
                         }
                         console.log('[Panel][Favorites] Enriched favorites count =', data.length);
                     } else {
