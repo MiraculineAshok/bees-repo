@@ -6230,6 +6230,8 @@
                 } else if (section === 'my-interviews') {
                     // my interviews reuse interviews data loaded for admin
                     resolvedData = (interviews || []).find(i => String(i.id) === String(rowId));
+                } else if (section === 'users') {
+                    resolvedData = (users || []).find(u => String(u.id) === String(rowId));
                 }
             }
 
@@ -6307,6 +6309,31 @@
                     continue;
                 }
 
+                // Special handling for Users: role and status dropdowns
+                if ((typeof currentSection !== 'undefined' && currentSection === 'users')) {
+                    if (field === 'role') {
+                        const currentRole = currentEditData ? currentEditData.role : '';
+                        cell.innerHTML = `
+                            <select class="edit-input" data-field="role">
+                                <option value="superadmin" ${currentRole === 'superadmin' ? 'selected' : ''}>Super Admin</option>
+                                <option value="admin" ${currentRole === 'admin' ? 'selected' : ''}>Admin</option>
+                                <option value="interviewer" ${currentRole === 'interviewer' ? 'selected' : ''}>Interviewer</option>
+                            </select>
+                        `;
+                        continue;
+                    } else if (field === 'status') {
+                        const currentStatus = currentEditData ? currentEditData.status : '';
+                        cell.innerHTML = `
+                            <select class="edit-input" data-field="status">
+                                <option value="active" ${currentStatus === 'active' ? 'selected' : ''}>Active</option>
+                                <option value="inactive" ${currentStatus === 'inactive' ? 'selected' : ''}>Inactive</option>
+                                <option value="suspended" ${currentStatus === 'suspended' ? 'selected' : ''}>Suspended</option>
+                            </select>
+                        `;
+                        continue;
+                    }
+                }
+
                 // Default text input for other editable fields
                 const currentValue = cell.textContent.trim();
                 const inputId = `edit-${rowId}-${field}`;
@@ -6361,7 +6388,13 @@
                     
                     // Handle special field formatting
                     if (field === 'status') {
-                        cell.innerHTML = `<span class="status-badge status-${displayValue}">${displayValue}</span>`;
+                        const statusClass = displayValue === 'active' ? 'status-active' : 
+                                           displayValue === 'inactive' ? 'status-inactive' : 'status-suspended';
+                        cell.innerHTML = `<span class="status-badge ${statusClass}">${displayValue}</span>`;
+                    } else if (field === 'role') {
+                        const roleClass = displayValue === 'superadmin' ? 'role-superadmin' :
+                                         displayValue === 'admin' ? 'role-admin' : 'role-interviewer';
+                        cell.innerHTML = `<span class="role-badge ${roleClass}">${displayValue}</span>`;
                     } else if (field === 'created_at' || field === 'interview_date') {
                         displayValue = formatDate(originalData[field]);
                         cell.textContent = displayValue;
@@ -6434,7 +6467,8 @@
                     'sessions': ['name', 'description', 'status'],
                     'interviews': ['verdict', 'status', 'overall_notes'],
                     'my-interviews': ['verdict', 'status', 'overall_notes'],
-                    'questions': ['question', 'category']
+                    'questions': ['question', 'category'],
+                    'users': ['name', 'email', 'role', 'status']
                 };
 
                 const section = (typeof currentSection !== 'undefined' && currentSection) ? currentSection : (document.querySelector('.nav-link.active') ? document.querySelector('.nav-link.active').dataset.section : '');
@@ -6474,6 +6508,8 @@
                     endpoint = `/api/interviews/${rowId}`;
                 } else if (section === 'questions') {
                     endpoint = `/api/question-bank/${rowId}`;
+                } else if (section === 'users') {
+                    endpoint = `/api/users/${rowId}`;
                 }
                 
                 const response = await fetch(endpoint, {
@@ -6548,6 +6584,8 @@
                     endpoint = `/api/interviews/${rowId}`;
                 } else if (section === 'questions') {
                     endpoint = `/api/question-bank/${rowId}`;
+                } else if (section === 'users') {
+                    endpoint = `/api/users/${rowId}`;
                 }
 
                 const response = await fetch(endpoint, {
