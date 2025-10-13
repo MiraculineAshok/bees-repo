@@ -3031,6 +3031,27 @@
         async function endInterview() {
             if (!currentInterview) return;
 
+            // Auto-cancel if no questions were added
+            if (!Array.isArray(questions) || questions.length === 0) {
+                try {
+                    // Stop duration tracking if running
+                    stopDurationTracking();
+                    // Delete the interview and go back
+                    const response = await fetch(`/api/interviews/${currentInterview.id}`, { method: 'DELETE' });
+                    const result = await response.json();
+                    if (response.ok && result.success) {
+                        showSuccess('Interview cancelled (no questions added).');
+                        setTimeout(() => { goBack(); }, 500);
+                    } else {
+                        showError('Error cancelling empty interview');
+                    }
+                } catch (error) {
+                    console.error('Error auto-cancelling empty interview:', error);
+                    showError('Error cancelling empty interview');
+                }
+                return;
+            }
+
             // Check if verdict is selected
             const verdictSelect = document.getElementById('verdict-select');
             if (!verdictSelect.value) {
