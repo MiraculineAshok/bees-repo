@@ -3740,9 +3740,11 @@
                     console.log('[Panel][Favorites] Response status =', res.status);
                     const json = await res.json();
                     console.log('[Panel][Favorites] JSON =', json);
+                    try { console.log('[Panel][Favorites] JSON (stringified) =', JSON.stringify(json, null, 2)); } catch {}
                     if (json && json.success) {
                         const favs = json.data || [];
                         console.log('[Panel][Favorites] Raw favorites count =', favs.length);
+                        try { console.log('[Panel][Favorites] Raw favorites array =', JSON.stringify(favs, null, 2)); } catch { console.log('[Panel][Favorites] Raw favorites array (non-string) =', favs); }
                         // Normalize ID keys to strings to avoid number/string mismatch
                         const byId = new Map((panelQuestionBankData || []).map(q => [String(q.id), q]));
                         data = favs.map(f => {
@@ -3807,9 +3809,11 @@
                                         }
                                     }));
                                     built = details.filter(Boolean);
+                                    console.log('[Panel][Favorites] Built via per-id details count =', built.length);
                                 }
                                 if (built.length > 0) {
                                     data = built;
+                                    try { console.log('[Panel][Favorites] Built data sample =', JSON.stringify(data.slice(0,3), null, 2)); } catch {}
                                 } else {
                                     // Final fallback: raw favorites
                                     data = favs.map(f => {
@@ -3824,6 +3828,7 @@
                                             success_rate: f.success_rate ?? 0
                                         };
                                     });
+                                    try { console.log('[Panel][Favorites] Raw mapped data sample =', JSON.stringify(data.slice(0,3), null, 2)); } catch {}
                                 }
                             } catch (e) {
                                 console.warn('[Panel][Favorites] Details join fallback failed:', e);
@@ -3840,6 +3845,7 @@
                                         success_rate: f.success_rate ?? 0
                                     };
                                 });
+                                try { console.log('[Panel][Favorites] Raw mapped data sample (fallback) =', JSON.stringify(data.slice(0,3), null, 2)); } catch {}
                             }
                         }
                         console.log('[Panel][Favorites] Enriched favorites count =', data.length);
