@@ -46,6 +46,16 @@
             font-size: 1.5rem;
             font-weight: 700;
         }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            color: #ffffff;
+        }
+        
+        .logo-container img {
+            filter: brightness(0) invert(1);
+        }
 
         .sidebar-nav {
             list-style: none;
@@ -1215,7 +1225,10 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h2>Interviewer Dashboard</h2>
+                <div class="logo-container">
+                    <img src="/logo.svg" alt="BEES Logo" style="height: 35px; width: auto;">
+                    <span style="margin-left: 10px; font-size: 1.2rem;">Interviewer</span>
+                </div>
             </div>
             <nav>
                 <ul class="sidebar-nav">

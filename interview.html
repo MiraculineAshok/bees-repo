@@ -7,7 +7,14 @@
     <link rel="stylesheet" href="/interview.css">
     <style>
         .auth-header { padding: 0.5rem 1rem; }
-        .auth-header .logo { font-size: 1.25rem; }
+        .auth-header .logo { 
+            font-size: 1.25rem; 
+            display: flex;
+            align-items: center;
+        }
+        .auth-header .logo img {
+            filter: brightness(0) invert(1);
+        }
         .back-arrow { text-decoration: none; color: #111827; font-size: 1.25rem; }
         .sub-header { max-width: 1200px; margin: 0 auto; padding: 0.5rem 1rem; }
         /* Make session select match input look and taller */
@@ -31,7 +38,9 @@
     <!-- User Authentication Header -->
     <header class="auth-header">
         <div class="auth-header-content">
-            <a href="/" class="logo">Bees</a>
+            <a href="/" class="logo">
+                <img src="/logo.svg" alt="BEES Logo" style="height: 35px; width: auto;">
+            </a>
             <div class="user-info" style="position:relative">
                 <div id="avatar" class="avatar hidden">U</div>
                 <div id="avatar-menu" class="avatar-menu">
