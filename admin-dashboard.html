@@ -1329,6 +1329,38 @@
             color: #dc2626;
         }
         
+        /* User Action Menu Styles */
+        .action-menu-container { position: relative; display: inline-block; }
+        .menu-btn { background: #f3f4f6; border: 1px solid #d1d5db; color: #374151; font-size: 16px; font-weight: bold; }
+        .menu-btn:hover { background: #e5e7eb; }
+        .user-action-menu { 
+            position: absolute; 
+            top: 100%; 
+            right: 0; 
+            background: #ffffff; 
+            border: 1px solid #e5e7eb; 
+            border-radius: 8px; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1); 
+            z-index: 1000; 
+            min-width: 160px; 
+            padding: 4px 0;
+        }
+        .user-action-menu.hidden { display: none; }
+        .menu-item { 
+            width: 100%; 
+            background: #ffffff; 
+            border: none; 
+            text-align: left; 
+            padding: 8px 12px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            color: #374151;
+            transition: background-color 0.2s;
+        }
+        .menu-item:hover { background: #f3f4f6; }
+        .menu-item:first-child { border-top-left-radius: 8px; border-top-right-radius: 8px; }
+        .menu-item:last-child { border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; }
+        
         .question-answer-item {
             margin-bottom: 1rem;
             padding: 1rem;
@@ -4840,6 +4872,151 @@
             return [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
         }
 
+        // User Action Menu Functions
+        function toggleUserMenu(userId) {
+            // Close all other menus first
+            document.querySelectorAll('.user-action-menu').forEach(menu => {
+                if (menu.id !== `user-menu-${userId}`) {
+                    menu.classList.add('hidden');
+                }
+            });
+            
+            // Toggle current menu
+            const menu = document.getElementById(`user-menu-${userId}`);
+            if (menu) {
+                menu.classList.toggle('hidden');
+            }
+        }
+
+        // Close menus when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.action-menu-container')) {
+                document.querySelectorAll('.user-action-menu').forEach(menu => {
+                    menu.classList.add('hidden');
+                });
+            }
+        });
+
+        async function promoteToAdmin(userId) {
+            const proceed = await new Promise(resolve => {
+                const overlay = document.createElement('div');
+                overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
+                overlay.innerHTML = `
+                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;min-width:300px;max-width:90%;padding:16px;box-shadow:0 10px 20px rgba(0,0,0,0.15)">
+                    <div style="font-weight:600;margin-bottom:8px;color:#111827">Promote to Admin?</div>
+                    <div style="font-size:14px;color:#374151;margin-bottom:12px">Are you sure you want to promote this user to Admin role?</div>
+                    <div style="display:flex;gap:8px;justify-content:flex-end">
+                      <button id="promote-cancel" style="border:1px solid #e5e7eb;background:#fff;padding:6px 10px;border-radius:6px;cursor:pointer">Cancel</button>
+                      <button id="promote-confirm" style="background:#059669;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer">Promote</button>
+                    </div>
+                  </div>`;
+                document.body.appendChild(overlay);
+                overlay.querySelector('#promote-cancel').onclick = ()=> { overlay.remove(); resolve(false); };
+                overlay.querySelector('#promote-confirm').onclick = ()=> { overlay.remove(); resolve(true); };
+            });
+            
+            if (!proceed) return;
+
+            try {
+                const response = await fetch(`/api/users/${userId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ role: 'admin' })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showSuccess('User promoted to Admin successfully');
+                    loadUsers(); // Refresh the users list
+                } else {
+                    showError(result.message || 'Failed to promote user');
+                }
+            } catch (error) {
+                console.error('Error promoting user:', error);
+                showError('Error promoting user');
+            }
+        }
+
+        async function promoteToSuperAdmin(userId) {
+            const proceed = await new Promise(resolve => {
+                const overlay = document.createElement('div');
+                overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
+                overlay.innerHTML = `
+                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;min-width:300px;max-width:90%;padding:16px;box-shadow:0 10px 20px rgba(0,0,0,0.15)">
+                    <div style="font-weight:600;margin-bottom:8px;color:#111827">Promote to Super Admin?</div>
+                    <div style="font-size:14px;color:#374151;margin-bottom:12px">Are you sure you want to promote this user to Super Admin role? This gives them full system access.</div>
+                    <div style="display:flex;gap:8px;justify-content:flex-end">
+                      <button id="super-promote-cancel" style="border:1px solid #e5e7eb;background:#fff;padding:6px 10px;border-radius:6px;cursor:pointer">Cancel</button>
+                      <button id="super-promote-confirm" style="background:#dc2626;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer">Promote</button>
+                    </div>
+                  </div>`;
+                document.body.appendChild(overlay);
+                overlay.querySelector('#super-promote-cancel').onclick = ()=> { overlay.remove(); resolve(false); };
+                overlay.querySelector('#super-promote-confirm').onclick = ()=> { overlay.remove(); resolve(true); };
+            });
+            
+            if (!proceed) return;
+
+            try {
+                const response = await fetch(`/api/users/${userId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ role: 'superadmin' })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showSuccess('User promoted to Super Admin successfully');
+                    loadUsers(); // Refresh the users list
+                } else {
+                    showError(result.message || 'Failed to promote user');
+                }
+            } catch (error) {
+                console.error('Error promoting user:', error);
+                showError('Error promoting user');
+            }
+        }
+
+        async function deactivateUser(userId) {
+            const proceed = await new Promise(resolve => {
+                const overlay = document.createElement('div');
+                overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
+                overlay.innerHTML = `
+                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;min-width:300px;max-width:90%;padding:16px;box-shadow:0 10px 20px rgba(0,0,0,0.15)">
+                    <div style="font-weight:600;margin-bottom:8px;color:#111827">Deactivate User?</div>
+                    <div style="font-size:14px;color:#374151;margin-bottom:12px">Are you sure you want to deactivate this user? They will not be able to access the system.</div>
+                    <div style="display:flex;gap:8px;justify-content:flex-end">
+                      <button id="deactivate-cancel" style="border:1px solid #e5e7eb;background:#fff;padding:6px 10px;border-radius:6px;cursor:pointer">Cancel</button>
+                      <button id="deactivate-confirm" style="background:#dc2626;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer">Deactivate</button>
+                    </div>
+                  </div>`;
+                document.body.appendChild(overlay);
+                overlay.querySelector('#deactivate-cancel').onclick = ()=> { overlay.remove(); resolve(false); };
+                overlay.querySelector('#deactivate-confirm').onclick = ()=> { overlay.remove(); resolve(true); };
+            });
+            
+            if (!proceed) return;
+
+            try {
+                const response = await fetch(`/api/users/${userId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'inactive' })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showSuccess('User deactivated successfully');
+                    loadUsers(); // Refresh the users list
+                } else {
+                    showError(result.message || 'Failed to deactivate user');
+                }
+            } catch (error) {
+                console.error('Error deactivating user:', error);
+                showError('Error deactivating user');
+            }
+        }
+
         function downloadCSV(content, filename) {
             const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
@@ -4920,6 +5097,14 @@
                     <td>${new Date(user.created_at).toLocaleDateString()}</td>
                     <td>${user.last_login_at ? new Date(user.last_login_at).toLocaleDateString() : 'Never'}</td>
                     <td>
+                        <div class="action-menu-container">
+                            <button class="icon-btn menu-btn" onclick="toggleUserMenu(${user.id})" title="More Actions">⋮</button>
+                            <div id="user-menu-${user.id}" class="user-action-menu hidden">
+                                ${user.role === 'interviewer' ? `<button onclick="promoteToAdmin(${user.id})" class="menu-item">Make as Admin</button>` : ''}
+                                ${user.role === 'admin' ? `<button onclick="promoteToSuperAdmin(${user.id})" class="menu-item">Make as Super Admin</button>` : ''}
+                                <button onclick="deactivateUser(${user.id})" class="menu-item">Deactivate User</button>
+                            </div>
+                        </div>
                         <button class="icon-btn edit-btn" onclick="startEdit(${user.id})" title="Edit">✏️</button>
                         <button class="icon-btn view-btn" onclick="viewUser(${user.id})" title="View Details">👁️</button>
                         <button class="icon-btn delete-btn" onclick="deleteUser(${user.id})" title="Delete">🗑️</button>
