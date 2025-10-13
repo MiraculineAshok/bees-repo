@@ -3419,18 +3419,29 @@
                 }
                 
                 if (result.success) {
+                    console.log('✅ Question added successfully, proceeding with increment...');
+                    
                     // Increment the times asked counter (don't fail if this doesn't work)
                     try {
-                        await fetch(`/api/question-bank/${questionId}/increment`, {
+                        console.log('📤 Attempting to increment times asked for question:', questionId);
+                        const incrementResponse = await fetch(`/api/question-bank/${questionId}/increment`, {
                             method: 'POST'
                         });
+                        const incrementResult = await incrementResponse.json();
+                        console.log('📥 Increment response:', incrementResult);
+                        
+                        if (!incrementResponse.ok) {
+                            console.warn('⚠️ Increment failed but question was added:', incrementResult);
+                        }
                     } catch (incrementError) {
-                        console.warn('Failed to increment times asked:', incrementError);
+                        console.warn('⚠️ Failed to increment times asked:', incrementError);
                         // Don't show error to user, question was added successfully
                     }
                     
+                    console.log('🔄 Reloading questions from server...');
                     // Reload questions from server to get the latest state for this specific interview
                     await loadQuestions();
+                    console.log('✅ Questions reloaded, showing success message');
                     showSuccess('Question added successfully');
                     
                     // Collapse question bank back to normal height
@@ -3969,7 +3980,7 @@
                     console.log('✅ Question saved successfully, reloading questions...');
                     // Reload questions from server to get the latest state
                     await loadQuestions();
-                    showSuccessMessage('Question added from Question Bank!');
+                    showSuccess('Question added from Question Bank!');
                 } else {
                     console.error('❌ Error saving question:', result);
                     showError('Error adding question from bank');
