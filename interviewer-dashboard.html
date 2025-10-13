@@ -2382,7 +2382,12 @@
                 const result = await response.json();
                 if (result.success) {
                     interviews = result.data; // Store in global interviews variable
-                    displayFilteredInterviews(); // Use the new filtering system
+                    
+                    // Populate filter options with real data
+                    populateFilterOptions();
+                    
+                    // Display interviews using the new unified system
+                    displayInterviews(interviews);
                 } else {
                     showEmptyState('interviews-table-body', 'Failed to load interviews.');
                 }
@@ -2463,165 +2468,186 @@
         }
 
         // Enhanced Filter, Sort, and Group Functions
-        function applyFilters() {
-            displayFilteredInterviews();
-            updateResultsSummary();
+        
+        // NEW: Unified Filter System for Interviewer Dashboard
+        function applyFilters(tab, closePanel = false) {
+            console.log('Applying filters for tab:', tab);
+            
+            // Get the group by value
+            const groupByRadio = document.querySelector('input[name="group-by"]:checked');
+            const groupBy = groupByRadio ? groupByRadio.value : '';
+            
+            let filteredData = [];
+            let displayFunction = null;
+            
+            switch(tab) {
+                case 'interviews':
+                    filteredData = applyUnifiedFilters('interviews', interviews);
+                    displayFunction = () => displayInterviews(filteredData, groupBy);
+                    break;
+                case 'questions':
+                    filteredData = applyUnifiedFilters('questions', questions);
+                    displayFunction = () => displayQuestionAnalytics(filteredData, groupBy);
+                    break;
+                default:
+                    console.log('Unknown tab:', tab);
+                    return;
+            }
+            
+            // Execute display function
+            if (displayFunction) {
+                displayFunction();
+            }
+            
+            // Close panel if requested
+            if (closePanel) {
+                closeFilterPanel();
+            }
         }
-
-        function applySorting() {
-            displayFilteredInterviews();
-        }
-
-        function applyGrouping() {
-            displayFilteredInterviews();
-        }
-
-        function displayFilteredInterviews() {
-            if (!interviews || interviews.length === 0) {
-                showEmptyState('interviews-table-body', 'No interviews found.');
-                return;
-            }
-
-            // Apply filters, sorting, and grouping
-            let filteredInterviews = applyFiltersToInterviews();
-            let sortedInterviews = applySortingToInterviews(filteredInterviews);
-            let groupedInterviews = applyGroupingToInterviews(sortedInterviews);
-
-            // Display grouped or regular table
-            if (groupedInterviews.groups) {
-                displayGroupedInterviews(groupedInterviews);
-            } else {
-                displayInterviews(sortedInterviews);
-            }
+        
+        // NEW: Unified filter system
+        function applyUnifiedFilters(tab, data) {
+            if (!data || data.length === 0) return [];
             
-            // Update results summary
-            updateResultsSummary();
-        }
-
-        function applyFiltersToInterviews() {
-            let filtered = [...interviews];
+            let filtered = [...data];
             
-            // Status filter
-            const statusFilter = document.getElementById('status-filter').value;
-            if (statusFilter) {
-                filtered = filtered.filter(interview => interview.status === statusFilter);
-            }
+            // Get filter values safely
+            const searchTerm = getFilterValue('search-input') || '';
+            const statusFilter = getFilterValue('status-filter') || '';
+            const verdictFilter = getFilterValue('verdict-filter') || '';
+            const dateFrom = getFilterValue('date-from') || '';
+            const dateTo = getFilterValue('date-to') || '';
+            const sortBy = getFilterValue('sort-by') || '';
             
-            // Verdict filter
-            const verdictFilter = document.getElementById('verdict-filter').value;
-            if (verdictFilter) {
-                filtered = filtered.filter(interview => interview.verdict === verdictFilter);
-            }
-            
-            // Date range filters
-            const dateFrom = document.getElementById('date-from').value;
-            const dateTo = document.getElementById('date-to').value;
-            
-            if (dateFrom) {
-                const fromDate = new Date(dateFrom);
-                filtered = filtered.filter(interview => {
-                    const interviewDate = new Date(interview.interview_date || interview.created_at);
-                    return interviewDate >= fromDate;
-                });
-            }
-            
-            if (dateTo) {
-                const toDate = new Date(dateTo);
-                toDate.setHours(23, 59, 59, 999); // End of day
-                filtered = filtered.filter(interview => {
-                    const interviewDate = new Date(interview.interview_date || interview.created_at);
-                    return interviewDate <= toDate;
-                });
-            }
-            
-            // Duration filter
-            const durationMin = document.getElementById('duration-min').value;
-            if (durationMin) {
-                const minSeconds = parseInt(durationMin) * 60;
-                filtered = filtered.filter(interview => {
-                    const duration = interview.duration_seconds || 0;
-                    return duration >= minSeconds;
-                });
-            }
-            
-            // Search filter (enhanced)
-            const searchTerm = document.getElementById('search-interviews').value.toLowerCase();
+            // Apply search filter
             if (searchTerm) {
-                filtered = filtered.filter(interview => 
-                    (interview.student_name && interview.student_name.toLowerCase().includes(searchTerm)) ||
-                    (interview.zeta_id && interview.zeta_id.toLowerCase().includes(searchTerm)) ||
-                    (interview.session_name && interview.session_name.toLowerCase().includes(searchTerm)) ||
-                    (interview.verdict && interview.verdict.toLowerCase().includes(searchTerm))
-                );
+                filtered = filtered.filter(item => {
+                    if (tab === 'interviews') {
+                        return (item.student_name && item.student_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                               (item.zeta_id && item.zeta_id.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                               (item.student_email && item.student_email.toLowerCase().includes(searchTerm.toLowerCase()));
+                    } else if (tab === 'questions') {
+                        return (item.question_text && item.question_text.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                               (item.category && item.category.toLowerCase().includes(searchTerm.toLowerCase()));
+                    }
+                    return false;
+                });
+            }
+            
+            // Apply status filter
+            if (statusFilter && tab === 'interviews') {
+                filtered = filtered.filter(item => item.status === statusFilter);
+            }
+            
+            // Apply verdict filter
+            if (verdictFilter && tab === 'interviews') {
+                filtered = filtered.filter(item => item.verdict === verdictFilter);
+            }
+            
+            // Apply date filters
+            if (dateFrom && tab === 'interviews') {
+                const fromDate = new Date(dateFrom);
+                filtered = filtered.filter(item => {
+                    const itemDate = new Date(item.interview_date || item.created_at);
+                    return itemDate >= fromDate;
+                });
+            }
+            
+            if (dateTo && tab === 'interviews') {
+                const toDate = new Date(dateTo);
+                toDate.setHours(23, 59, 59, 999);
+                filtered = filtered.filter(item => {
+                    const itemDate = new Date(item.interview_date || item.created_at);
+                    return itemDate <= toDate;
+                });
+            }
+            
+            // Apply sorting
+            if (sortBy) {
+                if (tab === 'interviews') {
+                    filtered = sortInterviews(filtered, sortBy);
+                } else if (tab === 'questions') {
+                    filtered = sortQuestions(filtered, sortBy);
+                }
             }
             
             return filtered;
         }
-
-        function applySortingToInterviews(interviewList) {
-            const sortBy = document.getElementById('sort-by').value;
-            const sortBy2 = document.getElementById('sort-by-2').value;
-            const sorted = [...interviewList];
-            
-            // Primary sort
-            const primarySort = getSortFunction(sortBy);
-            if (primarySort) {
-                sorted.sort(primarySort);
-            }
-            
-            // Secondary sort (if specified)
-            if (sortBy2) {
-                const secondarySort = getSortFunction(sortBy2);
-                if (secondarySort) {
-                    sorted.sort((a, b) => {
-                        const primaryResult = primarySort ? primarySort(a, b) : 0;
-                        if (primaryResult !== 0) return primaryResult;
-                        return secondarySort(a, b);
-                    });
-                }
-            }
-            
-            return sorted;
+        
+        // Helper function to safely get filter values
+        function getFilterValue(elementId) {
+            const element = document.getElementById(elementId);
+            return element ? element.value : '';
         }
         
-        function getSortFunction(sortKey) {
-            switch (sortKey) {
-                case 'created_at_desc':
-                    return (a, b) => new Date(b.created_at) - new Date(a.created_at);
+        // Helper function to safely get radio values
+        function getRadioValue(name) {
+            const radio = document.querySelector(`input[name="${name}"]:checked`);
+            return radio ? radio.value : '';
+        }
+        
+        // NEW: Sorting functions
+        function sortInterviews(interviews, sortBy) {
+            const sorted = [...interviews];
+            
+            switch (sortBy) {
                 case 'created_at_asc':
-                    return (a, b) => new Date(a.created_at) - new Date(b.created_at);
+                    return sorted.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                case 'created_at_desc':
+                    return sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
                 case 'student_name_asc':
-                    return (a, b) => (a.student_name || '').localeCompare(b.student_name || '');
+                    return sorted.sort((a, b) => (a.student_name || '').localeCompare(b.student_name || ''));
                 case 'student_name_desc':
-                    return (a, b) => (b.student_name || '').localeCompare(a.student_name || '');
-                case 'duration_desc':
-                    return (a, b) => (b.duration_seconds || 0) - (a.duration_seconds || 0);
-                case 'duration_asc':
-                    return (a, b) => (a.duration_seconds || 0) - (b.duration_seconds || 0);
+                    return sorted.sort((a, b) => (b.student_name || '').localeCompare(a.student_name || ''));
+                case 'zeta_id_asc':
+                    return sorted.sort((a, b) => (a.zeta_id || '').localeCompare(b.zeta_id || ''));
+                case 'zeta_id_desc':
+                    return sorted.sort((a, b) => (b.zeta_id || '').localeCompare(a.zeta_id || ''));
                 case 'status_asc':
-                    return (a, b) => (a.status || '').localeCompare(b.status || '');
+                    return sorted.sort((a, b) => (a.status || '').localeCompare(b.status || ''));
                 case 'status_desc':
-                    return (a, b) => (b.status || '').localeCompare(a.status || '');
+                    return sorted.sort((a, b) => (b.status || '').localeCompare(a.status || ''));
                 case 'verdict_asc':
-                    return (a, b) => (a.verdict || '').localeCompare(b.verdict || '');
+                    return sorted.sort((a, b) => (a.verdict || '').localeCompare(b.verdict || ''));
                 case 'verdict_desc':
-                    return (a, b) => (b.verdict || '').localeCompare(a.verdict || '');
+                    return sorted.sort((a, b) => (b.verdict || '').localeCompare(a.verdict || ''));
                 default:
-                    return null;
+                    return sorted;
             }
         }
-
-        function applyGroupingToInterviews(interviewList) {
-            const groupByRadio = document.querySelector('input[name="group-by"]:checked');
-            const groupBy = groupByRadio ? groupByRadio.value : '';
+        
+        function sortQuestions(questions, sortBy) {
+            const sorted = [...questions];
             
-            if (!groupBy) {
-                return { groups: null, interviews: interviewList };
+            switch (sortBy) {
+                case 'question_text_asc':
+                    return sorted.sort((a, b) => (a.question_text || '').localeCompare(b.question_text || ''));
+                case 'question_text_desc':
+                    return sorted.sort((a, b) => (b.question_text || '').localeCompare(a.question_text || ''));
+                case 'category_asc':
+                    return sorted.sort((a, b) => (a.category || '').localeCompare(b.category || ''));
+                case 'category_desc':
+                    return sorted.sort((a, b) => (b.category || '').localeCompare(a.category || ''));
+                case 'times_asked_asc':
+                    return sorted.sort((a, b) => (a.times_asked || 0) - (b.times_asked || 0));
+                case 'times_asked_desc':
+                    return sorted.sort((a, b) => (b.times_asked || 0) - (a.times_asked || 0));
+                case 'success_rate_asc':
+                    return sorted.sort((a, b) => (a.success_rate || 0) - (b.success_rate || 0));
+                case 'success_rate_desc':
+                    return sorted.sort((a, b) => (b.success_rate || 0) - (a.success_rate || 0));
+                default:
+                    return sorted;
             }
+        }
+        
+        // NEW: Grouping functions
+        function groupInterviews(interviews, groupBy) {
+            if (!groupBy) return { groups: null, interviews };
             
             const groups = {};
             
-            interviewList.forEach(interview => {
+            interviews.forEach(interview => {
                 let groupKey;
                 switch (groupBy) {
                     case 'status':
@@ -2652,32 +2678,29 @@
                 groups[groupKey].push(interview);
             });
             
-            return { groups, interviews: interviewList };
+            return { groups, interviews };
         }
-
-        function displayGroupedInterviews(groupedData) {
-            const tbody = document.getElementById('interviews-table-body');
-            if (!tbody) return;
-
+        
+        function displayGroupedInterviews(groupedData, tbody) {
             const { groups } = groupedData;
             let html = '';
-
+            
             Object.keys(groups).sort().forEach(groupKey => {
                 const groupInterviews = groups[groupKey];
                 html += `
                     <tr class="group-header">
-                        <td colspan="8" class="group-title">
-                            <strong>${groupKey}</strong> (${groupInterviews.length} interviews)
+                        <td colspan="8" style="background: #2d3748; color: white; font-weight: 600; padding: 12px;">
+                            ${groupKey} (${groupInterviews.length} interviews)
                         </td>
                     </tr>
                 `;
                 
                 groupInterviews.forEach(interview => {
                     html += `
-                        <tr class="group-item">
+                        <tr data-row-id="${interview.id}">
                             <td>${new Date(interview.created_at).toLocaleDateString()}</td>
-                            <td>${interview.student_name}</td>
-                            <td>${interview.zeta_id}</td>
+                            <td>${interview.student_name || 'N/A'}</td>
+                            <td>${interview.zeta_id || 'N/A'}</td>
                             <td>${interview.session_name || 'N/A'}</td>
                             <td><span class="status-badge status-${interview.status}">${interview.status}</span></td>
                             <td>${interview.verdict || 'N/A'}</td>
@@ -2689,75 +2712,125 @@
                     `;
                 });
             });
-
+            
             tbody.innerHTML = html;
         }
-
-        function clearAllFilters() {
-            // Clear all filter inputs
-            document.getElementById('search-interviews').value = '';
-            document.getElementById('status-filter').value = '';
-            document.getElementById('verdict-filter').value = '';
-            document.getElementById('date-from').value = '';
-            document.getElementById('date-to').value = '';
-            document.getElementById('duration-min').value = '';
-            
-            // Reset sorting
-            document.getElementById('sort-by').value = 'created_at_desc';
-            document.getElementById('sort-by-2').value = '';
-            
-            // Reset grouping
-            document.getElementById('group-none').checked = true;
-            
-            // Refresh display
-            displayFilteredInterviews();
-        }
         
-        function updateResultsSummary() {
-            const filteredInterviews = applyFiltersToInterviews();
-            const summaryElement = document.getElementById('results-summary');
+        // NEW: Function to populate filter dropdowns with real data
+        function populateFilterOptions() {
+            if (!interviews || interviews.length === 0) return;
             
-            if (summaryElement) {
-                summaryElement.innerHTML = `<strong>${filteredInterviews.length}</strong> interviews found`;
-                summaryElement.style.display = filteredInterviews.length > 0 ? 'block' : 'none';
+            // Populate status filter
+            const statusFilter = document.getElementById('status-filter');
+            if (statusFilter) {
+                const statuses = [...new Set(interviews.map(i => i.status).filter(Boolean))];
+                const currentValue = statusFilter.value;
+                statusFilter.innerHTML = '<option value="">All Statuses</option>' + 
+                    statuses.map(status => `<option value="${status}">${status}</option>`).join('');
+                statusFilter.value = currentValue;
+            }
+            
+            // Populate verdict filter
+            const verdictFilter = document.getElementById('verdict-filter');
+            if (verdictFilter) {
+                const verdicts = [...new Set(interviews.map(i => i.verdict).filter(Boolean))];
+                const currentValue = verdictFilter.value;
+                verdictFilter.innerHTML = '<option value="">All Verdicts</option>' + 
+                    verdicts.map(verdict => `<option value="${verdict}">${verdict}</option>`).join('');
+                verdictFilter.value = currentValue;
             }
         }
         
-        function exportInterviews() {
-            const filteredInterviews = applyFiltersToInterviews();
-            const sortedInterviews = applySortingToInterviews(filteredInterviews);
+        // NEW: Function to populate question filter options
+        function populateQuestionFilterOptions() {
+            if (!questions || questions.length === 0) return;
             
-            // Create CSV content
-            const headers = ['Date', 'Student Name', 'Zeta ID', 'Session', 'Status', 'Verdict', 'Duration (min)'];
-            const csvContent = [
-                headers.join(','),
-                ...sortedInterviews.map(interview => [
-                    `"${new Date(interview.created_at).toLocaleDateString()}"`,
-                    `"${interview.student_name || ''}"`,
-                    `"${interview.zeta_id || ''}"`,
-                    `"${interview.session_name || ''}"`,
-                    `"${interview.status || ''}"`,
-                    `"${interview.verdict || ''}"`,
-                    Math.floor((interview.duration_seconds || 0) / 60)
-                ].join(','))
-            ].join('\n');
+            // Populate category filter for questions
+            const categoryFilter = document.getElementById('category-filter');
+            if (categoryFilter) {
+                const categories = [...new Set(questions.map(q => q.category).filter(Boolean))];
+                const currentValue = categoryFilter.value;
+                categoryFilter.innerHTML = '<option value="">All Categories</option>' + 
+                    categories.map(category => `<option value="${category}">${category}</option>`).join('');
+                categoryFilter.value = currentValue;
+            }
+        }
+        
+        // NEW: Clear all filters function
+        function clearAllFilters(tab) {
+            console.log('Clearing all filters for tab:', tab);
             
-            // Download CSV
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `my_interviews_export_${new Date().toISOString().split('T')[0]}.csv`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
+            // Clear all filter inputs
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) searchInput.value = '';
+            
+            const statusFilter = document.getElementById('status-filter');
+            if (statusFilter) statusFilter.value = '';
+            
+            const verdictFilter = document.getElementById('verdict-filter');
+            if (verdictFilter) verdictFilter.value = '';
+            
+            const dateFrom = document.getElementById('date-from');
+            if (dateFrom) dateFrom.value = '';
+            
+            const dateTo = document.getElementById('date-to');
+            if (dateTo) dateTo.value = '';
+            
+            const sortBy = document.getElementById('sort-by');
+            if (sortBy) sortBy.value = '';
+            
+            // Reset grouping
+            const groupNone = document.getElementById('group-none');
+            if (groupNone) groupNone.checked = true;
+            
+            // Apply filters to refresh display
+            applyFilters(tab);
         }
 
+        // REMOVED: Old conflicting displayFilteredInterviews function
+
+        // REMOVED: Old conflicting applyFiltersToInterviews function
+
+        // REMOVED: Old conflicting applySortingToInterviews function
+        
+        function getSortFunction(sortKey) {
+            switch (sortKey) {
+                case 'created_at_desc':
+                    return (a, b) => new Date(b.created_at) - new Date(a.created_at);
+                case 'created_at_asc':
+                    return (a, b) => new Date(a.created_at) - new Date(b.created_at);
+                case 'student_name_asc':
+                    return (a, b) => (a.student_name || '').localeCompare(b.student_name || '');
+                case 'student_name_desc':
+                    return (a, b) => (b.student_name || '').localeCompare(a.student_name || '');
+                case 'duration_desc':
+                    return (a, b) => (b.duration_seconds || 0) - (a.duration_seconds || 0);
+                case 'duration_asc':
+                    return (a, b) => (a.duration_seconds || 0) - (b.duration_seconds || 0);
+                case 'status_asc':
+                    return (a, b) => (a.status || '').localeCompare(b.status || '');
+                case 'status_desc':
+                    return (a, b) => (b.status || '').localeCompare(a.status || '');
+                case 'verdict_asc':
+                    return (a, b) => (a.verdict || '').localeCompare(b.verdict || '');
+                case 'verdict_desc':
+                    return (a, b) => (b.verdict || '').localeCompare(a.verdict || '');
+                default:
+                    return null;
+            }
+        }
+
+        // REMOVED: Old conflicting applyGroupingToInterviews function
+
+        // REMOVED: Old conflicting displayGroupedInterviews function
+
+        // REMOVED: Old conflicting clearAllFilters function
+        
+        // REMOVED: Old conflicting updateResultsSummary function
+        
+        // REMOVED: Old conflicting exportInterviews function
+
         async function loadQuestions() {
-            const category = document.getElementById('bank-category-select').value;
-            const searchTerm = document.getElementById('bank-search-input').value.trim().toLowerCase();
-            const sortBy = document.getElementById('question-sort-by').value;
             const questionListDiv = document.getElementById('question-bank-list');
             questionListDiv.innerHTML = '<div class="loading">Loading questions...</div>';
 
@@ -2767,37 +2840,21 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    allQuestions = result.data || [];
+                    questions = result.data || []; // Store in global questions variable
+                    allQuestions = questions; // Keep for backward compatibility
 
-                    // Optional: filter by Favorites
-                    if (category === 'Favorites') {
-                        allQuestions = allQuestions.filter(q => favoriteQuestionIds.has(q.id));
-                    }
+                    // Populate filter options with real data
+                    populateQuestionFilterOptions();
 
-                    // Optional: filter by category
-                    if (category && category !== 'Favorites') {
-                        allQuestions = allQuestions.filter(q => (q.category || '').toLowerCase() === category.toLowerCase());
-                    }
-
-                    // Optional: search by question text
-                    if (searchTerm) {
-                        allQuestions = allQuestions.filter(q => (q.question || '').toLowerCase().includes(searchTerm));
-                    }
-
-                    // Apply sorting
-                    allQuestions = applyQuestionSorting(allQuestions, sortBy);
-
-                    displayQuestionAnalytics(allQuestions);
-                    updateQuestionResultsSummary(allQuestions.length);
+                    // Display questions using the new unified system
+                    displayQuestionAnalytics(questions);
                 } else {
                     console.error('Failed to load questions analytics:', result.error);
                     questionListDiv.innerHTML = `<div class="empty-state">Failed to load questions.</div>`;
-                    updateQuestionResultsSummary(0);
                 }
             } catch (error) {
                 console.error('Error loading questions analytics:', error);
                 questionListDiv.innerHTML = `<div class="empty-state">Error loading questions.</div>`;
-                updateQuestionResultsSummary(0);
             }
         }
 
