@@ -2883,121 +2883,14 @@
                 return;
             }
 
-            // Apply filters, sorting, and grouping
-            let filteredInterviews = applyFiltersToInterviews();
-            let sortedInterviews = applySortingToInterviews(filteredInterviews);
-            let groupedInterviews = applyGroupingToInterviews(sortedInterviews);
-
-            // Display grouped or regular table
-            if (groupedInterviews.groups) {
-                displayGroupedInterviews(groupedInterviews, container);
-            } else {
-                displayRegularInterviews(sortedInterviews, tbody);
-            }
-            
-            // Update results summary
-            updateResultsSummary();
+            // Use the new unified filter system
+            let filteredInterviews = applyUnifiedFilters('interviews', interviews);
+            displayRegularInterviews(filteredInterviews, tbody);
         }
 
-        function applyFiltersToInterviews() {
-            let filtered = [...interviews];
-            
-            // Status filter
-            const statusFilter = document.getElementById('status-filter').value;
-            if (statusFilter) {
-                filtered = filtered.filter(interview => interview.status === statusFilter);
-            }
-            
-            // Session filter
-            const sessionFilter = document.getElementById('session-filter').value;
-            if (sessionFilter) {
-                filtered = filtered.filter(interview => interview.session_name === sessionFilter);
-            }
-            
-            // Verdict filter
-            const verdictFilter = document.getElementById('verdict-filter').value;
-            if (verdictFilter) {
-                filtered = filtered.filter(interview => interview.verdict === verdictFilter);
-            }
-            
-            // Interviewer filter
-            const interviewerFilter = document.getElementById('interviewer-filter').value;
-            if (interviewerFilter) {
-                filtered = filtered.filter(interview => interview.interviewer_name === interviewerFilter);
-            }
-            
-            // Date range filters
-            const dateFrom = document.getElementById('date-from').value;
-            const dateTo = document.getElementById('date-to').value;
-            
-            if (dateFrom) {
-                const fromDate = new Date(dateFrom);
-                filtered = filtered.filter(interview => {
-                    const interviewDate = new Date(interview.interview_date || interview.created_at);
-                    return interviewDate >= fromDate;
-                });
-            }
-            
-            if (dateTo) {
-                const toDate = new Date(dateTo);
-                toDate.setHours(23, 59, 59, 999); // End of day
-                filtered = filtered.filter(interview => {
-                    const interviewDate = new Date(interview.interview_date || interview.created_at);
-                    return interviewDate <= toDate;
-                });
-            }
-            
-            // Duration filter
-            const durationMin = document.getElementById('duration-min').value;
-            if (durationMin) {
-                const minSeconds = parseInt(durationMin) * 60;
-                filtered = filtered.filter(interview => {
-                    const duration = interview.duration_seconds || 0;
-                    return duration >= minSeconds;
-                });
-            }
-            
-            // Search filter (enhanced)
-            const searchTerm = document.getElementById('search-interviews').value.toLowerCase();
-            if (searchTerm) {
-                filtered = filtered.filter(interview => 
-                    (interview.student_name && interview.student_name.toLowerCase().includes(searchTerm)) ||
-                    (interview.student_email && interview.student_email.toLowerCase().includes(searchTerm)) ||
-                    (interview.zeta_id && interview.zeta_id.toLowerCase().includes(searchTerm)) ||
-                    (interview.interviewer_name && interview.interviewer_name.toLowerCase().includes(searchTerm)) ||
-                    (interview.session_name && interview.session_name.toLowerCase().includes(searchTerm)) ||
-                    (interview.verdict && interview.verdict.toLowerCase().includes(searchTerm))
-                );
-            }
-            
-            return filtered;
-        }
+        // REMOVED: Old conflicting applyFiltersToInterviews function
 
-        function applySortingToInterviews(interviewList) {
-            const sortBy = document.getElementById('sort-by').value;
-            const sortBy2 = document.getElementById('sort-by-2').value;
-            const sorted = [...interviewList];
-            
-            // Primary sort
-            const primarySort = getSortFunction(sortBy);
-            if (primarySort) {
-                sorted.sort(primarySort);
-            }
-            
-            // Secondary sort (if specified)
-            if (sortBy2) {
-                const secondarySort = getSortFunction(sortBy2);
-                if (secondarySort) {
-                    sorted.sort((a, b) => {
-                        const primaryResult = primarySort ? primarySort(a, b) : 0;
-                        if (primaryResult !== 0) return primaryResult;
-                        return secondarySort(a, b);
-                    });
-                }
-            }
-            
-            return sorted;
-        }
+        // REMOVED: Old conflicting applySortingToInterviews function
         
         function getSortFunction(sortKey) {
             switch (sortKey) {
@@ -4438,31 +4331,277 @@
             });
         }
 
+        // NEW UNIFIED FILTER SYSTEM
+        function applyUnifiedFilters(tab, data) {
+            console.log(`Applying unified filters for tab: ${tab}`);
+            
+            if (!data || !Array.isArray(data)) {
+                console.warn('No data provided for filtering');
+                return [];
+            }
+            
+            let filtered = [...data];
+            
+            // Get filter values safely
+            const getFilterValue = (id) => {
+                const element = document.getElementById(id);
+                return element ? element.value : '';
+            };
+            
+            const getRadioValue = (name) => {
+                const element = document.querySelector(`input[name="${name}"]:checked`);
+                return element ? element.value : '';
+            };
+            
+            switch(tab) {
+                case 'interviews':
+                    // Search filter
+                    const searchTerm = getFilterValue('search-interviews');
+                    if (searchTerm) {
+                        filtered = filtered.filter(i => 
+                            (i.student_name && i.student_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                            (i.student_email && i.student_email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                            (i.zeta_id && i.zeta_id.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                            (i.interviewer_name && i.interviewer_name.toLowerCase().includes(searchTerm.toLowerCase()))
+                        );
+                    }
+                    
+                    // Status filter
+                    const status = getFilterValue('status-filter');
+                    if (status) {
+                        filtered = filtered.filter(i => i.status === status);
+                    }
+                    
+                    // Verdict filter
+                    const verdict = getFilterValue('verdict-filter');
+                    if (verdict) {
+                        filtered = filtered.filter(i => i.verdict === verdict);
+                    }
+                    
+                    // Date filters
+                    const dateFrom = getFilterValue('date-from');
+                    const dateTo = getFilterValue('date-to');
+                    if (dateFrom) {
+                        filtered = filtered.filter(i => new Date(i.created_at || i.interview_date) >= new Date(dateFrom));
+                    }
+                    if (dateTo) {
+                        filtered = filtered.filter(i => new Date(i.created_at || i.interview_date) <= new Date(dateTo));
+                    }
+                    
+                    // Sort
+                    const sortBy = getFilterValue('sort-by') || 'created_at_desc';
+                    filtered = sortInterviews(filtered, sortBy);
+                    break;
+                    
+                case 'questions':
+                    // Search filter
+                    const questionSearch = getFilterValue('search-questions');
+                    if (questionSearch) {
+                        filtered = filtered.filter(q => 
+                            q.question_text && q.question_text.toLowerCase().includes(questionSearch.toLowerCase())
+                        );
+                    }
+                    
+                    // Category filter
+                    const category = getFilterValue('category-filter');
+                    if (category) {
+                        filtered = filtered.filter(q => q.category === category);
+                    }
+                    
+                    // Times asked filter
+                    const timesAskedMin = getFilterValue('times-asked-min');
+                    if (timesAskedMin) {
+                        filtered = filtered.filter(q => (q.times_asked || 0) >= parseInt(timesAskedMin));
+                    }
+                    
+                    // Success rate filter
+                    const successRateMin = getFilterValue('success-rate-min');
+                    if (successRateMin) {
+                        filtered = filtered.filter(q => (q.success_rate || 0) >= parseInt(successRateMin));
+                    }
+                    
+                    // Sort
+                    const questionSortBy = getFilterValue('sort-by') || 'question_text_asc';
+                    filtered = sortQuestions(filtered, questionSortBy);
+                    break;
+                    
+                case 'sessions':
+                    // Search filter
+                    const sessionSearch = getFilterValue('search-sessions');
+                    if (sessionSearch) {
+                        filtered = filtered.filter(s => 
+                            s.session_name && s.session_name.toLowerCase().includes(sessionSearch.toLowerCase())
+                        );
+                    }
+                    
+                    // Status filter
+                    const sessionStatus = getFilterValue('session-status-filter');
+                    if (sessionStatus) {
+                        filtered = filtered.filter(s => s.status === sessionStatus);
+                    }
+                    
+                    // Date filters
+                    const sessionDateFrom = getFilterValue('session-date-from');
+                    const sessionDateTo = getFilterValue('session-date-to');
+                    if (sessionDateFrom) {
+                        filtered = filtered.filter(s => new Date(s.created_at) >= new Date(sessionDateFrom));
+                    }
+                    if (sessionDateTo) {
+                        filtered = filtered.filter(s => new Date(s.created_at) <= new Date(sessionDateTo));
+                    }
+                    
+                    // Sort
+                    const sessionSortBy = getFilterValue('sort-by') || 'created_at_desc';
+                    filtered = sortSessions(filtered, sessionSortBy);
+                    break;
+                    
+                case 'students':
+                    // Search filter
+                    const studentSearch = getFilterValue('search-students');
+                    if (studentSearch) {
+                        filtered = filtered.filter(s => 
+                            (s.first_name && s.first_name.toLowerCase().includes(studentSearch.toLowerCase())) ||
+                            (s.last_name && s.last_name.toLowerCase().includes(studentSearch.toLowerCase())) ||
+                            (s.email && s.email.toLowerCase().includes(studentSearch.toLowerCase())) ||
+                            (s.zeta_id && s.zeta_id.toLowerCase().includes(studentSearch.toLowerCase()))
+                        );
+                    }
+                    
+                    // Date filters
+                    const studentDateFrom = getFilterValue('student-date-from');
+                    const studentDateTo = getFilterValue('student-date-to');
+                    if (studentDateFrom) {
+                        filtered = filtered.filter(s => new Date(s.created_at) >= new Date(studentDateFrom));
+                    }
+                    if (studentDateTo) {
+                        filtered = filtered.filter(s => new Date(s.created_at) <= new Date(studentDateTo));
+                    }
+                    
+                    // Sort
+                    const studentSortBy = getFilterValue('sort-by') || 'created_at_desc';
+                    filtered = sortStudents(filtered, studentSortBy);
+                    break;
+                    
+                case 'my-interviews':
+                    // Search filter
+                    const mySearchTerm = getFilterValue('search-my-interviews');
+                    if (mySearchTerm) {
+                        filtered = filtered.filter(i => 
+                            (i.student_name && i.student_name.toLowerCase().includes(mySearchTerm.toLowerCase())) ||
+                            (i.student_email && i.student_email.toLowerCase().includes(mySearchTerm.toLowerCase())) ||
+                            (i.zeta_id && i.zeta_id.toLowerCase().includes(mySearchTerm.toLowerCase()))
+                        );
+                    }
+                    
+                    // Status filter
+                    const myStatus = getFilterValue('my-status-filter');
+                    if (myStatus) {
+                        filtered = filtered.filter(i => i.status === myStatus);
+                    }
+                    
+                    // Verdict filter
+                    const myVerdict = getFilterValue('my-verdict-filter');
+                    if (myVerdict) {
+                        filtered = filtered.filter(i => i.verdict === myVerdict);
+                    }
+                    
+                    // Date filters
+                    const myDateFrom = getFilterValue('my-date-from');
+                    const myDateTo = getFilterValue('my-date-to');
+                    if (myDateFrom) {
+                        filtered = filtered.filter(i => new Date(i.created_at) >= new Date(myDateFrom));
+                    }
+                    if (myDateTo) {
+                        filtered = filtered.filter(i => new Date(i.created_at) <= new Date(myDateTo));
+                    }
+                    
+                    // Sort
+                    const mySortBy = getFilterValue('sort-by') || 'created_at_desc';
+                    filtered = sortMyInterviews(filtered, mySortBy);
+                    break;
+                    
+                case 'users':
+                    // Search filter
+                    const userSearch = getFilterValue('search-users');
+                    if (userSearch) {
+                        filtered = filtered.filter(u => 
+                            (u.name && u.name.toLowerCase().includes(userSearch.toLowerCase())) ||
+                            (u.email && u.email.toLowerCase().includes(userSearch.toLowerCase()))
+                        );
+                    }
+                    
+                    // Role filter
+                    const role = getFilterValue('role-filter');
+                    if (role) {
+                        filtered = filtered.filter(u => u.role === role);
+                    }
+                    
+                    // Status filter
+                    const userStatus = getFilterValue('user-status-filter');
+                    if (userStatus) {
+                        filtered = filtered.filter(u => u.status === userStatus);
+                    }
+                    
+                    // Date filters
+                    const userDateFrom = getFilterValue('user-date-from');
+                    const userDateTo = getFilterValue('user-date-to');
+                    if (userDateFrom) {
+                        filtered = filtered.filter(u => new Date(u.created_at) >= new Date(userDateFrom));
+                    }
+                    if (userDateTo) {
+                        filtered = filtered.filter(u => new Date(u.created_at) <= new Date(userDateTo));
+                    }
+                    
+                    // Sort
+                    const userSortBy = getFilterValue('sort-by') || 'created_at_desc';
+                    filtered = sortUsers(filtered, userSortBy);
+                    break;
+            }
+            
+            return filtered;
+        }
+
         // Dynamic filter functions
         function applyFilters(tab, closePanel = false) {
             console.log(`Applying filters for tab: ${tab}`);
             
+            // Use the new unified system
+            let filteredData = [];
+            let displayFunction = null;
+            
             switch(tab) {
                 case 'interviews':
-                    applyInterviewsFilters();
+                    filteredData = applyUnifiedFilters('interviews', interviews);
+                    displayFunction = () => displayRegularInterviews(filteredData, document.getElementById('interviews-table-body'));
                     break;
                 case 'questions':
-                    applyQuestionsFilters();
+                    filteredData = applyUnifiedFilters('questions', questions);
+                    displayFunction = () => displayQuestions(filteredData);
                     break;
                 case 'sessions':
-                    applySessionsFilters();
+                    filteredData = applyUnifiedFilters('sessions', sessions);
+                    displayFunction = () => displaySessions(filteredData);
                     break;
                 case 'students':
-                    applyStudentsFilters();
+                    filteredData = applyUnifiedFilters('students', students);
+                    displayFunction = () => displayStudents(filteredData);
                     break;
                 case 'my-interviews':
-                    applyMyInterviewsFilters();
+                    filteredData = applyUnifiedFilters('my-interviews', myInterviews);
+                    displayFunction = () => displayMyInterviews(filteredData);
                     break;
                 case 'users':
-                    applyUsersFilters();
+                    filteredData = applyUnifiedFilters('users', users);
+                    displayFunction = () => displayUsers(filteredData);
                     break;
                 default:
                     console.log('Unknown tab:', tab);
+                    return;
+            }
+            
+            // Display the filtered results
+            if (displayFunction) {
+                displayFunction();
             }
             
             // Only close panel if explicitly requested (from Apply button)
@@ -4520,57 +4659,7 @@
             }
         }
 
-        // Tab-specific filter functions
-        function applyInterviewsFilters() {
-            const searchTerm = document.getElementById('search-interviews')?.value || '';
-            const status = document.getElementById('status-filter')?.value || '';
-            const verdict = document.getElementById('verdict-filter')?.value || '';
-            const dateFrom = document.getElementById('date-from')?.value || '';
-            const dateTo = document.getElementById('date-to')?.value || '';
-            const sortBy = document.getElementById('sort-by')?.value || 'created_at_desc';
-            const groupBy = document.querySelector('input[name="group-by"]:checked')?.value || '';
-
-            console.log('Interviews filters:', { searchTerm, status, verdict, dateFrom, dateTo, sortBy, groupBy });
-            
-            // Apply filters to interviews data
-            let filteredInterviews = [...interviews];
-            
-            // Search filter
-            if (searchTerm) {
-                filteredInterviews = filteredInterviews.filter(i => 
-                    i.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    i.student_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    i.zeta_id.toLowerCase().includes(searchTerm.toLowerCase())
-                );
-            }
-            
-            // Status filter
-            if (status) {
-                filteredInterviews = filteredInterviews.filter(i => i.status === status);
-            }
-            
-            // Verdict filter
-            if (verdict) {
-                filteredInterviews = filteredInterviews.filter(i => i.verdict === verdict);
-            }
-            
-            // Date filters
-            if (dateFrom) {
-                filteredInterviews = filteredInterviews.filter(i => new Date(i.created_at) >= new Date(dateFrom));
-            }
-            if (dateTo) {
-                filteredInterviews = filteredInterviews.filter(i => new Date(i.created_at) <= new Date(dateTo));
-            }
-            
-            // Sort
-            const sortedInterviews = sortInterviews(filteredInterviews, sortBy);
-            
-            // Group
-            const groupedInterviews = groupInterviews(sortedInterviews, groupBy);
-            
-            // Display filtered results
-            displayInterviews();
-        }
+        // REMOVED: Old conflicting filter functions - replaced with unified system
 
         function sortInterviews(interviews, sortBy) {
             return interviews.sort((a, b) => {
