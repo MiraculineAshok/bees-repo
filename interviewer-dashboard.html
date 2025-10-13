@@ -2699,7 +2699,7 @@
 
         function displayInterviews(interviewsToDisplay, groupBy = '') {
             const tbody = document.getElementById('interviews-table-body');
-            const container = document.querySelector('#interviews .table-container');
+            const container = document.querySelector('#interviews-section .table-container');
             if (!tbody) return;
 
             if (interviewsToDisplay.length === 0) {
@@ -2742,6 +2742,13 @@
             `).join('');
             
             // Add pagination controls
+            console.log('🔍 Debugging pagination for interviews:');
+            console.log('Container found:', !!container);
+            console.log('Container element:', container);
+            console.log('Total interviews:', interviewsToDisplay.length);
+            console.log('Total pages:', totalPages['interviews']);
+            console.log('Current page:', currentPage['interviews']);
+            
             if (container) {
                 const existingPagination = container.querySelector('.pagination-controls');
                 if (existingPagination) {
@@ -2749,8 +2756,12 @@
                 }
                 
                 const paginationHTML = createPaginationControls('interviews');
+                console.log('Pagination HTML generated:', paginationHTML);
                 if (paginationHTML) {
                     container.insertAdjacentHTML('beforeend', paginationHTML);
+                    console.log('✅ Pagination controls added to container');
+                } else {
+                    console.log('⚠️ No pagination HTML generated (likely only 1 page)');
                 }
                 
                 // Add pagination info
@@ -2768,6 +2779,11 @@
                     </div>
                 `;
                 container.insertAdjacentHTML('beforeend', infoHTML);
+                console.log('✅ Pagination info added to container');
+            } else {
+                console.error('❌ Container not found for pagination!');
+                console.error('Looking for: #interviews-section .table-container');
+                console.error('Available containers:', document.querySelectorAll('.table-container'));
             }
         }
 
