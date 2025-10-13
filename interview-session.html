@@ -2485,22 +2485,26 @@
                 return;
             }
 
+            const currentEmail = (JSON.parse(localStorage.getItem('bees_user_data') || '{}')?.email || '').toLowerCase();
             previousInterviewsList.innerHTML = previousInterviews.map(interview => {
                 const date = new Date(interview.created_at).toLocaleDateString();
                 const sessionName = interview.session_name || 'General Interview';
                 const interviewerName = interview.interviewer_name || 'Unknown Interviewer';
                 const duration = interview.duration_seconds ? formatDuration(interview.duration_seconds) : 'N/A';
-                const status = interview.status || 'completed';
-                const statusClass = status === 'completed' ? 'status-completed' : 'status-in-progress';
-                const statusText = status === 'completed' ? 'Completed' : 'In Progress';
+                // Remove status from UI per request
+                const status = null;
+                const statusClass = '';
+                const statusText = '';
+                // Hide verdict of other interviewers if user is interviewer
+                const canSeeVerdict = interview.interviewer_email && currentEmail && interview.interviewer_email.toLowerCase() === currentEmail;
                 
                 return `
                     <div class="previous-interview-item" onclick="viewPreviousInterview(${interview.id})">
                         <div class="previous-interview-header">
                             <span class="previous-interview-date">${date}</span>
                             <div>
-                                <span class="previous-interview-status ${statusClass}">${statusText}</span>
-                                ${interview.verdict ? `<span class="previous-interview-verdict">${interview.verdict}</span>` : ''}
+                                ${status ? `<span class=\"previous-interview-status ${statusClass}\">${statusText}</span>` : ''}
+                                ${canSeeVerdict && interview.verdict ? `<span class=\"previous-interview-verdict\">${interview.verdict}</span>` : ''}
                             </div>
                         </div>
                         <div class="previous-interview-details">

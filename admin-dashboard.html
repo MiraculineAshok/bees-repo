@@ -3938,13 +3938,13 @@
                         ${generateSortOptions(tab)}
                     </div>
                 </div>
-                
+                ${supportsGroupBy(tab) ? `
                 <div class="group-by-section">
                     <div class="filter-section-title">📋 Group By</div>
                     <div class="group-by-options">
                         ${generateGroupByOptions(tab)}
                     </div>
-                </div>
+                </div>` : ''}
                 
                 <div class="filter-actions">
                     <button class="btn-filter" onclick="applyFilters('${tab}', true)">Apply Filters</button>
@@ -3952,6 +3952,11 @@
                     <button class="btn-export" onclick="exportData('${tab}')">Export Data</button>
                 </div>
             `;
+        }
+
+        function supportsGroupBy(tab) {
+            // Only these tabs support group by
+            return tab === 'interviews' || tab === 'questions' || tab === 'my-interviews';
         }
 
         function generateFilterFields(tab) {
