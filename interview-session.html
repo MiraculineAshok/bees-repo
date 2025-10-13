@@ -2166,57 +2166,6 @@
                             overlay.querySelector('#db-cancel').onclick = ()=> overlay.remove();
                             overlay.querySelector('#db-continue').onclick = ()=> { overlay.remove(); window.location.href = target; };
                         };
-                        // Init avatar
-                        const avatar = document.getElementById('avatar');
-                        const avatarMenu = document.getElementById('avatar-menu');
-                        const loginBtn = document.getElementById('login-btn');
-                        if (avatar) {
-                            // Get user ID from API to ensure consistent avatar
-                            try {
-                                const userIdResponse = await fetch('/api/user/id');
-                                const userIdData = await userIdResponse.json();
-                                const userId = userIdData.success ? userIdData.userId : null;
-                                const initial = userId ? userId.toString().charAt(0).toUpperCase() : (email || name || 'U').trim().charAt(0).toUpperCase();
-                                avatar.textContent = initial || 'U';
-                            } catch (error) {
-                                console.error('Error fetching user ID:', error);
-                                const initial = (email || name || 'U').trim().charAt(0).toUpperCase();
-                                avatar.textContent = initial || 'U';
-                            }
-                            avatar.classList.remove('hidden');
-                            if (loginBtn) loginBtn.classList.add('hidden');
-                            avatar.onclick = () => {
-                                avatarMenu.classList.toggle('active');
-                            };
-                            document.addEventListener('click', (e)=>{
-                                if (!avatar.contains(e.target) && !avatarMenu.contains(e.target)) {
-                                    avatarMenu.classList.remove('active');
-                                }
-                            });
-                            const logoutBtn = document.getElementById('logout-btn-dropdown');
-                            if (logoutBtn) {
-                                logoutBtn.onclick = () => {
-                                    const overlay = document.createElement('div');
-                                    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
-                                    overlay.innerHTML = `
-                                      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;min-width:280px;max-width:90%;padding:16px;box-shadow:0 10px 20px rgba(0,0,0,0.15)">
-                                        <div style=\"font-weight:600;margin-bottom:8px;color:#111827\">Logout?</div>
-                                        <div style=\"font-size:14px;color:#374151;margin-bottom:12px\">Are you sure you want to logout?</div>
-                                        <div style=\"display:flex;gap:8px;justify-content:flex-end\">
-                                          <button id=\"lg-cancel\" style=\"border:1px solid #e5e7eb;background:#fff;padding:6px 10px;border-radius:6px;cursor:pointer\">Cancel</button>
-                                          <button id=\"lg-confirm\" style=\"background:#111827;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer\">Logout</button>
-                                        </div>
-                                      </div>`;
-                                    document.body.appendChild(overlay);
-                                    overlay.querySelector('#lg-cancel').onclick = ()=> overlay.remove();
-                                    overlay.querySelector('#lg-confirm').onclick = ()=> {
-                                        overlay.remove();
-                                        try { localStorage.removeItem('bees_user_data'); } catch {}
-                window.location.href = '/';
-                                    };
-                                };
-                            }
-                        }
                     }
                 }
             } catch (error) {
@@ -4123,11 +4072,86 @@
             }
         });
 
+        // Initialize avatar
+        async function initializeAvatar() {
+            try {
+                // Get user data from localStorage or URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const email = urlParams.get('email');
+                const name = urlParams.get('name');
+                
+                // Check localStorage for existing user data
+                const storedUserData = localStorage.getItem('bees_user_data');
+                let userData = null;
+                
+                if (storedUserData) {
+                    try {
+                        userData = JSON.parse(storedUserData);
+                    } catch (e) {
+                        console.error('Error parsing stored user data:', e);
+                        localStorage.removeItem('bees_user_data');
+                    }
+                }
+                
+                // Use URL params if available, otherwise use stored data
+                const userEmail = email || userData?.email;
+                const userName = name || userData?.name;
+                
+                if (userEmail || userName) {
+                    const avatar = document.getElementById('avatar');
+                    const avatarMenu = document.getElementById('avatar-menu');
+                    const loginBtn = document.getElementById('login-btn');
+                    
+                    if (avatar) {
+                        // Get user ID from API to ensure consistent avatar
+                        try {
+                            const userIdResponse = await fetch('/api/user/id');
+                            const userIdData = await userIdResponse.json();
+                            const userId = userIdData.success ? userIdData.userId : null;
+                            const initial = userId ? userId.toString().charAt(0).toUpperCase() : (userEmail || userName || 'U').trim().charAt(0).toUpperCase();
+                            avatar.textContent = initial || 'U';
+                        } catch (error) {
+                            console.error('Error fetching user ID:', error);
+                            const initial = (userEmail || userName || 'U').trim().charAt(0).toUpperCase();
+                            avatar.textContent = initial || 'U';
+                        }
+                        
+                        avatar.classList.remove('hidden');
+                        if (loginBtn) loginBtn.classList.add('hidden');
+                        
+                        avatar.onclick = () => {
+                            avatarMenu.classList.toggle('active');
+                        };
+                        
+                        document.addEventListener('click', (e) => {
+                            if (!avatar.contains(e.target) && !avatarMenu.contains(e.target)) {
+                                avatarMenu.classList.remove('active');
+                            }
+                        });
+                        
+                        const logoutBtn = document.getElementById('logout-btn-dropdown');
+                        if (logoutBtn) {
+                            logoutBtn.onclick = () => {
+                                if (confirm('Are you sure you want to logout?')) {
+                                    localStorage.removeItem('bees_user_data');
+                                    window.location.href = '/';
+                                }
+                            };
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error initializing avatar:', error);
+            }
+        }
+
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
             loadStudentData();
             // Initialize question bank tab as inactive
             document.getElementById('question-bank-tab').classList.remove('active');
+            // Initialize avatar
+            initializeAvatar();
         });
     </script>
 

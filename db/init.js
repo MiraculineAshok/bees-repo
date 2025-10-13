@@ -203,9 +203,9 @@ async function initializeDatabase() {
     
     // Insert sample interview session
     await pool.query(`
-      INSERT INTO interview_sessions (name, description, status) 
+      INSERT INTO interview_sessions (name, description, status, created_by) 
       VALUES 
-        ('Face to Face for St Mary''s School', 'General interview session for St Mary''s School students', 'active')
+        ('Face to Face for St Mary''s School', 'General interview session for St Mary''s School students', 'active', NULL)
       ON CONFLICT DO NOTHING
     `);
     console.log('✅ Sample interview session inserted');
