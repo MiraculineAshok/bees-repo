@@ -6062,26 +6062,7 @@
                     return;
                 }
 
-        function resumeInterviewAdmin(interviewId) {
-            try {
-                const item = (interviews || []).find(i => i.id === interviewId) || (myInterviews || []).find(i => i.id === interviewId);
-                if (!item) {
-                    showError('Interview not found');
-                    return;
-                }
-                const zeta = item.zeta_id || '';
-                const sessionId = item.session_id || item.session || '';
-                if (!zeta || !sessionId) {
-                    showError('Missing Zeta ID or Session');
-                    return;
-                }
-                const url = `/interview-session.html?zeta_id=${encodeURIComponent(zeta)}&session_id=${encodeURIComponent(sessionId)}&resume=1`;
-                window.location.href = url;
-            } catch (e) {
-                console.error('Error resuming interview', e);
-                showError('Unable to resume interview');
-            }
-        }
+        
                 
                 const interviewData = await interviewResponse.json();
                 console.log('📊 Interview API response:', interviewData);
@@ -6248,6 +6229,28 @@
                 console.error('❌ Error stack:', error.stack);
                 console.error('❌ Error message:', error.message);
                 showError(`Error loading interview details: ${error.message}`);
+            }
+        }
+
+        // Global resume function (not nested) so onclick can access it
+        function resumeInterviewAdmin(interviewId) {
+            try {
+                const item = (interviews || []).find(i => i.id === interviewId) || (myInterviews || []).find(i => i.id === interviewId);
+                if (!item) {
+                    showError('Interview not found');
+                    return;
+                }
+                const zeta = item.zeta_id || '';
+                const sessionId = item.session_id || item.session || '';
+                if (!zeta || !sessionId) {
+                    showError('Missing Zeta ID or Session');
+                    return;
+                }
+                const url = `/interview-session.html?zeta_id=${encodeURIComponent(zeta)}&session_id=${encodeURIComponent(sessionId)}&resume=1`;
+                window.location.href = url;
+            } catch (e) {
+                console.error('Error resuming interview', e);
+                showError('Unable to resume interview');
             }
         }
 
