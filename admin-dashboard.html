@@ -1867,6 +1867,10 @@
                 <div class="section-header">
                     <h2 class="section-title">Questions Analytics</h2>
                     <div class="header-actions">
+                        <button class="btn-filter-toggle" onclick="toggleFilterPanel('questions')" title="Filter & Sort Options">
+                            <span class="filter-icon">⚙️</span>
+                            <span class="filter-text">Filters</span>
+                        </button>
                         <button class="btn btn-success" onclick="openAddQuestionModal()">Add Question</button>
                         <button class="btn btn-info" onclick="openBulkImportModal()">Bulk Import</button>
                         <button class="btn btn-primary" onclick="refreshQuestions()">Refresh</button>
@@ -1911,7 +1915,13 @@
             <section id="sessions" class="content-section">
                 <div class="section-header">
                     <h2 class="section-title">Interview Sessions</h2>
-                    <button class="btn btn-primary" onclick="openCreateSessionModal()">Create Session</button>
+                    <div class="header-actions">
+                        <button class="btn-filter-toggle" onclick="toggleFilterPanel('sessions')" title="Filter & Sort Options">
+                            <span class="filter-icon">⚙️</span>
+                            <span class="filter-text">Filters</span>
+                        </button>
+                        <button class="btn btn-primary" onclick="openCreateSessionModal()">Create Session</button>
+                    </div>
                 </div>
                 
                 <div class="table-container">
@@ -1953,7 +1963,13 @@
             <section id="students" class="content-section">
                 <div class="section-header">
                     <h2 class="section-title">Students</h2>
-                    <button class="btn btn-primary" onclick="refreshStudents()">Refresh</button>
+                    <div class="header-actions">
+                        <button class="btn-filter-toggle" onclick="toggleFilterPanel('students')" title="Filter & Sort Options">
+                            <span class="filter-icon">⚙️</span>
+                            <span class="filter-text">Filters</span>
+                        </button>
+                        <button class="btn btn-primary" onclick="refreshStudents()">Refresh</button>
+                    </div>
                 </div>
                 
                 <div class="table-container">
@@ -1994,7 +2010,13 @@
             <section id="my-interviews" class="content-section">
                 <div class="section-header">
                     <h2 class="section-title">My Interviews</h2>
-                    <button class="btn btn-primary" onclick="loadMyInterviewsForAdmin()">Refresh</button>
+                    <div class="header-actions">
+                        <button class="btn-filter-toggle" onclick="toggleFilterPanel('my-interviews')" title="Filter & Sort Options">
+                            <span class="filter-icon">⚙️</span>
+                            <span class="filter-text">Filters</span>
+                        </button>
+                        <button class="btn btn-primary" onclick="loadMyInterviewsForAdmin()">Refresh</button>
+                    </div>
                 </div>
                 <div class="table-container">
                     <!-- Bulk Edit Controls -->
@@ -2508,6 +2530,11 @@
                 'my-interviews': 'My Interviews'
             };
             document.getElementById('page-title').textContent = titles[section];
+
+            // Update URL to persist tab state
+            const url = new URL(window.location);
+            url.searchParams.set('tab', section);
+            window.history.replaceState({}, '', url);
 
             currentSection = section;
             if (section === 'my-interviews') {
@@ -3719,22 +3746,837 @@
         }
 
         // Filter Panel Functions
-        function toggleFilterPanel() {
+        let currentFilterTab = 'interviews'; // Default tab
+        
+        function toggleFilterPanel(tab = 'interviews') {
             const panel = document.getElementById('filter-panel');
             const overlay = document.getElementById('filter-panel-overlay');
             
-            if (panel.classList.contains('active')) {
+            if (panel.classList.contains('active') && currentFilterTab === tab) {
                 panel.classList.remove('active');
                 overlay.classList.remove('active');
             } else {
+                currentFilterTab = tab;
+                generateFilterContent(tab);
                 panel.classList.add('active');
                 overlay.classList.add('active');
             }
         }
 
+        function generateFilterContent(tab) {
+            const content = document.querySelector('.filter-panel-content');
+            const titles = {
+                'interviews': 'All Interviews',
+                'questions': 'Questions Analytics',
+                'sessions': 'Interview Sessions',
+                'students': 'Students',
+                'my-interviews': 'My Interviews'
+            };
+            
+            content.innerHTML = `
+                <div class="filter-section">
+                    <div class="filter-section-title">🔍 Search & Filter</div>
+                    <div class="filter-row">
+                        ${generateFilterFields(tab)}
+                    </div>
+                </div>
+                
+                <div class="sort-section">
+                    <div class="filter-section-title">📊 Sort Options</div>
+                    <div class="sort-options">
+                        ${generateSortOptions(tab)}
+                    </div>
+                </div>
+                
+                <div class="group-by-section">
+                    <div class="filter-section-title">📋 Group By</div>
+                    <div class="group-by-options">
+                        ${generateGroupByOptions(tab)}
+                    </div>
+                </div>
+                
+                <div class="filter-actions">
+                    <button class="btn-filter" onclick="applyFilters('${tab}')">Apply Filters</button>
+                    <button class="btn-clear" onclick="clearAllFilters('${tab}')">Clear All</button>
+                    <button class="btn-export" onclick="exportData('${tab}')">Export Data</button>
+                </div>
+            `;
+        }
+
+        function generateFilterFields(tab) {
+            const filterConfigs = {
+                'interviews': `
+                    <div class="filter-group">
+                        <label>Search:</label>
+                        <input type="text" id="search-interviews" class="form-input" placeholder="Search by student name, email, Zeta ID, or interviewer...">
+                    </div>
+                    <div class="filter-group">
+                        <label>Status:</label>
+                        <select id="status-filter" class="form-select">
+                            <option value="">All Statuses</option>
+                            <option value="completed">Completed</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Verdict:</label>
+                        <select id="verdict-filter" class="form-select">
+                            <option value="">All Verdicts</option>
+                            <option value="Tiger">Tiger</option>
+                            <option value="Cow">Cow</option>
+                            <option value="Cow+">Cow+</option>
+                            <option value="Sheep">Sheep</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Date From:</label>
+                        <input type="date" id="date-from" class="form-input">
+                    </div>
+                    <div class="filter-group">
+                        <label>Date To:</label>
+                        <input type="date" id="date-to" class="form-input">
+                    </div>
+                `,
+                'questions': `
+                    <div class="filter-group">
+                        <label>Search:</label>
+                        <input type="text" id="search-questions" class="form-input" placeholder="Search by question text...">
+                    </div>
+                    <div class="filter-group">
+                        <label>Category:</label>
+                        <select id="category-filter" class="form-select">
+                            <option value="">All Categories</option>
+                            <option value="Technical">Technical</option>
+                            <option value="General">General</option>
+                            <option value="Behavioral">Behavioral</option>
+                            <option value="English">English</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Times Asked:</label>
+                        <input type="number" id="times-asked-min" class="form-input" placeholder="Min" min="0">
+                    </div>
+                    <div class="filter-group">
+                        <label>Success Rate:</label>
+                        <input type="number" id="success-rate-min" class="form-input" placeholder="Min %" min="0" max="100">
+                    </div>
+                `,
+                'sessions': `
+                    <div class="filter-group">
+                        <label>Search:</label>
+                        <input type="text" id="search-sessions" class="form-input" placeholder="Search by session name...">
+                    </div>
+                    <div class="filter-group">
+                        <label>Status:</label>
+                        <select id="session-status-filter" class="form-select">
+                            <option value="">All Statuses</option>
+                            <option value="active">Active</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Date From:</label>
+                        <input type="date" id="session-date-from" class="form-input">
+                    </div>
+                    <div class="filter-group">
+                        <label>Date To:</label>
+                        <input type="date" id="session-date-to" class="form-input">
+                    </div>
+                `,
+                'students': `
+                    <div class="filter-group">
+                        <label>Search:</label>
+                        <input type="text" id="search-students" class="form-input" placeholder="Search by name, email, or Zeta ID...">
+                    </div>
+                    <div class="filter-group">
+                        <label>Zeta ID:</label>
+                        <input type="text" id="zeta-id-filter" class="form-input" placeholder="Zeta ID">
+                    </div>
+                    <div class="filter-group">
+                        <label>Email Domain:</label>
+                        <input type="text" id="email-domain-filter" class="form-input" placeholder="e.g., gmail.com">
+                    </div>
+                    <div class="filter-group">
+                        <label>Created From:</label>
+                        <input type="date" id="student-date-from" class="form-input">
+                    </div>
+                    <div class="filter-group">
+                        <label>Created To:</label>
+                        <input type="date" id="student-date-to" class="form-input">
+                    </div>
+                `,
+                'my-interviews': `
+                    <div class="filter-group">
+                        <label>Search:</label>
+                        <input type="text" id="search-my-interviews" class="form-input" placeholder="Search by student name, email, or Zeta ID...">
+                    </div>
+                    <div class="filter-group">
+                        <label>Status:</label>
+                        <select id="my-status-filter" class="form-select">
+                            <option value="">All Statuses</option>
+                            <option value="completed">Completed</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Verdict:</label>
+                        <select id="my-verdict-filter" class="form-select">
+                            <option value="">All Verdicts</option>
+                            <option value="Tiger">Tiger</option>
+                            <option value="Cow">Cow</option>
+                            <option value="Cow+">Cow+</option>
+                            <option value="Sheep">Sheep</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Date From:</label>
+                        <input type="date" id="my-date-from" class="form-input">
+                    </div>
+                    <div class="filter-group">
+                        <label>Date To:</label>
+                        <input type="date" id="my-date-to" class="form-input">
+                    </div>
+                `
+            };
+            
+            return filterConfigs[tab] || '';
+        }
+
+        function generateSortOptions(tab) {
+            const sortConfigs = {
+                'interviews': `
+                    <div class="sort-option">
+                        <label>Sort by:</label>
+                        <select id="sort-by" class="form-select">
+                            <option value="created_at_desc">Date (Newest First)</option>
+                            <option value="created_at_asc">Date (Oldest First)</option>
+                            <option value="student_name_asc">Student Name (A-Z)</option>
+                            <option value="student_name_desc">Student Name (Z-A)</option>
+                            <option value="status_asc">Status</option>
+                            <option value="verdict_asc">Verdict</option>
+                            <option value="duration_asc">Duration (Shortest)</option>
+                            <option value="duration_desc">Duration (Longest)</option>
+                        </select>
+                    </div>
+                `,
+                'questions': `
+                    <div class="sort-option">
+                        <label>Sort by:</label>
+                        <select id="sort-by" class="form-select">
+                            <option value="times_asked_desc">Most Asked</option>
+                            <option value="times_asked_asc">Least Asked</option>
+                            <option value="success_rate_desc">Highest Success Rate</option>
+                            <option value="success_rate_asc">Lowest Success Rate</option>
+                            <option value="category_asc">Category (A-Z)</option>
+                            <option value="created_at_desc">Date Added (Newest)</option>
+                            <option value="created_at_asc">Date Added (Oldest)</option>
+                        </select>
+                    </div>
+                `,
+                'sessions': `
+                    <div class="sort-option">
+                        <label>Sort by:</label>
+                        <select id="sort-by" class="form-select">
+                            <option value="created_at_desc">Date Created (Newest)</option>
+                            <option value="created_at_asc">Date Created (Oldest)</option>
+                            <option value="session_name_asc">Session Name (A-Z)</option>
+                            <option value="session_name_desc">Session Name (Z-A)</option>
+                            <option value="status_asc">Status</option>
+                        </select>
+                    </div>
+                `,
+                'students': `
+                    <div class="sort-option">
+                        <label>Sort by:</label>
+                        <select id="sort-by" class="form-select">
+                            <option value="first_name_asc">First Name (A-Z)</option>
+                            <option value="first_name_desc">First Name (Z-A)</option>
+                            <option value="last_name_asc">Last Name (A-Z)</option>
+                            <option value="last_name_desc">Last Name (Z-A)</option>
+                            <option value="zeta_id_asc">Zeta ID (A-Z)</option>
+                            <option value="zeta_id_desc">Zeta ID (Z-A)</option>
+                            <option value="email_asc">Email (A-Z)</option>
+                            <option value="email_desc">Email (Z-A)</option>
+                            <option value="created_at_desc">Date Created (Newest)</option>
+                            <option value="created_at_asc">Date Created (Oldest)</option>
+                        </select>
+                    </div>
+                `,
+                'my-interviews': `
+                    <div class="sort-option">
+                        <label>Sort by:</label>
+                        <select id="sort-by" class="form-select">
+                            <option value="created_at_desc">Date (Newest First)</option>
+                            <option value="created_at_asc">Date (Oldest First)</option>
+                            <option value="student_name_asc">Student Name (A-Z)</option>
+                            <option value="student_name_desc">Student Name (Z-A)</option>
+                            <option value="status_asc">Status</option>
+                            <option value="verdict_asc">Verdict</option>
+                            <option value="duration_asc">Duration (Shortest)</option>
+                            <option value="duration_desc">Duration (Longest)</option>
+                        </select>
+                    </div>
+                `
+            };
+            
+            return sortConfigs[tab] || '';
+        }
+
+        function generateGroupByOptions(tab) {
+            const groupConfigs = {
+                'interviews': `
+                    <div class="group-by-option">
+                        <input type="radio" id="group-none" name="group-by" value="" checked>
+                        <label for="group-none">No Grouping</label>
+                    </div>
+                    <div class="group-by-option">
+                        <input type="radio" id="group-status" name="group-by" value="status">
+                        <label for="group-status">By Status</label>
+                    </div>
+                    <div class="group-by-option">
+                        <input type="radio" id="group-verdict" name="group-by" value="verdict">
+                        <label for="group-verdict">By Verdict</label>
+                    </div>
+                    <div class="group-by-option">
+                        <input type="radio" id="group-interviewer" name="group-by" value="interviewer">
+                        <label for="group-interviewer">By Interviewer</label>
+                    </div>
+                    <div class="group-by-option">
+                        <input type="radio" id="group-date" name="group-by" value="date">
+                        <label for="group-date">By Date</label>
+                    </div>
+                `,
+                'questions': `
+                    <div class="group-by-option">
+                        <input type="radio" id="group-none" name="group-by" value="" checked>
+                        <label for="group-none">No Grouping</label>
+                    </div>
+                    <div class="group-by-option">
+                        <input type="radio" id="group-category" name="group-by" value="category">
+                        <label for="group-category">By Category</label>
+                    </div>
+                    <div class="group-by-option">
+                        <input type="radio" id="group-success-rate" name="group-by" value="success_rate">
+                        <label for="group-success-rate">By Success Rate</label>
+                    </div>
+                `,
+                'sessions': `
+                    <div class="group-by-option">
+                        <input type="radio" id="group-none" name="group-by" value="" checked>
+                        <label for="group-none">No Grouping</label>
+                    </div>
+                    <div class="group-by-option">
+                        <input type="radio" id="group-status" name="group-by" value="status">
+                        <label for="group-status">By Status</label>
+                    </div>
+                    <div class="group-by-option">
+                        <input type="radio" id="group-date" name="group-by" value="date">
+                        <label for="group-date">By Date</label>
+                    </div>
+                `,
+                'students': `
+                    <div class="group-by-option">
+                        <input type="radio" id="group-none" name="group-by" value="" checked>
+                        <label for="group-none">No Grouping</label>
+                    </div>
+                    <div class="group-by-option">
+                        <input type="radio" id="group-email-domain" name="group-by" value="email_domain">
+                        <label for="group-email-domain">By Email Domain</label>
+                    </div>
+                    <div class="group-by-option">
+                        <input type="radio" id="group-date" name="group-by" value="date">
+                        <label for="group-date">By Creation Date</label>
+                    </div>
+                `,
+                'my-interviews': `
+                    <div class="group-by-option">
+                        <input type="radio" id="group-none" name="group-by" value="" checked>
+                        <label for="group-none">No Grouping</label>
+                    </div>
+                    <div class="group-by-option">
+                        <input type="radio" id="group-status" name="group-by" value="status">
+                        <label for="group-status">By Status</label>
+                    </div>
+                    <div class="group-by-option">
+                        <input type="radio" id="group-verdict" name="group-by" value="verdict">
+                        <label for="group-verdict">By Verdict</label>
+                    </div>
+                    <div class="group-by-option">
+                        <input type="radio" id="group-date" name="group-by" value="date">
+                        <label for="group-date">By Date</label>
+                    </div>
+                `
+            };
+            
+            return groupConfigs[tab] || '';
+        }
+
         function closeFilterPanel() {
             document.getElementById('filter-panel').classList.remove('active');
             document.getElementById('filter-panel-overlay').classList.remove('active');
+        }
+
+        // Dynamic filter functions
+        function applyFilters(tab) {
+            console.log(`Applying filters for tab: ${tab}`);
+            
+            switch(tab) {
+                case 'interviews':
+                    applyInterviewsFilters();
+                    break;
+                case 'questions':
+                    applyQuestionsFilters();
+                    break;
+                case 'sessions':
+                    applySessionsFilters();
+                    break;
+                case 'students':
+                    applyStudentsFilters();
+                    break;
+                case 'my-interviews':
+                    applyMyInterviewsFilters();
+                    break;
+                default:
+                    console.log('Unknown tab:', tab);
+            }
+            
+            closeFilterPanel();
+        }
+
+        function clearAllFilters(tab) {
+            console.log(`Clearing filters for tab: ${tab}`);
+            
+            // Clear all filter inputs in the current filter panel
+            const filterPanel = document.getElementById('filter-panel');
+            const inputs = filterPanel.querySelectorAll('input, select');
+            inputs.forEach(input => {
+                if (input.type === 'radio') {
+                    if (input.value === '') {
+                        input.checked = true;
+                    } else {
+                        input.checked = false;
+                    }
+                } else {
+                    input.value = '';
+                }
+            });
+            
+            // Apply the cleared filters
+            applyFilters(tab);
+        }
+
+        function exportData(tab) {
+            console.log(`Exporting data for tab: ${tab}`);
+            
+            switch(tab) {
+                case 'interviews':
+                    exportInterviews();
+                    break;
+                case 'questions':
+                    exportQuestions();
+                    break;
+                case 'sessions':
+                    exportSessions();
+                    break;
+                case 'students':
+                    exportStudents();
+                    break;
+                case 'my-interviews':
+                    exportMyInterviews();
+                    break;
+                default:
+                    console.log('Unknown tab:', tab);
+            }
+        }
+
+        // Tab-specific filter functions
+        function applyInterviewsFilters() {
+            // Use existing interview filter logic
+            if (typeof displayFilteredInterviews === 'function') {
+                displayFilteredInterviews();
+            }
+        }
+
+        function applyQuestionsFilters() {
+            const searchTerm = document.getElementById('search-questions')?.value || '';
+            const category = document.getElementById('category-filter')?.value || '';
+            const timesAskedMin = document.getElementById('times-asked-min')?.value || '';
+            const successRateMin = document.getElementById('success-rate-min')?.value || '';
+            const sortBy = document.getElementById('sort-by')?.value || 'times_asked_desc';
+            const groupBy = document.querySelector('input[name="group-by"]:checked')?.value || '';
+
+            console.log('Questions filters:', { searchTerm, category, timesAskedMin, successRateMin, sortBy, groupBy });
+            
+            // Apply filters to questions data
+            let filteredQuestions = [...questions];
+            
+            // Search filter
+            if (searchTerm) {
+                filteredQuestions = filteredQuestions.filter(q => 
+                    q.question.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+            }
+            
+            // Category filter
+            if (category) {
+                filteredQuestions = filteredQuestions.filter(q => q.category === category);
+            }
+            
+            // Times asked filter
+            if (timesAskedMin) {
+                filteredQuestions = filteredQuestions.filter(q => q.times_asked >= parseInt(timesAskedMin));
+            }
+            
+            // Success rate filter
+            if (successRateMin) {
+                filteredQuestions = filteredQuestions.filter(q => q.success_rate >= parseInt(successRateMin));
+            }
+            
+            // Sort
+            filteredQuestions = sortQuestions(filteredQuestions, sortBy);
+            
+            // Display filtered results
+            displayQuestions(filteredQuestions, groupBy);
+        }
+
+        function applySessionsFilters() {
+            const searchTerm = document.getElementById('search-sessions')?.value || '';
+            const status = document.getElementById('session-status-filter')?.value || '';
+            const dateFrom = document.getElementById('session-date-from')?.value || '';
+            const dateTo = document.getElementById('session-date-to')?.value || '';
+            const sortBy = document.getElementById('sort-by')?.value || 'created_at_desc';
+            const groupBy = document.querySelector('input[name="group-by"]:checked')?.value || '';
+
+            console.log('Sessions filters:', { searchTerm, status, dateFrom, dateTo, sortBy, groupBy });
+            
+            // Apply filters to sessions data
+            let filteredSessions = [...sessions];
+            
+            // Search filter
+            if (searchTerm) {
+                filteredSessions = filteredSessions.filter(s => 
+                    s.session_name.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+            }
+            
+            // Status filter
+            if (status) {
+                filteredSessions = filteredSessions.filter(s => s.status === status);
+            }
+            
+            // Date filters
+            if (dateFrom) {
+                filteredSessions = filteredSessions.filter(s => new Date(s.created_at) >= new Date(dateFrom));
+            }
+            if (dateTo) {
+                filteredSessions = filteredSessions.filter(s => new Date(s.created_at) <= new Date(dateTo));
+            }
+            
+            // Sort
+            filteredSessions = sortSessions(filteredSessions, sortBy);
+            
+            // Display filtered results
+            displaySessions(filteredSessions, groupBy);
+        }
+
+        function applyStudentsFilters() {
+            const searchTerm = document.getElementById('search-students')?.value || '';
+            const zetaId = document.getElementById('zeta-id-filter')?.value || '';
+            const emailDomain = document.getElementById('email-domain-filter')?.value || '';
+            const dateFrom = document.getElementById('student-date-from')?.value || '';
+            const dateTo = document.getElementById('student-date-to')?.value || '';
+            const sortBy = document.getElementById('sort-by')?.value || 'first_name_asc';
+            const groupBy = document.querySelector('input[name="group-by"]:checked')?.value || '';
+
+            console.log('Students filters:', { searchTerm, zetaId, emailDomain, dateFrom, dateTo, sortBy, groupBy });
+            
+            // Apply filters to students data
+            let filteredStudents = [...students];
+            
+            // Search filter
+            if (searchTerm) {
+                filteredStudents = filteredStudents.filter(s => 
+                    s.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    s.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    s.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    s.zeta_id.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+            }
+            
+            // Zeta ID filter
+            if (zetaId) {
+                filteredStudents = filteredStudents.filter(s => s.zeta_id.toLowerCase().includes(zetaId.toLowerCase()));
+            }
+            
+            // Email domain filter
+            if (emailDomain) {
+                filteredStudents = filteredStudents.filter(s => s.email.includes(emailDomain));
+            }
+            
+            // Date filters
+            if (dateFrom) {
+                filteredStudents = filteredStudents.filter(s => new Date(s.created_at) >= new Date(dateFrom));
+            }
+            if (dateTo) {
+                filteredStudents = filteredStudents.filter(s => new Date(s.created_at) <= new Date(dateTo));
+            }
+            
+            // Sort
+            filteredStudents = sortStudents(filteredStudents, sortBy);
+            
+            // Display filtered results
+            displayStudents(filteredStudents, groupBy);
+        }
+
+        function applyMyInterviewsFilters() {
+            const searchTerm = document.getElementById('search-my-interviews')?.value || '';
+            const status = document.getElementById('my-status-filter')?.value || '';
+            const verdict = document.getElementById('my-verdict-filter')?.value || '';
+            const dateFrom = document.getElementById('my-date-from')?.value || '';
+            const dateTo = document.getElementById('my-date-to')?.value || '';
+            const sortBy = document.getElementById('sort-by')?.value || 'created_at_desc';
+            const groupBy = document.querySelector('input[name="group-by"]:checked')?.value || '';
+
+            console.log('My interviews filters:', { searchTerm, status, verdict, dateFrom, dateTo, sortBy, groupBy });
+            
+            // Apply filters to my interviews data
+            let filteredMyInterviews = [...myInterviews];
+            
+            // Search filter
+            if (searchTerm) {
+                filteredMyInterviews = filteredMyInterviews.filter(i => 
+                    i.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    i.student_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    i.zeta_id.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+            }
+            
+            // Status filter
+            if (status) {
+                filteredMyInterviews = filteredMyInterviews.filter(i => i.status === status);
+            }
+            
+            // Verdict filter
+            if (verdict) {
+                filteredMyInterviews = filteredMyInterviews.filter(i => i.verdict === verdict);
+            }
+            
+            // Date filters
+            if (dateFrom) {
+                filteredMyInterviews = filteredMyInterviews.filter(i => new Date(i.created_at) >= new Date(dateFrom));
+            }
+            if (dateTo) {
+                filteredMyInterviews = filteredMyInterviews.filter(i => new Date(i.created_at) <= new Date(dateTo));
+            }
+            
+            // Sort
+            filteredMyInterviews = sortMyInterviews(filteredMyInterviews, sortBy);
+            
+            // Display filtered results
+            displayMyInterviews(filteredMyInterviews, groupBy);
+        }
+
+        // Sorting functions
+        function sortQuestions(questions, sortBy) {
+            return questions.sort((a, b) => {
+                const [field, direction] = sortBy.split('_');
+                const aVal = a[field];
+                const bVal = b[field];
+                
+                if (direction === 'asc') {
+                    return aVal > bVal ? 1 : -1;
+                } else {
+                    return aVal < bVal ? 1 : -1;
+                }
+            });
+        }
+
+        function sortSessions(sessions, sortBy) {
+            return sessions.sort((a, b) => {
+                const [field, direction] = sortBy.split('_');
+                let aVal, bVal;
+                
+                if (field === 'session_name') {
+                    aVal = a.session_name;
+                    bVal = b.session_name;
+                } else {
+                    aVal = a[field];
+                    bVal = b[field];
+                }
+                
+                if (direction === 'asc') {
+                    return aVal > bVal ? 1 : -1;
+                } else {
+                    return aVal < bVal ? 1 : -1;
+                }
+            });
+        }
+
+        function sortStudents(students, sortBy) {
+            return students.sort((a, b) => {
+                const [field, direction] = sortBy.split('_');
+                let aVal, bVal;
+                
+                if (field === 'first_name') {
+                    aVal = a.first_name;
+                    bVal = b.first_name;
+                } else if (field === 'last_name') {
+                    aVal = a.last_name;
+                    bVal = b.last_name;
+                } else if (field === 'zeta_id') {
+                    aVal = a.zeta_id;
+                    bVal = b.zeta_id;
+                } else if (field === 'email') {
+                    aVal = a.email;
+                    bVal = b.email;
+                } else {
+                    aVal = a[field];
+                    bVal = b[field];
+                }
+                
+                if (direction === 'asc') {
+                    return aVal > bVal ? 1 : -1;
+                } else {
+                    return aVal < bVal ? 1 : -1;
+                }
+            });
+        }
+
+        function sortMyInterviews(interviews, sortBy) {
+            return interviews.sort((a, b) => {
+                const [field, direction] = sortBy.split('_');
+                let aVal, bVal;
+                
+                if (field === 'student_name') {
+                    aVal = a.student_name;
+                    bVal = b.student_name;
+                } else if (field === 'duration') {
+                    aVal = a.duration_seconds;
+                    bVal = b.duration_seconds;
+                } else {
+                    aVal = a[field];
+                    bVal = b[field];
+                }
+                
+                if (direction === 'asc') {
+                    return aVal > bVal ? 1 : -1;
+                } else {
+                    return aVal < bVal ? 1 : -1;
+                }
+            });
+        }
+
+        // Export functions
+        function exportQuestions() {
+            const filteredQuestions = getCurrentFilteredQuestions();
+            const csvContent = generateQuestionsCSV(filteredQuestions);
+            downloadCSV(csvContent, 'questions.csv');
+        }
+
+        function exportSessions() {
+            const filteredSessions = getCurrentFilteredSessions();
+            const csvContent = generateSessionsCSV(filteredSessions);
+            downloadCSV(csvContent, 'sessions.csv');
+        }
+
+        function exportStudents() {
+            const filteredStudents = getCurrentFilteredStudents();
+            const csvContent = generateStudentsCSV(filteredStudents);
+            downloadCSV(csvContent, 'students.csv');
+        }
+
+        function exportMyInterviews() {
+            const filteredMyInterviews = getCurrentFilteredMyInterviews();
+            const csvContent = generateMyInterviewsCSV(filteredMyInterviews);
+            downloadCSV(csvContent, 'my-interviews.csv');
+        }
+
+        // Helper functions for getting current filtered data
+        function getCurrentFilteredQuestions() {
+            // This would return the currently filtered questions
+            // For now, return all questions
+            return questions || [];
+        }
+
+        function getCurrentFilteredSessions() {
+            return sessions || [];
+        }
+
+        function getCurrentFilteredStudents() {
+            return students || [];
+        }
+
+        function getCurrentFilteredMyInterviews() {
+            return myInterviews || [];
+        }
+
+        // CSV generation functions
+        function generateQuestionsCSV(questions) {
+            const headers = ['Question', 'Category', 'Times Asked', 'Correct Answers', 'Incorrect Answers', 'Success Rate', 'Created At'];
+            const rows = questions.map(q => [
+                `"${q.question.replace(/"/g, '""')}"`,
+                q.category,
+                q.times_asked,
+                q.correct_answers,
+                q.incorrect_answers,
+                q.success_rate,
+                new Date(q.created_at).toLocaleDateString()
+            ]);
+            return [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+        }
+
+        function generateSessionsCSV(sessions) {
+            const headers = ['Session Name', 'Status', 'Created At', 'Panelists'];
+            const rows = sessions.map(s => [
+                `"${s.session_name.replace(/"/g, '""')}"`,
+                s.status,
+                new Date(s.created_at).toLocaleDateString(),
+                s.panelists ? s.panelists.join('; ') : ''
+            ]);
+            return [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+        }
+
+        function generateStudentsCSV(students) {
+            const headers = ['First Name', 'Last Name', 'Zeta ID', 'Email', 'Phone', 'Address', 'Created At'];
+            const rows = students.map(s => [
+                `"${s.first_name.replace(/"/g, '""')}"`,
+                `"${s.last_name.replace(/"/g, '""')}"`,
+                s.zeta_id,
+                s.email,
+                s.phone || '',
+                `"${(s.address || '').replace(/"/g, '""')}"`,
+                new Date(s.created_at).toLocaleDateString()
+            ]);
+            return [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+        }
+
+        function generateMyInterviewsCSV(interviews) {
+            const headers = ['Date', 'Student Name', 'Zeta ID', 'Session', 'Status', 'Verdict', 'Duration (min)'];
+            const rows = interviews.map(i => [
+                new Date(i.created_at).toLocaleDateString(),
+                `"${i.student_name.replace(/"/g, '""')}"`,
+                i.zeta_id,
+                i.session_name || 'N/A',
+                i.status,
+                i.verdict || 'N/A',
+                Math.round(i.duration_seconds / 60)
+            ]);
+            return [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+        }
+
+        function downloadCSV(content, filename) {
+            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         // Student Detail View

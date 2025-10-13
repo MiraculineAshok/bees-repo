@@ -1273,7 +1273,7 @@
                     <div class="section-header">
                         <h2 class="section-title">My Interviews</h2>
                         <div class="header-actions">
-                            <button class="btn-filter-toggle" onclick="toggleFilterPanel()" title="Filter & Sort Options">
+                            <button class="btn-filter-toggle" onclick="toggleFilterPanel('interviews')" title="Filter & Sort Options">
                                 <span class="filter-icon">⚙️</span>
                                 <span class="filter-text">Filters</span>
                             </button>
@@ -1313,7 +1313,7 @@
                     <div class="section-header">
                         <h2 class="section-title">Question Analysis</h2>
                         <div class="header-actions">
-                            <button class="btn-filter-toggle" onclick="toggleQuestionFilterPanel()" title="Filter & Sort Options">
+                            <button class="btn-filter-toggle" onclick="toggleFilterPanel('questions')" title="Filter & Sort Options">
                                 <span class="filter-icon">⚙️</span>
                                 <span class="filter-text">Filters</span>
                             </button>
@@ -1607,7 +1607,12 @@
             document.getElementById(sectionName + '-section').classList.add('active');
             
             // Add active class to clicked nav link
-            event.target.classList.add('active');
+            if (event && event.target) {
+                event.target.classList.add('active');
+            } else {
+                // If called programmatically, find the correct nav link
+                document.querySelector(`[onclick="showSection('${sectionName}')"]`).classList.add('active');
+            }
             
             // Update page title
             const titles = {
@@ -1615,6 +1620,11 @@
                 'questions': 'Question Analysis'
             };
             document.getElementById('page-title').textContent = titles[sectionName];
+
+            // Update URL to persist tab state
+            const url = new URL(window.location);
+            url.searchParams.set('tab', sectionName);
+            window.history.replaceState({}, '', url);
         }
 
         // Activate section from URL param, e.g., ?tab=my-interviews or ?tab=questions
@@ -1631,17 +1641,197 @@
         });
 
         // Filter Panel Functions
-        function toggleFilterPanel() {
+        let currentFilterTab = 'interviews'; // Default tab
+        
+        function toggleFilterPanel(tab = 'interviews') {
             const panel = document.getElementById('filter-panel');
             const overlay = document.getElementById('filter-panel-overlay');
             
-            if (panel.classList.contains('active')) {
+            if (panel.classList.contains('active') && currentFilterTab === tab) {
                 panel.classList.remove('active');
                 overlay.classList.remove('active');
             } else {
+                currentFilterTab = tab;
+                generateFilterContent(tab);
                 panel.classList.add('active');
                 overlay.classList.add('active');
             }
+        }
+
+        function generateFilterContent(tab) {
+            const content = document.querySelector('.filter-panel-content');
+            const titles = {
+                'interviews': 'My Interviews',
+                'questions': 'Question Analysis'
+            };
+            
+            content.innerHTML = `
+                <div class="filter-section">
+                    <div class="filter-section-title">🔍 Search & Filter</div>
+                    <div class="filter-row">
+                        ${generateFilterFields(tab)}
+                    </div>
+                </div>
+                
+                <div class="sort-section">
+                    <div class="filter-section-title">📊 Sort Options</div>
+                    <div class="sort-options">
+                        ${generateSortOptions(tab)}
+                    </div>
+                </div>
+                
+                <div class="group-by-section">
+                    <div class="filter-section-title">📋 Group By</div>
+                    <div class="group-by-options">
+                        ${generateGroupByOptions(tab)}
+                    </div>
+                </div>
+                
+                <div class="filter-actions">
+                    <button class="btn-filter" onclick="applyFilters('${tab}')">Apply Filters</button>
+                    <button class="btn-clear" onclick="clearAllFilters('${tab}')">Clear All</button>
+                    <button class="btn-export" onclick="exportData('${tab}')">Export Data</button>
+                </div>
+            `;
+        }
+
+        function generateFilterFields(tab) {
+            const filterConfigs = {
+                'interviews': `
+                    <div class="filter-group">
+                        <label>Search:</label>
+                        <input type="text" id="search-interviews" class="form-input" placeholder="Search by student name, email, or Zeta ID...">
+                    </div>
+                    <div class="filter-group">
+                        <label>Status:</label>
+                        <select id="status-filter" class="form-select">
+                            <option value="">All Statuses</option>
+                            <option value="completed">Completed</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Verdict:</label>
+                        <select id="verdict-filter" class="form-select">
+                            <option value="">All Verdicts</option>
+                            <option value="Tiger">Tiger</option>
+                            <option value="Cow">Cow</option>
+                            <option value="Cow+">Cow+</option>
+                            <option value="Sheep">Sheep</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Date From:</label>
+                        <input type="date" id="date-from" class="form-input">
+                    </div>
+                    <div class="filter-group">
+                        <label>Date To:</label>
+                        <input type="date" id="date-to" class="form-input">
+                    </div>
+                `,
+                'questions': `
+                    <div class="filter-group">
+                        <label>Search:</label>
+                        <input type="text" id="search-questions" class="form-input" placeholder="Search by question text...">
+                    </div>
+                    <div class="filter-group">
+                        <label>Category:</label>
+                        <select id="category-filter" class="form-select">
+                            <option value="">All Categories</option>
+                            <option value="Technical">Technical</option>
+                            <option value="General">General</option>
+                            <option value="Behavioral">Behavioral</option>
+                            <option value="English">English</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Times Asked:</label>
+                        <input type="number" id="times-asked-min" class="form-input" placeholder="Min" min="0">
+                    </div>
+                    <div class="filter-group">
+                        <label>Success Rate:</label>
+                        <input type="number" id="success-rate-min" class="form-input" placeholder="Min %" min="0" max="100">
+                    </div>
+                `
+            };
+            
+            return filterConfigs[tab] || '';
+        }
+
+        function generateSortOptions(tab) {
+            const sortConfigs = {
+                'interviews': `
+                    <div class="sort-option">
+                        <label>Sort by:</label>
+                        <select id="sort-by" class="form-select">
+                            <option value="created_at_desc">Date (Newest First)</option>
+                            <option value="created_at_asc">Date (Oldest First)</option>
+                            <option value="student_name_asc">Student Name (A-Z)</option>
+                            <option value="student_name_desc">Student Name (Z-A)</option>
+                            <option value="status_asc">Status</option>
+                            <option value="verdict_asc">Verdict</option>
+                            <option value="duration_asc">Duration (Shortest)</option>
+                            <option value="duration_desc">Duration (Longest)</option>
+                        </select>
+                    </div>
+                `,
+                'questions': `
+                    <div class="sort-option">
+                        <label>Sort by:</label>
+                        <select id="sort-by" class="form-select">
+                            <option value="times_asked_desc">Most Asked</option>
+                            <option value="times_asked_asc">Least Asked</option>
+                            <option value="success_rate_desc">Highest Success Rate</option>
+                            <option value="success_rate_asc">Lowest Success Rate</option>
+                            <option value="category_asc">Category (A-Z)</option>
+                            <option value="created_at_desc">Date Added (Newest)</option>
+                            <option value="created_at_asc">Date Added (Oldest)</option>
+                        </select>
+                    </div>
+                `
+            };
+            
+            return sortConfigs[tab] || '';
+        }
+
+        function generateGroupByOptions(tab) {
+            const groupConfigs = {
+                'interviews': `
+                    <div class="group-by-option">
+                        <input type="radio" id="group-none" name="group-by" value="" checked>
+                        <label for="group-none">No Grouping</label>
+                    </div>
+                    <div class="group-by-option">
+                        <input type="radio" id="group-status" name="group-by" value="status">
+                        <label for="group-status">By Status</label>
+                    </div>
+                    <div class="group-by-option">
+                        <input type="radio" id="group-verdict" name="group-by" value="verdict">
+                        <label for="group-verdict">By Verdict</label>
+                    </div>
+                    <div class="group-by-option">
+                        <input type="radio" id="group-date" name="group-by" value="date">
+                        <label for="group-date">By Date</label>
+                    </div>
+                `,
+                'questions': `
+                    <div class="group-by-option">
+                        <input type="radio" id="group-none" name="group-by" value="" checked>
+                        <label for="group-none">No Grouping</label>
+                    </div>
+                    <div class="group-by-option">
+                        <input type="radio" id="group-category" name="group-by" value="category">
+                        <label for="group-category">By Category</label>
+                    </div>
+                    <div class="group-by-option">
+                        <input type="radio" id="group-success-rate" name="group-by" value="success_rate">
+                        <label for="group-success-rate">By Success Rate</label>
+                    </div>
+                `
+            };
+            
+            return groupConfigs[tab] || '';
         }
 
         function closeFilterPanel() {
@@ -1649,22 +1839,252 @@
             document.getElementById('filter-panel-overlay').classList.remove('active');
         }
 
-        function toggleQuestionFilterPanel() {
-            const panel = document.getElementById('question-filter-panel');
-            const overlay = document.getElementById('filter-panel-overlay');
+        // Dynamic filter functions
+        function applyFilters(tab) {
+            console.log(`Applying filters for tab: ${tab}`);
             
-            if (panel.classList.contains('active')) {
-                panel.classList.remove('active');
-                overlay.classList.remove('active');
-            } else {
-                panel.classList.add('active');
-                overlay.classList.add('active');
+            switch(tab) {
+                case 'interviews':
+                    applyInterviewsFilters();
+                    break;
+                case 'questions':
+                    applyQuestionsFilters();
+                    break;
+                default:
+                    console.log('Unknown tab:', tab);
+            }
+            
+            closeFilterPanel();
+        }
+
+        function clearAllFilters(tab) {
+            console.log(`Clearing filters for tab: ${tab}`);
+            
+            // Clear all filter inputs in the current filter panel
+            const filterPanel = document.getElementById('filter-panel');
+            const inputs = filterPanel.querySelectorAll('input, select');
+            inputs.forEach(input => {
+                if (input.type === 'radio') {
+                    if (input.value === '') {
+                        input.checked = true;
+                    } else {
+                        input.checked = false;
+                    }
+                } else {
+                    input.value = '';
+                }
+            });
+            
+            // Apply the cleared filters
+            applyFilters(tab);
+        }
+
+        function exportData(tab) {
+            console.log(`Exporting data for tab: ${tab}`);
+            
+            switch(tab) {
+                case 'interviews':
+                    exportInterviews();
+                    break;
+                case 'questions':
+                    exportQuestions();
+                    break;
+                default:
+                    console.log('Unknown tab:', tab);
             }
         }
 
-        function closeQuestionFilterPanel() {
-            document.getElementById('question-filter-panel').classList.remove('active');
-            document.getElementById('filter-panel-overlay').classList.remove('active');
+        // Tab-specific filter functions
+        function applyInterviewsFilters() {
+            const searchTerm = document.getElementById('search-interviews')?.value || '';
+            const status = document.getElementById('status-filter')?.value || '';
+            const verdict = document.getElementById('verdict-filter')?.value || '';
+            const dateFrom = document.getElementById('date-from')?.value || '';
+            const dateTo = document.getElementById('date-to')?.value || '';
+            const sortBy = document.getElementById('sort-by')?.value || 'created_at_desc';
+            const groupBy = document.querySelector('input[name="group-by"]:checked')?.value || '';
+
+            console.log('Interviews filters:', { searchTerm, status, verdict, dateFrom, dateTo, sortBy, groupBy });
+            
+            // Apply filters to interviews data
+            let filteredInterviews = [...interviews];
+            
+            // Search filter
+            if (searchTerm) {
+                filteredInterviews = filteredInterviews.filter(i => 
+                    i.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    i.student_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    i.zeta_id.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+            }
+            
+            // Status filter
+            if (status) {
+                filteredInterviews = filteredInterviews.filter(i => i.status === status);
+            }
+            
+            // Verdict filter
+            if (verdict) {
+                filteredInterviews = filteredInterviews.filter(i => i.verdict === verdict);
+            }
+            
+            // Date filters
+            if (dateFrom) {
+                filteredInterviews = filteredInterviews.filter(i => new Date(i.created_at) >= new Date(dateFrom));
+            }
+            if (dateTo) {
+                filteredInterviews = filteredInterviews.filter(i => new Date(i.created_at) <= new Date(dateTo));
+            }
+            
+            // Sort
+            filteredInterviews = sortInterviews(filteredInterviews, sortBy);
+            
+            // Display filtered results
+            displayInterviews(filteredInterviews, groupBy);
+        }
+
+        function applyQuestionsFilters() {
+            const searchTerm = document.getElementById('search-questions')?.value || '';
+            const category = document.getElementById('category-filter')?.value || '';
+            const timesAskedMin = document.getElementById('times-asked-min')?.value || '';
+            const successRateMin = document.getElementById('success-rate-min')?.value || '';
+            const sortBy = document.getElementById('sort-by')?.value || 'times_asked_desc';
+            const groupBy = document.querySelector('input[name="group-by"]:checked')?.value || '';
+
+            console.log('Questions filters:', { searchTerm, category, timesAskedMin, successRateMin, sortBy, groupBy });
+            
+            // Apply filters to questions data
+            let filteredQuestions = [...questions];
+            
+            // Search filter
+            if (searchTerm) {
+                filteredQuestions = filteredQuestions.filter(q => 
+                    q.question.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+            }
+            
+            // Category filter
+            if (category) {
+                filteredQuestions = filteredQuestions.filter(q => q.category === category);
+            }
+            
+            // Times asked filter
+            if (timesAskedMin) {
+                filteredQuestions = filteredQuestions.filter(q => q.times_asked >= parseInt(timesAskedMin));
+            }
+            
+            // Success rate filter
+            if (successRateMin) {
+                filteredQuestions = filteredQuestions.filter(q => q.success_rate >= parseInt(successRateMin));
+            }
+            
+            // Sort
+            filteredQuestions = sortQuestions(filteredQuestions, sortBy);
+            
+            // Display filtered results
+            displayQuestions(filteredQuestions, groupBy);
+        }
+
+        // Sorting functions
+        function sortInterviews(interviews, sortBy) {
+            return interviews.sort((a, b) => {
+                const [field, direction] = sortBy.split('_');
+                let aVal, bVal;
+                
+                if (field === 'student_name') {
+                    aVal = a.student_name;
+                    bVal = b.student_name;
+                } else if (field === 'duration') {
+                    aVal = a.duration_seconds;
+                    bVal = b.duration_seconds;
+                } else {
+                    aVal = a[field];
+                    bVal = b[field];
+                }
+                
+                if (direction === 'asc') {
+                    return aVal > bVal ? 1 : -1;
+                } else {
+                    return aVal < bVal ? 1 : -1;
+                }
+            });
+        }
+
+        function sortQuestions(questions, sortBy) {
+            return questions.sort((a, b) => {
+                const [field, direction] = sortBy.split('_');
+                const aVal = a[field];
+                const bVal = b[field];
+                
+                if (direction === 'asc') {
+                    return aVal > bVal ? 1 : -1;
+                } else {
+                    return aVal < bVal ? 1 : -1;
+                }
+            });
+        }
+
+        // Export functions
+        function exportInterviews() {
+            const filteredInterviews = getCurrentFilteredInterviews();
+            const csvContent = generateInterviewsCSV(filteredInterviews);
+            downloadCSV(csvContent, 'my-interviews.csv');
+        }
+
+        function exportQuestions() {
+            const filteredQuestions = getCurrentFilteredQuestions();
+            const csvContent = generateQuestionsCSV(filteredQuestions);
+            downloadCSV(csvContent, 'questions.csv');
+        }
+
+        // Helper functions for getting current filtered data
+        function getCurrentFilteredInterviews() {
+            return interviews || [];
+        }
+
+        function getCurrentFilteredQuestions() {
+            return questions || [];
+        }
+
+        // CSV generation functions
+        function generateInterviewsCSV(interviews) {
+            const headers = ['Date', 'Student Name', 'Zeta ID', 'Session', 'Status', 'Verdict', 'Duration (min)'];
+            const rows = interviews.map(i => [
+                new Date(i.created_at).toLocaleDateString(),
+                `"${i.student_name.replace(/"/g, '""')}"`,
+                i.zeta_id,
+                i.session_name || 'N/A',
+                i.status,
+                i.verdict || 'N/A',
+                Math.round(i.duration_seconds / 60)
+            ]);
+            return [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+        }
+
+        function generateQuestionsCSV(questions) {
+            const headers = ['Question', 'Category', 'Times Asked', 'Correct Answers', 'Incorrect Answers', 'Success Rate', 'Created At'];
+            const rows = questions.map(q => [
+                `"${q.question.replace(/"/g, '""')}"`,
+                q.category,
+                q.times_asked,
+                q.correct_answers,
+                q.incorrect_answers,
+                q.success_rate,
+                new Date(q.created_at).toLocaleDateString()
+            ]);
+            return [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+        }
+
+        function downloadCSV(content, filename) {
+            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         async function loadMyInterviews() {
