@@ -4525,6 +4525,16 @@
                             (s.zeta_id && s.zeta_id.toLowerCase().includes(studentSearch.toLowerCase()))
                         );
                     }
+                    // Zeta ID filter
+                    const zetaIdFilter = getFilterValue('zeta-id-filter');
+                    if (zetaIdFilter) {
+                        filtered = filtered.filter(s => (s.zeta_id || '').toLowerCase().includes(zetaIdFilter.toLowerCase()));
+                    }
+                    // Email domain filter
+                    const emailDomainFilter = getFilterValue('email-domain-filter');
+                    if (emailDomainFilter) {
+                        filtered = filtered.filter(s => (s.email || '').toLowerCase().endsWith(emailDomainFilter.toLowerCase()));
+                    }
                     
                     // Date filters
                     const studentDateFrom = getFilterValue('student-date-from');

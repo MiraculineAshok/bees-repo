@@ -943,6 +943,23 @@
             border-bottom: none;
         }
         
+        /* Use full page with small padding */
+        html, body {
+            height: 100%;
+        }
+        body {
+            margin: 0;
+        }
+        .main-container {
+            width: 100%;
+            max-width: 100%;
+            padding: 0.5rem; /* small padding around */
+            box-sizing: border-box;
+        }
+        .interview-main, .right-panel {
+            box-sizing: border-box;
+        }
+
         .question-text {
             flex: 1;
             font-size: 0.9rem;
@@ -1641,10 +1658,10 @@
                         <div class="question-bank-filters">
                             <div class="form-group">
                                 <label class="form-label">Category</label>
-                                <select id="bank-category-select" class="form-select" onchange="loadQuestionsByCategory()">
-                                    <option value="">All Categories</option>
-                                    <option value="Favorites">My Favorites</option>
-                                </select>
+                        <select id="bank-category-select" class="form-select" onchange="loadQuestionsByCategory()">
+                            <option value="">All Categories</option>
+                            <option value="Favorites">My Favorites</option>
+                        </select>
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Search</label>
@@ -3298,6 +3315,30 @@
             }
         }
 
+        // Populate main bank category dropdown from DB when opening tab
+        async function populateMainBankCategories() {
+            try {
+                const res = await fetch('/api/question-bank/categories');
+                const json = await res.json();
+                if (!json.success) return;
+                const select = document.getElementById('bank-category-select');
+                if (!select) return;
+                const current = select.value;
+                select.innerHTML = '<option value="">All Categories</option><option value="Favorites">My Favorites</option>';
+                (json.data || []).forEach(categoryData => {
+                    const categoryName = typeof categoryData === 'string' ? categoryData : categoryData.category;
+                    if (!categoryName) return;
+                    const opt = document.createElement('option');
+                    opt.value = categoryName;
+                    opt.textContent = categoryName;
+                    select.appendChild(opt);
+                });
+                select.value = current;
+            } catch (e) {
+                console.warn('Failed to populate main bank categories', e);
+            }
+        }
+
         async function searchQuestions() {
             const searchTerm = document.getElementById('bank-search-input').value.trim();
             if (!searchTerm) {
@@ -3645,6 +3686,9 @@
             } else {
                 displayPanelQuestionBankList(panelQuestionBankData);
             }
+
+            // Ensure main bank categories are populated too
+            populateMainBankCategories();
         }
 
         function closeQuestionBankPanel() {
