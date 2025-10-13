@@ -4269,10 +4269,15 @@
                     <div style="font-weight:600;margin-bottom:8px;color:#059669">Success</div>
                     <div style="font-size:14px;color:#374151;margin-bottom:12px">${message}</div>
                     <div style="display:flex;gap:8px;justify-content:flex-end">
-                        <button onclick="this.closest('div[style*=\"position:fixed\"]').remove()" style="background:#059669;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer">OK</button>
+                        <button id="success-ok-btn" style="background:#059669;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer">OK</button>
                     </div>
                 </div>`;
             document.body.appendChild(modal);
+            
+            // Add event listener for OK button
+            modal.querySelector('#success-ok-btn').onclick = () => {
+                modal.remove();
+            };
         }
     </script>
 
