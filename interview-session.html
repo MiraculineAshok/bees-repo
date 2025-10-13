@@ -1840,8 +1840,9 @@
                 
                 if (response.ok && result.success && result.data && result.data.length > 0) {
                     currentStudent = result.data[0];
-                    console.log('Student data set:', currentStudent);
-                    console.log('currentStudent.id after API fetch:', currentStudent?.id);
+                    console.log('✅ Student data set:', currentStudent);
+                    console.log('✅ currentStudent.id after API fetch:', currentStudent?.id);
+                    console.log('✅ currentStudent keys:', Object.keys(currentStudent));
                     
                     // Ensure the student has an id field - if not, try to get it from the database
                     if (!currentStudent.id) {
@@ -1901,10 +1902,17 @@
             console.log('currentStudent type:', typeof currentStudent);
             console.log('currentStudent.id:', currentStudent?.id);
             console.log('currentStudent.zeta_id:', currentStudent?.zeta_id);
+            console.log('currentStudent keys:', currentStudent ? Object.keys(currentStudent) : 'null');
             
             if (!currentStudent) {
                 console.error('currentStudent is null/undefined');
                 await loadStudentData();
+                return;
+            }
+            
+            if (!currentStudent.id) {
+                console.error('❌ currentStudent.id is missing!', currentStudent);
+                showError('Student ID is missing. Please refresh the page.');
                 return;
             }
 
@@ -3235,6 +3243,110 @@
         }
 
         if (typeof window !== 'undefined') window.saveInterview = saveInterview;
+
+        // Utility functions
+        function showError(message) {
+            console.error('❌ Error:', message);
+            const errorDiv = document.getElementById('error-message');
+            if (errorDiv) {
+                errorDiv.textContent = message;
+                errorDiv.classList.remove('hidden');
+                setTimeout(() => {
+                    errorDiv.classList.add('hidden');
+                }, 5000);
+            } else {
+                alert(message); // Fallback
+            }
+        }
+
+        function showSuccess(message) {
+            console.log('✅ Success:', message);
+            const errorDiv = document.getElementById('error-message');
+            if (errorDiv) {
+                errorDiv.textContent = message;
+                errorDiv.style.color = '#059669';
+                errorDiv.classList.remove('hidden');
+                setTimeout(() => {
+                    errorDiv.classList.add('hidden');
+                    errorDiv.style.color = '#dc2626';
+                }, 3000);
+            } else {
+                alert(message); // Fallback
+            }
+        }
+
+        // Initialize avatar
+        async function initializeAvatar() {
+            try {
+                // Get user data from localStorage or URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const email = urlParams.get('email');
+                const name = urlParams.get('name');
+                
+                // Check localStorage for existing user data
+                const storedUserData = localStorage.getItem('bees_user_data');
+                let userData = null;
+                
+                if (storedUserData) {
+                    try {
+                        userData = JSON.parse(storedUserData);
+                    } catch (e) {
+                        console.error('Error parsing stored user data:', e);
+                        localStorage.removeItem('bees_user_data');
+                    }
+                }
+                
+                // Use URL params if available, otherwise use stored data
+                const userEmail = email || userData?.email;
+                const userName = name || userData?.name;
+                
+                if (userEmail || userName) {
+                    const avatar = document.getElementById('avatar');
+                    const avatarMenu = document.getElementById('avatar-menu');
+                    const loginBtn = document.getElementById('login-btn');
+                    
+                    if (avatar) {
+                        // Get user ID from API to ensure consistent avatar
+                        try {
+                            const userIdResponse = await fetch('/api/user/id');
+                            const userIdData = await userIdResponse.json();
+                            const userId = userIdData.success ? userIdData.userId : null;
+                            const initial = userId ? userId.toString().charAt(0).toUpperCase() : (userEmail || userName || 'U').trim().charAt(0).toUpperCase();
+                            avatar.textContent = initial || 'U';
+                        } catch (error) {
+                            console.error('Error fetching user ID:', error);
+                            const initial = (userEmail || userName || 'U').trim().charAt(0).toUpperCase();
+                            avatar.textContent = initial || 'U';
+                        }
+                        
+                        avatar.classList.remove('hidden');
+                        if (loginBtn) loginBtn.classList.add('hidden');
+                        
+                        avatar.onclick = () => {
+                            avatarMenu.classList.toggle('active');
+                        };
+                        
+                        document.addEventListener('click', (e) => {
+                            if (!avatar.contains(e.target) && !avatarMenu.contains(e.target)) {
+                                avatarMenu.classList.remove('active');
+                            }
+                        });
+                        
+                        const logoutBtn = document.getElementById('logout-btn-dropdown');
+                        if (logoutBtn) {
+                            logoutBtn.onclick = () => {
+                                if (confirm('Are you sure you want to logout?')) {
+                                    localStorage.removeItem('bees_user_data');
+                                    window.location.href = '/';
+                                }
+                            };
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error initializing avatar:', error);
+            }
+        }
 
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
