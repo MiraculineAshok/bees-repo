@@ -775,6 +775,155 @@
         .delete-question-btn:hover {
             background: #dc2626;
         }
+
+        /* Question Bank Sliding Panel */
+        .question-bank-panel {
+            position: fixed;
+            top: 0;
+            left: -400px;
+            width: 400px;
+            height: 100vh;
+            background: #ffffff;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            transition: left 0.3s ease;
+            overflow-y: auto;
+            border-right: 1px solid #e2e8f0;
+        }
+
+        .question-bank-panel.open {
+            left: 0;
+        }
+
+        .question-bank-panel-header {
+            padding: 1rem;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1001;
+        }
+
+        .question-bank-panel-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .question-bank-close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6b7280;
+            padding: 0.25rem;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .question-bank-close-btn:hover {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .question-bank-panel-content {
+            padding: 1rem;
+        }
+
+        .question-bank-panel-filters {
+            margin-bottom: 1rem;
+        }
+
+        .question-bank-panel-list {
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+
+        .question-bank-panel-item {
+            padding: 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #ffffff;
+        }
+
+        .question-bank-panel-item:hover {
+            background: #f8fafc;
+            border-color: #3b82f6;
+        }
+
+        .question-bank-panel-item.selected {
+            background: #dbeafe;
+            border-color: #2563eb;
+        }
+
+        .question-bank-panel-item-text {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            margin-bottom: 0.5rem;
+        }
+
+        .question-bank-panel-item-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        .question-bank-panel-item-category {
+            background: #f3f4f6;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+
+        .question-bank-panel-item-stats {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .question-bank-panel-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .question-bank-panel-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .question-bank-trigger-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .question-bank-trigger-btn:hover {
+            background: #2563eb;
+        }
         
         .question-bank-item {
             padding: 0.75rem;
@@ -1395,7 +1544,32 @@
         </div>
     </header>
 
-            
+    <!-- Question Bank Sliding Panel -->
+    <div class="question-bank-panel-overlay" id="question-bank-overlay" onclick="closeQuestionBankPanel()"></div>
+    <div class="question-bank-panel" id="question-bank-panel">
+        <div class="question-bank-panel-header">
+            <div class="question-bank-panel-title">📚 Question Bank</div>
+            <button class="question-bank-close-btn" onclick="closeQuestionBankPanel()">×</button>
+        </div>
+        <div class="question-bank-panel-content">
+            <div class="question-bank-panel-filters">
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select id="panel-category-select" class="form-select" onchange="loadPanelQuestionsByCategory()">
+                        <option value="">All Categories</option>
+                        <option value="Favorites">My Favorites</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Search</label>
+                    <input type="text" id="panel-search-input" class="form-input" placeholder="Search questions..." onkeyup="searchPanelQuestions()">
+                </div>
+            </div>
+            <div id="question-bank-panel-list" class="question-bank-panel-list">
+                <div class="loading">Loading questions...</div>
+            </div>
+        </div>
+    </div>
 
     <main class="main-container">
         <div class="interview-main">
@@ -1431,7 +1605,9 @@
                         <label class="form-label">Add Question</label>
                         <div class="question-source-tabs">
                             <button class="tab-btn active" onclick="switchQuestionSource('custom')">Custom Question</button>
-                            <button class="tab-btn" onclick="switchQuestionSource('bank')">Question Bank</button>
+                            <button class="question-bank-trigger-btn" onclick="openQuestionBankPanel()">
+                                📚 Question Bank
+                            </button>
                         </div>
                     </div>
                     
@@ -2947,6 +3123,8 @@
         // Question Bank Functions
         let questionBankData = [];
         let currentCategory = '';
+        let panelQuestionBankData = [];
+        let panelCurrentCategory = '';
 
         // Test function for debugging
         window.testQuestionBank = function() {
@@ -3445,6 +3623,185 @@
                 showError('Error adding question to bank');
             }
         }
+
+        // Question Bank Panel Functions
+        function openQuestionBankPanel() {
+            const panel = document.getElementById('question-bank-panel');
+            const overlay = document.getElementById('question-bank-overlay');
+            
+            panel.classList.add('open');
+            overlay.classList.add('active');
+            
+            // Load question bank data if not already loaded
+            if (panelQuestionBankData.length === 0) {
+                loadPanelQuestionBankData();
+            } else {
+                displayPanelQuestionBankList(panelQuestionBankData);
+            }
+        }
+
+        function closeQuestionBankPanel() {
+            const panel = document.getElementById('question-bank-panel');
+            const overlay = document.getElementById('question-bank-overlay');
+            
+            panel.classList.remove('open');
+            overlay.classList.remove('active');
+        }
+
+        async function loadPanelQuestionBankData() {
+            console.log('🔍 Loading panel question bank data...');
+            try {
+                // Load categories
+                const categoriesResponse = await fetch('/api/question-bank/categories');
+                if (!categoriesResponse.ok) {
+                    throw new Error(`HTTP ${categoriesResponse.status}: ${categoriesResponse.statusText}`);
+                }
+                
+                const categoriesResult = await categoriesResponse.json();
+                if (categoriesResult.success && categoriesResult.data) {
+                    const categorySelect = document.getElementById('panel-category-select');
+                    // Clear existing options except "All Categories" and "My Favorites"
+                    categorySelect.innerHTML = '<option value="">All Categories</option><option value="Favorites">My Favorites</option>';
+                    
+                    categoriesResult.data.forEach(category => {
+                        const option = document.createElement('option');
+                        option.value = category;
+                        option.textContent = category;
+                        categorySelect.appendChild(option);
+                    });
+                }
+                
+                // Load all questions
+                const questionsResponse = await fetch('/api/question-bank');
+                if (!questionsResponse.ok) {
+                    throw new Error(`HTTP ${questionsResponse.status}: ${questionsResponse.statusText}`);
+                }
+                
+                const questionsResult = await questionsResponse.json();
+                if (questionsResult.success && questionsResult.data) {
+                    panelQuestionBankData = questionsResult.data;
+                    displayPanelQuestionBankList(panelQuestionBankData);
+                } else {
+                    throw new Error(questionsResult.error || 'Failed to load questions');
+                }
+                
+            } catch (error) {
+                console.error('❌ Error loading panel question bank data:', error);
+                document.getElementById('question-bank-panel-list').innerHTML = 
+                    `<div class="error">Error loading questions: ${error.message}</div>`;
+            }
+        }
+
+        function displayPanelQuestionBankList(questions) {
+            const listContainer = document.getElementById('question-bank-panel-list');
+            
+            if (!questions || questions.length === 0) {
+                listContainer.innerHTML = '<div class="empty-state">No questions found</div>';
+                return;
+            }
+            
+            listContainer.innerHTML = questions.map(question => `
+                <div class="question-bank-panel-item" data-question-id="${question.id}" onclick="selectPanelQuestion(${question.id})">
+                    <div class="question-bank-panel-item-text">${question.question_text}</div>
+                    <div class="question-bank-panel-item-meta">
+                        <span class="question-bank-panel-item-category">${question.category || 'Uncategorized'}</span>
+                        <div class="question-bank-panel-item-stats">
+                            <span>Asked: ${question.times_asked || 0}</span>
+                            <span>Success: ${question.success_rate || 0}%</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectPanelQuestion(questionId) {
+            // Remove previous selection
+            document.querySelectorAll('.question-bank-panel-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // Add selection to clicked item
+            const selectedItem = document.querySelector(`[data-question-id="${questionId}"]`);
+            if (selectedItem) {
+                selectedItem.classList.add('selected');
+                
+                // Find the question data
+                const question = panelQuestionBankData.find(q => q.id === questionId);
+                if (question) {
+                    // Add the question to the interview
+                    addQuestionFromPanel(question.question_text);
+                    
+                    // Close the panel
+                    closeQuestionBankPanel();
+                }
+            }
+        }
+
+        function addQuestionFromPanel(questionText) {
+            // Add the question to the interview
+            const questionData = {
+                question_text: questionText,
+                student_answer: '',
+                answer_photo_url: null,
+                correct_status: null
+            };
+            
+            questions.push(questionData);
+            displayQuestions();
+            
+            // Show success message
+            showSuccessMessage('Question added from Question Bank!');
+        }
+
+        function loadPanelQuestionsByCategory() {
+            const categorySelect = document.getElementById('panel-category-select');
+            const selectedCategory = categorySelect.value;
+            panelCurrentCategory = selectedCategory;
+            
+            let filteredQuestions = [...panelQuestionBankData];
+            
+            if (selectedCategory === 'Favorites') {
+                // Filter for favorite questions (you might need to implement this based on your data structure)
+                filteredQuestions = filteredQuestions.filter(q => q.is_favorite);
+            } else if (selectedCategory) {
+                filteredQuestions = filteredQuestions.filter(q => q.category === selectedCategory);
+            }
+            
+            displayPanelQuestionBankList(filteredQuestions);
+        }
+
+        function searchPanelQuestions() {
+            const searchInput = document.getElementById('panel-search-input');
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            
+            let filteredQuestions = [...panelQuestionBankData];
+            
+            // Apply category filter first
+            if (panelCurrentCategory === 'Favorites') {
+                filteredQuestions = filteredQuestions.filter(q => q.is_favorite);
+            } else if (panelCurrentCategory) {
+                filteredQuestions = filteredQuestions.filter(q => q.category === panelCurrentCategory);
+            }
+            
+            // Apply search filter
+            if (searchTerm) {
+                filteredQuestions = filteredQuestions.filter(q => 
+                    q.question_text.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            displayPanelQuestionBankList(filteredQuestions);
+        }
+
+        // Close panel when clicking outside
+        document.addEventListener('click', function(event) {
+            const panel = document.getElementById('question-bank-panel');
+            const overlay = document.getElementById('question-bank-overlay');
+            
+            if (event.target === overlay) {
+                closeQuestionBankPanel();
+            }
+        });
 
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
