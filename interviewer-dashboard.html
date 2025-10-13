@@ -2356,28 +2356,54 @@
                                     <div class="photo-gallery">
                                         ${(() => {
                                             try {
-                                                const photoUrls = JSON.parse(q.answer_photo_url);
-                                                if (Array.isArray(photoUrls)) {
-                                                    return photoUrls.map((url, index) => `
-                                                        <div class="photo-item">
-                                                            <img src="${url}" alt="Answer photo" class="answer-image" onclick="openImageModal('${url}')">
-                                                        </div>
-                                                    `).join('');
+                                                console.log('Raw answer_photo_url:', q.answer_photo_url);
+                                                console.log('Type of answer_photo_url:', typeof q.answer_photo_url);
+                                                
+                                                // Handle different formats of answer_photo_url
+                                                let photoUrls;
+                                                
+                                                if (typeof q.answer_photo_url === 'string') {
+                                                    // Try to parse as JSON
+                                                    try {
+                                                        photoUrls = JSON.parse(q.answer_photo_url);
+                                                    } catch (parseError) {
+                                                        console.log('Not valid JSON, treating as single URL');
+                                                        photoUrls = q.answer_photo_url;
+                                                    }
                                                 } else {
+                                                    photoUrls = q.answer_photo_url;
+                                                }
+                                                
+                                                console.log('Parsed photoUrls:', photoUrls);
+                                                
+                                                if (Array.isArray(photoUrls)) {
+                                                    return photoUrls.map((url, index) => {
+                                                        // Clean up URL if it has malformed characters
+                                                        const cleanUrl = url.replace(/^\[|\]$/g, '').replace(/^"|"$/g, '');
+                                                        console.log(`Processing URL ${index}:`, cleanUrl);
+                                                        return `
+                                                            <div class="photo-item">
+                                                                <img src="${cleanUrl}" alt="Answer photo" class="answer-image" onclick="openImageModal('${cleanUrl}')">
+                                                            </div>
+                                                        `;
+                                                    }).join('');
+                                                } else if (typeof photoUrls === 'string' && photoUrls.trim()) {
                                                     // Handle single image (backward compatibility)
+                                                    const cleanUrl = photoUrls.replace(/^\[|\]$/g, '').replace(/^"|"$/g, '');
+                                                    console.log('Single URL:', cleanUrl);
                                                     return `
                                                         <div class="photo-item">
-                                                            <img src="${q.answer_photo_url}" alt="Answer photo" class="answer-image" onclick="openImageModal('${q.answer_photo_url}')">
+                                                            <img src="${cleanUrl}" alt="Answer photo" class="answer-image" onclick="openImageModal('${cleanUrl}')">
                                                         </div>
                                                     `;
+                                                } else {
+                                                    console.log('No valid photo URLs found');
+                                                    return '<p>No valid images found</p>';
                                                 }
                                             } catch (e) {
-                                                // Handle single image (backward compatibility)
-                                                return `
-                                                    <div class="photo-item">
-                                                        <img src="${q.answer_photo_url}" alt="Answer photo" class="answer-image" onclick="openImageModal('${q.answer_photo_url}')">
-                                                    </div>
-                                                `;
+                                                console.error('Error processing photo URLs:', e);
+                                                console.log('Raw value:', q.answer_photo_url);
+                                                return '<p>Error loading images</p>';
                                             }
                                         })()}
                                     </div>
