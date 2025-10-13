@@ -1205,6 +1205,27 @@
     </style>
 </head>
 <body>
+    <script>
+        // Ensure global handler exists before any inline onclick runs
+        window.showSection = window.showSection || function(sectionName) {
+            try {
+                document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+                const sec = document.getElementById(sectionName + '-section');
+                if (sec) sec.classList.add('active');
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                const nav = document.querySelector(`[onclick="showSection('${sectionName}')"]`);
+                if (nav) nav.classList.add('active');
+                const titles = { interviews: 'My Interviews', questions: 'Question Analysis' };
+                const t = document.getElementById('page-title');
+                if (t) t.textContent = titles[sectionName] || '';
+                const url = new URL(window.location);
+                url.searchParams.set('tab', sectionName);
+                window.history.replaceState({}, '', url);
+            } catch (e) {
+                // no-op
+            }
+        };
+    </script>
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar">
