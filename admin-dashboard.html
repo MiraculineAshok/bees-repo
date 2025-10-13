@@ -3047,6 +3047,7 @@
                         <table class="table">
                             <thead>
                                 <tr>
+                                    <th><input type="checkbox" onclick="toggleAllRows(this.checked)"></th>
                                     <th>ID</th>
                                     <th>Student</th>
                                     <th>Interviewer</th>
@@ -3060,17 +3061,20 @@
                             </thead>
                             <tbody>
                                 ${groupInterviews.map(interview => `
-                                    <tr>
-                                        <td>${interview.id}</td>
-                                        <td>${interview.student_name || 'N/A'}</td>
-                                        <td>${interview.interviewer_name || 'N/A'}</td>
-                                        <td>${interview.session_name || 'N/A'}</td>
-                                        <td>${formatDate(interview.interview_date)}</td>
-                                        <td>${formatDuration(interview.duration_seconds)}</td>
-                                        <td><span class="status-badge status-${interview.status}">${interview.status}</span></td>
-                                        <td>${interview.verdict || 'N/A'}</td>
+                                    <tr data-row-id="${interview.id}">
+                                        <td><input type="checkbox" class="row-checkbox" data-row-id="${interview.id}" onchange="toggleRowSelection('${interview.id}')"></td>
+                                        <td data-field="id">${interview.id}</td>
+                                        <td data-field="student_name">${interview.student_name || 'N/A'}</td>
+                                        <td data-field="interviewer_name">${interview.interviewer_name || 'N/A'}</td>
+                                        <td data-field="session_name">${interview.session_name || 'N/A'}</td>
+                                        <td data-field="interview_date">${formatDate(interview.interview_date)}</td>
+                                        <td data-field="duration_seconds">${formatDuration(interview.duration_seconds)}</td>
+                                        <td data-field="status"><span class="status-badge status-${interview.status}">${interview.status}</span></td>
+                                        <td data-field="verdict">${interview.verdict || 'N/A'}</td>
                                         <td>
-                                            <button class="btn btn-primary" onclick="viewInterview(${interview.id})">View</button>
+                                            <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit">✏️</button>
+                                            <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete">🗑️</button>
+                                            <button class="icon-btn" onclick="viewInterview(${interview.id})" title="View">👁️</button>
                                         </td>
                                     </tr>
                                 `).join('')}
