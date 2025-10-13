@@ -78,6 +78,75 @@ async function initializeDatabase() {
       )
     `);
     
+    // Create interviews table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS interviews (
+        id SERIAL PRIMARY KEY,
+        student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+        interviewer_id INTEGER NOT NULL REFERENCES authorized_users(id) ON DELETE CASCADE,
+        session_id INTEGER REFERENCES interview_sessions(id) ON DELETE SET NULL,
+        interview_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        status VARCHAR(20) DEFAULT 'in_progress',
+        verdict VARCHAR(50),
+        overall_notes TEXT,
+        start_time TIMESTAMP,
+        end_time TIMESTAMP,
+        duration_seconds INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    // Create interview_questions table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS interview_questions (
+        id SERIAL PRIMARY KEY,
+        interview_id INTEGER NOT NULL REFERENCES interviews(id) ON DELETE CASCADE,
+        question_text TEXT NOT NULL,
+        student_answer TEXT,
+        answer_photo_url VARCHAR(500),
+        question_order INTEGER DEFAULT 1,
+        correct_status BOOLEAN,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    // Create interview_sessions table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS interview_sessions (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        status VARCHAR(20) DEFAULT 'active',
+        created_by INTEGER REFERENCES authorized_users(id) ON DELETE SET NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    // Create session_panelists table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS session_panelists (
+        id SERIAL PRIMARY KEY,
+        session_id INTEGER NOT NULL REFERENCES interview_sessions(id) ON DELETE CASCADE,
+        user_id INTEGER NOT NULL REFERENCES authorized_users(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(session_id, user_id)
+      )
+    `);
+    
+    // Create interviewer_favorites table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS interviewer_favorites (
+        id SERIAL PRIMARY KEY,
+        interviewer_id INTEGER NOT NULL REFERENCES authorized_users(id) ON DELETE CASCADE,
+        question_id INTEGER NOT NULL REFERENCES question_bank(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(interviewer_id, question_id)
+      )
+    `);
+    
     // Add missing columns to existing table if they don't exist
     try {
       await pool.query(`
@@ -131,6 +200,15 @@ async function initializeDatabase() {
       ON CONFLICT DO NOTHING
     `);
     console.log('✅ Sample questions inserted');
+    
+    // Insert sample interview session
+    await pool.query(`
+      INSERT INTO interview_sessions (name, description, status) 
+      VALUES 
+        ('Face to Face for St Mary\'s School', 'General interview session for St Mary\'s School students', 'active')
+      ON CONFLICT DO NOTHING
+    `);
+    console.log('✅ Sample interview session inserted');
     
     // Create index on email for faster lookups
     await pool.query(`

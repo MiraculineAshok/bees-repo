@@ -30,6 +30,7 @@ class InterviewerService {
                     CONCAT(s.first_name, ' ', s.last_name) as student_name,
                     s.email as student_email,
                     s.zeta_id,
+                    i.session_id,
                     ins.name as session_name
                 FROM interviews i
                 LEFT JOIN students s ON i.student_id = s.id

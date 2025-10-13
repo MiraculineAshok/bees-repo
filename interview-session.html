@@ -3057,6 +3057,14 @@
                     await saveNotes();
                 }
 
+                // Save current duration
+                if (interviewStartTime) {
+                    const currentTime = new Date();
+                    const durationSeconds = Math.floor((currentTime - interviewStartTime) / 1000);
+                    await updateInterviewDuration(durationSeconds, currentTime);
+                    console.log('✅ Interview duration saved:', durationSeconds, 'seconds');
+                }
+
                 showSuccess('Interview saved successfully!');
             } catch (error) {
                 console.error('Error saving interview:', error);

@@ -737,6 +737,7 @@ class MockDataService {
                 student_name: this.students.find(s => s.id === interview.student_id)?.name || 'Unknown',
                 student_email: this.students.find(s => s.id === interview.student_id)?.email || 'Unknown',
                 zeta_id: this.students.find(s => s.id === interview.student_id)?.zeta_id || 'Unknown',
+                session_id: interview.session_id || 1,
                 session_name: 'Face to Face for St Mary\'s School'
             })));
         }
