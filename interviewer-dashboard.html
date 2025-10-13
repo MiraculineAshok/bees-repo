@@ -1738,6 +1738,13 @@
                         </select>
                     </div>
                     <div class="filter-group">
+                        <label>Session:</label>
+                        <select id="session-filter" class="form-select">
+                            <option value="">All Sessions</option>
+                            ${[...new Set((interviews || []).map(i => i.session_name).filter(Boolean))].map(name => `<option value="${name}">${name}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="filter-group">
                         <label>Date From:</label>
                         <input type="date" id="date-from" class="form-input">
                     </div>
@@ -1917,6 +1924,12 @@
                     const verdict = getFilterValue('verdict-filter');
                     if (verdict) {
                         filtered = filtered.filter(i => i.verdict === verdict);
+                    }
+
+                    // Session filter
+                    const sessionName = getFilterValue('session-filter');
+                    if (sessionName) {
+                        filtered = filtered.filter(i => (i.session_name || '') === sessionName);
                     }
                     
                     // Date filters

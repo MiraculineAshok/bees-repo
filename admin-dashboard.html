@@ -3976,6 +3976,13 @@
                         </select>
                     </div>
                     <div class="filter-group">
+                        <label>Session:</label>
+                        <select id="session-filter" class="form-select">
+                            <option value="">All Sessions</option>
+                            ${getUniqueValues(interviews, 'session_name').map(name => `<option value="${name}">${name}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="filter-group">
                         <label>Date From:</label>
                         <input type="date" id="date-from" class="form-input">
                     </div>
@@ -4065,6 +4072,13 @@
                         <select id="my-verdict-filter" class="form-select">
                             <option value="">All Verdicts</option>
                             ${getUniqueValues(myInterviews, 'verdict').map(verdict => `<option value="${verdict}">${verdict}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Session:</label>
+                        <select id="my-session-filter" class="form-select">
+                            <option value="">All Sessions</option>
+                            ${getUniqueValues(myInterviews, 'session_name').map(name => `<option value="${name}">${name}</option>`).join('')}
                         </select>
                     </div>
                     <div class="filter-group">
@@ -4415,6 +4429,12 @@
                     const verdict = getFilterValue('verdict-filter');
                     if (verdict) {
                         filtered = filtered.filter(i => i.verdict === verdict);
+                    }
+
+                    // Session filter
+                    const sessionName = getFilterValue('session-filter');
+                    if (sessionName) {
+                        filtered = filtered.filter(i => (i.session_name || '') === sessionName);
                     }
                     
                     // Date filters
@@ -5087,6 +5107,7 @@
             const searchTerm = document.getElementById('search-my-interviews')?.value || '';
             const status = document.getElementById('my-status-filter')?.value || '';
             const verdict = document.getElementById('my-verdict-filter')?.value || '';
+            const sessionName = document.getElementById('my-session-filter')?.value || '';
             const dateFrom = document.getElementById('my-date-from')?.value || '';
             const dateTo = document.getElementById('my-date-to')?.value || '';
             const sortBy = document.getElementById('sort-by')?.value || 'created_at_desc';
@@ -5114,6 +5135,11 @@
             // Verdict filter
             if (verdict) {
                 filteredMyInterviews = filteredMyInterviews.filter(i => i.verdict === verdict);
+            }
+
+            // Session filter
+            if (sessionName) {
+                filteredMyInterviews = filteredMyInterviews.filter(i => (i.session_name || '') === sessionName);
             }
             
             // Date filters
