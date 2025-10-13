@@ -7957,17 +7957,29 @@
                 const text = await file.text();
                 const lines = text.split('\n').filter(line => line.trim());
                 
-                // Skip header row
-                for (let i = 1; i < lines.length; i++) {
+                // Skip header row if it exists
+                for (let i = 0; i < lines.length; i++) {
                     const line = lines[i].trim();
-                    if (line) {
-                        const parts = line.split(',').map(part => part.trim().replace(/"/g, ''));
-                        if (parts[0]) {
-                            questions.push({
-                                question: parts[0],
-                                category: parts[1] || 'General'
-                            });
-                        }
+                    if (!line) continue;
+                    
+                    // Skip header row if it contains 'question' or 'category'
+                    if (i === 0 && (line.toLowerCase().includes('question') || line.toLowerCase().includes('category'))) {
+                        continue;
+                    }
+                    
+                    // Use proper CSV parsing that handles quoted fields
+                    const parsed = parseCSVLine(line);
+                    if (parsed.length >= 2) {
+                        questions.push({
+                            question: parsed[0].trim(),
+                            category: parsed[1].trim() || 'General'
+                        });
+                    } else if (parsed.length === 1) {
+                        // If only one column, treat it as question with default category
+                        questions.push({
+                            question: parsed[0].trim(),
+                            category: 'General'
+                        });
                     }
                 }
             } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
@@ -8167,10 +8179,13 @@
                     return;
                 }
                 
-                // Parse questions
+                // Parse questions (format: "Question text | Category")
                 const lines = questionsText.split('\n').filter(line => line.trim());
-                questions = lines.map(line => {
+                questions = lines.map((line, index) => {
                     const parts = line.split('|').map(part => part.trim());
+                    if (parts.length === 0 || !parts[0]) {
+                        throw new Error(`Line ${index + 1}: Empty question text`);
+                    }
                     return {
                         question: parts[0],
                         category: parts[1] || 'General'
@@ -8428,10 +8443,13 @@
             <!-- File Upload Section -->
             <div id="file-import-section" style="display:none">
                 <div style="margin-bottom:16px;padding:12px;background:#f3f4f6;border-radius:6px;font-size:14px;color:#374151">
-                    <strong>Supported Formats:</strong><br>
-                    • CSV files (.csv) - First row should be headers: "Question,Category"<br>
-                    • Excel files (.xlsx, .xls) - First row should be headers: "Question,Category"<br>
-                    • Category column is optional
+                    <strong>CSV Format Instructions:</strong><br>
+                    • First row can be a header (will be skipped)<br>
+                    • Format: "Question,Category" or just "Question"<br>
+                    • <strong>Important:</strong> Use quotes around questions that contain commas<br>
+                    • Example: "What is JavaScript, and how does it work?",Technical<br>
+                    • Example: "Tell me about yourself,Behavioral"<br>
+                    • <strong>For questions with commas:</strong> "Explain the difference between let, const, and var in JavaScript",Technical
                 </div>
                 <div style="margin-bottom:16px">
                     <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Upload File *</label>
