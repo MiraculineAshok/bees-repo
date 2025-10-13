@@ -2507,6 +2507,9 @@
                 return;
             }
 
+            // Check if user is admin/superadmin to show verdict
+            const isAdmin = userRole === 'admin' || userRole === 'superadmin';
+
             previousInterviewsList.innerHTML = previousInterviews.map(interview => {
                 const date = new Date(interview.created_at).toLocaleDateString();
                 const sessionName = interview.session_name || 'General Interview';
@@ -2522,7 +2525,7 @@
                             <span class="previous-interview-date">${date}</span>
                             <div>
                                 <span class="previous-interview-status ${statusClass}">${statusText}</span>
-                                ${interview.verdict ? `<span class="previous-interview-verdict">${interview.verdict}</span>` : ''}
+                                ${isAdmin && interview.verdict ? `<span class="previous-interview-verdict">${interview.verdict}</span>` : ''}
                             </div>
                         </div>
                         <div class="previous-interview-details">
@@ -2537,10 +2540,6 @@
                             <div class="interview-detail-row">
                                 <span class="detail-label">Duration:</span>
                                 <span class="detail-value">${duration}</span>
-                            </div>
-                            <div class="interview-detail-row">
-                                <span class="detail-label">Status:</span>
-                                <span class="detail-value ${statusClass}">${statusText}</span>
                             </div>
                         </div>
                         <div class="previous-interview-questions">
