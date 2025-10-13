@@ -1225,6 +1225,54 @@
                 // no-op
             }
         };
+
+        // Provide globals for header buttons to avoid ReferenceError, with lightweight UIs
+        window.openAddQuestionModal = window.openAddQuestionModal || async function() {
+            try {
+                const question = prompt('Enter question');
+                if (!question) return;
+                const category = prompt('Enter category (e.g., English)') || 'General';
+                const res = await fetch('/api/question-bank', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question, category }) });
+                const json = await res.json();
+                if (!res.ok || !json.success) throw new Error(json.error || 'Add failed');
+                if (typeof loadQuestions === 'function') loadQuestions();
+            } catch (e) { console.error(e); alert('Failed to add question'); }
+        };
+        window.openImportQuestionsModal = window.openImportQuestionsModal || function() {
+            let input = document.getElementById('iv-import-file');
+            if (!input) {
+                input = document.createElement('input');
+                input.type = 'file';
+                input.id = 'iv-import-file';
+                input.accept = '.csv';
+                input.style.display = 'none';
+                input.addEventListener('change', async () => {
+                    const file = input.files && input.files[0];
+                    if (!file) return;
+                    try {
+                        const text = await file.text();
+                        const lines = text.split(/\r?\n/).filter(l => l.trim());
+                        const parsed = [];
+                        for (const line of lines) {
+                            const row = (function parseLine(l){ const out=[]; let cur='', q=false; for (let i=0;i<l.length;i++){ const ch=l[i], nx=l[i+1]; if(ch==='"'){ if(q && nx==='"'){ cur+='"'; i++; } else { q=!q; } } else if(ch===',' && !q){ out.push(cur); cur=''; } else { cur+=ch; } } out.push(cur); return out; })(line);
+                            if (row.length>=2) parsed.push({ question: row[0].trim(), category: row[1].trim()||'General' });
+                            else if (row.length===1) parsed.push({ question: row[0].trim(), category: 'General' });
+                        }
+                        // bulk import in batches
+                        const batchSize = 20;
+                        for (let i=0;i<parsed.length;i+=batchSize){
+                            const batch = parsed.slice(i,i+batchSize);
+                            await fetch('/api/question-bank/bulk-import', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ questions: batch }) });
+                        }
+                        alert('Import completed');
+                        if (typeof loadQuestions === 'function') loadQuestions();
+                    } catch (e) { console.error(e); alert('Import failed'); }
+                    input.value = '';
+                });
+                document.body.appendChild(input);
+            }
+            input.click();
+        };
     </script>
     <div class="dashboard-container">
         <!-- Sidebar -->
@@ -1669,7 +1717,7 @@
         // Filter Panel Functions
         let currentFilterTab = 'interviews'; // Default tab
         
-        function toggleFilterPanel(tab = 'interviews') {
+        window.toggleFilterPanel = function(tab = 'interviews') {
             // Close all filter panels first
             document.querySelectorAll('.filter-panel').forEach(panel => {
                 panel.classList.remove('active');
