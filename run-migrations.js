@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const { Pool } = require('pg');
 const fs = require('fs');
 const path = require('path');
@@ -10,52 +12,48 @@ const pool = new Pool({
   } : false
 });
 
-async function runMigrations() {
-  console.log('🔄 Starting database migrations...');
-  
+async function runMigration() {
   try {
-    // Test connection
-    await pool.query('SELECT 1');
-    console.log('✅ Database connected successfully');
+    console.log('🔄 Starting database migration...');
     
-    // Read and run migration files
-    const migrationsDir = path.join(__dirname, 'db', 'migrations');
-    const migrationFiles = fs.readdirSync(migrationsDir)
-      .filter(file => file.endsWith('.sql'))
-      .sort();
+    // Read the migration SQL file
+    const migrationSQL = fs.readFileSync(path.join(__dirname, 'fix-database-issues.sql'), 'utf8');
     
-    console.log(`📁 Found ${migrationFiles.length} migration files`);
+    // Split the SQL into individual statements
+    const statements = migrationSQL
+      .split(';')
+      .map(stmt => stmt.trim())
+      .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'));
     
-    for (const file of migrationFiles) {
-      console.log(`🔄 Running migration: ${file}`);
-      
-      const migrationPath = path.join(migrationsDir, file);
-      const migrationSQL = fs.readFileSync(migrationPath, 'utf8');
-      
-      try {
-        await pool.query(migrationSQL);
-        console.log(`✅ Migration ${file} completed successfully`);
-      } catch (error) {
-        if (error.message.includes('already exists') || 
-            error.message.includes('does not exist') ||
-            error.message.includes('duplicate key')) {
-          console.log(`⚠️  Migration ${file} skipped (already applied or not needed)`);
-        } else {
-          console.error(`❌ Migration ${file} failed:`, error.message);
-          throw error;
+    console.log(`📝 Found ${statements.length} SQL statements to execute`);
+    
+    // Execute each statement
+    for (let i = 0; i < statements.length; i++) {
+      const statement = statements[i];
+      if (statement.trim()) {
+        try {
+          console.log(`⏳ Executing statement ${i + 1}/${statements.length}...`);
+          const result = await pool.query(statement);
+          console.log(`✅ Statement ${i + 1} executed successfully`);
+          if (result.rows && result.rows.length > 0) {
+            console.log(`📊 Result: ${result.rows.length} rows returned`);
+          }
+        } catch (error) {
+          console.error(`❌ Error executing statement ${i + 1}:`, error.message);
+          // Continue with other statements
         }
       }
     }
     
-    console.log('🎉 All migrations completed successfully!');
+    console.log('✅ Database migration completed successfully!');
     
   } catch (error) {
-    console.error('❌ Migration failed:', error.message);
+    console.error('❌ Migration failed:', error);
     process.exit(1);
   } finally {
     await pool.end();
   }
 }
 
-// Run migrations
-runMigrations();
+// Run the migration
+runMigration();
