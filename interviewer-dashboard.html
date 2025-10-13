@@ -1662,11 +1662,11 @@
             if (activeSection) {
                 const sectionId = activeSection.id;
                 switch(sectionId) {
-                    case 'interviews':
-                        displayInterviews();
+                    case 'interviews-section':
+                        displayInterviews(allInterviews);
                         break;
-                    case 'questions':
-                        displayQuestionAnalytics();
+                    case 'questions-section':
+                        displayQuestionAnalytics(allQuestions);
                         break;
                 }
             }
@@ -1779,11 +1779,14 @@
             document.getElementById(sectionName + '-section').classList.add('active');
             
             // Add active class to clicked nav link
-            if (event && event.target) {
+            if (event && event.target && event.target.classList) {
                 event.target.classList.add('active');
             } else {
                 // If called programmatically, find the correct nav link
-                document.querySelector(`[onclick="showSection('${sectionName}')"]`).classList.add('active');
+                const navLink = document.querySelector(`[onclick="showSection('${sectionName}')"]`);
+                if (navLink) {
+                    navLink.classList.add('active');
+                }
             }
             
             // Update page title
