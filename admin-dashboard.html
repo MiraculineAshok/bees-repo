@@ -3047,7 +3047,6 @@
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th><input type="checkbox" onclick="toggleAllRows(this.checked)"></th>
                                     <th>ID</th>
                                     <th>Student</th>
                                     <th>Interviewer</th>
@@ -3061,20 +3060,17 @@
                             </thead>
                             <tbody>
                                 ${groupInterviews.map(interview => `
-                                    <tr data-row-id="${interview.id}">
-                                        <td><input type="checkbox" class="row-checkbox" data-row-id="${interview.id}" onchange="toggleRowSelection('${interview.id}')"></td>
-                                        <td data-field="id">${interview.id}</td>
-                                        <td data-field="student_name">${interview.student_name || 'N/A'}</td>
-                                        <td data-field="interviewer_name">${interview.interviewer_name || 'N/A'}</td>
-                                        <td data-field="session_name">${interview.session_name || 'N/A'}</td>
-                                        <td data-field="interview_date">${formatDate(interview.interview_date)}</td>
-                                        <td data-field="duration_seconds">${formatDuration(interview.duration_seconds)}</td>
-                                        <td data-field="status"><span class="status-badge status-${interview.status}">${interview.status}</span></td>
-                                        <td data-field="verdict">${interview.verdict || 'N/A'}</td>
+                                    <tr>
+                                        <td>${interview.id}</td>
+                                        <td>${interview.student_name || 'N/A'}</td>
+                                        <td>${interview.interviewer_name || 'N/A'}</td>
+                                        <td>${interview.session_name || 'N/A'}</td>
+                                        <td>${formatDate(interview.interview_date)}</td>
+                                        <td>${formatDuration(interview.duration_seconds)}</td>
+                                        <td><span class="status-badge status-${interview.status}">${interview.status}</span></td>
+                                        <td>${interview.verdict || 'N/A'}</td>
                                         <td>
-                                            <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit">✏️</button>
-                                            <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete">🗑️</button>
-                                            <button class="icon-btn" onclick="viewInterview(${interview.id})" title="View">👁️</button>
+                                            <button class="btn btn-primary" onclick="viewInterview(${interview.id})">View</button>
                                         </td>
                                     </tr>
                                 `).join('')}
@@ -3942,13 +3938,13 @@
                         ${generateSortOptions(tab)}
                     </div>
                 </div>
-                ${supportsGroupBy(tab) ? `
+                
                 <div class="group-by-section">
                     <div class="filter-section-title">📋 Group By</div>
                     <div class="group-by-options">
                         ${generateGroupByOptions(tab)}
                     </div>
-                </div>` : ''}
+                </div>
                 
                 <div class="filter-actions">
                     <button class="btn-filter" onclick="applyFilters('${tab}', true)">Apply Filters</button>
@@ -3956,11 +3952,6 @@
                     <button class="btn-export" onclick="exportData('${tab}')">Export Data</button>
                 </div>
             `;
-        }
-
-        function supportsGroupBy(tab) {
-            // Only these tabs support group by
-            return tab === 'interviews' || tab === 'questions' || tab === 'my-interviews';
         }
 
         function generateFilterFields(tab) {
@@ -4534,17 +4525,19 @@
                             (s.zeta_id && s.zeta_id.toLowerCase().includes(studentSearch.toLowerCase()))
                         );
                     }
+                    
                     // Zeta ID filter
                     const zetaIdFilter = getFilterValue('zeta-id-filter');
                     if (zetaIdFilter) {
                         filtered = filtered.filter(s => (s.zeta_id || '').toLowerCase().includes(zetaIdFilter.toLowerCase()));
                     }
+
                     // Email domain filter
                     const emailDomainFilter = getFilterValue('email-domain-filter');
                     if (emailDomainFilter) {
                         filtered = filtered.filter(s => (s.email || '').toLowerCase().endsWith(emailDomainFilter.toLowerCase()));
                     }
-                    
+
                     // Date filters
                     const studentDateFrom = getFilterValue('student-date-from');
                     const studentDateTo = getFilterValue('student-date-to');
