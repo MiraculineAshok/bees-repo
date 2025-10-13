@@ -3722,14 +3722,16 @@
         async function loadPanelQuestionsByCategory() {
             const selectEl = document.getElementById('panel-category-select');
             if (!selectEl) return;
-            const category = selectEl.value;
+            const category = (selectEl.value || '').trim();
             console.log('[Panel] Category changed ->', category);
+            // persist current category for search filtering
+            try { window.panelCurrentCategory = category; } catch {}
             try {
                 let data = [];
                 if (!category) {
                     data = panelQuestionBankData || [];
                     console.log('[Panel] Using all questions, count =', data.length);
-                } else if (category === 'Favorites') {
+                } else if (category.toLowerCase().includes('favorite')) {
                     const email = (JSON.parse(localStorage.getItem('bees_user_data') || '{}')?.email) || '';
                     console.log('[Panel][Favorites] Using email =', email);
                     const url = `/api/interviewer/favorites${email ? `?email=${encodeURIComponent(email)}` : ''}`;
@@ -3935,22 +3937,7 @@
             showSuccessMessage('Question added from Question Bank!');
         }
 
-        function loadPanelQuestionsByCategory() {
-            const categorySelect = document.getElementById('panel-category-select');
-            const selectedCategory = categorySelect.value;
-            panelCurrentCategory = selectedCategory;
-            
-            let filteredQuestions = [...panelQuestionBankData];
-            
-            if (selectedCategory === 'Favorites') {
-                // Filter for favorite questions (you might need to implement this based on your data structure)
-                filteredQuestions = filteredQuestions.filter(q => q.is_favorite);
-            } else if (selectedCategory) {
-                filteredQuestions = filteredQuestions.filter(q => q.category === selectedCategory);
-            }
-            
-            displayPanelQuestionBankList(filteredQuestions);
-        }
+        // removed old simple loadPanelQuestionsByCategory (replaced by async version above)
 
         function searchPanelQuestions() {
             const searchInput = document.getElementById('panel-search-input');
