@@ -84,8 +84,9 @@ async function initializeDatabase() {
         ALTER TABLE question_bank 
         ADD COLUMN IF NOT EXISTS times_answered_correctly INTEGER DEFAULT 0
       `);
+      console.log('✅ Added times_answered_correctly column');
     } catch (error) {
-      // Column might already exist, ignore error
+      console.log('⚠️ times_answered_correctly column might already exist:', error.message);
     }
 
     try {
@@ -93,8 +94,9 @@ async function initializeDatabase() {
         ALTER TABLE question_bank 
         ADD COLUMN IF NOT EXISTS times_answered_incorrectly INTEGER DEFAULT 0
       `);
+      console.log('✅ Added times_answered_incorrectly column');
     } catch (error) {
-      // Column might already exist, ignore error
+      console.log('⚠️ times_answered_incorrectly column might already exist:', error.message);
     }
 
     try {
@@ -102,8 +104,9 @@ async function initializeDatabase() {
         ALTER TABLE question_bank 
         ADD COLUMN IF NOT EXISTS is_favorite BOOLEAN DEFAULT FALSE
       `);
+      console.log('✅ Added is_favorite column');
     } catch (error) {
-      // Column might already exist, ignore error
+      console.log('⚠️ is_favorite column might already exist:', error.message);
     }
     
     // Create index on email for faster lookups

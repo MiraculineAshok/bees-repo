@@ -27,12 +27,13 @@ class QuestionBankService {
             
             const query = `
                 SELECT id, question as question_text, category, times_asked, 
-                       times_answered_correctly, times_answered_incorrectly,
+                       COALESCE(times_answered_correctly, 0) as times_answered_correctly,
+                       COALESCE(times_answered_incorrectly, 0) as times_answered_incorrectly,
                        CASE 
-                           WHEN times_asked > 0 THEN ROUND((times_answered_correctly::DECIMAL / times_asked) * 100, 2)
+                           WHEN times_asked > 0 THEN ROUND((COALESCE(times_answered_correctly, 0)::DECIMAL / times_asked) * 100, 2)
                            ELSE 0 
                        END as success_rate,
-                       is_favorite, created_at, updated_at
+                       COALESCE(is_favorite, false) as is_favorite, created_at, updated_at
                 FROM question_bank
                 ORDER BY category, question
             `;
@@ -55,12 +56,13 @@ class QuestionBankService {
             
             const query = `
                 SELECT id, question as question_text, category, times_asked,
-                       times_answered_correctly, times_answered_incorrectly,
+                       COALESCE(times_answered_correctly, 0) as times_answered_correctly,
+                       COALESCE(times_answered_incorrectly, 0) as times_answered_incorrectly,
                        CASE 
-                           WHEN times_asked > 0 THEN ROUND((times_answered_correctly::DECIMAL / times_asked) * 100, 2)
+                           WHEN times_asked > 0 THEN ROUND((COALESCE(times_answered_correctly, 0)::DECIMAL / times_asked) * 100, 2)
                            ELSE 0 
                        END as success_rate,
-                       is_favorite, created_at, updated_at
+                       COALESCE(is_favorite, false) as is_favorite, created_at, updated_at
                 FROM question_bank
                 WHERE category = $1
                 ORDER BY times_asked DESC, question

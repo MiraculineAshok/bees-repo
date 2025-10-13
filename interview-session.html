@@ -3668,10 +3668,13 @@
                     // Clear existing options except "All Categories" and "My Favorites"
                     categorySelect.innerHTML = '<option value="">All Categories</option><option value="Favorites">My Favorites</option>';
                     
-                    categoriesResult.data.forEach(category => {
+                    categoriesResult.data.forEach(categoryData => {
                         const option = document.createElement('option');
-                        option.value = category;
-                        option.textContent = category;
+                        // Handle both string and object formats
+                        const categoryName = typeof categoryData === 'string' ? categoryData : categoryData.category;
+                        const questionCount = typeof categoryData === 'object' ? categoryData.question_count : '';
+                        option.value = categoryName;
+                        option.textContent = questionCount ? `${categoryName} (${questionCount})` : categoryName;
                         categorySelect.appendChild(option);
                     });
                 }
