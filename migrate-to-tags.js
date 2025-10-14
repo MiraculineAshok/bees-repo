@@ -1,13 +1,37 @@
 /**
  * One-time migration script to add tags column and migrate existing categories
  * Run this locally with: node migrate-to-tags.js
+ * Or with direct URL: node migrate-to-tags.js "your-database-url"
  */
 
-const pool = require('./db/pool');
+const { Pool } = require('pg');
 
 async function migrateToTags() {
-    if (!pool) {
-        console.error('❌ Database connection not available. Please check your .env file.');
+    // Use command line argument or environment variable
+    const databaseUrl = process.argv[2] || process.env.DATABASE_URL;
+    
+    if (!databaseUrl) {
+        console.error('❌ Database URL not provided.');
+        console.error('Usage: node migrate-to-tags.js "postgresql://..."');
+        console.error('Or set DATABASE_URL environment variable');
+        process.exit(1);
+    }
+
+    // Create a dedicated pool for this migration
+    const pool = new Pool({
+        connectionString: databaseUrl,
+        max: 1,  // Only 1 connection for this script
+        ssl: { rejectUnauthorized: false }
+    });
+
+    console.log('🔗 Connecting to database...');
+    
+    // Test connection
+    try {
+        await pool.query('SELECT NOW()');
+        console.log('✅ Connected to database successfully\n');
+    } catch (error) {
+        console.error('❌ Failed to connect to database:', error.message);
         process.exit(1);
     }
 
