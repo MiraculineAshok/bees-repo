@@ -1570,9 +1570,9 @@
                 <div class="filter-section-title">🎯 Filters</div>
                 <div class="filter-row">
                     <div class="filter-group">
-                        <label for="category-filter">Category</label>
+                        <label for="category-filter">Tags</label>
                         <select id="category-filter" class="form-select">
-                            <option value="">All Categories</option>
+                            <option value="">All Tags</option>
                         </select>
                     </div>
                     <div class="filter-group">
@@ -1737,13 +1737,13 @@
 
         async function populateQuestionCategories(){
             try {
-                const res = await fetch('/api/question-bank/categories');
+                const res = await fetch('/api/question-bank/tags');
                 const j = await res.json();
                 if (j && j.success && Array.isArray(j.data)){
                     const sel = document.getElementById('category-filter');
                     if (sel){
-                        const cats = j.data.map(c => (typeof c === 'string' ? c : c.category)).filter(Boolean).sort();
-                        sel.innerHTML = '<option value="">All Categories</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+                        const tags = j.data.map(t => (typeof t === 'string' ? t : t.tag)).filter(Boolean).sort();
+                        sel.innerHTML = '<option value="">All Tags</option>' + tags.map(t=>`<option value="${t}">#${t}</option>`).join('');
                     }
                 }
             } catch (e) { console.warn('populateQuestionCategories error', e); }
@@ -2401,10 +2401,18 @@
                         );
                     }
 
-                    // Category filter
+                    // Tag/Category filter (supports both new tags array and legacy category)
                     const qCategory = getFilterValue('category-filter');
                     if (qCategory) {
-                        filtered = filtered.filter(q => (q.category || '').toLowerCase() === qCategory.toLowerCase());
+                        const searchTag = qCategory.toLowerCase();
+                        filtered = filtered.filter(q => {
+                            // Check tags array first (new system)
+                            if (q.tags && Array.isArray(q.tags)) {
+                                return q.tags.some(tag => tag.toLowerCase() === searchTag);
+                            }
+                            // Fallback to category (legacy)
+                            return (q.category || '').toLowerCase() === searchTag;
+                        });
                     }
 
                     // Times asked filter
