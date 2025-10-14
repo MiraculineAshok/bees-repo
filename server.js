@@ -77,9 +77,9 @@ app.use(helmet({
             frameAncestors: ["'self'"],
             imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
             objectSrc: ["'none'"],
-            scriptSrc: ["'self'", "'unsafe-inline'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.quilljs.com"], // Allow Quill.js CDN
             scriptSrcAttr: ["'unsafe-inline'"], // Allow inline event handlers
-            styleSrc: ["'self'", "https:", "'unsafe-inline'"],
+            styleSrc: ["'self'", "https:", "'unsafe-inline'", "https://cdn.quilljs.com"], // Allow Quill.js styles
             upgradeInsecureRequests: []
         }
     }
