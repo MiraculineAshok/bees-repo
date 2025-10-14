@@ -6124,22 +6124,29 @@
             if (!proceed) return;
 
             try {
+                console.log('🔄 Promoting user to Admin:', userId);
+                
                 const response = await fetch(`/api/authorized-users/${userId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ role: 'admin', is_superadmin: false })
                 });
                 
+                console.log('📡 Response status:', response.status);
                 const result = await response.json();
-                if (result.success) {
+                console.log('📡 Response data:', result);
+                
+                if (response.ok && result.success) {
                     showSuccess('User promoted to Admin successfully');
                     loadUsers(); // Refresh the users list
                 } else {
-                    showError(result.message || 'Failed to promote user');
+                    const errorMsg = result.message || result.error || 'Failed to promote user';
+                    console.error('❌ Promotion failed:', errorMsg);
+                    showError(errorMsg);
                 }
             } catch (error) {
-                console.error('Error promoting user:', error);
-                showError('Error promoting user');
+                console.error('❌ Error promoting user:', error);
+                showError('Error promoting user: ' + error.message);
             }
         }
 
@@ -6164,22 +6171,29 @@
             if (!proceed) return;
 
             try {
+                console.log('🔄 Promoting user to Super Admin:', userId);
+                
                 const response = await fetch(`/api/authorized-users/${userId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ role: 'superadmin', is_superadmin: true })
                 });
                 
+                console.log('📡 Response status:', response.status);
                 const result = await response.json();
-                if (result.success) {
+                console.log('📡 Response data:', result);
+                
+                if (response.ok && result.success) {
                     showSuccess('User promoted to Super Admin successfully');
                     loadUsers(); // Refresh the users list
                 } else {
-                    showError(result.message || 'Failed to promote user');
+                    const errorMsg = result.message || result.error || 'Failed to promote user';
+                    console.error('❌ Promotion failed:', errorMsg);
+                    showError(errorMsg);
                 }
             } catch (error) {
-                console.error('Error promoting user:', error);
-                showError('Error promoting user');
+                console.error('❌ Error promoting user:', error);
+                showError('Error promoting user: ' + error.message);
             }
         }
 

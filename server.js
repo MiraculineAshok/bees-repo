@@ -571,16 +571,28 @@ app.get('/api/authorized-users/:id', async (req, res) => {
 // Update authorized user by ID
 app.put('/api/authorized-users/:id', async (req, res) => {
   try {
+    console.log('📝 PUT /api/authorized-users/:id called');
+    console.log('   User ID:', req.params.id);
+    console.log('   Update data:', JSON.stringify(req.body, null, 2));
+    
     const user = await AuthService.updateAuthorizedUserById(req.params.id, req.body);
+    
+    console.log('✅ User updated successfully:', user);
     res.json({
       success: true,
       data: user
     });
   } catch (error) {
-    console.error('Error updating authorized user:', error);
+    console.error('❌ Error updating authorized user:');
+    console.error('   Error message:', error.message);
+    console.error('   Error stack:', error.stack);
+    console.error('   User ID:', req.params.id);
+    console.error('   Request body:', JSON.stringify(req.body, null, 2));
+    
     res.status(400).json({
       success: false,
-      error: error.message
+      error: error.message,
+      message: error.message // Include message for frontend
     });
   }
 });
