@@ -8084,23 +8084,32 @@
                     const line = lines[i].trim();
                     if (!line) continue;
                     
-                    // Skip header row if it contains 'question' or 'category'
-                    if (i === 0 && (line.toLowerCase().includes('question') || line.toLowerCase().includes('category'))) {
+                    // Skip header row if it contains 'question' or 'tag'
+                    if (i === 0 && (line.toLowerCase().includes('question') || line.toLowerCase().includes('tag') || line.toLowerCase().includes('category'))) {
                         continue;
                     }
                     
                     // Use proper CSV parsing that handles quoted fields
                     const parsed = parseCSVLine(line);
                     if (parsed.length >= 2) {
+                        // Parse tags from second column
+                        const tagsString = parsed[1].trim();
+                        let tags = [];
+                        if (tagsString) {
+                            // Extract hashtags (words starting with #)
+                            tags = tagsString.match(/#\w+/g) || [];
+                            tags = tags.map(tag => tag.substring(1)); // Remove # prefix
+                        }
+                        
                         questions.push({
                             question: parsed[0].trim(),
-                            category: parsed[1].trim() || 'General'
+                            tags: tags.length > 0 ? tags : ['general']
                         });
                     } else if (parsed.length === 1) {
-                        // If only one column, treat it as question with default category
+                        // If only one column, treat it as question with default tag
                         questions.push({
                             question: parsed[0].trim(),
-                            category: 'General'
+                            tags: ['general']
                         });
                     }
                 }
@@ -8260,16 +8269,18 @@
                     <thead>
                         <tr>
                             <th>Question</th>
-                            <th>Category</th>
+                            <th>Tags</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${previewData.map(row => `
+                        ${previewData.map(row => {
+                            const tagsDisplay = row.tags && Array.isArray(row.tags) ? row.tags.map(t => '#' + t).join(' ') : (row.category || 'N/A');
+                            return `
                             <tr>
                                 <td>${row.question}</td>
-                                <td>${row.category}</td>
+                                <td>${tagsDisplay}</td>
                             </tr>
-                        `).join('')}
+                        `}).join('')}
                     </tbody>
                 </table>
                 ${data.length > 5 ? `<p><em>... and ${data.length - 5} more rows</em></p>` : ''}
@@ -8301,16 +8312,25 @@
                     return;
                 }
                 
-                // Parse questions (format: "Question text | Category")
+                // Parse questions (format: "Question text | #tag1 #tag2 #tag3")
                 const lines = questionsText.split('\n').filter(line => line.trim());
                 questions = lines.map((line, index) => {
                     const parts = line.split('|').map(part => part.trim());
                     if (parts.length === 0 || !parts[0]) {
                         throw new Error(`Line ${index + 1}: Empty question text`);
                     }
+                    
+                    // Parse tags from the second part
+                    let tags = [];
+                    if (parts[1]) {
+                        // Extract hashtags (words starting with #)
+                        tags = parts[1].match(/#\w+/g) || [];
+                        tags = tags.map(tag => tag.substring(1)); // Remove # prefix
+                    }
+                    
                     return {
                         question: parts[0],
-                        category: parts[1] || 'General'
+                        tags: tags.length > 0 ? tags : ['general']
                     };
                 });
             } else {
@@ -8552,9 +8572,10 @@
                 <div style="margin-bottom:16px;padding:12px;background:#f3f4f6;border-radius:6px;font-size:14px;color:#374151">
                     <strong>Instructions:</strong><br>
                     • Enter one question per line<br>
-                    • Use format: "Question text | Category" (category is optional)<br>
-                    • Example: "What is JavaScript? | Technical"<br>
-                    • If no category is specified, "General" will be used
+                    • Use format: "Question text | #tag1 #tag2 #tag3"<br>
+                    • Example: "What is JavaScript? | #technical #javascript #frontend"<br>
+                    • Tags can be separated by spaces and should start with #<br>
+                    • Multiple tags are supported per question
                 </div>
                 <div style="margin-bottom:16px">
                     <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Questions *</label>
@@ -8567,11 +8588,11 @@
                 <div style="margin-bottom:16px;padding:12px;background:#f3f4f6;border-radius:6px;font-size:14px;color:#374151">
                     <strong>CSV Format Instructions:</strong><br>
                     • First row can be a header (will be skipped)<br>
-                    • Format: "Question,Category" or just "Question"<br>
+                    • Format: "Question,Tags" where Tags is like "#tag1 #tag2 #tag3"<br>
                     • <strong>Important:</strong> Use quotes around questions that contain commas<br>
-                    • Example: "What is JavaScript, and how does it work?",Technical<br>
-                    • Example: "Tell me about yourself,Behavioral"<br>
-                    • <strong>For questions with commas:</strong> "Explain the difference between let, const, and var in JavaScript",Technical
+                    • Example: "What is JavaScript, and how does it work?","#technical #javascript"<br>
+                    • Example: "Tell me about yourself","#behavioral #interview"<br>
+                    • Multiple tags should be separated by spaces and start with #
                 </div>
                 <div style="margin-bottom:16px">
                     <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Upload File *</label>
