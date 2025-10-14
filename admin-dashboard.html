@@ -2054,7 +2054,7 @@
                             <tr>
                                 <th><input type="checkbox" onchange="toggleAllRows(this.checked)" title="Select All"></th>
                                 <th>Question</th>
-                                <th>Category</th>
+                                <th>Tags</th>
                                 <th>Times Asked</th>
                                 <th>Correct Answers</th>
                                 <th>Incorrect Answers</th>
@@ -2328,15 +2328,12 @@
                     <textarea id="question-text" class="form-textarea" placeholder="Enter the question text..." required rows="4"></textarea>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="question-category">Category <span style="color:#6b7280;font-size:12px">(optional if creating new)</span></label>
-                    <div style="display:flex;gap:8px;align-items:center">
-                        <select id="question-category" class="form-select" style="flex:1">
-                            <option value="">Loading categories...</option>
-                        </select>
-                        <button type="button" id="add-new-category-btn" style="background:#3b82f6;color:#fff;border:none;padding:12px 16px;border-radius:6px;cursor:pointer;font-size:14px;height:42px;display:flex;align-items:center;justify-content:center">+ New</button>
+                    <label class="form-label" for="question-tags">Tags (Hashtags)</label>
+                    <div id="tags-container" style="display:flex;flex-wrap:wrap;gap:8px;padding:8px;border:1px solid #d1d5db;border-radius:6px;min-height:42px;background:#fff;cursor:text">
+                        <input type="text" id="question-tags-input" placeholder="Type tag and press Enter..." style="border:none;outline:none;flex:1;min-width:150px;font-size:14px">
                     </div>
-                    <div id="new-category-input" style="display:none;margin-top:8px">
-                        <input type="text" id="new-category-name" placeholder="Enter new category name" required style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:4px;font-size:14px">
+                    <div style="margin-top:4px;font-size:12px;color:#6b7280">
+                        💡 Suggested tags: <span id="suggested-tags" style="color:#3b82f6;cursor:pointer"></span>
                     </div>
                 </div>
                 <div class="form-group">
@@ -3580,7 +3577,16 @@
             updateTotalPages(questionsData, 'questions');
             const paginatedData = getPaginatedData(questionsData, 'questions');
 
-            tbody.innerHTML = paginatedData.map(question => `
+            tbody.innerHTML = paginatedData.map(question => {
+                // Format tags display
+                let tagsDisplay = 'N/A';
+                if (question.tags && Array.isArray(question.tags) && question.tags.length > 0) {
+                    tagsDisplay = question.tags.map(tag => `<span style="display:inline-block;background:#3b82f6;color:#fff;padding:2px 8px;border-radius:12px;font-size:11px;margin:2px">#${tag}</span>`).join(' ');
+                } else if (question.category) {
+                    tagsDisplay = `<span style="display:inline-block;background:#6b7280;color:#fff;padding:2px 8px;border-radius:12px;font-size:11px;margin:2px">#${question.category}</span>`;
+                }
+                
+                return `
                 <tr data-row-id="${question.id}">
                     <td><input type="checkbox" class="row-checkbox" data-row-id="${question.id}" onchange="toggleRowSelection('${question.id}')"></td>
                     <td data-field="question">
@@ -3592,7 +3598,7 @@
                             style="margin-left:8px"
                         >${favoriteQuestionIds.has(question.id) ? '★' : '☆'}</button>
                     </td>
-                    <td data-field="category">${question.category || 'N/A'}</td>
+                    <td data-field="tags">${tagsDisplay}</td>
                     <td data-field="times_asked">${question.times_asked || question.count_of_times_asked || 0}</td>
                     <td data-field="correct_answers">${question.correct_answers || question.times_answered_correctly || 0}</td>
                     <td data-field="incorrect_answers">${question.incorrect_answers || question.times_answered_incorrectly || 0}</td>
@@ -3603,7 +3609,8 @@
                         <button class="icon-btn" onclick="viewQuestion(${question.id})" title="View">👁️</button>
                     </td>
                 </tr>
-            `).join('');
+            `;
+            }).join('');
             
             // Add pagination controls
             if (container) {
@@ -4079,40 +4086,110 @@
             input.value = '';
         }
 
+        // Store tags for the current question
+        let currentQuestionTags = [];
+
         // Add Question Modal Functions
         async function openAddQuestionModal() {
             document.getElementById('add-question-modal').classList.add('active');
-            // Load categories from database
-            await loadCategoriesForModal();
+            currentQuestionTags = [];
             
-            // Handle new category button
-            document.getElementById('add-new-category-btn').onclick = () => {
-                const inputDiv = document.getElementById('new-category-input');
-                const input = document.getElementById('new-category-name');
-                if (inputDiv.style.display === 'none') {
-                    inputDiv.style.display = 'block';
-                    input.focus();
-                } else {
-                    inputDiv.style.display = 'none';
-                    input.value = '';
-                }
-            };
+            // Load suggested tags from database
+            await loadSuggestedTags();
             
-            // Handle new category input
-            document.getElementById('new-category-name').addEventListener('keypress', async (e) => {
-                if (e.key === 'Enter') {
-                    const newCategory = e.target.value.trim();
-                    if (newCategory) {
-                        await addNewCategory(newCategory);
-                    }
-                }
-            });
+            // Setup tag input functionality
+            setupTagInput();
         }
 
         function closeAddQuestionModal() {
             document.getElementById('add-question-modal').classList.remove('active');
             document.getElementById('add-question-form').reset();
-            document.getElementById('new-category-input').style.display = 'none';
+            currentQuestionTags = [];
+            // Clear tags display
+            const container = document.getElementById('tags-container');
+            const input = document.getElementById('question-tags-input');
+            container.querySelectorAll('.tag-chip').forEach(chip => chip.remove());
+        }
+
+        // Setup tag input with Enter key and click handlers
+        function setupTagInput() {
+            const input = document.getElementById('question-tags-input');
+            const container = document.getElementById('tags-container');
+            
+            // Remove old listeners
+            const newInput = input.cloneNode(true);
+            input.replaceWith(newInput);
+            
+            // Add Enter key listener
+            newInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const tag = newInput.value.trim();
+                    if (tag && !currentQuestionTags.includes(tag)) {
+                        currentQuestionTags.push(tag);
+                        addTagChip(tag);
+                        newInput.value = '';
+                    }
+                }
+            });
+            
+            // Focus input when clicking container
+            container.addEventListener('click', () => {
+                newInput.focus();
+            });
+        }
+
+        // Add a visual tag chip
+        function addTagChip(tag) {
+            const container = document.getElementById('tags-container');
+            const input = document.getElementById('question-tags-input');
+            
+            const chip = document.createElement('span');
+            chip.className = 'tag-chip';
+            chip.innerHTML = `
+                #${tag}
+                <span onclick="removeTag('${tag.replace(/'/g, "\\'")}', this.parentElement)" style="margin-left:6px;cursor:pointer;font-weight:bold">&times;</span>
+            `;
+            chip.style.cssText = 'display:inline-flex;align-items:center;background:#3b82f6;color:#fff;padding:4px 10px;border-radius:16px;font-size:13px';
+            
+            container.insertBefore(chip, input);
+        }
+
+        // Remove a tag
+        window.removeTag = function(tag, chipElement) {
+            currentQuestionTags = currentQuestionTags.filter(t => t !== tag);
+            chipElement.remove();
+        }
+
+        // Load suggested tags from existing questions
+        async function loadSuggestedTags() {
+            try {
+                const response = await fetch('/api/question-bank/tags');
+                const result = await response.json();
+                
+                const suggestedTagsSpan = document.getElementById('suggested-tags');
+                if (result.success && result.data && result.data.length > 0) {
+                    // Take top 8 most used tags
+                    const topTags = result.data.slice(0, 8);
+                    suggestedTagsSpan.innerHTML = topTags.map(tagData => {
+                        const tagName = typeof tagData === 'string' ? tagData : tagData.tag;
+                        return `<span onclick="addSuggestedTag('${tagName.replace(/'/g, "\\'")}' )" style="margin-right:12px;text-decoration:underline;cursor:pointer">#${tagName}</span>`;
+                    }).join('');
+                } else {
+                    suggestedTagsSpan.innerHTML = '<span style="color:#9ca3af">No tags yet</span>';
+                }
+            } catch (error) {
+                console.error('Error loading suggested tags:', error);
+                document.getElementById('suggested-tags').innerHTML = '<span style="color:#9ca3af">Unable to load</span>';
+            }
+        }
+
+        // Add a suggested tag
+        window.addSuggestedTag = function(tag) {
+            if (!currentQuestionTags.includes(tag)) {
+                currentQuestionTags.push(tag);
+                addTagChip(tag);
+            }
         }
 
         // Load categories for the modal
@@ -4178,36 +4255,14 @@
 
         async function addQuestion() {
             const questionText = document.getElementById('question-text').value;
-            const categorySelect = document.getElementById('question-category');
-            const newCategoryInput = document.getElementById('new-category-name');
             
-            console.log('Add Question Debug:', {
-                questionText: questionText,
-                categorySelectValue: categorySelect.value,
-                newCategoryValue: newCategoryInput.value,
-                newCategoryDisplay: newCategoryInput.style.display
-            });
-            
-            let category = '';
-            
-            // Check if user is adding a new category
-            if (newCategoryInput.value.trim()) {
-                category = newCategoryInput.value.trim();
-                console.log('Using new category:', category);
-            } else {
-                category = categorySelect.value;
-                console.log('Using selected category:', category);
-            }
-
             if (!questionText) {
-                console.log('Validation failed: Question text is required');
                 showError('Please enter the question text');
                 return;
             }
             
-            if (!category) {
-                console.log('Validation failed: Category is required');
-                showError('Please select a category or create a new one');
+            if (currentQuestionTags.length === 0) {
+                showError('Please add at least one tag');
                 return;
             }
 
@@ -4219,7 +4274,7 @@
                     },
                     body: JSON.stringify({
                         question: questionText,
-                        category: category
+                        tags: currentQuestionTags
                     })
                 });
 
@@ -4228,7 +4283,7 @@
                 if (data.success) {
                     closeAddQuestionModal();
                     loadQuestions();
-                    showSuccess('Question added successfully!');
+                    showSuccess('Question added successfully with tags: ' + currentQuestionTags.map(t => '#' + t).join(' '));
                 } else {
                     showError('Error adding question: ' + data.error);
                 }
