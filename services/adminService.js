@@ -120,29 +120,63 @@ class AdminService {
         }
 
         try {
-            const result = await pool.query(`
-                SELECT 
-                    qb.id,
-                    qb.question,
-                    qb.category,
-                    COALESCE(qb.times_asked, 0) as times_asked,
-                    COALESCE(qb.times_answered_correctly, 0) as times_answered_correctly,
-                    COALESCE(qb.times_answered_incorrectly, 0) as times_answered_incorrectly,
-                    COUNT(iq.id) as total_answers,
-                    COUNT(CASE WHEN iq.is_correct = true THEN 1 END) as correct_answers,
-                    COUNT(CASE WHEN iq.is_correct = false THEN 1 END) as incorrect_answers,
-                    CASE 
-                        WHEN COUNT(iq.id) > 0 
-                        THEN ROUND((COUNT(CASE WHEN iq.is_correct = true THEN 1 END)::DECIMAL / COUNT(iq.id)) * 100, 2)
-                        ELSE 0 
-                    END as success_rate
-                FROM question_bank qb
-                LEFT JOIN interview_questions iq ON qb.question = iq.question_text
-                GROUP BY qb.id, qb.question, qb.category, qb.times_asked, qb.times_answered_correctly, qb.times_answered_incorrectly
-                ORDER BY qb.times_asked DESC
-            `);
+            // Try with tags column first, fallback if column doesn't exist
+            try {
+                const result = await pool.query(`
+                    SELECT 
+                        qb.id,
+                        qb.question,
+                        qb.category,
+                        qb.tags,
+                        COALESCE(qb.times_asked, 0) as times_asked,
+                        COALESCE(qb.times_answered_correctly, 0) as times_answered_correctly,
+                        COALESCE(qb.times_answered_incorrectly, 0) as times_answered_incorrectly,
+                        COUNT(iq.id) as total_answers,
+                        COUNT(CASE WHEN iq.is_correct = true THEN 1 END) as correct_answers,
+                        COUNT(CASE WHEN iq.is_correct = false THEN 1 END) as incorrect_answers,
+                        CASE 
+                            WHEN COUNT(iq.id) > 0 
+                            THEN ROUND((COUNT(CASE WHEN iq.is_correct = true THEN 1 END)::DECIMAL / COUNT(iq.id)) * 100, 2)
+                            ELSE 0 
+                        END as success_rate
+                    FROM question_bank qb
+                    LEFT JOIN interview_questions iq ON qb.question = iq.question_text
+                    GROUP BY qb.id, qb.question, qb.category, qb.tags, qb.times_asked, qb.times_answered_correctly, qb.times_answered_incorrectly
+                    ORDER BY qb.times_asked DESC
+                `);
 
-            return result.rows;
+                console.log('✅ Retrieved questions with tags column');
+                return result.rows;
+            } catch (tagsError) {
+                // If tags column doesn't exist (error code 42703), fall back to query without tags
+                if (tagsError.code === '42703') {
+                    console.warn('⚠️ Tags column not found in getQuestionsAnalytics, falling back to category only');
+                    const result = await pool.query(`
+                        SELECT 
+                            qb.id,
+                            qb.question,
+                            qb.category,
+                            COALESCE(qb.times_asked, 0) as times_asked,
+                            COALESCE(qb.times_answered_correctly, 0) as times_answered_correctly,
+                            COALESCE(qb.times_answered_incorrectly, 0) as times_answered_incorrectly,
+                            COUNT(iq.id) as total_answers,
+                            COUNT(CASE WHEN iq.is_correct = true THEN 1 END) as correct_answers,
+                            COUNT(CASE WHEN iq.is_correct = false THEN 1 END) as incorrect_answers,
+                            CASE 
+                                WHEN COUNT(iq.id) > 0 
+                                THEN ROUND((COUNT(CASE WHEN iq.is_correct = true THEN 1 END)::DECIMAL / COUNT(iq.id)) * 100, 2)
+                                ELSE 0 
+                            END as success_rate
+                        FROM question_bank qb
+                        LEFT JOIN interview_questions iq ON qb.question = iq.question_text
+                        GROUP BY qb.id, qb.question, qb.category, qb.times_asked, qb.times_answered_correctly, qb.times_answered_incorrectly
+                        ORDER BY qb.times_asked DESC
+                    `);
+                    
+                    return result.rows;
+                }
+                throw tagsError;
+            }
         } catch (error) {
             console.error('❌ Error getting questions analytics:', error);
             throw error;
