@@ -1598,7 +1598,7 @@
             </div>
 
             <div class="filter-actions">
-                <button class="btn-filter" onclick="applyFilters('questions', true)">Apply Filters</button>
+                <button class="btn-filter" onclick="closeQuestionFilterPanel()">Close</button>
                 <button class="btn-clear" onclick="clearFilters('questions')">Clear</button>
             </div>
         </div>
@@ -1657,6 +1657,9 @@
         }
         document.addEventListener('DOMContentLoaded', bindInlineQuestionFilters);
 
+        // Debounced filter function for search input
+        const debouncedQuestionFilter = debounce(() => applyFilters('questions', false), 300);
+        
         async function openQuestionFilterPanel(){
             try {
                 await populateQuestionCategories();
@@ -1675,6 +1678,46 @@
                 } else {
                     overlay.classList.add('active');
                 }
+                
+                // Bind live filter events
+                bindQuestionFilterEvents();
+            }
+        }
+        
+        function bindQuestionFilterEvents() {
+            // Search input - debounced
+            const searchInput = document.getElementById('search-questions');
+            if (searchInput && !searchInput.dataset.bound) {
+                searchInput.addEventListener('input', debouncedQuestionFilter);
+                searchInput.dataset.bound = 'true';
+            }
+            
+            // Category select - immediate
+            const categorySelect = document.getElementById('category-filter');
+            if (categorySelect && !categorySelect.dataset.bound) {
+                categorySelect.addEventListener('change', () => applyFilters('questions', false));
+                categorySelect.dataset.bound = 'true';
+            }
+            
+            // Times asked - debounced
+            const timesAskedInput = document.getElementById('times-asked-min');
+            if (timesAskedInput && !timesAskedInput.dataset.bound) {
+                timesAskedInput.addEventListener('input', debouncedQuestionFilter);
+                timesAskedInput.dataset.bound = 'true';
+            }
+            
+            // Success rate - debounced
+            const successRateInput = document.getElementById('success-rate-min');
+            if (successRateInput && !successRateInput.dataset.bound) {
+                successRateInput.addEventListener('input', debouncedQuestionFilter);
+                successRateInput.dataset.bound = 'true';
+            }
+            
+            // Sort by - immediate
+            const sortBySelect = document.getElementById('sort-by');
+            if (sortBySelect && !sortBySelect.dataset.bound) {
+                sortBySelect.addEventListener('change', () => applyFilters('questions', false));
+                sortBySelect.dataset.bound = 'true';
             }
         }
         function closeQuestionFilterPanel(){
@@ -2340,12 +2383,13 @@
                     break;
                     
                 case 'questions':
-                    // Search filter (correct ID)
-                    const qSearch = getFilterValue('questions-search');
+                    // Search filter (correct ID: search-questions)
+                    const qSearch = getFilterValue('search-questions');
                     if (qSearch) {
                         const term = qSearch.toLowerCase();
                         filtered = filtered.filter(q => 
                             (q.question_text && q.question_text.toLowerCase().includes(term)) ||
+                            (q.question && q.question.toLowerCase().includes(term)) ||
                             (q.category && q.category.toLowerCase().includes(term))
                         );
                     }
@@ -2371,7 +2415,7 @@
                     }
 
                     // Sort
-                    const qSortBy = getFilterValue('sort-by') || 'question_text_asc';
+                    const qSortBy = getFilterValue('sort-by') || 'created_at_desc';
                     filtered = sortQuestions(filtered, qSortBy);
                     break;
             }
@@ -2517,11 +2561,11 @@
             
             switch(tab) {
                 case 'interviews':
-                    filteredData = applyUnifiedFilters('interviews', interviews);
+                    filteredData = applyUnifiedFilters('interviews', allInterviews);
                     displayFunction = () => displayInterviews(filteredData, groupBy);
                     break;
                 case 'questions':
-                    filteredData = applyUnifiedFilters('questions', questions);
+                    filteredData = applyUnifiedFilters('questions', allQuestions);
                     displayFunction = () => displayQuestionAnalytics(filteredData);
                     break;
                 default:
@@ -2536,7 +2580,7 @@
             
             // Only close panel if explicitly requested (from Apply button)
             if (closePanel) {
-                closeFilterPanel();
+                closeQuestionFilterPanel();
             }
         }
 
@@ -2999,41 +3043,7 @@
 
         // Enhanced Filter, Sort, and Group Functions
         
-        // NEW: Unified Filter System for Interviewer Dashboard
-        function applyFilters(tab, closePanel = false) {
-            console.log('Applying filters for tab:', tab);
-            
-            // Get the group by value
-            const groupByRadio = document.querySelector('input[name="group-by"]:checked');
-            const groupBy = groupByRadio ? groupByRadio.value : '';
-            
-            let filteredData = [];
-            let displayFunction = null;
-            
-            switch(tab) {
-                case 'interviews':
-                    filteredData = applyUnifiedFilters('interviews', interviews);
-                    displayFunction = () => displayInterviews(filteredData, groupBy);
-                    break;
-                case 'questions':
-                    filteredData = applyUnifiedFilters('questions', questions);
-                    displayFunction = () => displayQuestionAnalytics(filteredData, groupBy);
-                    break;
-                default:
-                    console.log('Unknown tab:', tab);
-                    return;
-            }
-            
-            // Execute display function
-            if (displayFunction) {
-                displayFunction();
-            }
-            
-            // Close panel if requested
-            if (closePanel) {
-                closeFilterPanel();
-            }
-        }
+        // NOTE: applyFilters function is defined above - this is a duplicate comment block only
         
         // NEW: Unified filter system
         function applyUnifiedFilters(tab, data) {
