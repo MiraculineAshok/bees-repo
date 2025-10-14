@@ -25,20 +25,43 @@ class QuestionBankService {
                 return { success: true, data: questions };
             }
             
-            const query = `
-                SELECT id, question as question_text, category, tags, times_asked, 
-                       COALESCE(times_answered_correctly, 0) as times_answered_correctly,
-                       COALESCE(times_answered_incorrectly, 0) as times_answered_incorrectly,
-                       CASE 
-                           WHEN times_asked > 0 THEN ROUND((COALESCE(times_answered_correctly, 0)::DECIMAL / times_asked) * 100, 2)
-                           ELSE 0 
-                       END as success_rate,
-                       COALESCE(is_favorite, false) as is_favorite, created_at, updated_at
-                FROM question_bank
-                ORDER BY category, question
-            `;
-            const result = await pool.query(query);
-            return { success: true, data: result.rows };
+            // Try with tags column first, fallback to without tags if column doesn't exist
+            try {
+                const query = `
+                    SELECT id, question as question_text, category, tags, times_asked, 
+                           COALESCE(times_answered_correctly, 0) as times_answered_correctly,
+                           COALESCE(times_answered_incorrectly, 0) as times_answered_incorrectly,
+                           CASE 
+                               WHEN times_asked > 0 THEN ROUND((COALESCE(times_answered_correctly, 0)::DECIMAL / times_asked) * 100, 2)
+                               ELSE 0 
+                           END as success_rate,
+                           COALESCE(is_favorite, false) as is_favorite, created_at, updated_at
+                    FROM question_bank
+                    ORDER BY category, question
+                `;
+                const result = await pool.query(query);
+                return { success: true, data: result.rows };
+            } catch (tagsError) {
+                // If tags column doesn't exist (error code 42703), fall back to query without tags
+                if (tagsError.code === '42703') {
+                    console.warn('⚠️ Tags column not found, falling back to category only. Please run migration: 013_add_tags_to_questions.sql');
+                    const fallbackQuery = `
+                        SELECT id, question as question_text, category, times_asked, 
+                               COALESCE(times_answered_correctly, 0) as times_answered_correctly,
+                               COALESCE(times_answered_incorrectly, 0) as times_answered_incorrectly,
+                               CASE 
+                                   WHEN times_asked > 0 THEN ROUND((COALESCE(times_answered_correctly, 0)::DECIMAL / times_asked) * 100, 2)
+                                   ELSE 0 
+                               END as success_rate,
+                               COALESCE(is_favorite, false) as is_favorite, created_at, updated_at
+                        FROM question_bank
+                        ORDER BY category, question
+                    `;
+                    const result = await pool.query(fallbackQuery);
+                    return { success: true, data: result.rows };
+                }
+                throw tagsError;
+            }
         } catch (error) {
             console.error('Error fetching all questions:', error);
             return { success: false, error: error.message };
@@ -116,15 +139,32 @@ class QuestionBankService {
                 return { success: true, data: Array.from(tagsSet).sort() };
             }
             
-            const query = `
-                SELECT DISTINCT unnest(tags) as tag, COUNT(*) as question_count
-                FROM question_bank
-                WHERE tags IS NOT NULL AND array_length(tags, 1) > 0
-                GROUP BY tag
-                ORDER BY tag
-            `;
-            const result = await pool.query(query);
-            return { success: true, data: result.rows };
+            try {
+                const query = `
+                    SELECT DISTINCT unnest(tags) as tag, COUNT(*) as question_count
+                    FROM question_bank
+                    WHERE tags IS NOT NULL AND array_length(tags, 1) > 0
+                    GROUP BY tag
+                    ORDER BY tag
+                `;
+                const result = await pool.query(query);
+                return { success: true, data: result.rows };
+            } catch (tagsError) {
+                // If tags column doesn't exist, fall back to categories
+                if (tagsError.code === '42703') {
+                    console.warn('⚠️ Tags column not found, falling back to categories. Please run migration: 013_add_tags_to_questions.sql');
+                    const fallbackQuery = `
+                        SELECT DISTINCT category as tag, COUNT(*) as question_count
+                        FROM question_bank
+                        WHERE category IS NOT NULL AND category != ''
+                        GROUP BY category
+                        ORDER BY category
+                    `;
+                    const result = await pool.query(fallbackQuery);
+                    return { success: true, data: result.rows };
+                }
+                throw tagsError;
+            }
         } catch (error) {
             console.error('Error fetching tags:', error);
             return { success: false, error: error.message };
