@@ -3965,9 +3965,13 @@
             }
         }
 
+        // Store tags for the current question
+        let interviewerModalTags = [];
+
         // Add Question Modal Functions
         async function openAddQuestionModal() {
             console.log('openAddQuestionModal called');
+            interviewerModalTags = [];
             const modal = document.createElement('div');
             modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
             modal.innerHTML = `
@@ -3978,15 +3982,12 @@
                         <textarea id="new-question-text" style="width:100%;padding:12px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;min-height:100px;resize:vertical" placeholder="Enter your question here..."></textarea>
                     </div>
                     <div style="margin-bottom:16px">
-                        <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Category</label>
-                        <div style="display:flex;gap:8px;align-items:center">
-                            <select id="new-question-category" style="flex:1;padding:12px;border:1px solid #d1d5db;border-radius:6px;font-size:14px">
-                                <option value="">Loading categories...</option>
-                            </select>
-                            <button id="add-new-category-btn" style="background:#3b82f6;color:#fff;border:none;padding:12px 16px;border-radius:6px;cursor:pointer;font-size:14px;height:42px;display:flex;align-items:center;justify-content:center">+ New</button>
+                        <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Tags (Hashtags) *</label>
+                        <div id="modal-tags-container" style="display:flex;flex-wrap:wrap;gap:8px;padding:8px;border:1px solid #d1d5db;border-radius:6px;min-height:42px;background:#fff;cursor:text">
+                            <input type="text" id="modal-tags-input" placeholder="Type tag and press Enter..." style="border:none;outline:none;flex:1;min-width:150px;font-size:14px">
                         </div>
-                        <div id="new-category-input" style="display:none;margin-top:8px">
-                            <input type="text" id="new-category-name" placeholder="Enter new category name" style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:4px;font-size:14px">
+                        <div style="margin-top:4px;font-size:12px;color:#6b7280">
+                            💡 Suggested: <span id="modal-suggested-tags"></span>
                         </div>
                     </div>
                     <div style="display:flex;gap:8px;justify-content:flex-end">
@@ -3996,48 +3997,39 @@
                 </div>`;
             document.body.appendChild(modal);
             
-            // Load categories from database
-            await loadCategoriesForModal();
+            // Load suggested tags from database
+            await loadSuggestedTagsForModal();
             
-            modal.querySelector('#add-question-cancel').onclick = () => modal.remove();
+            // Setup tag input
+            const input = modal.querySelector('#modal-tags-input');
+            const container = modal.querySelector('#modal-tags-container');
             
-            // Handle new category button
-            modal.querySelector('#add-new-category-btn').onclick = () => {
-                const inputDiv = document.getElementById('new-category-input');
-                const input = document.getElementById('new-category-name');
-                if (inputDiv.style.display === 'none') {
-                    inputDiv.style.display = 'block';
-                    input.focus();
-                } else {
-                    inputDiv.style.display = 'none';
-                    input.value = '';
-                }
-            };
-            
-            // Handle new category input
-            document.getElementById('new-category-name').addEventListener('keypress', async (e) => {
+            input.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
-                    const newCategory = e.target.value.trim();
-                    if (newCategory) {
-                        await addNewCategory(newCategory, modal);
+                    e.preventDefault();
+                    const tag = input.value.trim();
+                    if (tag && !interviewerModalTags.includes(tag)) {
+                        interviewerModalTags.push(tag);
+                        addModalTagChip(tag, container, input);
+                        input.value = '';
                     }
                 }
             });
             
+            container.addEventListener('click', () => input.focus());
+            
+            modal.querySelector('#add-question-cancel').onclick = () => modal.remove();
+            
             modal.querySelector('#add-question-save').onclick = async () => {
                 const questionText = document.getElementById('new-question-text').value.trim();
-                const categorySelect = document.getElementById('new-question-category');
-                const newCategoryInput = document.getElementById('new-category-name');
-                
-                let category = categorySelect.value;
-                
-                // Check if user is adding a new category
-                if (newCategoryInput.style.display !== 'none' && newCategoryInput.value.trim()) {
-                    category = newCategoryInput.value.trim();
-                }
                 
                 if (!questionText) {
                     alert('Please enter a question text');
+                    return;
+                }
+                
+                if (interviewerModalTags.length === 0) {
+                    alert('Please add at least one tag');
                     return;
                 }
                 
@@ -4049,7 +4041,7 @@
                         },
                         body: JSON.stringify({
                             question: questionText,
-                            category: category || 'General'
+                            tags: interviewerModalTags
                         })
                     });
                     
@@ -4057,7 +4049,7 @@
                     
                     if (result.success) {
                         modal.remove();
-                        showSuccess('Question added successfully!');
+                        showSuccess('Question added with tags: ' + interviewerModalTags.map(t => '#' + t).join(' '));
                         loadQuestions(); // Refresh the question list
                     } else {
                         showError('Error adding question: ' + (result.error || 'Unknown error'));
@@ -4067,6 +4059,49 @@
                     showError('Error adding question');
                 }
             };
+        }
+
+        // Add tag chip to modal
+        function addModalTagChip(tag, container, input) {
+            const chip = document.createElement('span');
+            chip.style.cssText = 'display:inline-flex;align-items:center;background:#3b82f6;color:#fff;padding:4px 10px;border-radius:16px;font-size:13px';
+            chip.innerHTML = `#${tag} <span style="margin-left:6px;cursor:pointer;font-weight:bold">&times;</span>`;
+            chip.querySelector('span').onclick = () => {
+                interviewerModalTags = interviewerModalTags.filter(t => t !== tag);
+                chip.remove();
+            };
+            container.insertBefore(chip, input);
+        }
+
+        // Load suggested tags for modal
+        async function loadSuggestedTagsForModal() {
+            try {
+                const response = await fetch('/api/question-bank/tags');
+                const result = await response.json();
+                
+                const suggestedSpan = document.getElementById('modal-suggested-tags');
+                if (result.success && result.data && result.data.length > 0) {
+                    const topTags = result.data.slice(0, 6);
+                    suggestedSpan.innerHTML = topTags.map(tagData => {
+                        const tagName = typeof tagData === 'string' ? tagData : tagData.tag;
+                        return `<span onclick="addModalSuggestedTag('${tagName}')" style="margin-right:10px;color:#3b82f6;text-decoration:underline;cursor:pointer">#${tagName}</span>`;
+                    }).join('');
+                } else {
+                    suggestedSpan.innerHTML = '<span style="color:#9ca3af">No tags yet</span>';
+                }
+            } catch (error) {
+                console.error('Error loading tags:', error);
+            }
+        }
+
+        // Add suggested tag to modal
+        window.addModalSuggestedTag = function(tag) {
+            const input = document.getElementById('modal-tags-input');
+            const container = document.getElementById('modal-tags-container');
+            if (!interviewerModalTags.includes(tag)) {
+                interviewerModalTags.push(tag);
+                addModalTagChip(tag, container, input);
+            }
         }
 
         // Load categories for the modal
@@ -4152,9 +4187,9 @@
                         <div style="margin-bottom:16px;padding:12px;background:#f3f4f6;border-radius:6px;font-size:14px;color:#374151">
                             <strong>Instructions:</strong><br>
                             • Enter one question per line<br>
-                            • Use format: "Question text | Category" (category is optional)<br>
-                            • Example: "What is JavaScript? | Technical"<br>
-                            • If no category is specified, "General" will be used
+                            • Use format: "Question text | #tag1 #tag2 #tag3"<br>
+                            • Example: "What is JavaScript? | #technical #javascript #frontend"<br>
+                            • Multiple tags supported, separated by spaces with # prefix
                         </div>
                         <div style="margin-bottom:16px">
                             <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Questions *</label>
@@ -4167,11 +4202,11 @@
                         <div style="margin-bottom:16px;padding:12px;background:#f3f4f6;border-radius:6px;font-size:14px;color:#374151">
                             <strong>CSV Format Instructions:</strong><br>
                             • First row can be a header (will be skipped)<br>
-                            • Format: "Question,Category" or just "Question"<br>
+                            • Format: "Question,Tags" where Tags is like "#tag1 #tag2 #tag3"<br>
                             • <strong>Important:</strong> Use quotes around questions that contain commas<br>
-                            • Example: "What is JavaScript, and how does it work?",Technical<br>
-                            • Example: "Tell me about yourself,Behavioral"<br>
-                            • <strong>For questions with commas:</strong> "Explain the difference between let, const, and var in JavaScript",Technical
+                            • Example: "What is JavaScript, and how does it work?","#technical #javascript"<br>
+                            • Example: "Tell me about yourself","#behavioral #interview"<br>
+                            • Multiple tags should be separated by spaces and start with #
                         </div>
                         <div style="margin-bottom:16px">
                             <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Upload File *</label>
@@ -4258,16 +4293,25 @@
                         return;
                     }
                     
-                    // Parse questions (format: "Question text | Category")
+                    // Parse questions (format: "Question text | #tag1 #tag2 #tag3")
                     const lines = questionsText.split('\n').filter(line => line.trim());
                     questions = lines.map((line, index) => {
                         const parts = line.split('|').map(part => part.trim());
                         if (parts.length === 0 || !parts[0]) {
                             throw new Error(`Line ${index + 1}: Empty question text`);
                         }
+                        
+                        // Parse tags from the second part
+                        let tags = [];
+                        if (parts[1]) {
+                            // Extract hashtags (words starting with #)
+                            tags = parts[1].match(/#\w+/g) || [];
+                            tags = tags.map(tag => tag.substring(1)); // Remove # prefix
+                        }
+                        
                         return {
                             question: parts[0],
-                            category: parts[1] || 'General'
+                            tags: tags.length > 0 ? tags : ['general']
                         };
                     });
                 } else {
@@ -4341,23 +4385,32 @@
                     const line = lines[i].trim();
                     if (!line) continue;
                     
-                    // Skip header row if it contains 'question' or 'category'
-                    if (i === 0 && (line.toLowerCase().includes('question') || line.toLowerCase().includes('category'))) {
+                    // Skip header row if it contains 'question' or 'tag'
+                    if (i === 0 && (line.toLowerCase().includes('question') || line.toLowerCase().includes('tag') || line.toLowerCase().includes('category'))) {
                         continue;
                     }
                     
                     // Use proper CSV parsing that handles quoted fields
                     const parsed = parseCSVLine(line);
                     if (parsed.length >= 2) {
+                        // Parse tags from second column
+                        const tagsString = parsed[1].trim();
+                        let tags = [];
+                        if (tagsString) {
+                            // Extract hashtags (words starting with #)
+                            tags = tagsString.match(/#\w+/g) || [];
+                            tags = tags.map(tag => tag.substring(1)); // Remove # prefix
+                        }
+                        
                         questions.push({
                             question: parsed[0].trim(),
-                            category: parsed[1].trim() || 'General'
+                            tags: tags.length > 0 ? tags : ['general']
                         });
                     } else if (parsed.length === 1) {
-                        // If only one column, treat it as question with default category
+                        // If only one column, treat it as question with default tag
                         questions.push({
                             question: parsed[0].trim(),
-                            category: 'General'
+                            tags: ['general']
                         });
                     }
                 }
