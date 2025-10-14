@@ -3858,11 +3858,15 @@
                         'Selected+': '#059669',
                         'Hold': '#f59e0b',
                         'Rejected': '#ef4444',
-                        'Maybe': '#8b5cf6'
+                        'Maybe': '#8b5cf6',
+                        'Tiger': '#059669',
+                        'Cow': '#ef4444',
+                        'Elephant': '#10b981'
                     };
-                    verdictsDisplay = student.recent_verdicts.map(v => {
-                        const color = verdictColors[v.verdict] || '#6b7280';
-                        return `<span style="display:inline-block;background:${color};color:#fff;padding:3px 8px;border-radius:12px;font-size:10px;margin:2px;white-space:nowrap">${v.verdict}</span>`;
+                    // recent_verdicts is an array of verdict strings, not objects
+                    verdictsDisplay = student.recent_verdicts.map(verdict => {
+                        const color = verdictColors[verdict] || '#6b7280';
+                        return `<span style="display:inline-block;background:${color};color:#fff;padding:3px 8px;border-radius:12px;font-size:10px;margin:2px;white-space:nowrap">${verdict}</span>`;
                     }).join(' ');
                 }
                 
