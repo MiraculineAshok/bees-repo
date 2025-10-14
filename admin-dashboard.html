@@ -2155,12 +2155,13 @@
                                 <th>Zeta ID</th>
                                 <th>Phone</th>
                                 <th>Interviews</th>
+                                <th>Verdicts</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="students-table-body">
                             <tr>
-                                <td colspan="8" class="loading">Loading students...</td>
+                                <td colspan="9" class="loading">Loading students...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -3830,7 +3831,7 @@
             const tbody = document.getElementById('students-table-body');
             
             if (!studentsData || studentsData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No students found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No students found</td></tr>';
                 return;
             }
 
@@ -3841,22 +3842,41 @@
                 return;
             }
 
-            tbody.innerHTML = studentsData.map(student => `
-                <tr data-row-id="${student.id}">
-                    <td><input type="checkbox" class="row-checkbox" data-row-id="${student.id}" onchange="toggleRowSelection('${student.id}')"></td>
-                    <td data-field="id">${student.id}</td>
-                    <td data-field="name">${student.name}</td>
-                    <td data-field="email">${student.email}</td>
-                    <td data-field="zeta_id">${student.zeta_id}</td>
-                    <td data-field="phone">${student.phone || 'N/A'}</td>
-                    <td data-field="interview_count">${student.interview_count || 0}</td>
-                    <td>
-                        <button class="icon-btn edit-btn" onclick="startEdit('${student.id}')" title="Edit">✏️</button>
-                        <button class="icon-btn delete-btn" onclick="deleteRecord('${student.id}', 'student')" title="Delete">🗑️</button>
-                        <button class="icon-btn" onclick="viewStudent(${student.id})" title="View">👁️</button>
-                    </td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = studentsData.map(student => {
+                // Format verdicts
+                let verdictsDisplay = '-';
+                if (student.recent_verdicts && student.recent_verdicts.length > 0) {
+                    const verdictColors = {
+                        'Selected': '#10b981',
+                        'Selected+': '#059669',
+                        'Hold': '#f59e0b',
+                        'Rejected': '#ef4444',
+                        'Maybe': '#8b5cf6'
+                    };
+                    verdictsDisplay = student.recent_verdicts.map(v => {
+                        const color = verdictColors[v.verdict] || '#6b7280';
+                        return `<span style="display:inline-block;background:${color};color:#fff;padding:3px 8px;border-radius:12px;font-size:10px;margin:2px;white-space:nowrap">${v.verdict}</span>`;
+                    }).join(' ');
+                }
+                
+                return `
+                    <tr data-row-id="${student.id}">
+                        <td><input type="checkbox" class="row-checkbox" data-row-id="${student.id}" onchange="toggleRowSelection('${student.id}')"></td>
+                        <td data-field="id">${student.id}</td>
+                        <td data-field="name">${student.name}</td>
+                        <td data-field="email">${student.email}</td>
+                        <td data-field="zeta_id">${student.zeta_id}</td>
+                        <td data-field="phone">${student.phone || 'N/A'}</td>
+                        <td data-field="interview_count">${student.interview_count || 0}</td>
+                        <td data-field="verdicts">${verdictsDisplay}</td>
+                        <td>
+                            <button class="icon-btn edit-btn" onclick="startEdit('${student.id}')" title="Edit">✏️</button>
+                            <button class="icon-btn delete-btn" onclick="deleteRecord('${student.id}', 'student')" title="Delete">🗑️</button>
+                            <button class="icon-btn" onclick="viewStudent(${student.id})" title="View">👁️</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
             
             // Attach reliable click handlers for all edit buttons (avoid inline parsing edge cases)
             tbody.addEventListener('click', (e) => {

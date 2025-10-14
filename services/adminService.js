@@ -543,7 +543,19 @@ class AdminService {
                     s.email,
                     s.zeta_id,
                     s.phone,
-                    COUNT(i.id) as interview_count
+                    COUNT(i.id) as interview_count,
+                    (
+                        SELECT json_agg(subq.verdict ORDER BY subq.interview_date DESC)
+                        FROM (
+                            SELECT i2.verdict, i2.interview_date
+                            FROM interviews i2
+                            WHERE i2.student_id = s.id
+                            AND i2.verdict IS NOT NULL
+                            AND i2.verdict != ''
+                            ORDER BY i2.interview_date DESC
+                            LIMIT 3
+                        ) subq
+                    ) as recent_verdicts
                 FROM students s
                 LEFT JOIN interviews i ON s.id = i.student_id
                 GROUP BY s.id, s.first_name, s.last_name, s.email, s.zeta_id, s.phone

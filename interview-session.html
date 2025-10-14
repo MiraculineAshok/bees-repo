@@ -252,12 +252,43 @@
             padding: 1rem;
             margin-bottom: 1rem;
             border: 1px solid #e2e8f0;
+            position: relative;
+        }
+        
+        .student-info-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
         }
         
         .student-info-title {
             font-size: 1.1rem;
             color: #2d3748;
-            margin-bottom: 0.5rem;
+            margin: 0;
+        }
+        
+        .interview-timer-card {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: white;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            border: 2px solid #3b82f6;
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+        }
+        
+        .interview-timer-card .clock-icon {
+            font-size: 1.5rem;
+        }
+        
+        .interview-timer-card #duration-display {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e40af;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.5px;
         }
         
         .info-grid {
@@ -1695,7 +1726,13 @@
     <main class="main-container">
         <div class="interview-main">
             <div class="student-info-card">
-                <h2 class="student-info-title">Candidate Information</h2>
+                <div class="student-info-header">
+                    <h2 class="student-info-title">Candidate Information</h2>
+                    <div class="interview-timer-card">
+                        <span class="clock-icon">⏱️</span>
+                        <span id="duration-display">00:00:00</span>
+                    </div>
+                </div>
                 <div class="info-grid">
                     <div class="info-item">
                         <div class="info-label">Name</div>
@@ -1739,10 +1776,6 @@
                                 <button class="question-bank-trigger-btn" onclick="openQuestionBankPanel()">📚 Ask from Question bank</button>
                             </div>
                             <div style="display:flex;gap:0.5rem;align-items:center">
-                                <div class="interview-clock" id="interview-clock">
-                                    <span class="clock-icon">⏱️</span>
-                                    <span id="duration-display">00:00:00</span>
-                                </div>
                                 <button id="save-interview-btn" class="btn btn-success" onclick="saveInterview()">Save Interview</button>
                                 <button class="btn btn-danger" onclick="endInterview()">End Interview</button>
                                 <button class="btn btn-warning" onclick="cancelInterview()">Cancel Interview</button>
