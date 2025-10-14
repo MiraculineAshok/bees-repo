@@ -1616,7 +1616,7 @@
                 // Questions tab filters
                 const bindQuestions = () => {
                     const applyQ = debounce(() => { applyFilters('questions'); setClearFiltersVisibility('questions'); }, 200);
-                    ['questions-search','category-filter','times-asked-min','success-rate-min','sort-by']
+                    ['search-questions','category-filter','times-asked-min','success-rate-min','sort-by']
                         .forEach(id => { const el = document.getElementById(id); if (el) {
                             const evt = (el.tagName === 'SELECT') ? 'change' : 'input';
                             el.removeEventListener(evt, applyQ);
@@ -1649,7 +1649,7 @@
             try {
                 const map = {
                     'interviews': ['interviews-search','status-filter','verdict-filter','date-from','date-to'],
-                    'questions': ['questions-search','category-filter','sort-by','times-asked-min','success-rate-min']
+                    'questions': ['search-questions','category-filter','sort-by','times-asked-min','success-rate-min']
                 };
                 const ids = map[section] || [];
                 const isActive = ids.some(id => {
@@ -1672,7 +1672,7 @@
                         applyFilters && applyFilters('interviews');
                         break;
                     case 'questions':
-                        ['questions-search','category-filter','sort-by','times-asked-min','success-rate-min'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.value=''; if(el.onchange) el.onchange(); }});
+                        ['search-questions','category-filter','sort-by','times-asked-min','success-rate-min'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.value=''; if(el.onchange) el.onchange(); }});
                         // For Questions tab, refresh using displayQuestionAnalytics if needed
                         try { refreshCurrentSection(); } catch { if (typeof displayQuestionAnalytics === 'function' && Array.isArray(window.allQuestions)) displayQuestionAnalytics(window.allQuestions); }
                         break;
