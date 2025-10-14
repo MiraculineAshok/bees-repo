@@ -155,19 +155,49 @@ class AuthService {
   // Update authorized user by ID
   static async updateAuthorizedUserById(id, updateData) {
     try {
-      const { name, email, role, is_superadmin } = updateData;
+      console.log('🔄 Updating authorized user by ID:', id, 'with data:', updateData);
       
-      const result = await pool.query(`
+      // Build dynamic UPDATE query based on provided fields
+      const allowedFields = ['name', 'email', 'role', 'is_superadmin'];
+      const updates = [];
+      const values = [];
+      let paramCount = 1;
+      
+      for (const field of allowedFields) {
+        if (updateData[field] !== undefined) {
+          updates.push(`${field} = $${paramCount}`);
+          values.push(updateData[field]);
+          paramCount++;
+        }
+      }
+      
+      if (updates.length === 0) {
+        throw new Error('No valid fields to update');
+      }
+      
+      // Always update the updated_at timestamp
+      updates.push(`updated_at = CURRENT_TIMESTAMP`);
+      
+      // Add the ID as the last parameter
+      values.push(id);
+      
+      const query = `
         UPDATE authorized_users 
-        SET name = $1, email = $2, role = $3, is_superadmin = $4, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $5
+        SET ${updates.join(', ')}
+        WHERE id = $${paramCount}
         RETURNING *
-      `, [name, email, role, is_superadmin, id]);
+      `;
+      
+      console.log('🔍 SQL Query:', query);
+      console.log('🔍 Values:', values);
+      
+      const result = await pool.query(query, values);
       
       if (result.rows.length === 0) {
         throw new Error('User not found');
       }
       
+      console.log('✅ User updated successfully:', result.rows[0]);
       return result.rows[0];
     } catch (error) {
       console.error('❌ Error updating authorized user by ID:', error.message);
