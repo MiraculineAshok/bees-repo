@@ -3541,6 +3541,18 @@
                 const success = q.success_rate != null ? `${q.success_rate}%` : '-';
                 const isFavorited = favoriteQuestionIds.has(q.id);
                 
+                // Debug: Log first question's tags
+                if (q === paginatedData[0]) {
+                    console.log('🏷️ First question tags debug (Interviewer):', {
+                        id: q.id,
+                        tags: q.tags,
+                        tagsType: typeof q.tags,
+                        isArray: Array.isArray(q.tags),
+                        tagsLength: q.tags?.length,
+                        category: q.category
+                    });
+                }
+                
                 // Format tags display
                 let tagsDisplay = '-';
                 if (q.tags && Array.isArray(q.tags) && q.tags.length > 0) {

@@ -3578,6 +3578,18 @@
             const paginatedData = getPaginatedData(questionsData, 'questions');
 
             tbody.innerHTML = paginatedData.map(question => {
+                // Debug: Log first question's tags
+                if (question === paginatedData[0]) {
+                    console.log('🏷️ First question tags debug:', {
+                        id: question.id,
+                        tags: question.tags,
+                        tagsType: typeof question.tags,
+                        isArray: Array.isArray(question.tags),
+                        tagsLength: question.tags?.length,
+                        category: question.category
+                    });
+                }
+                
                 // Format tags display
                 let tagsDisplay = 'N/A';
                 if (question.tags && Array.isArray(question.tags) && question.tags.length > 0) {

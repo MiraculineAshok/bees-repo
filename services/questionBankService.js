@@ -40,7 +40,23 @@ class QuestionBankService {
                     ORDER BY category, question
                 `;
                 const result = await pool.query(query);
-                return { success: true, data: result.rows };
+                
+                // Ensure tags are properly formatted as arrays (pg should handle this, but double-check)
+                const formattedData = result.rows.map(row => {
+                    // Log first row for debugging
+                    if (row.id === result.rows[0].id) {
+                        console.log('📊 Sample question data:', {
+                            id: row.id,
+                            question: row.question_text?.substring(0, 50),
+                            tags: row.tags,
+                            tagsType: typeof row.tags,
+                            isArray: Array.isArray(row.tags)
+                        });
+                    }
+                    return row;
+                });
+                
+                return { success: true, data: formattedData };
             } catch (tagsError) {
                 // If tags column doesn't exist (error code 42703), fall back to query without tags
                 if (tagsError.code === '42703') {
