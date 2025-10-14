@@ -25,13 +25,17 @@ class QuestionBankService {
                 return { success: true, data: questions };
             }
             
-            // Try with tags column first, fallback to without tags if column doesn't exist
+            // Try with tags and score columns first, fallback to legacy columns if they don't exist
             try {
                 const query = `
-                    SELECT id, question as question_text, category, tags, times_asked, 
+                    SELECT id, question as question_text, category, tags, times_asked,
+                           COALESCE(total_score, 0) as total_score,
+                           COALESCE(average_score, 0) as average_score,
                            COALESCE(times_answered_correctly, 0) as times_answered_correctly,
                            COALESCE(times_answered_incorrectly, 0) as times_answered_incorrectly,
+                           -- Calculate success rate from average_score (if exists) or from correct/incorrect ratio
                            CASE 
+                               WHEN average_score > 0 THEN ROUND((average_score / 10.0) * 100, 2)
                                WHEN times_asked > 0 THEN ROUND((COALESCE(times_answered_correctly, 0)::DECIMAL / times_asked) * 100, 2)
                                ELSE 0 
                            END as success_rate,

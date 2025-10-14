@@ -237,37 +237,69 @@ class InterviewService {
         }
     }
 
-    static async updateCorrectness(questionId, isCorrect) {
+    // New: Update question score (1-10 scale)
+    static async updateScore(questionId, correctnessScore) {
         if (!(await this.isDatabaseAvailable())) {
-            return mockDataService.updateCorrectness(questionId, isCorrect);
+            return mockDataService.updateScore(questionId, correctnessScore);
         }
 
         try {
-            console.log('🔄 Updating question correctness:', { questionId, isCorrect });
+            console.log('🔄 Updating question score:', { questionId, correctnessScore });
             
-            const result = await pool.query(
-                `UPDATE interview_questions 
-                 SET is_correct = $1, updated_at = CURRENT_TIMESTAMP
-                 WHERE id = $2 
-                 RETURNING *`,
-                [isCorrect, questionId]
-            );
-            
-            if (result.rows.length === 0) {
-                throw new Error('Question not found');
+            // Try with new column first, fallback if it doesn't exist
+            try {
+                const result = await pool.query(
+                    `UPDATE interview_questions 
+                     SET correctness_score = $1, updated_at = CURRENT_TIMESTAMP
+                     WHERE id = $2 
+                     RETURNING *`,
+                    [correctnessScore, questionId]
+                );
+                
+                if (result.rows.length === 0) {
+                    throw new Error('Question not found');
+                }
+                
+                console.log('✅ Database score update successful, rows affected:', result.rowCount);
+                console.log('📊 Updated question data:', result.rows[0]);
+                
+                // Update question bank statistics with new score
+                await this.updateQuestionBankScore(questionId, correctnessScore);
+                
+                return result.rows[0];
+            } catch (columnError) {
+                // If correctness_score column doesn't exist, fall back to is_correct (legacy)
+                if (columnError.code === '42703') {
+                    console.warn('⚠️  correctness_score column not found, falling back to is_correct (legacy)');
+                    const isCorrect = correctnessScore >= 6; // 6+ is considered correct
+                    const result = await pool.query(
+                        `UPDATE interview_questions 
+                         SET is_correct = $1, updated_at = CURRENT_TIMESTAMP
+                         WHERE id = $2 
+                         RETURNING *`,
+                        [isCorrect, questionId]
+                    );
+                    
+                    if (result.rows.length === 0) {
+                        throw new Error('Question not found');
+                    }
+                    
+                    await this.updateQuestionBankStatistics(questionId, isCorrect);
+                    return result.rows[0];
+                }
+                throw columnError;
             }
-            
-            console.log('✅ Database correctness update successful, rows affected:', result.rowCount);
-            console.log('📊 Updated question data:', result.rows[0]);
-            
-            // Update question bank statistics
-            await this.updateQuestionBankStatistics(questionId, isCorrect);
-            
-            return result.rows[0];
         } catch (error) {
-            console.error('❌ Error updating correctness:', error);
+            console.error('❌ Error updating score:', error);
             throw error;
         }
+    }
+
+    // Legacy: Keep for backward compatibility
+    static async updateCorrectness(questionId, isCorrect) {
+        // Convert boolean to score and use new method
+        const correctnessScore = isCorrect ? 8 : 3;
+        return this.updateScore(questionId, correctnessScore);
     }
 
     static async updateQuestionText(questionId, questionText) {
@@ -341,6 +373,61 @@ class InterviewService {
             console.log('✅ Question bank statistics updated successfully');
         } catch (error) {
             console.error('❌ Error updating question bank statistics:', error);
+            // Don't throw error as this is not critical
+        }
+    }
+
+    // New: Update question bank with score (replaces correct/incorrect counters)
+    static async updateQuestionBankScore(questionId, score) {
+        if (!(await this.isDatabaseAvailable())) {
+            return; // Skip for mock data
+        }
+
+        try {
+            console.log('🔄 Updating question bank score:', { questionId, score });
+            
+            // Get the question text to find the corresponding question bank entry
+            const questionResult = await pool.query(
+                `SELECT question_text FROM interview_questions WHERE id = $1`,
+                [questionId]
+            );
+            
+            if (questionResult.rows.length === 0) {
+                console.log('⚠️ Question not found for score update');
+                return;
+            }
+            
+            const questionText = questionResult.rows[0].question_text;
+            
+            // Try to update with new score-based columns
+            try {
+                // Update the question bank with the new score
+                // This increments total_score and recalculates average_score
+                await pool.query(
+                    `UPDATE question_bank 
+                     SET total_score = total_score + $1,
+                         average_score = CASE 
+                             WHEN times_asked > 0 THEN ROUND((total_score + $1)::DECIMAL / times_asked, 2)
+                             ELSE 0 
+                         END,
+                         updated_at = CURRENT_TIMESTAMP
+                     WHERE question = $2`,
+                    [score, questionText]
+                );
+                
+                console.log('✅ Question bank score updated successfully');
+            } catch (columnError) {
+                // If new columns don't exist, fall back to old method
+                if (columnError.code === '42703') {
+                    console.warn('⚠️  Score columns not found, falling back to correct/incorrect counters');
+                    const isCorrect = score >= 6;
+                    await this.updateQuestionBankStatistics(questionId, isCorrect);
+                } else {
+                    throw columnError;
+                }
+            }
+        } catch (error) {
+            console.error('❌ Error updating question bank score:', error);
             // Don't throw error as this is not critical
         }
     }

@@ -944,16 +944,42 @@ app.put('/api/interview-questions/:questionId/answer', async (req, res) => {
 });
 
 // Update question correctness
+// Update question score (1-10 scale)
+app.put('/api/interview-questions/:questionId/score', async (req, res) => {
+  try {
+    const { correctness_score } = req.body;
+    console.log('🔍 Server: updateScore API called with:', {
+      questionId: req.params.questionId,
+      correctness_score
+    });
+
+    const question = await InterviewService.updateScore(req.params.questionId, correctness_score);
+    console.log('✅ Server: updateScore successful, returning:', question);
+
+    res.json({
+      success: true,
+      data: question
+    });
+  } catch (error) {
+    console.error('❌ Server: Error updating question score:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Legacy endpoint - keeping for backward compatibility but redirecting to score
 app.put('/api/interview-questions/:questionId/correctness', async (req, res) => {
   try {
     const { is_correct } = req.body;
-    console.log('🔍 Server: updateCorrectness API called with:', {
-      questionId: req.params.questionId,
-      is_correct
-    });
-
-    const question = await InterviewService.updateCorrectness(req.params.questionId, is_correct);
-    console.log('✅ Server: updateCorrectness successful, returning:', question);
+    console.log('⚠️  Server: Legacy correctness API called - converting to score system');
+    
+    // Convert boolean to score: true = 8/10, false = 3/10
+    const correctness_score = is_correct ? 8 : 3;
+    
+    const question = await InterviewService.updateScore(req.params.questionId, correctness_score);
+    console.log('✅ Server: Legacy updateCorrectness converted to score:', correctness_score);
 
     res.json({
       success: true,
