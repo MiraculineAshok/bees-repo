@@ -884,7 +884,7 @@
             height: 100vh;
             background: white;
             box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
-            z-index: 1001;
+            z-index: 1500;
             transition: right 0.3s ease;
             overflow-y: auto;
         }
@@ -921,7 +921,7 @@
             right: 400px; /* Don't cover the filter panel */
             bottom: 0;
             background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
+            z-index: 1400;
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease;
@@ -1704,13 +1704,26 @@
                 await populateQuestionCategories();
             } catch {}
             const panel = document.getElementById('question-filter-panel');
-            const overlay = document.getElementById('filter-panel-overlay');
-            if (panel && overlay){ panel.classList.add('active'); overlay.classList.add('active'); }
+            let overlay = document.getElementById('filter-panel-overlay');
+            if (panel){
+                panel.classList.add('active');
+                // Ensure overlay exists and is active
+                if (!overlay){
+                    overlay = document.createElement('div');
+                    overlay.id = 'filter-panel-overlay';
+                    overlay.className = 'filter-panel-overlay active';
+                    overlay.onclick = closeQuestionFilterPanel;
+                    document.body.appendChild(overlay);
+                } else {
+                    overlay.classList.add('active');
+                }
+            }
         }
         function closeQuestionFilterPanel(){
             const panel = document.getElementById('question-filter-panel');
             const overlay = document.getElementById('filter-panel-overlay');
-            if (panel && overlay){ panel.classList.remove('active'); overlay.classList.remove('active'); }
+            if (panel){ panel.classList.remove('active'); }
+            if (overlay){ overlay.classList.remove('active'); }
         }
 
         async function populateQuestionCategories(){
