@@ -1384,24 +1384,73 @@
                         <div class="header-actions">
                             <button class="btn btn-success" onclick="openAddQuestionModal()">Add Question</button>
                             <button class="btn btn-info" onclick="openBulkImportModal()">Bulk Import</button>
+                            <button class="btn-filter-toggle" onclick="openQuestionFilterPanel()" title="Filter & Sort Options">
+                                <span class="filter-icon">⚙️</span>
+                                <span class="filter-text">Filters</span>
+                            </button>
                         </div>
                     </div>
-                    <div class="inline-question-filters" style="margin:10px 0; display:flex; gap:8px; flex-wrap:wrap; align-items:center">
-                        <input id="qf-search" class="form-input" placeholder="Search questions or category" style="min-width:220px;">
-                        <select id="qf-category" class="form-select" style="min-width:180px"></select>
-                        <input id="qf-times" class="form-input" type="number" min="0" placeholder="Min Times Asked" style="width:160px">
-                        <input id="qf-success" class="form-input" type="number" min="0" max="100" placeholder="Min Success %" style="width:160px">
-                        <select id="qf-sort" class="form-select" style="min-width:200px">
-                            <option value="created_at_desc">Newest First</option>
-                            <option value="created_at_asc">Oldest First</option>
-                            <option value="question_text_asc">Question (A-Z)</option>
-                            <option value="question_text_desc">Question (Z-A)</option>
-                            <option value="times_asked_desc">Times Asked (High→Low)</option>
-                            <option value="times_asked_asc">Times Asked (Low→High)</option>
-                            <option value="success_rate_desc">Success % (High→Low)</option>
-                            <option value="success_rate_asc">Success % (Low→High)</option>
-                        </select>
-                        <button class="btn btn-secondary" onclick="resetInlineQuestionFilters()" title="Clear filters">🧹</button>
+                    <!-- Question Filters Slide Panel (clean UI with labels, real categories) -->
+                    <div id="question-filter-panel" class="filter-panel" style="right:-400px;">
+                        <div class="filter-panel-header">
+                            <h3>Filter & Sort Questions</h3>
+                            <button class="close-btn" onclick="closeQuestionFilterPanel()">✕</button>
+                        </div>
+                        <div class="filter-panel-content">
+                            <div class="filter-section">
+                                <div class="filter-section-title">🔎 Search</div>
+                                <div class="filter-row">
+                                    <div class="filter-group">
+                                        <label for="search-questions">Search</label>
+                                        <input type="text" id="search-questions" class="form-input" placeholder="Search by question text or category">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="filter-section">
+                                <div class="filter-section-title">🎯 Filters</div>
+                                <div class="filter-row">
+                                    <div class="filter-group">
+                                        <label for="category-filter">Category</label>
+                                        <select id="category-filter" class="form-select">
+                                            <option value="">All Categories</option>
+                                        </select>
+                                    </div>
+                                    <div class="filter-group">
+                                        <label for="times-asked-min">Times Asked (Min)</label>
+                                        <input type="number" id="times-asked-min" class="form-input" placeholder="0" min="0">
+                                    </div>
+                                    <div class="filter-group">
+                                        <label for="success-rate-min">Success Rate (Min %)</label>
+                                        <input type="number" id="success-rate-min" class="form-input" placeholder="0" min="0" max="100">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="sort-section">
+                                <div class="filter-section-title">📊 Sort Options</div>
+                                <div class="sort-options">
+                                    <div class="sort-option">
+                                        <label for="sort-by">Sort by</label>
+                                        <select id="sort-by" class="form-select">
+                                            <option value="created_at_desc">Newest First</option>
+                                            <option value="created_at_asc">Oldest First</option>
+                                            <option value="question_text_asc">Question (A-Z)</option>
+                                            <option value="question_text_desc">Question (Z-A)</option>
+                                            <option value="times_asked_desc">Times Asked (High→Low)</option>
+                                            <option value="times_asked_asc">Times Asked (Low→High)</option>
+                                            <option value="success_rate_desc">Success % (High→Low)</option>
+                                            <option value="success_rate_asc">Success % (Low→High)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="filter-actions">
+                                <button class="btn-filter" onclick="applyFilters('questions', true)">Apply Filters</button>
+                                <button class="btn-clear" onclick="clearFilters('questions')">Clear</button>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- Results Summary -->
@@ -1605,12 +1654,8 @@
             const apply = debounce(applyQuestionsInlineFilter, 180);
             ['qf-search','qf-times','qf-success'].forEach(id=>{ const e=el(id); if(e){ e.addEventListener('input', apply);} });
             ['qf-category','qf-sort'].forEach(id=>{ const e=el(id); if(e){ e.addEventListener('change', apply);} });
-            // Populate categories
-            const catSel = el('qf-category');
-            if (catSel && window.allQuestions) {
-                const cats = Array.from(new Set((allQuestions||[]).map(q=>q.category).filter(Boolean))).sort();
-                catSel.innerHTML = '<option value="">All Categories</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join('');
-            }
+            // Populate categories from DB
+            populateQuestionCategories();
             applyQuestionsInlineFilter();
         }
         function resetInlineQuestionFilters(){
@@ -1653,6 +1698,34 @@
             }catch(e){ console.warn('applyQuestionsInlineFilter error', e); }
         }
         document.addEventListener('DOMContentLoaded', bindInlineQuestionFilters);
+
+        async function openQuestionFilterPanel(){
+            try {
+                await populateQuestionCategories();
+            } catch {}
+            const panel = document.getElementById('question-filter-panel');
+            const overlay = document.getElementById('filter-panel-overlay');
+            if (panel && overlay){ panel.classList.add('active'); overlay.classList.add('active'); }
+        }
+        function closeQuestionFilterPanel(){
+            const panel = document.getElementById('question-filter-panel');
+            const overlay = document.getElementById('filter-panel-overlay');
+            if (panel && overlay){ panel.classList.remove('active'); overlay.classList.remove('active'); }
+        }
+
+        async function populateQuestionCategories(){
+            try {
+                const res = await fetch('/api/question-bank/categories');
+                const j = await res.json();
+                if (j && j.success && Array.isArray(j.data)){
+                    const sel = document.getElementById('category-filter');
+                    if (sel){
+                        const cats = j.data.map(c => (typeof c === 'string' ? c : c.category)).filter(Boolean).sort();
+                        sel.innerHTML = '<option value="">All Categories</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+                    }
+                }
+            } catch (e) { console.warn('populateQuestionCategories error', e); }
+        }
         // Live filtering: apply filters immediately as user types/selects
         function debounce(fn, delay = 250) {
             let t;
