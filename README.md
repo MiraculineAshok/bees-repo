@@ -10,7 +10,7 @@ A comprehensive interview management system built with Node.js, Express, and Pos
 - **Question Bank**: Pre-loaded questions categorized by subject (Math, HR, English, Technical, etc.)
 - **Photo Capture**: Upload and capture photos of student answer sheets
 - **Interview History**: View previous interviews for each student
-- **Verdict System**: Rate interviews (Tiger, Cow, Cow+, Sheep)
+- **Verdict System**: Rate interviews (Tiger, Cow, Sheep)
 
 ### 🎨 User Interface
 - **Responsive Design**: Works on desktop and mobile devices
