@@ -31,6 +31,31 @@
         .avatar-menu { position: absolute; right: 16px; top: 56px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); display: none; min-width: 140px; z-index: 150; }
         .avatar-menu button { width: 100%; background: #ffffff; border: none; text-align: left; padding: 10px 12px; cursor: pointer; }
         .avatar-menu button:hover { background: #f3f4f6; }
+
+        /* Student suggestions dropdown */
+        .suggestions {
+            position: absolute;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            max-height: 260px;
+            overflow-y: auto;
+            display: none;
+            z-index: 50;
+        }
+        .suggestion-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 12px; cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        .suggestion-item + .suggestion-item { border-top: 1px solid #f1f5f9; }
+        .suggestion-item:hover { background: #f8fafc; }
+        .suggestion-main { display: flex; flex-direction: column; }
+        .suggestion-name { font-weight: 600; color: #111827; }
+        .suggestion-meta { font-size: 12px; color: #6b7280; }
+        .suggestion-action { color: #9ca3af; font-size: 14px; margin-left: 12px; }
+        .suggestion-item:hover .suggestion-action { color: #111827; }
     </style>
 </head>
 <body>
@@ -83,7 +108,7 @@
                     <label for="zeta-id">Search Student:</label>
                     <input type="text" id="zeta-id" placeholder="Type name, email or ZETA ID" autocomplete="off">
                     <div id="zeta-error" class="error-message hidden"></div>
-                    <div id="student-suggestions" class="suggestions" style="position:absolute;background:#fff;border:1px solid #e5e7eb;border-radius:6px;box-shadow:0 8px 20px rgba(0,0,0,0.1);width:100%;max-height:220px;overflow:auto;display:none;z-index:50"></div>
+                    <div id="student-suggestions" class="suggestions" style="left:0;right:auto;min-width:320px;width:auto;"></div>
                 </div>
             </div>
         </div>
@@ -148,9 +173,12 @@
             function show(items){
                 if (!items || items.length===0) { hide(); return; }
                 box.innerHTML = items.map(s => `
-                    <div class=\"suggestion-item\" data-id=\"${s.id}\" style=\"padding:8px 12px;cursor:pointer\">
-                        <div style=\"font-weight:600;color:#111827\">${s.first_name || ''} ${s.last_name || ''} <small style=\"color:#6b7280\">${s.zeta_id || ''}</small></div>
-                        <div style=\"font-size:12px;color:#374151\">${s.email || ''}</div>
+                    <div class=\"suggestion-item\" data-id=\"${s.id}\"> 
+                        <div class=\"suggestion-main\">
+                            <div class=\"suggestion-name\">${(s.first_name || '')} ${(s.last_name || '')} <small class=\"suggestion-meta\">${s.zeta_id || ''}</small></div>
+                            <div class=\"suggestion-meta\">${s.email || ''}</div>
+                        </div>
+                        <div class=\"suggestion-action\">Select →</div>
                     </div>`).join('');
                 box.style.display='block';
                 box.querySelectorAll('.suggestion-item').forEach(el => {
