@@ -1409,7 +1409,7 @@
                             <thead>
                                 <tr>
                                     <th>Question</th>
-                                    <th>Category</th>
+                                    <th>Tags</th>
                                     <th>Times Asked</th>
                                     <th>Correct Answers</th>
                                     <th>Incorrect Answers</th>
@@ -3532,6 +3532,15 @@
                 const incorrect = q.incorrect_answers ?? q.times_answered_incorrectly ?? 0;
                 const success = q.success_rate != null ? `${q.success_rate}%` : '-';
                 const isFavorited = favoriteQuestionIds.has(q.id);
+                
+                // Format tags display
+                let tagsDisplay = '-';
+                if (q.tags && Array.isArray(q.tags) && q.tags.length > 0) {
+                    tagsDisplay = q.tags.map(tag => `<span style="display:inline-block;background:#3b82f6;color:#fff;padding:2px 8px;border-radius:12px;font-size:11px;margin:2px">#${tag}</span>`).join(' ');
+                } else if (q.category) {
+                    tagsDisplay = `<span style="display:inline-block;background:#6b7280;color:#fff;padding:2px 8px;border-radius:12px;font-size:11px;margin:2px">#${q.category}</span>`;
+                }
+                
                 return `
                     <tr>
                         <td>
@@ -3542,7 +3551,7 @@
                                 ${isFavorited ? '★' : '☆'}
                             </button>
                         </td>
-                        <td>${q.category || '-'}</td>
+                        <td>${tagsDisplay}</td>
                         <td>${timesAsked}</td>
                         <td>${correct}</td>
                         <td>${incorrect}</td>
