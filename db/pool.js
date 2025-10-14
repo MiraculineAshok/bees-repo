@@ -17,12 +17,12 @@ const isLocalDatabase = databaseUrl.includes('localhost') || databaseUrl.include
 
 const pool = new Pool({
   connectionString: databaseUrl,
-  max: 5,                  // Keep this low; multiple instances add up
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 60000,  // Increased timeout for Neon (60 seconds)
+  max: 3,                  // Reduced to 3 for Neon free tier
+  min: 0,                  // Allow pool to shrink to 0 when idle
+  idleTimeoutMillis: 10000, // Release idle connections after 10 seconds
+  connectionTimeoutMillis: 10000, // Reduced timeout (10 seconds)
   ssl: isLocalDatabase ? false : { rejectUnauthorized: false }, // Only use SSL for remote databases
-  keepAlive: true,
-  keepAliveInitialDelayMillis: 10000,
+  allowExitOnIdle: true,   // Allow process to exit if all connections idle
 });
 
 // Test connection on startup
