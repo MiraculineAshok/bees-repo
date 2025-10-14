@@ -228,7 +228,7 @@
                 box.querySelectorAll('.suggestion-item').forEach(el => {
                     el.onclick = () => {
                         // First, check if session is selected
-                        const sessionSelect = document.getElementById('interview-session');
+                        const sessionSelect = document.getElementById('session-select');
                         if (!sessionSelect || !sessionSelect.value) {
                             // Show toast/error message
                             showToast('Please select an interview session first', 'warning');
