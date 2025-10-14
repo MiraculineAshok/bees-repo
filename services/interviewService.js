@@ -401,21 +401,38 @@ class InterviewService {
             
             // Try to update with new score-based columns
             try {
-                // Update the question bank with the new score
-                // This increments total_score and recalculates average_score
-                await pool.query(
-                    `UPDATE question_bank 
-                     SET total_score = total_score + $1,
-                         average_score = CASE 
-                             WHEN times_asked > 0 THEN ROUND((total_score + $1)::DECIMAL / times_asked, 2)
-                             ELSE 0 
-                         END,
-                         updated_at = CURRENT_TIMESTAMP
-                     WHERE question = $2`,
-                    [score, questionText]
+                // First, check if times_asked needs to be incremented
+                // This happens when a question is scored for the first time in an interview
+                const checkResult = await pool.query(
+                    `SELECT id, times_asked, total_score FROM question_bank WHERE question = $1`,
+                    [questionText]
                 );
                 
-                console.log('✅ Question bank score updated successfully');
+                if (checkResult.rows.length > 0) {
+                    const currentData = checkResult.rows[0];
+                    console.log('📊 Current question_bank data:', currentData);
+                    
+                    // Update the question bank with the new score
+                    // Calculate average_score properly: (total_score + new_score) / times_asked
+                    await pool.query(
+                        `UPDATE question_bank 
+                         SET total_score = total_score + $1,
+                             average_score = CASE 
+                                 WHEN times_asked > 0 THEN ROUND((total_score + $1)::DECIMAL / times_asked, 2)
+                                 ELSE 0 
+                             END,
+                             updated_at = CURRENT_TIMESTAMP
+                         WHERE question = $2
+                         RETURNING id, question, times_asked, total_score, average_score`,
+                        [score, questionText]
+                    );
+                    
+                    console.log('✅ Question bank score updated successfully');
+                } else {
+                    console.warn('⚠️  Question not found in question_bank:', questionText.substring(0, 50));
+                }
+                
+                console.log('✅ Question bank score update completed');
             } catch (columnError) {
                 // If new columns don't exist, fall back to old method
                 if (columnError.code === '42703') {

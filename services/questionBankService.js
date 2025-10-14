@@ -240,8 +240,11 @@ class QuestionBankService {
     // Increment the times_asked counter for a question
     static async incrementTimesAsked(questionId) {
         try {
+            console.log('🔢 incrementTimesAsked called for question ID:', questionId);
+            
             if (!(await this.isDatabaseAvailable())) {
                 // Mock increment - just return success
+                console.log('⚠️  Database not available, using mock');
                 return { success: true, data: { id: questionId, times_asked: 1 } };
             }
             
@@ -249,12 +252,20 @@ class QuestionBankService {
                 UPDATE question_bank
                 SET times_asked = times_asked + 1, updated_at = CURRENT_TIMESTAMP
                 WHERE id = $1
-                RETURNING id, question, category, times_asked
+                RETURNING id, question, category, times_asked, total_score, average_score
             `;
+            console.log('🔄 Executing query:', query, 'with ID:', questionId);
             const result = await pool.query(query, [questionId]);
+            
+            if (result.rows.length === 0) {
+                console.warn('⚠️  No question found with ID:', questionId);
+                return { success: false, error: 'Question not found in question bank' };
+            }
+            
+            console.log('✅ Times asked incremented successfully:', result.rows[0]);
             return { success: true, data: result.rows[0] };
         } catch (error) {
-            console.error('Error incrementing times asked:', error);
+            console.error('❌ Error incrementing times asked:', error);
             return { success: false, error: error.message };
         }
     }
