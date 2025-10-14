@@ -884,7 +884,7 @@
             height: 100vh;
             background: white;
             box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
-            z-index: 1500;
+            z-index: 9999;
             transition: right 0.3s ease;
             overflow-y: auto;
         }
@@ -921,7 +921,7 @@
             right: 400px; /* Don't cover the filter panel */
             bottom: 0;
             background: rgba(0, 0, 0, 0.5);
-            z-index: 1400;
+            z-index: 9998;
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease;
@@ -1390,68 +1390,6 @@
                             </button>
                         </div>
                     </div>
-                    <!-- Question Filters Slide Panel (clean UI with labels, real categories) -->
-                    <div id="question-filter-panel" class="filter-panel" style="right:-400px;">
-                        <div class="filter-panel-header">
-                            <h3>Filter & Sort Questions</h3>
-                            <button class="close-btn" onclick="closeQuestionFilterPanel()">✕</button>
-                        </div>
-                        <div class="filter-panel-content">
-                            <div class="filter-section">
-                                <div class="filter-section-title">🔎 Search</div>
-                                <div class="filter-row">
-                                    <div class="filter-group">
-                                        <label for="search-questions">Search</label>
-                                        <input type="text" id="search-questions" class="form-input" placeholder="Search by question text or category">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="filter-section">
-                                <div class="filter-section-title">🎯 Filters</div>
-                                <div class="filter-row">
-                                    <div class="filter-group">
-                                        <label for="category-filter">Category</label>
-                                        <select id="category-filter" class="form-select">
-                                            <option value="">All Categories</option>
-                                        </select>
-                                    </div>
-                                    <div class="filter-group">
-                                        <label for="times-asked-min">Times Asked (Min)</label>
-                                        <input type="number" id="times-asked-min" class="form-input" placeholder="0" min="0">
-                                    </div>
-                                    <div class="filter-group">
-                                        <label for="success-rate-min">Success Rate (Min %)</label>
-                                        <input type="number" id="success-rate-min" class="form-input" placeholder="0" min="0" max="100">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="sort-section">
-                                <div class="filter-section-title">📊 Sort Options</div>
-                                <div class="sort-options">
-                                    <div class="sort-option">
-                                        <label for="sort-by">Sort by</label>
-                                        <select id="sort-by" class="form-select">
-                                            <option value="created_at_desc">Newest First</option>
-                                            <option value="created_at_asc">Oldest First</option>
-                                            <option value="question_text_asc">Question (A-Z)</option>
-                                            <option value="question_text_desc">Question (Z-A)</option>
-                                            <option value="times_asked_desc">Times Asked (High→Low)</option>
-                                            <option value="times_asked_asc">Times Asked (Low→High)</option>
-                                            <option value="success_rate_desc">Success % (High→Low)</option>
-                                            <option value="success_rate_asc">Success % (Low→High)</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="filter-actions">
-                                <button class="btn-filter" onclick="applyFilters('questions', true)">Apply Filters</button>
-                                <button class="btn-clear" onclick="clearFilters('questions')">Clear</button>
-                            </div>
-                        </div>
-                    </div>
                     
                     <!-- Results Summary -->
                     <div id="question-results-summary" class="results-summary" style="display: none;">
@@ -1606,42 +1544,62 @@
     <!-- Question Filter Panel -->
     <div id="question-filter-panel" class="filter-panel">
         <div class="filter-panel-header">
-            <h3>Question Filter Options</h3>
+            <h3>Filter & Sort Questions</h3>
             <button class="close-btn" onclick="closeQuestionFilterPanel()">✕</button>
         </div>
         <div class="filter-panel-content">
-            <!-- Search Section -->
             <div class="filter-section">
-                <div class="filter-section-title">🔍 Search & Filter Questions</div>
+                <div class="filter-section-title">🔎 Search</div>
                 <div class="filter-row">
                     <div class="filter-group">
-                        <label>Search:</label>
-                        <input type="text" id="bank-search-input" class="form-input" placeholder="Search questions by text..." onkeyup="loadQuestions()">
+                        <label for="search-questions">Search</label>
+                        <input type="text" id="search-questions" class="form-input" placeholder="Search by question text or category">
                     </div>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <div class="filter-section-title">🎯 Filters</div>
+                <div class="filter-row">
                     <div class="filter-group">
-                        <label>Category:</label>
-                        <select id="bank-category-select" class="form-select" onchange="loadQuestions()">
+                        <label for="category-filter">Category</label>
+                        <select id="category-filter" class="form-select">
                             <option value="">All Categories</option>
-                            <option value="Favorites">My Favorites</option>
                         </select>
                     </div>
                     <div class="filter-group">
-                        <label>Sort by:</label>
-                        <select id="question-sort-by" class="form-select" onchange="loadQuestions()">
-                            <option value="popularity">Most Popular</option>
-                            <option value="recent">Most Recent</option>
-                            <option value="alphabetical">Alphabetical</option>
-                            <option value="category">Category</option>
+                        <label for="times-asked-min">Times Asked (Min)</label>
+                        <input type="number" id="times-asked-min" class="form-input" placeholder="0" min="0">
+                    </div>
+                    <div class="filter-group">
+                        <label for="success-rate-min">Success Rate (Min %)</label>
+                        <input type="number" id="success-rate-min" class="form-input" placeholder="0" min="0" max="100">
+                    </div>
+                </div>
+            </div>
+
+            <div class="sort-section">
+                <div class="filter-section-title">📊 Sort Options</div>
+                <div class="sort-options">
+                    <div class="sort-option">
+                        <label for="sort-by">Sort by</label>
+                        <select id="sort-by" class="form-select">
+                            <option value="created_at_desc">Newest First</option>
+                            <option value="created_at_asc">Oldest First</option>
+                            <option value="question_text_asc">Question (A-Z)</option>
+                            <option value="question_text_desc">Question (Z-A)</option>
+                            <option value="times_asked_desc">Times Asked (High→Low)</option>
+                            <option value="times_asked_asc">Times Asked (Low→High)</option>
+                            <option value="success_rate_desc">Success % (High→Low)</option>
+                            <option value="success_rate_asc">Success % (Low→High)</option>
                         </select>
                     </div>
                 </div>
             </div>
 
-            <!-- Action Buttons -->
             <div class="filter-actions">
-                <button class="btn-filter" onclick="loadQuestions()">Search Questions</button>
-                <button class="btn-clear" onclick="clearQuestionFilters()">Clear Filters</button>
-                <button class="btn-export" onclick="exportQuestions()">Export Questions</button>
+                <button class="btn-filter" onclick="applyFilters('questions', true)">Apply Filters</button>
+                <button class="btn-clear" onclick="clearFilters('questions')">Clear</button>
             </div>
         </div>
     </div>
