@@ -877,16 +877,31 @@ app.get('/api/interviews/student/:studentId/history', async (req, res) => {
 app.post('/api/interviews/:id/questions', async (req, res) => {
   try {
     const { question_text, question_rich_content } = req.body;
+    console.log('📝 Adding question:', { 
+      interviewId: req.params.id, 
+      question_text, 
+      has_rich_content: !!question_rich_content 
+    });
+    
     const question = await InterviewService.addQuestion(req.params.id, question_text, question_rich_content);
+    
     res.status(201).json({
       success: true,
       data: question
     });
   } catch (error) {
-    console.error('Error adding question:', error);
+    console.error('❌ Error adding question:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      stack: error.stack
+    });
+    
     res.status(400).json({
       success: false,
-      error: error.message
+      error: error.message || 'Failed to add question',
+      detail: error.detail
     });
   }
 });

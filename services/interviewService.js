@@ -163,15 +163,33 @@ class InterviewService {
             );
             const nextOrder = orderResult.rows[0].next_order;
 
-            const result = await pool.query(
-                `INSERT INTO interview_questions (interview_id, question_text, question_rich_content, question_order) 
-                 VALUES ($1, $2, $3, $4) 
-                 RETURNING *`,
-                [interviewId, questionText, questionRichContent, nextOrder]
-            );
-            return result.rows[0];
+            // Try to insert with rich content first
+            try {
+                const result = await pool.query(
+                    `INSERT INTO interview_questions (interview_id, question_text, question_rich_content, question_order) 
+                     VALUES ($1, $2, $3, $4) 
+                     RETURNING *`,
+                    [interviewId, questionText, questionRichContent, nextOrder]
+                );
+                return result.rows[0];
+            } catch (richContentError) {
+                // If column doesn't exist, fall back to just question_text
+                if (richContentError.code === '42703') { // undefined_column error
+                    console.warn('⚠️ question_rich_content column does not exist, falling back to question_text only');
+                    const result = await pool.query(
+                        `INSERT INTO interview_questions (interview_id, question_text, question_order) 
+                         VALUES ($1, $2, $3) 
+                         RETURNING *`,
+                        [interviewId, questionText, nextOrder]
+                    );
+                    return result.rows[0];
+                }
+                throw richContentError;
+            }
         } catch (error) {
             console.error('Error adding question:', error);
+            console.error('Error code:', error.code);
+            console.error('Error detail:', error.detail);
             throw error;
         }
     }
