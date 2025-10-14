@@ -88,7 +88,7 @@ class AuthService {
       `, [name, role, is_superadmin, email]);
       
       if (result.rows.length === 0) {
-        throw new Error('Authorized user not found');
+        throw new Error('Authorized user not found (updateAuthorizedUser - by email)');
       }
       
       console.log('✅ Authorized user updated:', result.rows[0]);
@@ -108,7 +108,7 @@ class AuthService {
       `, [email]);
       
       if (result.rows.length === 0) {
-        throw new Error('Authorized user not found');
+        throw new Error('Authorized user not found (removeAuthorizedUser - by email)');
       }
       
       console.log('✅ Authorized user removed:', result.rows[0]);
@@ -161,10 +161,14 @@ class AuthService {
       // First, check if the user exists
       const checkResult = await pool.query('SELECT id, name, email, role, is_superadmin FROM authorized_users WHERE id = $1', [id]);
       console.log('🔍 User lookup result:', checkResult.rows);
+      console.log('🔍 Number of rows returned:', checkResult.rows.length);
+      console.log('🔍 Row count check:', checkResult.rows.length === 0 ? 'ZERO ROWS' : 'HAS ROWS');
       
       if (checkResult.rows.length === 0) {
         console.error('❌ User not found with ID:', id);
-        throw new Error('Authorized user not found');
+        console.error('❌ ID was searched in authorized_users table');
+        console.error('❌ This error is from updateAuthorizedUserById - line 167');
+        throw new Error('Authorized user not found (updateAuthorizedUserById - user lookup failed)');
       }
       
       console.log('✅ User exists:', checkResult.rows[0]);
@@ -207,7 +211,9 @@ class AuthService {
       
       if (result.rows.length === 0) {
         console.error('❌ UPDATE returned no rows for ID:', id);
-        throw new Error('Update failed - user not found');
+        console.error('❌ This error is from updateAuthorizedUserById - line 212');
+        console.error('❌ User existed in check but UPDATE returned nothing');
+        throw new Error('Authorized user not found (updateAuthorizedUserById - UPDATE returned no rows)');
       }
       
       console.log('✅ User updated successfully:', result.rows[0]);
