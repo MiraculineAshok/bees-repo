@@ -17,7 +17,7 @@ const isLocalDatabase = databaseUrl.includes('localhost') || databaseUrl.include
 
 const pool = new Pool({
   connectionString: databaseUrl,
-  max: 3,                  // Reduced to 3 for Neon free tier
+  max: parseInt(process.env.DB_POOL_MAX || '2'),  // Default to 2, configurable via env
   min: 0,                  // Allow pool to shrink to 0 when idle
   idleTimeoutMillis: 10000, // Release idle connections after 10 seconds
   connectionTimeoutMillis: 10000, // Reduced timeout (10 seconds)
