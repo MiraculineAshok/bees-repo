@@ -165,6 +165,48 @@
     <script src="/shared-auth.js"></script>
     <script src="/interview.js"></script>
     <script>
+        // Toast notification function
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'warning' ? '#f59e0b' : type === 'error' ? '#ef4444' : '#3b82f6'};
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 10000;
+                font-size: 14px;
+                font-weight: 500;
+                animation: slideIn 0.3s ease;
+            `;
+            toast.textContent = message;
+            
+            // Add animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(400px); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes slideOut {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(400px); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.body.appendChild(toast);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+        
         // Live student search suggestions
         (function(){
             const input = document.getElementById('zeta-id');
@@ -185,6 +227,22 @@
                 box.style.display='block';
                 box.querySelectorAll('.suggestion-item').forEach(el => {
                     el.onclick = () => {
+                        // First, check if session is selected
+                        const sessionSelect = document.getElementById('interview-session');
+                        if (!sessionSelect || !sessionSelect.value) {
+                            // Show toast/error message
+                            showToast('Please select an interview session first', 'warning');
+                            // Highlight the session field
+                            if (sessionSelect) {
+                                sessionSelect.style.borderColor = '#ef4444';
+                                sessionSelect.focus();
+                                setTimeout(() => {
+                                    sessionSelect.style.borderColor = '';
+                                }, 2000);
+                            }
+                            return;
+                        }
+                        
                         const id = el.getAttribute('data-id');
                         // Populate selection then proceed like search
                         input.value = el.querySelector('small')?.textContent || '';
