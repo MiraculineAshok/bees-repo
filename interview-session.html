@@ -2279,15 +2279,24 @@
         }
 
         async function addQuestion() {
+            // Check if editor is initialized
+            if (!questionEditor) {
+                console.error('❌ Quill editor not initialized');
+                showError('Editor not ready. Please refresh the page.');
+                return;
+            }
+            
             // Get content from rich text editor
             const questionHTML = questionEditor.root.innerHTML;
             const questionText = questionEditor.getText().trim();
             
             console.log('➕ Adding custom question:', questionText);
+            console.log('➕ Question length:', questionText.length);
             console.log('➕ Rich content length:', questionHTML.length);
+            console.log('➕ Rich content preview:', questionHTML.substring(0, 100));
             console.log('➕ Current questions count before adding:', questions.length);
             
-            if (!questionText || questionText === '') {
+            if (!questionText || questionText === '' || questionText.length === 0) {
                 showError('Please enter a question');
                 return;
             }
@@ -4482,24 +4491,50 @@
 
         // Initialize Quill Rich Text Editor
         function initializeQuillEditor() {
-            const toolbarOptions = [
-                ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
-                ['blockquote', 'code-block'],
-                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                [{ 'header': [1, 2, 3, false] }],
-                ['link', 'image'],                                 // link and image
-                ['clean']                                          // remove formatting button
-            ];
+            try {
+                console.log('🔧 Initializing Quill editor...');
+                
+                // Check if container exists
+                const container = document.getElementById('question-editor-container');
+                if (!container) {
+                    console.error('❌ Editor container not found!');
+                    return;
+                }
+                
+                // Check if Quill is loaded
+                if (typeof Quill === 'undefined') {
+                    console.error('❌ Quill library not loaded!');
+                    return;
+                }
+                
+                const toolbarOptions = [
+                    ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+                    ['blockquote', 'code-block'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['link', 'image'],                                 // link and image
+                    ['clean']                                          // remove formatting button
+                ];
 
-            questionEditor = new Quill('#question-editor-container', {
-                modules: {
-                    toolbar: toolbarOptions
-                },
-                placeholder: 'Enter your question here... You can add images and formatting.',
-                theme: 'snow'
-            });
-            
-            console.log('✅ Quill editor initialized');
+                questionEditor = new Quill('#question-editor-container', {
+                    modules: {
+                        toolbar: toolbarOptions
+                    },
+                    placeholder: 'Enter your question here... You can add images and formatting.',
+                    theme: 'snow'
+                });
+                
+                console.log('✅ Quill editor initialized successfully');
+                console.log('Editor object:', questionEditor);
+                
+                // Test the editor
+                setTimeout(() => {
+                    const testText = questionEditor.getText();
+                    console.log('📝 Editor test - current text length:', testText.length);
+                }, 100);
+            } catch (error) {
+                console.error('❌ Error initializing Quill editor:', error);
+            }
         }
 
         // Initialize when page loads
