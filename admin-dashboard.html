@@ -3612,7 +3612,14 @@
                     </td>
                     <td data-field="tags">${tagsDisplay}</td>
                     <td data-field="times_asked">${question.times_asked || question.count_of_times_asked || 0}</td>
-                    <td data-field="average_score">${question.average_score > 0 ? question.average_score.toFixed(2) : '-'}/10</td>
+                    <td data-field="average_score">
+                        ${question.average_score > 0 ? `
+                            <div style="display:flex;align-items:center;gap:0.5rem">
+                                <span style="font-weight:600">${question.average_score.toFixed(2)}</span>
+                                <span style="display:inline-block;background:${question.average_score > 8 ? '#10b981' : question.average_score >= 6 ? '#f59e0b' : '#ef4444'};color:#fff;padding:2px 6px;border-radius:8px;font-size:9px;font-weight:600">${question.average_score > 8 ? '#easy' : question.average_score >= 6 ? '#medium' : '#hard'}</span>
+                            </div>
+                        ` : '-'}
+                    </td>
                     <td data-field="success_rate">${question.success_rate || 0}%</td>
                     <td>
                         <button class="icon-btn edit-btn" onclick="startEdit('${question.id}')" title="Edit">✏️</button>
@@ -4363,7 +4370,14 @@
                             <div class="stat-label">Times Asked</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-value">${question.average_score > 0 ? question.average_score.toFixed(2) : '-'}/10</div>
+                            <div class="stat-value">
+                                ${question.average_score > 0 ? `
+                                    <div style="display:flex;align-items:center;gap:0.5rem;justify-content:center">
+                                        <span>${question.average_score.toFixed(2)}</span>
+                                        <span style="display:inline-block;background:${question.average_score > 8 ? '#10b981' : question.average_score >= 6 ? '#f59e0b' : '#ef4444'};color:#fff;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:600">${question.average_score > 8 ? '#easy' : question.average_score >= 6 ? '#medium' : '#hard'}</span>
+                                    </div>
+                                ` : '-'}
+                            </div>
                             <div class="stat-label">Average Score</div>
                         </div>
                         <div class="stat-card">
@@ -7070,7 +7084,14 @@
                         </div>
                         <div class="detail-item">
                             <div class="detail-label">Average Score</div>
-                            <div class="detail-value">${question.average_score > 0 ? question.average_score.toFixed(2) : '-'}/10</div>
+                            <div class="detail-value">
+                                ${question.average_score > 0 ? `
+                                    <div style="display:flex;align-items:center;gap:0.5rem">
+                                        <span>${question.average_score.toFixed(2)}</span>
+                                        <span style="display:inline-block;background:${question.average_score > 8 ? '#10b981' : question.average_score >= 6 ? '#f59e0b' : '#ef4444'};color:#fff;padding:2px 6px;border-radius:8px;font-size:9px;font-weight:600">${question.average_score > 8 ? '#easy' : question.average_score >= 6 ? '#medium' : '#hard'}</span>
+                                    </div>
+                                ` : '-'}
+                            </div>
                         </div>
                         <div class="detail-item">
                             <div class="detail-label">Total Score</div>

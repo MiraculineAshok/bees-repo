@@ -3570,7 +3570,14 @@
                         </td>
                         <td>${tagsDisplay}</td>
                         <td>${timesAsked}</td>
-                        <td>${avgScore > 0 ? avgScore.toFixed(2) : '-'}/10</td>
+                        <td>
+                            ${avgScore > 0 ? `
+                                <div style="display:flex;align-items:center;gap:0.5rem">
+                                    <span style="font-weight:600">${avgScore.toFixed(2)}</span>
+                                    <span style="display:inline-block;background:${avgScore > 8 ? '#10b981' : avgScore >= 6 ? '#f59e0b' : '#ef4444'};color:#fff;padding:2px 6px;border-radius:8px;font-size:9px;font-weight:600">${avgScore > 8 ? '#easy' : avgScore >= 6 ? '#medium' : '#hard'}</span>
+                                </div>
+                            ` : '-'}
+                        </td>
                         <td>${success}</td>
                         <td>
                             <button class="btn btn-primary btn-sm" onclick="viewQuestionDetails(${q.id})">View</button>
@@ -3635,7 +3642,17 @@
                         <div class="detail-item"><div class="detail-label">Question</div><div class="detail-value">${q.question || '-'}</div></div>
                         <div class="detail-item"><div class="detail-label">Category</div><div class="detail-value">${q.category || '-'}</div></div>
                         <div class="detail-item"><div class="detail-label">Times Asked</div><div class="detail-value">${timesAsked}</div></div>
-                        <div class="detail-item"><div class="detail-label">Average Score</div><div class="detail-value">${avgScore > 0 ? avgScore.toFixed(2) : '-'}/10</div></div>
+                        <div class="detail-item">
+                            <div class="detail-label">Average Score</div>
+                            <div class="detail-value">
+                                ${avgScore > 0 ? `
+                                    <div style="display:flex;align-items:center;gap:0.5rem">
+                                        <span>${avgScore.toFixed(2)}</span>
+                                        <span style="display:inline-block;background:${avgScore > 8 ? '#10b981' : avgScore >= 6 ? '#f59e0b' : '#ef4444'};color:#fff;padding:2px 6px;border-radius:8px;font-size:9px;font-weight:600">${avgScore > 8 ? '#easy' : avgScore >= 6 ? '#medium' : '#hard'}</span>
+                                    </div>
+                                ` : '-'}
+                            </div>
+                        </div>
                         <div class="detail-item"><div class="detail-label">Total Score</div><div class="detail-value">${totalScore}</div></div>
                         <div class="detail-item"><div class="detail-label">Success Rate</div><div class="detail-value">${success}</div></div>
                     </div>
