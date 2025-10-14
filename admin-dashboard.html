@@ -1966,7 +1966,7 @@
                             <span class="filter-icon">⚙️</span>
                             <span class="filter-text">Filters</span>
                         </button>
-                        <button id="clear-filters-interviews" class="btn btn-secondary" onclick="clearFilters('interviews')">Clear filters</button>
+                        <button id="clear-filters-interviews" class="btn btn-secondary" style="display:none" onclick="clearFilters('interviews')">Clear filters</button>
                         <button class="btn btn-primary" onclick="refreshInterviews()">Refresh</button>
                     </div>
                 </div>
@@ -2021,7 +2021,7 @@
                             <span class="filter-icon">⚙️</span>
                             <span class="filter-text">Filters</span>
                         </button>
-                        <button id="clear-filters-questions" class="btn btn-secondary" onclick="clearFilters('questions')">Clear filters</button>
+                        <button id="clear-filters-questions" class="btn btn-secondary" style="display:none" onclick="clearFilters('questions')">Clear filters</button>
                         <button class="btn btn-success" onclick="openAddQuestionModal()">Add Question</button>
                         <button class="btn btn-info" onclick="openBulkImportModal()">Bulk Import</button>
                         <button class="btn btn-primary" onclick="refreshQuestions()">Refresh</button>
@@ -2071,7 +2071,7 @@
                             <span class="filter-icon">⚙️</span>
                             <span class="filter-text">Filters</span>
                         </button>
-                        <button id="clear-filters-sessions" class="btn btn-secondary" onclick="clearFilters('sessions')">Clear filters</button>
+                        <button id="clear-filters-sessions" class="btn btn-secondary" style="display:none" onclick="clearFilters('sessions')">Clear filters</button>
                         <button class="btn btn-primary" onclick="openCreateSessionModal()">Create Session</button>
                     </div>
                 </div>
@@ -2120,7 +2120,7 @@
                             <span class="filter-icon">⚙️</span>
                             <span class="filter-text">Filters</span>
                         </button>
-                        <button id="clear-filters-students" class="btn btn-secondary" onclick="clearFilters('students')">Clear filters</button>
+                        <button id="clear-filters-students" class="btn btn-secondary" style="display:none" onclick="clearFilters('students')">Clear filters</button>
                         <button class="btn btn-primary" onclick="refreshStudents()">Refresh</button>
                     </div>
                 </div>
@@ -2168,7 +2168,7 @@
                             <span class="filter-icon">⚙️</span>
                             <span class="filter-text">Filters</span>
                         </button>
-                        <button id="clear-filters-my-interviews" class="btn btn-secondary" onclick="clearFilters('my-interviews')">Clear filters</button>
+                        <button id="clear-filters-my-interviews" class="btn btn-secondary" style="display:none" onclick="clearFilters('my-interviews')">Clear filters</button>
                         <button class="btn btn-primary" onclick="loadMyInterviewsForAdmin()">Refresh</button>
                     </div>
                 </div>
@@ -2214,7 +2214,7 @@
                             <span class="filter-icon">⚙️</span>
                             <span class="filter-text">Filters</span>
                         </button>
-                        <button id="clear-filters-users" class="btn btn-secondary" onclick="clearFilters('users')">Clear filters</button>
+                        <button id="clear-filters-users" class="btn btn-secondary" style="display:none" onclick="clearFilters('users')">Clear filters</button>
                         <button class="btn btn-primary" onclick="refreshUsers()">Refresh</button>
                     </div>
                 </div>
@@ -2510,7 +2510,7 @@
             try {
                 const map = {
                     'interviews': ['search-interviews','status-filter','verdict-filter','date-from','date-to'],
-                    'questions': ['questions-search','questions-category','questions-sort-by'],
+                    'questions': ['questions-search','questions-category','questions-sort-by','times-asked-min','success-rate-min'],
                     'sessions': ['sessions-search','sessions-status'],
                     'students': ['students-search'],
                     'my-interviews': ['my-search','my-status','my-verdict','my-date-from','my-date-to'],
@@ -2521,6 +2521,7 @@
                     const el = document.getElementById(id);
                     if (!el) return false;
                     if (el.tagName === 'SELECT') return el.value && el.value !== '';
+                    if (el.type === 'number') return el.value !== '' && Number(el.value) > 0;
                     return el.value && el.value.trim() !== '';
                 });
                 const btn = document.getElementById(`clear-filters-${section}`);

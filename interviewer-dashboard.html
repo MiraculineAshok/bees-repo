@@ -1345,7 +1345,7 @@
                                 <span class="filter-icon">⚙️</span>
                                 <span class="filter-text">Filters</span>
                             </button>
-                            <button id="clear-filters-interviews" class="btn btn-secondary" onclick="clearFilters('interviews')">Clear filters</button>
+                            <button id="clear-filters-interviews" class="btn btn-secondary" style="display:none" onclick="clearFilters('interviews')">Clear filters</button>
                         </div>
                     </div>
                     
@@ -1388,7 +1388,7 @@
                                 <span class="filter-icon">⚙️</span>
                                 <span class="filter-text">Filters</span>
                             </button>
-                            <button id="clear-filters-questions" class="btn btn-secondary" onclick="clearFilters('questions')">Clear filters</button>
+                            <button id="clear-filters-questions" class="btn btn-secondary" style="display:none" onclick="clearFilters('questions')">Clear filters</button>
                         </div>
                     </div>
                     
@@ -1590,13 +1590,14 @@
             try {
                 const map = {
                     'interviews': ['interviews-search','status-filter','verdict-filter','date-from','date-to'],
-                    'questions': ['questions-search','category-filter','sort-by']
+                    'questions': ['questions-search','category-filter','sort-by','times-asked-min','success-rate-min']
                 };
                 const ids = map[section] || [];
                 const isActive = ids.some(id => {
                     const el = document.getElementById(id);
                     if (!el) return false;
                     if (el.tagName === 'SELECT') return el.value && el.value !== '';
+                    if (el.type === 'number') return el.value !== '' && Number(el.value) > 0;
                     return el.value && el.value.trim() !== '';
                 });
                 const btn = document.getElementById(`clear-filters-${section}`);
@@ -1612,8 +1613,9 @@
                         applyFilters && applyFilters('interviews');
                         break;
                     case 'questions':
-                        ['questions-search','category-filter','sort-by'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.value=''; if(el.onchange) el.onchange(); }});
-                        refreshCurrentSection && refreshCurrentSection();
+                        ['questions-search','category-filter','sort-by','times-asked-min','success-rate-min'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.value=''; if(el.onchange) el.onchange(); }});
+                        // For Questions tab, refresh using displayQuestionAnalytics if needed
+                        try { refreshCurrentSection(); } catch { if (typeof displayQuestionAnalytics === 'function' && Array.isArray(window.allQuestions)) displayQuestionAnalytics(window.allQuestions); }
                         break;
                 }
                 setClearFiltersVisibility(section);
