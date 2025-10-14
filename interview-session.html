@@ -435,15 +435,13 @@
             border-bottom: 1px solid #e2e8f0;
         }
         
-        /* Constrain images in question display */
+        /* Fixed images in question display */
         .question-text img {
-            max-width: 100%;
-            max-height: 300px;
-            width: auto;
-            height: auto;
+            width: 200px;
+            height: 200px;
             display: block;
             margin: 10px 0;
-            object-fit: contain;
+            object-fit: cover;
         }
         
         .answer-section {
@@ -583,14 +581,12 @@
             font-style: normal;
         }
         
-        /* Constrain image sizes in the editor */
+        /* Fixed image sizes in the editor */
         #question-editor-container .ql-editor img {
-            max-width: 100%;
-            max-height: 300px;
-            width: auto;
-            height: auto;
+            width: 200px;
+            height: 200px;
             display: inline-block;
-            object-fit: contain;
+            object-fit: cover;
         }
         
         .editor-wrapper {

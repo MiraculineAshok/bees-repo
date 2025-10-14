@@ -730,15 +730,13 @@
                    word-wrap: break-word;
                }
                
-               /* Constrain images in detail panel */
+               /* Fixed images in detail panel */
                .question-text-display img, .answer-text-display img {
-                   max-width: 100%;
-                   max-height: 300px;
-                   width: auto;
-                   height: auto;
+                   width: 200px;
+                   height: 200px;
                    display: block;
                    margin: 10px 0;
-                   object-fit: contain;
+                   object-fit: cover;
                }
                
                .question-edit-input, .answer-edit-input {
