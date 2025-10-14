@@ -1938,7 +1938,13 @@
                 if (response.ok && result.success && result.data) {
                     currentInterview = result.data;
                     console.log('Found existing interview:', currentInterview);
+                    // Restore verdict
                     document.getElementById('verdict-select').value = currentInterview.verdict || '';
+                    // Restore notes if present
+                    const notesEl = document.getElementById('interview-notes');
+                    if (notesEl) {
+                        notesEl.value = currentInterview.overall_notes || '';
+                    }
                     // Ensure timer starts for existing in-progress interview
                     if (!interviewStartTime && currentInterview.status === 'in_progress') {
                         startDurationTracking();
