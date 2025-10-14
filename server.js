@@ -874,34 +874,46 @@ app.get('/api/interviews/student/:studentId/history', async (req, res) => {
   }
 });
 
-app.post('/api/interviews/:id/questions', async (req, res) => {
+app.post('/api/interviews/:id/questions', async (req, res, next) => {
   try {
     const { question_text, question_rich_content } = req.body;
     console.log('📝 Adding question:', { 
       interviewId: req.params.id, 
-      question_text, 
-      has_rich_content: !!question_rich_content 
+      question_text: question_text?.substring(0, 50), 
+      has_rich_content: !!question_rich_content,
+      rich_content_length: question_rich_content?.length
     });
+    
+    if (!question_text) {
+      return res.status(400).json({
+        success: false,
+        error: 'question_text is required'
+      });
+    }
     
     const question = await InterviewService.addQuestion(req.params.id, question_text, question_rich_content);
     
-    res.status(201).json({
+    console.log('✅ Question added successfully:', question.id);
+    
+    return res.status(201).json({
       success: true,
       data: question
     });
   } catch (error) {
     console.error('❌ Error adding question:', error);
     console.error('Error details:', {
+      name: error.name,
       message: error.message,
       code: error.code,
       detail: error.detail,
       stack: error.stack
     });
     
-    res.status(400).json({
+    return res.status(400).json({
       success: false,
       error: error.message || 'Failed to add question',
-      detail: error.detail
+      detail: error.detail,
+      code: error.code
     });
   }
 });

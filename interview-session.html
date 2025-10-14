@@ -2305,6 +2305,13 @@
 
             try {
                 console.log('📤 Sending POST request to save custom question...');
+                console.log('Request details:', {
+                    url: `/api/interviews/${currentInterview.id}/questions`,
+                    question_text: questionText.substring(0, 50) + '...',
+                    has_rich_content: !!questionHTML,
+                    rich_content_length: questionHTML?.length
+                });
+                
                 const response = await fetch(`/api/interviews/${currentInterview.id}/questions`, {
                     method: 'POST',
                     headers: {
@@ -2315,6 +2322,8 @@
                         question_rich_content: questionHTML
                     })
                 });
+                
+                console.log('📥 Response status:', response.status, response.statusText);
                 
                 const result = await response.json();
                 console.log('📥 Server response for custom question:', result);
@@ -2328,11 +2337,14 @@
                     showSuccess('Question added successfully!');
                 } else {
                     console.error('❌ Error saving custom question:', result);
-                    showError('Error adding question');
+                    showError(result.error || result.message || 'Error adding question');
                 }
             } catch (error) {
                 console.error('❌ Error adding custom question:', error);
-                showError('Error adding question');
+                console.error('Error name:', error.name);
+                console.error('Error message:', error.message);
+                console.error('Error stack:', error.stack);
+                showError('Error adding question: ' + (error.message || 'Unknown error'));
             } finally {
                 // Restore button state
                 addButton.textContent = originalText;
