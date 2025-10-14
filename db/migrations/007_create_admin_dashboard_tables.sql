@@ -31,7 +31,5 @@ CREATE INDEX IF NOT EXISTS idx_question_performance_question_id ON question_perf
 CREATE INDEX IF NOT EXISTS idx_question_performance_student_id ON question_performance(student_id);
 CREATE INDEX IF NOT EXISTS idx_interviews_session_id ON interviews(session_id);
 
--- Insert sample interview session
-INSERT INTO interview_sessions (name, description, created_by) 
-VALUES ('Face to Face for St Mary''s School', 'Interview session for St Mary''s School students', 1)
-ON CONFLICT DO NOTHING;
+-- Note: Sample interview session creation removed to prevent automatic duplicates
+-- Sessions should be created manually through the admin interface

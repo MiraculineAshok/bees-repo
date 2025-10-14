@@ -212,21 +212,8 @@ async function initializeDatabase() {
     `);
     console.log('✅ Sample questions inserted');
     
-    // Insert sample interview session only if it doesn't exist
-    const existingSession = await pool.query(`
-      SELECT id FROM interview_sessions WHERE name = 'Face to Face for St Mary''s School'
-    `);
-    
-    if (existingSession.rows.length === 0) {
-      await pool.query(`
-        INSERT INTO interview_sessions (name, description, status, created_by) 
-        VALUES 
-          ('Face to Face for St Mary''s School', 'General interview session for St Mary''s School students', 'active', NULL)
-      `);
-      console.log('✅ Sample interview session inserted');
-    } else {
-      console.log('✅ Sample interview session already exists, skipping insertion');
-    }
+    // Note: Sample interview session creation removed to prevent automatic duplicates
+    // Sessions should be created manually through the admin interface
     
     // Create index on email for faster lookups
     await pool.query(`
