@@ -876,8 +876,8 @@ app.get('/api/interviews/student/:studentId/history', async (req, res) => {
 
 app.post('/api/interviews/:id/questions', async (req, res) => {
   try {
-    const { question_text } = req.body;
-    const question = await InterviewService.addQuestion(req.params.id, question_text);
+    const { question_text, question_rich_content } = req.body;
+    const question = await InterviewService.addQuestion(req.params.id, question_text, question_rich_content);
     res.status(201).json({
       success: true,
       data: question

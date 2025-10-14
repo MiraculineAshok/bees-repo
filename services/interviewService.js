@@ -150,7 +150,7 @@ class InterviewService {
         }
     }
 
-    static async addQuestion(interviewId, questionText) {
+    static async addQuestion(interviewId, questionText, questionRichContent = null) {
         if (!(await this.isDatabaseAvailable())) {
             return mockDataService.addQuestion(interviewId, questionText);
         }
@@ -164,10 +164,10 @@ class InterviewService {
             const nextOrder = orderResult.rows[0].next_order;
 
             const result = await pool.query(
-                `INSERT INTO interview_questions (interview_id, question_text, question_order) 
-                 VALUES ($1, $2, $3) 
+                `INSERT INTO interview_questions (interview_id, question_text, question_rich_content, question_order) 
+                 VALUES ($1, $2, $3, $4) 
                  RETURNING *`,
-                [interviewId, questionText, nextOrder]
+                [interviewId, questionText, questionRichContent, nextOrder]
             );
             return result.rows[0];
         } catch (error) {
