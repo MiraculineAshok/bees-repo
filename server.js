@@ -513,6 +513,13 @@ app.post('/api/authorized-users', async (req, res) => {
   }
 });
 
+// DISABLED: Email-based routes - they conflict with ID-based routes
+// Express matches /api/authorized-users/202 to :email route instead of :id route
+// because both have the same pattern /:param
+// 
+// If you need email-based operations, use different paths like:
+// /api/authorized-users/by-email/:email
+/*
 app.put('/api/authorized-users/:email', async (req, res) => {
   try {
     const user = await AuthService.updateAuthorizedUser(req.params.email, req.body);
@@ -544,6 +551,7 @@ app.delete('/api/authorized-users/:email', async (req, res) => {
     });
   }
 });
+*/
 
 // Get authorized user by ID
 app.get('/api/authorized-users/:id', async (req, res) => {
