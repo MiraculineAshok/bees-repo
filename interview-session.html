@@ -1624,15 +1624,12 @@
                 </div>
                 
                 <div class="add-question-form">
-                    <div class="form-group">
-                        <label class="form-label">Add Question</label>
-                        <div class="question-source-tabs">
-                            <button class="tab-btn active" onclick="switchQuestionSource('custom')">Custom Question</button>
-                            <button class="question-bank-trigger-btn" onclick="openQuestionBankPanel()">
-                                📚 Question Bank
-                </button>
+                        <div class="form-group">
+                            <label class="form-label">Add Question</label>
+                            <div class="question-source-tabs">
+                                <button class="tab-btn active" onclick="switchQuestionSource('custom')">Custom Question</button>
+                            </div>
                         </div>
-                    </div>
                     
                     <!-- Custom Question Tab -->
                     <div id="custom-question-tab" class="question-tab active">
@@ -1651,6 +1648,7 @@
                         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem">
                             <div style="display:flex;gap:0.5rem;align-items:center">
                                 <button id="add-question-btn" class="btn btn-primary" onclick="addQuestion()">Add Question</button>
+                                <button class="question-bank-trigger-btn" onclick="openQuestionBankPanel()">📚 Ass from Question bank</button>
                             </div>
                             <div style="display:flex;gap:0.5rem;align-items:center">
                                 <div class="interview-clock" id="interview-clock">
@@ -3164,23 +3162,52 @@
         async function endInterview() {
             if (!currentInterview) return;
 
-            // Auto-cancel if no questions were added
+            // New behavior when there are no questions
             if (!Array.isArray(questions) || questions.length === 0) {
-                try {
-                    // Stop duration tracking if running
-                    stopDurationTracking();
-                    // Delete the interview and go back
-                    const response = await fetch(`/api/interviews/${currentInterview.id}`, { method: 'DELETE' });
-                    const result = await response.json();
-                    if (response.ok && result.success) {
-                        showSuccess('Interview cancelled (no questions added).');
-                        setTimeout(() => { goBack(); }, 500);
-                    } else {
+                const verdictVal = document.getElementById('verdict-select')?.value || '';
+                const notesVal = document.getElementById('interview-notes')?.value?.trim() || '';
+                if (verdictVal || notesVal) {
+                    try {
+                        // Stop duration tracking
+                        stopDurationTracking();
+                        // Save notes if present
+                        if (notesVal) {
+                            await saveNotes();
+                        }
+                        // Save verdict if present
+                        if (verdictVal && verdictVal !== currentInterview.verdict) {
+                            await updateVerdict();
+                        }
+                        // Mark complete
+                        const resp = await fetch(`/api/interviews/${currentInterview.id}/complete`, { method: 'PUT' });
+                        const json = await resp.json();
+                        if (resp.ok && json.success) {
+                            showSuccess('Interview completed successfully!');
+                            await loadPreviousInterviews();
+                            setTimeout(() => { goBack(); }, 800);
+                        } else {
+                            showError('Error completing interview');
+                        }
+                    } catch (err) {
+                        console.error('Error completing interview without questions:', err);
+                        showError('Error completing interview');
+                    }
+                } else {
+                    // No questions, no verdict, no notes -> cancel
+                    try {
+                        stopDurationTracking();
+                        const response = await fetch(`/api/interviews/${currentInterview.id}`, { method: 'DELETE' });
+                        const result = await response.json();
+                        if (response.ok && result.success) {
+                            showSuccess('Interview cancelled (no questions, verdict, or notes).');
+                            setTimeout(() => { goBack(); }, 500);
+                        } else {
+                            showError('Error cancelling empty interview');
+                        }
+                    } catch (error) {
+                        console.error('Error auto-cancelling empty interview:', error);
                         showError('Error cancelling empty interview');
                     }
-                } catch (error) {
-                    console.error('Error auto-cancelling empty interview:', error);
-                    showError('Error cancelling empty interview');
                 }
                 return;
             }
