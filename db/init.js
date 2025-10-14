@@ -189,28 +189,7 @@ async function initializeDatabase() {
       console.log('⚠️ is_favorite column might already exist:', error.message);
     }
     
-    // Insert sample questions (after all columns are added)
-    await pool.query(`
-      INSERT INTO question_bank (question, category, times_asked) 
-      VALUES 
-        ('What is your greatest strength?', 'General', 0),
-        ('Tell me about a challenging project you worked on.', 'General', 0),
-        ('How do you handle stress and pressure?', 'General', 0),
-        ('What is your experience with JavaScript?', 'Technical', 0),
-        ('Explain the concept of closures in JavaScript.', 'Technical', 0),
-        ('What is the difference between let, const, and var?', 'Technical', 0),
-        ('How do you approach debugging a complex issue?', 'Technical', 0),
-        ('Describe a time when you had to work with a difficult team member.', 'Behavioral', 0),
-        ('How do you prioritize tasks when you have multiple deadlines?', 'Behavioral', 0),
-        ('Tell me about a time you failed and what you learned from it.', 'Behavioral', 0),
-        ('What is your approach to learning new technologies?', 'Behavioral', 0),
-        ('Can you describe your experience with database design?', 'Technical', 0),
-        ('How do you ensure code quality in your projects?', 'Technical', 0),
-        ('What are your career goals for the next 5 years?', 'General', 0),
-        ('How do you stay updated with industry trends?', 'General', 0)
-      ON CONFLICT DO NOTHING
-    `);
-    console.log('✅ Sample questions inserted');
+    // Removed: sample questions insertion (prevent re-seeding on restarts)
     
     // Note: Sample interview session creation removed to prevent automatic duplicates
     // Sessions should be created manually through the admin interface

@@ -117,14 +117,8 @@ class QuestionBankService {
                 return { success: true, data: { category: categoryName }, message: 'Category already exists' };
             }
 
-            // Add a dummy question with this category to create the category
-            const insertQuery = `
-                INSERT INTO question_bank (question, category)
-                VALUES ($1, $2)
-                RETURNING id, category
-            `;
-            const result = await pool.query(insertQuery, [`Sample question for ${categoryName}`, categoryName]);
-            
+            // Do not create dummy question rows for categories
+            // Return success; categories are derived from existing questions
             return { success: true, data: { category: categoryName } };
         } catch (error) {
             console.error('Error adding category:', error);
