@@ -1646,9 +1646,9 @@
                     <input type="text" id="panel-search-input" class="form-input" placeholder="Search questions..." onkeyup="searchPanelQuestions()">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Category</label>
+                    <label class="form-label">Tags</label>
                     <select id="panel-category-select" class="form-select" onchange="loadPanelQuestionsByCategory()">
-                        <option value="">All Categories</option>
+                        <option value="">All Tags</option>
                         <option value="Favorites">My Favorites</option>
                     </select>
                 </div>
@@ -4095,30 +4095,30 @@
         async function loadPanelQuestionBankData() {
             console.log('🔍 Loading panel question bank data...');
             try {
-                // Load categories
-                console.log('📂 Fetching categories...');
-                const categoriesResponse = await fetch('/api/question-bank/categories');
-                console.log('📂 Categories response status:', categoriesResponse.status);
+                // Load tags
+                console.log('🏷️ Fetching tags...');
+                const tagsResponse = await fetch('/api/question-bank/tags');
+                console.log('🏷️ Tags response status:', tagsResponse.status);
                 
-                if (!categoriesResponse.ok) {
-                    throw new Error(`HTTP ${categoriesResponse.status}: ${categoriesResponse.statusText}`);
+                if (!tagsResponse.ok) {
+                    throw new Error(`HTTP ${tagsResponse.status}: ${tagsResponse.statusText}`);
                 }
                 
-                const categoriesResult = await categoriesResponse.json();
-                console.log('📂 Categories result:', categoriesResult);
+                const tagsResult = await tagsResponse.json();
+                console.log('🏷️ Tags result:', tagsResult);
                 
-                if (categoriesResult.success && categoriesResult.data) {
+                if (tagsResult.success && tagsResult.data) {
                     const categorySelect = document.getElementById('panel-category-select');
-                    // Clear existing options except "All Categories" and "My Favorites"
-                    categorySelect.innerHTML = '<option value="">All Categories</option><option value="Favorites">My Favorites</option>';
+                    // Clear existing options except "All Tags" and "My Favorites"
+                    categorySelect.innerHTML = '<option value="">All Tags</option><option value="Favorites">My Favorites</option>';
                     
-                    categoriesResult.data.forEach(categoryData => {
+                    tagsResult.data.forEach(tagData => {
                         const option = document.createElement('option');
                         // Handle both string and object formats
-                        const categoryName = typeof categoryData === 'string' ? categoryData : categoryData.category;
-                        const questionCount = typeof categoryData === 'object' ? categoryData.question_count : '';
-                        option.value = categoryName;
-                        option.textContent = questionCount ? `${categoryName} (${questionCount})` : categoryName;
+                        const tagName = typeof tagData === 'string' ? tagData : tagData.tag;
+                        const questionCount = typeof tagData === 'object' ? tagData.question_count : '';
+                        option.value = tagName;
+                        option.textContent = questionCount ? `#${tagName} (${questionCount})` : `#${tagName}`;
                         categorySelect.appendChild(option);
                     });
                 }
@@ -4286,13 +4286,18 @@
                         console.warn('[Panel][Favorites] Favorite API not success');
                     }
                 } else {
-                    const catUrl = `/api/question-bank/category/${encodeURIComponent(category)}`;
-                    console.log('[Panel][Category] Fetch URL =', catUrl);
-                    const res = await fetch(catUrl);
-                    console.log('[Panel][Category] Response status =', res.status);
-                    const json = await res.json();
-                    console.log('[Panel][Category] JSON =', json);
-                    if (json && json.success) data = json.data || [];
+                    // Filter by tag (supports both new tags array and legacy category)
+                    console.log('[Panel][Tag] Filtering by tag:', category);
+                    const searchTag = category.toLowerCase();
+                    data = (panelQuestionBankData || []).filter(q => {
+                        // Check tags array first (new system)
+                        if (q.tags && Array.isArray(q.tags)) {
+                            return q.tags.some(tag => tag.toLowerCase() === searchTag);
+                        }
+                        // Fallback to category (legacy)
+                        return (q.category || '').toLowerCase() === searchTag;
+                    });
+                    console.log('[Panel][Tag] Filtered count:', data.length);
                 }
                 console.log('[Panel] Final list length =', data.length);
                 displayPanelQuestionBankList(data);
