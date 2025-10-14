@@ -156,6 +156,18 @@ class AuthService {
   static async updateAuthorizedUserById(id, updateData) {
     try {
       console.log('🔄 Updating authorized user by ID:', id, 'with data:', updateData);
+      console.log('🔍 ID type:', typeof id, 'ID value:', id);
+      
+      // First, check if the user exists
+      const checkResult = await pool.query('SELECT id, name, email, role, is_superadmin FROM authorized_users WHERE id = $1', [id]);
+      console.log('🔍 User lookup result:', checkResult.rows);
+      
+      if (checkResult.rows.length === 0) {
+        console.error('❌ User not found with ID:', id);
+        throw new Error('Authorized user not found');
+      }
+      
+      console.log('✅ User exists:', checkResult.rows[0]);
       
       // Build dynamic UPDATE query based on provided fields
       const allowedFields = ['name', 'email', 'role', 'is_superadmin'];
@@ -194,13 +206,15 @@ class AuthService {
       const result = await pool.query(query, values);
       
       if (result.rows.length === 0) {
-        throw new Error('User not found');
+        console.error('❌ UPDATE returned no rows for ID:', id);
+        throw new Error('Update failed - user not found');
       }
       
       console.log('✅ User updated successfully:', result.rows[0]);
       return result.rows[0];
     } catch (error) {
       console.error('❌ Error updating authorized user by ID:', error.message);
+      console.error('❌ Error stack:', error.stack);
       throw error;
     }
   }
