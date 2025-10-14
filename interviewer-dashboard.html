@@ -1588,6 +1588,65 @@
     </div>
 
     <script>
+        // Live filtering: apply filters immediately as user types/selects
+        function debounce(fn, delay = 250) {
+            let t;
+            return (...args) => {
+                clearTimeout(t);
+                t = setTimeout(() => fn.apply(null, args), delay);
+            };
+        }
+
+        function initLiveFilters() {
+            try {
+                // Interviews tab filters
+                const bindInterviews = () => {
+                    const apply = debounce(() => { applyFilters('interviews'); setClearFiltersVisibility('interviews'); }, 200);
+                    ['interviews-search','status-filter','verdict-filter','date-from','date-to','sort-by']
+                        .forEach(id => { const el = document.getElementById(id); if (el) {
+                            const evt = (el.tagName === 'SELECT' || el.type === 'date') ? 'change' : 'input';
+                            el.removeEventListener(evt, apply);
+                            el.addEventListener(evt, apply);
+                        }});
+                    // Group by radios
+                    document.querySelectorAll('input[name="group-by"]').forEach(r => {
+                        r.removeEventListener('change', apply);
+                        r.addEventListener('change', apply);
+                    });
+                };
+
+                // Questions tab filters
+                const bindQuestions = () => {
+                    const applyQ = debounce(() => { applyFilters('questions'); setClearFiltersVisibility('questions'); }, 200);
+                    ['questions-search','category-filter','times-asked-min','success-rate-min','sort-by']
+                        .forEach(id => { const el = document.getElementById(id); if (el) {
+                            const evt = (el.tagName === 'SELECT') ? 'change' : 'input';
+                            el.removeEventListener(evt, applyQ);
+                            el.addEventListener(evt, applyQ);
+                        }});
+                };
+
+                bindInterviews();
+                bindQuestions();
+
+                // Re-bind after panels open (ensures elements exist)
+                const originalToggle = window.toggleFilterPanel;
+                window.toggleFilterPanel = function(section) {
+                    try { if (typeof originalToggle === 'function') originalToggle(section); } catch {}
+                    setTimeout(() => {
+                        if (section === 'interviews') { initLiveFilters(); setClearFiltersVisibility('interviews'); }
+                        if (section === 'questions') { initLiveFilters(); setClearFiltersVisibility('questions'); }
+                    }, 0);
+                };
+
+                // Initial visibility
+                setClearFiltersVisibility('interviews');
+                setClearFiltersVisibility('questions');
+            } catch (e) { console.warn('initLiveFilters error', e); }
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', initLiveFilters);
         function setClearFiltersVisibility(section) {
             try {
                 const map = {
