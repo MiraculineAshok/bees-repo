@@ -4546,10 +4546,10 @@
                         <input type="text" id="search-questions" class="form-input" placeholder="Search by question text...">
                     </div>
                     <div class="filter-group">
-                        <label>Category:</label>
+                        <label>Tags:</label>
                         <select id="category-filter" class="form-select">
-                            <option value="">All Categories</option>
-                            ${getUniqueValues(questions, 'category').map(category => `<option value="${category}">${category}</option>`).join('')}
+                            <option value="">All Tags</option>
+                            ${getUniqueTags(questions).map(tag => `<option value="${tag}">#${tag}</option>`).join('')}
                         </select>
                     </div>
                     <div class="filter-group">
@@ -4894,6 +4894,20 @@
             return [...new Set(values)].sort();
         }
 
+        // Helper function to get unique tags from questions (supports both tags array and category)
+        function getUniqueTags(data) {
+            if (!data || !Array.isArray(data)) return [];
+            const tagsSet = new Set();
+            data.forEach(item => {
+                if (item.tags && Array.isArray(item.tags)) {
+                    item.tags.forEach(tag => tagsSet.add(tag));
+                } else if (item.category) {
+                    tagsSet.add(item.category);
+                }
+            });
+            return [...tagsSet].sort();
+        }
+
         // Function to populate filter dropdowns with actual database values
         function populateFilterDropdowns() {
             // This function will be called after data is loaded to update filter dropdowns
@@ -5010,10 +5024,17 @@
                         );
                     }
                     
-                    // Category filter
+                    // Tag/Category filter (supports both new tags array and legacy category)
                     const category = getFilterValue('category-filter');
                     if (category) {
-                        filtered = filtered.filter(q => q.category === category);
+                        filtered = filtered.filter(q => {
+                            // Check tags array first (new system)
+                            if (q.tags && Array.isArray(q.tags)) {
+                                return q.tags.some(tag => tag.toLowerCase() === category.toLowerCase());
+                            }
+                            // Fallback to category (legacy)
+                            return q.category === category;
+                        });
                     }
                     
                     // Times asked filter
