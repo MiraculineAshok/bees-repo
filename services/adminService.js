@@ -131,23 +131,23 @@ class AdminService {
                         COALESCE(qb.times_asked, 0) as times_asked,
                         COALESCE(qb.total_score, 0) as total_score,
                         COALESCE(qb.average_score, 0) as average_score,
-                        COALESCE(qb.times_answered_correctly, 0) as times_answered_correctly,
-                        COALESCE(qb.times_answered_incorrectly, 0) as times_answered_incorrectly,
                         COUNT(iq.id) as total_answers,
-                        COUNT(CASE WHEN iq.is_correct = true THEN 1 END) as correct_answers,
-                        COUNT(CASE WHEN iq.is_correct = false THEN 1 END) as incorrect_answers,
                         SUM(COALESCE(iq.correctness_score, 0)) as interview_total_score,
                         AVG(COALESCE(iq.correctness_score, 0)) as interview_avg_score,
-                        -- Calculate success rate from average_score (preferred) or from interview scores or from correct/incorrect ratio
+                        -- Calculate success rate from average_score (preferred) or from interview scores
                         CASE 
                             WHEN qb.average_score > 0 THEN ROUND((qb.average_score / 10.0) * 100, 2)
                             WHEN AVG(COALESCE(iq.correctness_score, 0)) > 0 THEN ROUND((AVG(COALESCE(iq.correctness_score, 0)) / 10.0) * 100, 2)
-                            WHEN COUNT(iq.id) > 0 THEN ROUND((COUNT(CASE WHEN iq.is_correct = true THEN 1 END)::DECIMAL / COUNT(iq.id)) * 100, 2)
                             ELSE 0 
-                        END as success_rate
+                        END as success_rate,
+                        -- For backward compatibility with frontend
+                        0 as times_answered_correctly,
+                        0 as times_answered_incorrectly,
+                        0 as correct_answers,
+                        0 as incorrect_answers
                     FROM question_bank qb
                     LEFT JOIN interview_questions iq ON qb.question = iq.question_text
-                    GROUP BY qb.id, qb.question, qb.category, qb.tags, qb.times_asked, qb.total_score, qb.average_score, qb.times_answered_correctly, qb.times_answered_incorrectly
+                    GROUP BY qb.id, qb.question, qb.category, qb.tags, qb.times_asked, qb.total_score, qb.average_score
                     ORDER BY qb.times_asked DESC
                 `);
 

@@ -31,15 +31,16 @@ class QuestionBankService {
                     SELECT id, question as question_text, category, tags, times_asked,
                            COALESCE(total_score, 0) as total_score,
                            COALESCE(average_score, 0) as average_score,
-                           COALESCE(times_answered_correctly, 0) as times_answered_correctly,
-                           COALESCE(times_answered_incorrectly, 0) as times_answered_incorrectly,
-                           -- Calculate success rate from average_score (if exists) or from correct/incorrect ratio
+                           -- Calculate success rate from average_score
                            CASE 
                                WHEN average_score > 0 THEN ROUND((average_score / 10.0) * 100, 2)
-                               WHEN times_asked > 0 THEN ROUND((COALESCE(times_answered_correctly, 0)::DECIMAL / times_asked) * 100, 2)
                                ELSE 0 
                            END as success_rate,
-                           COALESCE(is_favorite, false) as is_favorite, created_at, updated_at
+                           COALESCE(is_favorite, false) as is_favorite, 
+                           created_at, updated_at,
+                           -- For backward compatibility with frontend
+                           0 as times_answered_correctly,
+                           0 as times_answered_incorrectly
                     FROM question_bank
                     ORDER BY category, question
                 `;

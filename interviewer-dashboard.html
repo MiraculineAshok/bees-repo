@@ -1411,8 +1411,7 @@
                                     <th>Question</th>
                                     <th>Tags</th>
                                     <th>Times Asked</th>
-                                    <th>Correct Answers</th>
-                                    <th>Incorrect Answers</th>
+                                    <th>Avg Score</th>
                                     <th>Success Rate</th>
                                     <th>Actions</th>
                                 </tr>
@@ -2255,10 +2254,8 @@
                             <option value="category_desc">Category (Z-A)</option>
                             <option value="times_asked_desc">Times Asked (Most)</option>
                             <option value="times_asked_asc">Times Asked (Least)</option>
-                            <option value="times_answered_correctly_desc">Correct Answers (Most)</option>
-                            <option value="times_answered_correctly_asc">Correct Answers (Least)</option>
-                            <option value="times_answered_incorrectly_desc">Incorrect Answers (Most)</option>
-                            <option value="times_answered_incorrectly_asc">Incorrect Answers (Least)</option>
+                            <option value="average_score_desc">Average Score (Highest)</option>
+                            <option value="average_score_asc">Average Score (Lowest)</option>
                             <option value="success_rate_desc">Success Rate (Highest)</option>
                             <option value="success_rate_asc">Success Rate (Lowest)</option>
                             <option value="created_at_desc">Date Added (Newest)</option>
@@ -3536,8 +3533,8 @@
 
             tbody.innerHTML = paginatedData.map(q => {
                 const timesAsked = q.times_asked ?? q.count_of_times_asked ?? 0;
-                const correct = q.correct_answers ?? q.times_answered_correctly ?? 0;
-                const incorrect = q.incorrect_answers ?? q.times_answered_incorrectly ?? 0;
+                const avgScore = q.average_score ?? 0;
+                const totalScore = q.total_score ?? 0;
                 const success = q.success_rate != null ? `${q.success_rate}%` : '-';
                 const isFavorited = favoriteQuestionIds.has(q.id);
                 
@@ -3573,8 +3570,7 @@
                         </td>
                         <td>${tagsDisplay}</td>
                         <td>${timesAsked}</td>
-                        <td>${correct}</td>
-                        <td>${incorrect}</td>
+                        <td>${avgScore > 0 ? avgScore.toFixed(2) : '-'}/10</td>
                         <td>${success}</td>
                         <td>
                             <button class="btn btn-primary btn-sm" onclick="viewQuestionDetails(${q.id})">View</button>
@@ -3621,8 +3617,8 @@
 
                 const q = json.data || json; // support both shapes
                 const timesAsked = q.times_asked ?? q.count_of_times_asked ?? 0;
-                const correct = q.correct_answers ?? q.times_answered_correctly ?? 0;
-                const incorrect = q.incorrect_answers ?? q.times_answered_incorrectly ?? 0;
+                const avgScore = q.average_score ?? 0;
+                const totalScore = q.total_score ?? 0;
                 const success = q.success_rate != null ? `${q.success_rate}%` : '-';
 
                 const answersHtml = (q.student_answers || []).map(a => `
@@ -3639,8 +3635,8 @@
                         <div class="detail-item"><div class="detail-label">Question</div><div class="detail-value">${q.question || '-'}</div></div>
                         <div class="detail-item"><div class="detail-label">Category</div><div class="detail-value">${q.category || '-'}</div></div>
                         <div class="detail-item"><div class="detail-label">Times Asked</div><div class="detail-value">${timesAsked}</div></div>
-                        <div class="detail-item"><div class="detail-label">Correct Answers</div><div class="detail-value">${correct}</div></div>
-                        <div class="detail-item"><div class="detail-label">Incorrect Answers</div><div class="detail-value">${incorrect}</div></div>
+                        <div class="detail-item"><div class="detail-label">Average Score</div><div class="detail-value">${avgScore > 0 ? avgScore.toFixed(2) : '-'}/10</div></div>
+                        <div class="detail-item"><div class="detail-label">Total Score</div><div class="detail-value">${totalScore}</div></div>
                         <div class="detail-item"><div class="detail-label">Success Rate</div><div class="detail-value">${success}</div></div>
                     </div>
                     <div class="detail-section">

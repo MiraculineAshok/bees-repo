@@ -2056,8 +2056,7 @@
                                 <th>Question</th>
                                 <th>Tags</th>
                                 <th>Times Asked</th>
-                                <th>Correct Answers</th>
-                                <th>Incorrect Answers</th>
+                                <th>Avg Score</th>
                                 <th>Success Rate</th>
                                 <th>Actions</th>
                             </tr>
@@ -3612,8 +3611,7 @@
                     </td>
                     <td data-field="tags">${tagsDisplay}</td>
                     <td data-field="times_asked">${question.times_asked || question.count_of_times_asked || 0}</td>
-                    <td data-field="correct_answers">${question.correct_answers || question.times_answered_correctly || 0}</td>
-                    <td data-field="incorrect_answers">${question.incorrect_answers || question.times_answered_incorrectly || 0}</td>
+                    <td data-field="average_score">${question.average_score > 0 ? question.average_score.toFixed(2) : '-'}/10</td>
                     <td data-field="success_rate">${question.success_rate || 0}%</td>
                     <td>
                         <button class="icon-btn edit-btn" onclick="startEdit('${question.id}')" title="Edit">✏️</button>
@@ -4345,12 +4343,12 @@
                             <div class="stat-label">Times Asked</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-value">${question.correct_answers || question.times_answered_correctly || 0}</div>
-                            <div class="stat-label">Correct Answers</div>
+                            <div class="stat-value">${question.average_score > 0 ? question.average_score.toFixed(2) : '-'}/10</div>
+                            <div class="stat-label">Average Score</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-value">${question.incorrect_answers || question.times_answered_incorrectly || 0}</div>
-                            <div class="stat-label">Incorrect Answers</div>
+                            <div class="stat-value">${question.total_score || 0}</div>
+                            <div class="stat-label">Total Score</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-value">${question.success_rate || 0}%</div>
@@ -7051,12 +7049,12 @@
                             <div class="detail-value">${question.total_answers}</div>
                         </div>
                         <div class="detail-item">
-                            <div class="detail-label">Correct Answers</div>
-                            <div class="detail-value">${question.correct_answers || question.times_answered_correctly || 0}</div>
+                            <div class="detail-label">Average Score</div>
+                            <div class="detail-value">${question.average_score > 0 ? question.average_score.toFixed(2) : '-'}/10</div>
                         </div>
                         <div class="detail-item">
-                            <div class="detail-label">Incorrect Answers</div>
-                            <div class="detail-value">${question.incorrect_answers || question.times_answered_incorrectly || 0}</div>
+                            <div class="detail-label">Total Score</div>
+                            <div class="detail-value">${question.total_score || 0}</div>
                         </div>
                         <div class="detail-item">
                             <div class="detail-label">Success Rate</div>
