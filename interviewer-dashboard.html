@@ -1384,12 +1384,24 @@
                         <div class="header-actions">
                             <button class="btn btn-success" onclick="openAddQuestionModal()">Add Question</button>
                             <button class="btn btn-info" onclick="openBulkImportModal()">Bulk Import</button>
-                            <button class="btn-filter-toggle" onclick="toggleFilterPanel('questions')" title="Filter & Sort Options">
-                                <span class="filter-icon">⚙️</span>
-                                <span class="filter-text">Filters</span>
-                            </button>
-                            <button class="btn btn-secondary" title="Clear filters" onclick="clearFilters('questions')">🧹</button>
                         </div>
+                    </div>
+                    <div class="inline-question-filters" style="margin:10px 0; display:flex; gap:8px; flex-wrap:wrap; align-items:center">
+                        <input id="qf-search" class="form-input" placeholder="Search questions or category" style="min-width:220px;">
+                        <select id="qf-category" class="form-select" style="min-width:180px"></select>
+                        <input id="qf-times" class="form-input" type="number" min="0" placeholder="Min Times Asked" style="width:160px">
+                        <input id="qf-success" class="form-input" type="number" min="0" max="100" placeholder="Min Success %" style="width:160px">
+                        <select id="qf-sort" class="form-select" style="min-width:200px">
+                            <option value="created_at_desc">Newest First</option>
+                            <option value="created_at_asc">Oldest First</option>
+                            <option value="question_text_asc">Question (A-Z)</option>
+                            <option value="question_text_desc">Question (Z-A)</option>
+                            <option value="times_asked_desc">Times Asked (High→Low)</option>
+                            <option value="times_asked_asc">Times Asked (Low→High)</option>
+                            <option value="success_rate_desc">Success % (High→Low)</option>
+                            <option value="success_rate_asc">Success % (Low→High)</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="resetInlineQuestionFilters()" title="Clear filters">🧹</button>
                     </div>
                     
                     <!-- Results Summary -->
@@ -1586,6 +1598,61 @@
     </div>
 
     <script>
+        // Inline Questions filter (replaces old panel for Questions tab)
+        function debounce(fn, d=200){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), d);} }
+        function bindInlineQuestionFilters(){
+            const el = (id)=>document.getElementById(id);
+            const apply = debounce(applyQuestionsInlineFilter, 180);
+            ['qf-search','qf-times','qf-success'].forEach(id=>{ const e=el(id); if(e){ e.addEventListener('input', apply);} });
+            ['qf-category','qf-sort'].forEach(id=>{ const e=el(id); if(e){ e.addEventListener('change', apply);} });
+            // Populate categories
+            const catSel = el('qf-category');
+            if (catSel && window.allQuestions) {
+                const cats = Array.from(new Set((allQuestions||[]).map(q=>q.category).filter(Boolean))).sort();
+                catSel.innerHTML = '<option value="">All Categories</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+            }
+            applyQuestionsInlineFilter();
+        }
+        function resetInlineQuestionFilters(){
+            ['qf-search','qf-times','qf-success'].forEach(id=>{ const e=document.getElementById(id); if(e){ e.value=''; }});
+            ['qf-category','qf-sort'].forEach(id=>{ const e=document.getElementById(id); if(e){ e.value=''; }});
+            // default sort
+            const s=document.getElementById('qf-sort'); if(s){ s.value='created_at_desc'; }
+            applyQuestionsInlineFilter();
+        }
+        function applyQuestionsInlineFilter(){
+            try{
+                const q=(id)=>document.getElementById(id);
+                const term=(q('qf-search')?.value||'').toLowerCase().trim();
+                const cat=(q('qf-category')?.value||'').trim();
+                const minTimes=parseInt(q('qf-times')?.value||'',10);
+                const minSuccess=parseInt(q('qf-success')?.value||'',10);
+                const sort=q('qf-sort')?.value||'created_at_desc';
+                let data=[...(window.allQuestions||window.questions||[])];
+                if (term){ data=data.filter(x=> (x.question_text||x.question||'').toLowerCase().includes(term) || (x.category||'').toLowerCase().includes(term)); }
+                if (cat){ data=data.filter(x=> (x.category||'')===cat); }
+                if (!isNaN(minTimes)){ data=data.filter(x=> (x.times_asked ?? x.count_of_times_asked ?? 0) >= minTimes); }
+                if (!isNaN(minSuccess)){ data=data.filter(x=> (x.success_rate ?? 0) >= minSuccess); }
+                // sort
+                const [field,dir]=sort.split('_'); const asc=dir==='asc';
+                const get=(x,f)=>{
+                    if (f==='question_text'){ return (x.question_text||x.question||'').toLowerCase(); }
+                    if (f==='times'){ return (x.times_asked ?? x.count_of_times_asked ?? 0); }
+                    if (f==='success'){ return (x.success_rate ?? 0); }
+                    if (f==='created'){ return new Date(x.created_at || x.created_date || 0).getTime(); }
+                    return (x[f]!==undefined? x[f]: '');
+                };
+                const mapField={question_text:'question_text', times_asked:'times', success_rate:'success', created_at:'created'};
+                const f = mapField[field] || field;
+                data.sort((a,b)=>{
+                    const av=get(a,f), bv=get(b,f);
+                    if (av<bv) return asc? -1:1; if (av>bv) return asc? 1:-1; return 0;
+                });
+                // display
+                if (typeof displayQuestionAnalytics==='function') displayQuestionAnalytics(data);
+            }catch(e){ console.warn('applyQuestionsInlineFilter error', e); }
+        }
+        document.addEventListener('DOMContentLoaded', bindInlineQuestionFilters);
         // Live filtering: apply filters immediately as user types/selects
         function debounce(fn, delay = 250) {
             let t;
