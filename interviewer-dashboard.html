@@ -3713,7 +3713,7 @@
                         questionsHtml = questionsData.data.map((q, index) => `
                             <div class="question-answer-item" id="question-${q.id}">
                                 <div class="question-header">
-                                    <p><strong>Q${index + 1}:</strong> <span class="question-text-display">${q.question_text}</span></p>
+                                    <p><strong>Q${index + 1}:</strong> <span class="question-text-display">${q.question_rich_content || q.question_text}</span></p>
                                     <button class="icon-btn edit-btn" onclick="editQuestionText(${q.id}, '${q.question_text.replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')" title="Edit Question">✏️</button>
                                 </div>
                                 <div class="answer-section">
