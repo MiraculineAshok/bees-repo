@@ -1345,6 +1345,7 @@
                                 <span class="filter-icon">⚙️</span>
                                 <span class="filter-text">Filters</span>
                             </button>
+                            <button id="clear-filters-interviews" class="btn btn-secondary" style="display:none" onclick="clearFilters('interviews')">Clear filters</button>
                         </div>
                     </div>
                     
@@ -1387,6 +1388,7 @@
                                 <span class="filter-icon">⚙️</span>
                                 <span class="filter-text">Filters</span>
                             </button>
+                            <button id="clear-filters-questions" class="btn btn-secondary" style="display:none" onclick="clearFilters('questions')">Clear filters</button>
                         </div>
                     </div>
                     
@@ -1584,6 +1586,39 @@
     </div>
 
     <script>
+        function setClearFiltersVisibility(section) {
+            try {
+                const map = {
+                    'interviews': ['interviews-search','status-filter','verdict-filter','date-from','date-to'],
+                    'questions': ['questions-search','category-filter','sort-by']
+                };
+                const ids = map[section] || [];
+                const isActive = ids.some(id => {
+                    const el = document.getElementById(id);
+                    if (!el) return false;
+                    if (el.tagName === 'SELECT') return el.value && el.value !== '';
+                    return el.value && el.value.trim() !== '';
+                });
+                const btn = document.getElementById(`clear-filters-${section}`);
+                if (btn) btn.style.display = isActive ? '' : 'none';
+            } catch {}
+        }
+
+        function clearFilters(section) {
+            try {
+                switch(section) {
+                    case 'interviews':
+                        ['interviews-search','status-filter','verdict-filter','date-from','date-to'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.value=''; if(el.onchange) el.onchange(); }});
+                        applyFilters && applyFilters('interviews');
+                        break;
+                    case 'questions':
+                        ['questions-search','category-filter','sort-by'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.value=''; if(el.onchange) el.onchange(); }});
+                        refreshCurrentSection && refreshCurrentSection();
+                        break;
+                }
+                setClearFiltersVisibility(section);
+            } catch {}
+        }
         let allInterviews = [];
         let allQuestions = [];
         let favoriteQuestionIds = new Set();

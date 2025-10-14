@@ -1966,6 +1966,7 @@
                             <span class="filter-icon">⚙️</span>
                             <span class="filter-text">Filters</span>
                         </button>
+                        <button id="clear-filters-interviews" class="btn btn-secondary" style="display:none" onclick="clearFilters('interviews')">Clear filters</button>
                         <button class="btn btn-primary" onclick="refreshInterviews()">Refresh</button>
                     </div>
                 </div>
@@ -2020,6 +2021,7 @@
                             <span class="filter-icon">⚙️</span>
                             <span class="filter-text">Filters</span>
                         </button>
+                        <button id="clear-filters-questions" class="btn btn-secondary" style="display:none" onclick="clearFilters('questions')">Clear filters</button>
                         <button class="btn btn-success" onclick="openAddQuestionModal()">Add Question</button>
                         <button class="btn btn-info" onclick="openBulkImportModal()">Bulk Import</button>
                         <button class="btn btn-primary" onclick="refreshQuestions()">Refresh</button>
@@ -2069,6 +2071,7 @@
                             <span class="filter-icon">⚙️</span>
                             <span class="filter-text">Filters</span>
                         </button>
+                        <button id="clear-filters-sessions" class="btn btn-secondary" style="display:none" onclick="clearFilters('sessions')">Clear filters</button>
                         <button class="btn btn-primary" onclick="openCreateSessionModal()">Create Session</button>
                     </div>
                 </div>
@@ -2117,6 +2120,7 @@
                             <span class="filter-icon">⚙️</span>
                             <span class="filter-text">Filters</span>
                         </button>
+                        <button id="clear-filters-students" class="btn btn-secondary" style="display:none" onclick="clearFilters('students')">Clear filters</button>
                         <button class="btn btn-primary" onclick="refreshStudents()">Refresh</button>
                     </div>
                 </div>
@@ -2164,6 +2168,7 @@
                             <span class="filter-icon">⚙️</span>
                             <span class="filter-text">Filters</span>
                         </button>
+                        <button id="clear-filters-my-interviews" class="btn btn-secondary" style="display:none" onclick="clearFilters('my-interviews')">Clear filters</button>
                         <button class="btn btn-primary" onclick="loadMyInterviewsForAdmin()">Refresh</button>
                     </div>
                 </div>
@@ -2209,6 +2214,7 @@
                             <span class="filter-icon">⚙️</span>
                             <span class="filter-text">Filters</span>
                         </button>
+                        <button id="clear-filters-users" class="btn btn-secondary" style="display:none" onclick="clearFilters('users')">Clear filters</button>
                         <button class="btn btn-primary" onclick="refreshUsers()">Refresh</button>
                     </div>
                 </div>
@@ -2500,6 +2506,59 @@
     </div>
 
     <script>
+        function setClearFiltersVisibility(section) {
+            try {
+                const map = {
+                    'interviews': ['search-interviews','status-filter','verdict-filter','date-from','date-to'],
+                    'questions': ['questions-search','questions-category','questions-sort-by'],
+                    'sessions': ['sessions-search','sessions-status'],
+                    'students': ['students-search'],
+                    'my-interviews': ['my-search','my-status','my-verdict','my-date-from','my-date-to'],
+                    'users': ['users-search','role-filter','status-filter-users']
+                };
+                const ids = map[section] || [];
+                const isActive = ids.some(id => {
+                    const el = document.getElementById(id);
+                    if (!el) return false;
+                    if (el.tagName === 'SELECT') return el.value && el.value !== '';
+                    return el.value && el.value.trim() !== '';
+                });
+                const btn = document.getElementById(`clear-filters-${section}`);
+                if (btn) btn.style.display = isActive ? '' : 'none';
+            } catch {}
+        }
+
+        function clearFilters(section) {
+            try {
+                switch(section) {
+                    case 'interviews':
+                        ['search-interviews','status-filter','verdict-filter','date-from','date-to'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.value=''; if(el.onchange) el.onchange(); }});
+                        applyFilters('interviews');
+                        break;
+                    case 'questions':
+                        ['questions-search','questions-category','questions-sort-by'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.value=''; if(el.onchange) el.onchange(); }});
+                        applyQuestionFilters && applyQuestionFilters();
+                        break;
+                    case 'sessions':
+                        ['sessions-search','sessions-status'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.value=''; if(el.onchange) el.onchange(); }});
+                        refreshSessions && refreshSessions();
+                        break;
+                    case 'students':
+                        ['students-search'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.value=''; if(el.onchange) el.onchange(); }});
+                        refreshStudents && refreshStudents();
+                        break;
+                    case 'my-interviews':
+                        ['my-search','my-status','my-verdict','my-date-from','my-date-to'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.value=''; if(el.onchange) el.onchange(); }});
+                        applyMyInterviewFilters && applyMyInterviewFilters();
+                        break;
+                    case 'users':
+                        ['users-search','role-filter','status-filter-users'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.value=''; if(el.onchange) el.onchange(); }});
+                        refreshUsers && refreshUsers();
+                        break;
+                }
+                setClearFiltersVisibility(section);
+            } catch {}
+        }
         // Global variables
         let currentSection = 'overview';
         let interviews = [];
