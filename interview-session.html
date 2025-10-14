@@ -539,7 +539,9 @@
             background: white;
             border: 2px solid #e2e8f0;
             border-radius: 8px;
-            min-height: 150px;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
         }
         
         #question-editor-container .ql-toolbar {
@@ -547,18 +549,22 @@
             border-bottom: 2px solid #e2e8f0;
             background: #f7fafc;
             border-radius: 8px 8px 0 0;
+            flex-shrink: 0;
         }
         
         #question-editor-container .ql-container {
             border: none;
             font-family: 'Zoho Puvi', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             font-size: 14px;
-            min-height: 100px;
+            flex: 1;
+            overflow-y: auto;
         }
         
         #question-editor-container .ql-editor {
-            min-height: 100px;
+            height: 100%;
+            max-height: none;
             padding: 12px 15px;
+            overflow-y: auto;
         }
         
         #question-editor-container .ql-editor.ql-blank::before {
@@ -1666,13 +1672,6 @@
                 </div>
                 
                 <div class="add-question-form">
-                        <div class="form-group">
-                            <label class="form-label">Add Question</label>
-                            <div class="question-source-tabs">
-                                <button class="tab-btn active" onclick="switchQuestionSource('custom')">Custom Question</button>
-                            </div>
-                        </div>
-                    
                     <!-- Custom Question Tab -->
                     <div id="custom-question-tab" class="question-tab active">
                         <div class="form-group">
