@@ -251,7 +251,10 @@
                             window.handleStudentSelected(id);
                         } else {
                             const zid = input.value.trim();
-                            if (zid) window.location.href = `/interview-session.html?zeta_id=${encodeURIComponent(zid)}`;
+                            const sessionId = sessionSelect.value;
+                            if (zid && sessionId) {
+                                window.location.href = `/interview-session.html?zeta_id=${encodeURIComponent(zid)}&session_id=${encodeURIComponent(sessionId)}`;
+                            }
                         }
                     };
                 });
