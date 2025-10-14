@@ -26,7 +26,7 @@ class QuestionBankService {
             }
             
             const query = `
-                SELECT id, question as question_text, category, times_asked, 
+                SELECT id, question as question_text, category, tags, times_asked, 
                        COALESCE(times_answered_correctly, 0) as times_answered_correctly,
                        COALESCE(times_answered_incorrectly, 0) as times_answered_incorrectly,
                        CASE 
@@ -101,6 +101,36 @@ class QuestionBankService {
         }
     }
 
+    // Get all unique tags
+    static async getAllTags() {
+        try {
+            if (!(await this.isDatabaseAvailable())) {
+                // Mock implementation
+                const allQuestions = await mockDataService.getQuestionsAnalytics();
+                const tagsSet = new Set();
+                allQuestions.forEach(q => {
+                    if (q.tags) {
+                        q.tags.forEach(tag => tagsSet.add(tag));
+                    }
+                });
+                return { success: true, data: Array.from(tagsSet).sort() };
+            }
+            
+            const query = `
+                SELECT DISTINCT unnest(tags) as tag, COUNT(*) as question_count
+                FROM question_bank
+                WHERE tags IS NOT NULL AND array_length(tags, 1) > 0
+                GROUP BY tag
+                ORDER BY tag
+            `;
+            const result = await pool.query(query);
+            return { success: true, data: result.rows };
+        } catch (error) {
+            console.error('Error fetching tags:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
     // Add a new category
     static async addCategory(categoryName) {
         try {
@@ -127,14 +157,18 @@ class QuestionBankService {
     }
 
     // Add a new question to the question bank
-    static async addQuestion(question, category) {
+    static async addQuestion(question, tags) {
         try {
+            // Support both tags array (new) and single category (legacy)
+            const tagsArray = Array.isArray(tags) ? tags : (tags ? [tags] : []);
+            const category = tagsArray.length > 0 ? tagsArray[0] : null; // Keep category for backward compatibility
+            
             const query = `
-                INSERT INTO question_bank (question, category)
-                VALUES ($1, $2)
-                RETURNING id, question, category, times_asked, created_at, updated_at
+                INSERT INTO question_bank (question, category, tags)
+                VALUES ($1, $2, $3)
+                RETURNING id, question, category, tags, times_asked, created_at, updated_at
             `;
-            const result = await pool.query(query, [question, category]);
+            const result = await pool.query(query, [question, category, tagsArray]);
             return { success: true, data: result.rows[0] };
         } catch (error) {
             console.error('Error adding question:', error);
@@ -208,15 +242,19 @@ class QuestionBankService {
     }
 
     // Update a question
-    static async updateQuestion(questionId, question, category) {
+    static async updateQuestion(questionId, question, tags) {
         try {
+            // Support both tags array (new) and single category (legacy)
+            const tagsArray = Array.isArray(tags) ? tags : (tags ? [tags] : []);
+            const category = tagsArray.length > 0 ? tagsArray[0] : null;
+            
             const query = `
                 UPDATE question_bank
-                SET question = $1, category = $2, updated_at = CURRENT_TIMESTAMP
-                WHERE id = $3
-                RETURNING id, question, category, times_asked, created_at, updated_at
+                SET question = $1, category = $2, tags = $3, updated_at = CURRENT_TIMESTAMP
+                WHERE id = $4
+                RETURNING id, question, category, tags, times_asked, created_at, updated_at
             `;
-            const result = await pool.query(query, [question, category, questionId]);
+            const result = await pool.query(query, [question, category, tagsArray, questionId]);
             return { success: true, data: result.rows[0] };
         } catch (error) {
             console.error('Error updating question:', error);
@@ -240,15 +278,15 @@ class QuestionBankService {
         }
     }
 
-    // Update a question
+    // Update a question (overloaded method for object-based updates)
     static async updateQuestion(id, updateData) {
         try {
             if (!(await this.isDatabaseAvailable())) {
                 return mockDataService.updateQuestion(id, updateData);
             }
 
-            // Define allowed fields for question_bank table
-            const allowedFields = ['question', 'category'];
+            // Define allowed fields for question_bank table (now includes tags)
+            const allowedFields = ['question', 'category', 'tags'];
             
             // Filter out invalid fields
             const validUpdateData = {};
@@ -333,12 +371,23 @@ class QuestionBankService {
                     const questionData = questions[i];
                     
                     try {
-                        // Validate required fields
-                        if (!questionData.question || !questionData.category) {
-                            results.errors.push(`Row ${i + 1}: Missing required fields (question, category)`);
+                        // Validate required fields (now only question is required)
+                        if (!questionData.question) {
+                            results.errors.push(`Row ${i + 1}: Missing required field (question)`);
                             results.errorCount++;
                             continue;
                         }
+
+                        // Parse tags - support both tags array and category
+                        let tags = questionData.tags || [];
+                        if (questionData.category && !Array.isArray(tags)) {
+                            // Convert category to tags for backward compatibility
+                            tags = [questionData.category];
+                        } else if (typeof questionData.category === 'string' && !tags.includes(questionData.category)) {
+                            // Add category as first tag if not already in tags
+                            tags = [questionData.category, ...tags];
+                        }
+                        const category = tags.length > 0 ? tags[0] : null;
 
                         // Check for duplicate questions (case-insensitive, trimmed)
                         const duplicateCheck = await client.query(
@@ -352,14 +401,15 @@ class QuestionBankService {
                             continue;
                         }
 
-                        // Insert the question
+                        // Insert the question with tags
                         const insertResult = await client.query(`
-                            INSERT INTO question_bank (question, category, created_at, updated_at)
-                            VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                            INSERT INTO question_bank (question, category, tags, created_at, updated_at)
+                            VALUES ($1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                             RETURNING *
                         `, [
                             questionData.question.trim(),
-                            questionData.category.trim()
+                            category,
+                            tags
                         ]);
 
                         results.importedQuestions.push(insertResult.rows[0]);

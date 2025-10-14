@@ -1399,6 +1399,19 @@ app.get('/api/question-bank/categories', async (req, res) => {
   }
 });
 
+app.get('/api/question-bank/tags', async (req, res) => {
+  try {
+    const tags = await QuestionBankService.getAllTags();
+    res.json(tags);
+  } catch (error) {
+    console.error('Error fetching tags:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 app.post('/api/question-bank/categories', async (req, res) => {
   try {
     const { category } = req.body;
@@ -1469,14 +1482,16 @@ app.get('/api/question-bank/popular', async (req, res) => {
 
 app.post('/api/question-bank', async (req, res) => {
   try {
-    const { question, category } = req.body;
-    if (!question || !category) {
+    const { question, category, tags } = req.body;
+    if (!question) {
       return res.status(400).json({
         success: false,
-        error: 'Question and category are required'
+        error: 'Question is required'
       });
     }
-    const result = await QuestionBankService.addQuestion(question, category);
+    // Support both tags (new) and category (legacy) - convert category to tags if needed
+    const questionTags = tags || (category ? [category] : []);
+    const result = await QuestionBankService.addQuestion(question, questionTags);
     res.json(result);
   } catch (error) {
     console.error('Error adding question:', error);
@@ -1489,14 +1504,16 @@ app.post('/api/question-bank', async (req, res) => {
 
 app.put('/api/question-bank/:id', async (req, res) => {
   try {
-    const { question, category } = req.body;
-    if (!question || !category) {
+    const { question, category, tags } = req.body;
+    if (!question) {
       return res.status(400).json({
         success: false,
-        error: 'Question and category are required'
+        error: 'Question is required'
       });
     }
-    const result = await QuestionBankService.updateQuestion(req.params.id, question, category);
+    // Support both tags (new) and category (legacy)
+    const questionTags = tags || (category ? [category] : []);
+    const result = await QuestionBankService.updateQuestion(req.params.id, question, questionTags);
     res.json(result);
   } catch (error) {
     console.error('Error updating question:', error);
