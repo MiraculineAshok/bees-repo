@@ -6252,11 +6252,13 @@
 
         async function loadUsers() {
             try {
+                console.log('📋 Loading authorized users from /api/authorized-users');
                 const response = await fetch('/api/authorized-users');
                 const result = await response.json();
                 
                 if (result.success) {
                     users = result.data;
+                    console.log(`✅ Loaded ${users.length} authorized users:`, users.map(u => `ID:${u.id} - ${u.name} (${u.email})`));
                     displayUsers(users);
                 } else {
                     console.error('Error loading authorized users:', result.error);
