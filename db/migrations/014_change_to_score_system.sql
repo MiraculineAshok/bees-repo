@@ -12,9 +12,11 @@ ADD COLUMN IF NOT EXISTS correctness_score INTEGER CHECK (correctness_score >= 1
 COMMENT ON COLUMN interview_questions.correctness_score IS 'Score from 1-10 indicating how well the question was answered';
 
 -- Step 2: Modify question_bank table
--- Remove binary correct/incorrect counters
+-- Remove binary correct/incorrect counters (separate statements required)
 ALTER TABLE question_bank 
-DROP COLUMN IF EXISTS times_answered_correctly,
+DROP COLUMN IF EXISTS times_answered_correctly;
+
+ALTER TABLE question_bank 
 DROP COLUMN IF EXISTS times_answered_incorrectly;
 
 -- Add columns for score-based statistics
