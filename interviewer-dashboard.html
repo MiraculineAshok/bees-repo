@@ -2104,7 +2104,7 @@
             document.getElementById('filter-panel-overlay').classList.remove('active');
         }
 
-        // NEW UNIFIED FILTER SYSTEM
+        // NEW UNIFIED FILTER SYSTEM (CORRECTED IDs FOR QUESTIONS TAB)
         function applyUnifiedFilters(tab, data) {
             console.log(`Applying unified filters for tab: ${tab}`);
             
@@ -2172,35 +2172,39 @@
                     break;
                     
                 case 'questions':
-                    // Search filter
-                    const questionSearch = getFilterValue('search-questions');
-                    if (questionSearch) {
+                    // Search filter (correct ID)
+                    const qSearch = getFilterValue('questions-search');
+                    if (qSearch) {
+                        const term = qSearch.toLowerCase();
                         filtered = filtered.filter(q => 
-                            q.question_text && q.question_text.toLowerCase().includes(questionSearch.toLowerCase())
+                            (q.question_text && q.question_text.toLowerCase().includes(term)) ||
+                            (q.category && q.category.toLowerCase().includes(term))
                         );
                     }
-                    
+
                     // Category filter
-                    const category = getFilterValue('category-filter');
-                    if (category) {
-                        filtered = filtered.filter(q => q.category === category);
+                    const qCategory = getFilterValue('category-filter');
+                    if (qCategory) {
+                        filtered = filtered.filter(q => (q.category || '').toLowerCase() === qCategory.toLowerCase());
                     }
-                    
+
                     // Times asked filter
-                    const timesAskedMin = getFilterValue('times-asked-min');
-                    if (timesAskedMin) {
-                        filtered = filtered.filter(q => (q.times_asked || 0) >= parseInt(timesAskedMin));
+                    const qTimesAskedMin = getFilterValue('times-asked-min');
+                    if (qTimesAskedMin !== '') {
+                        const min = parseInt(qTimesAskedMin, 10) || 0;
+                        filtered = filtered.filter(q => (q.times_asked ?? q.count_of_times_asked ?? 0) >= min);
                     }
-                    
+
                     // Success rate filter
-                    const successRateMin = getFilterValue('success-rate-min');
-                    if (successRateMin) {
-                        filtered = filtered.filter(q => (q.success_rate || 0) >= parseInt(successRateMin));
+                    const qSuccessRateMin = getFilterValue('success-rate-min');
+                    if (qSuccessRateMin !== '') {
+                        const min = parseInt(qSuccessRateMin, 10) || 0;
+                        filtered = filtered.filter(q => (q.success_rate ?? 0) >= min);
                     }
-                    
+
                     // Sort
-                    const questionSortBy = getFilterValue('sort-by') || 'question_text_asc';
-                    filtered = sortQuestions(filtered, questionSortBy);
+                    const qSortBy = getFilterValue('sort-by') || 'question_text_asc';
+                    filtered = sortQuestions(filtered, qSortBy);
                     break;
             }
             
