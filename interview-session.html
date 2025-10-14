@@ -3168,6 +3168,25 @@
         async function endInterview() {
             if (!currentInterview) return;
 
+            // Require verdict before ending in all cases
+            const verdictSelect = document.getElementById('verdict-select');
+            if (!verdictSelect || !verdictSelect.value) {
+                // Prompt user to choose a verdict
+                const overlay = document.createElement('div');
+                overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
+                overlay.innerHTML = `
+                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;min-width:280px;max-width:90%;padding:16px;box-shadow:0 10px 20px rgba(0,0,0,0.15)">
+                    <div style="font-weight:600;margin-bottom:8px;color:#111827">Select a verdict</div>
+                    <div style="font-size:14px;color:#374151;margin-bottom:12px">Please choose a verdict to end the interview.</div>
+                    <div style="display:flex;gap:8px;justify-content:flex-end">
+                      <button id="verdict-ok" style="background:#111827;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer">OK</button>
+                    </div>
+                  </div>`;
+                document.body.appendChild(overlay);
+                overlay.querySelector('#verdict-ok').onclick = ()=> { overlay.remove(); verdictSelect?.focus(); };
+                return;
+            }
+
             // New behavior when there are no questions
             if (!Array.isArray(questions) || questions.length === 0) {
                 const verdictVal = document.getElementById('verdict-select')?.value || '';
@@ -3215,14 +3234,6 @@
                         showError('Error cancelling empty interview');
                     }
                 }
-                return;
-            }
-
-            // Check if verdict is selected
-            const verdictSelect = document.getElementById('verdict-select');
-            if (!verdictSelect.value) {
-                showError('Please select a verdict before ending the interview.');
-                verdictSelect.focus();
                 return;
             }
 
