@@ -86,8 +86,8 @@ app.use(helmet({
 })); // Security headers
 app.use(cors()); // Enable CORS
 app.use(morgan('combined')); // Logging
-app.use(express.json()); // Parse JSON bodies
-app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
+app.use(express.json({ limit: '50mb' })); // Parse JSON bodies with 50MB limit for rich text with images
+app.use(express.urlencoded({ extended: true, limit: '50mb' })); // Parse URL-encoded bodies with 50MB limit
 // Legacy standalone dashboards (kept for full-featured list views and filters)
 app.get('/admin-dashboard.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'admin-dashboard.html'));
