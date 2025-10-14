@@ -435,6 +435,17 @@
             border-bottom: 1px solid #e2e8f0;
         }
         
+        /* Constrain images in question display */
+        .question-text img {
+            max-width: 100%;
+            max-height: 300px;
+            width: auto;
+            height: auto;
+            display: block;
+            margin: 10px 0;
+            object-fit: contain;
+        }
+        
         .answer-section {
             padding: 1rem;
             background: white;
@@ -570,6 +581,16 @@
         #question-editor-container .ql-editor.ql-blank::before {
             color: #a0aec0;
             font-style: normal;
+        }
+        
+        /* Constrain image sizes in the editor */
+        #question-editor-container .ql-editor img {
+            max-width: 100%;
+            max-height: 300px;
+            width: auto;
+            height: auto;
+            display: inline-block;
+            object-fit: contain;
         }
         
         .editor-wrapper {
