@@ -4127,7 +4127,7 @@
                 const qText = (question.question || question.question_text || '').toString();
                 const escapedQuestion = qText.replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n');
                 return `
-                <div class="question-bank-item" onclick="selectQuestionFromBank(${question.id}, '${escapedQuestion}', this)" data-question-id="${question.id}">
+                <div class="question-bank-item" data-question-id="${question.id}" data-question-text="${escapedQuestion}">
                     <div class="question-text">${qText}</div>
                     <div class="question-meta">
                         <span class="question-category">${question.category || 'Uncategorized'}</span>
@@ -4137,42 +4137,82 @@
             `;
             }).join('');
             console.log('Question bank list updated in DOM');
+            
+            // Add event delegation for question bank items
+            setupQuestionBankEventDelegation();
+        }
+        
+        // Setup event delegation for question bank clicks
+        function setupQuestionBankEventDelegation() {
+            const listContainer = document.getElementById('question-bank-list');
+            if (!listContainer) return;
+            
+            // Remove any existing listeners
+            listContainer.removeEventListener('click', handleQuestionBankClick);
+            
+            // Add single delegated event listener
+            listContainer.addEventListener('click', handleQuestionBankClick);
+        }
+        
+        // Handle question bank item clicks with debouncing
+        function handleQuestionBankClick(event) {
+            const questionItem = event.target.closest('.question-bank-item');
+            if (!questionItem) return;
+            
+            // Prevent event propagation
+            event.preventDefault();
+            event.stopPropagation();
+            
+            // Check if already processing
+            if (questionItem.dataset.processing === 'true') {
+                console.log('🚫 Question item already processing, ignoring click');
+                return;
+            }
+            
+            // Mark as processing immediately
+            questionItem.dataset.processing = 'true';
+            questionItem.style.pointerEvents = 'none';
+            questionItem.style.opacity = '0.6';
+            
+            const questionId = questionItem.dataset.questionId;
+            const questionText = questionItem.dataset.questionText;
+            
+            // Call the function
+            selectQuestionFromBank(questionId, questionText, questionItem);
         }
 
         // Track questions being added to prevent duplicates
         const questionsBeingAdded = new Set();
-        const disabledQuestionItems = new Set();
+        
+        // Helper function to reset question item state
+        function resetQuestionItem(el) {
+            if (el) {
+                el.dataset.processing = 'false';
+                el.style.pointerEvents = '';
+                el.style.opacity = '';
+                
+                // Restore original HTML if available
+                const originalHtml = el.getAttribute('data-original-html');
+                if (originalHtml) {
+                    el.innerHTML = originalHtml;
+                    el.removeAttribute('data-original-html');
+                }
+            }
+        }
 
         async function selectQuestionFromBank(questionId, questionText, el) {
             console.log('🔍 selectQuestionFromBank called with:', { 
                 questionId, 
                 questionText, 
                 questionTextType: typeof questionText,
-                currentInterview: currentInterview?.id 
+                currentInterview: currentInterview?.id,
+                elementProcessing: el?.dataset?.processing
             });
-            
-            // Immediately disable this specific question item to prevent rapid clicks
-            const itemKey = `${questionId}-${questionText}`;
-            if (disabledQuestionItems.has(itemKey)) {
-                console.log('🚫 Question item already disabled, ignoring click');
-                return;
-            }
-            
-            // Disable immediately
-            disabledQuestionItems.add(itemKey);
-            if (el) {
-                el.style.pointerEvents = 'none';
-                el.style.opacity = '0.6';
-            }
             
             if (!currentInterview) {
                 console.error('❌ No current interview found');
                 showError('No active interview found. Please start an interview first.');
-                disabledQuestionItems.delete(itemKey);
-                if (el) {
-                    el.style.pointerEvents = '';
-                    el.style.opacity = '';
-                }
+                resetQuestionItem(el);
                 return;
             }
             
@@ -4180,11 +4220,7 @@
             if (!questionText || questionText.trim() === '') {
                 console.error('❌ Invalid question text:', questionText);
                 showError('Invalid question text. Please try again.');
-                disabledQuestionItems.delete(itemKey);
-                if (el) {
-                    el.style.pointerEvents = '';
-                    el.style.opacity = '';
-                }
+                resetQuestionItem(el);
                 return;
             }
             
@@ -4205,11 +4241,7 @@
             if (isDuplicate) {
                 console.log('⚠️ Duplicate question detected');
                 showError('This question has already been added to the interview. Please select a different question.');
-                disabledQuestionItems.delete(itemKey);
-                if (el) {
-                    el.style.pointerEvents = '';
-                    el.style.opacity = '';
-                }
+                resetQuestionItem(el);
                 return;
             }
             
@@ -4282,17 +4314,11 @@
                 console.error('Error adding question from bank:', error);
                 showError('Error adding question');
             } finally {
-                // Always remove from tracking sets
+                // Always remove from tracking set
                 questionsBeingAdded.delete(normalizedQuestionText);
-                disabledQuestionItems.delete(itemKey);
                 
-                if (el) {
-                    // Restore item
-                    const html = el.getAttribute('data-original-html');
-                    if (html) el.innerHTML = html;
-                    el.style.pointerEvents = '';
-                    el.style.opacity = '';
-                }
+                // Reset question item state
+                resetQuestionItem(el);
             }
         }
 
