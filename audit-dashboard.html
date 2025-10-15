@@ -6,6 +6,9 @@
     <title>BEES - Audit Dashboard</title>
     <link rel="icon" type="image/png" href="/logo1.png">
     
+    <!-- Chart.js for visual representations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
         @font-face {
             font-family: 'Zoho Puvi';
@@ -101,9 +104,11 @@
         }
 
         .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
+            max-width: 100%;
+            margin: 0;
+            padding: 1rem;
+            height: calc(100vh - 80px);
+            overflow-y: auto;
         }
 
         .dashboard-header {
@@ -130,6 +135,37 @@
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 1rem;
             margin-bottom: 2rem;
+        }
+
+        .charts-section {
+            margin-bottom: 2rem;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+        }
+
+        .chart-card h4 {
+            margin: 0 0 1rem 0;
+            color: #1f2937;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .chart-card canvas {
+            max-width: 100%;
+            height: 200px !important;
         }
 
         .stat-card {
@@ -430,6 +466,29 @@
             </div>
         </div>
 
+        <!-- Visual Analytics -->
+        <div class="charts-section">
+            <h3 style="margin-bottom: 1rem; color: #1f2937;">📊 Visual Analytics</h3>
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h4>Request Types Distribution</h4>
+                    <canvas id="requestTypesChart" width="400" height="200"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h4>Response Status Codes</h4>
+                    <canvas id="statusCodesChart" width="400" height="200"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h4>Activity Timeline (Last 24 hours)</h4>
+                    <canvas id="timelineChart" width="400" height="200"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h4>User Activity</h4>
+                    <canvas id="userActivityChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
         <!-- Filters -->
         <div class="filters-section">
             <h3 style="margin-bottom: 1rem;">Filter Audit Logs</h3>
@@ -607,6 +666,166 @@
             document.getElementById('errorCount').textContent = errorCount.toLocaleString();
             document.getElementById('uniqueUsers').textContent = uniqueUsers.toLocaleString();
             document.getElementById('avgResponseTime').textContent = avgResponseTime ? `${avgResponseTime}ms` : 'N/A';
+            
+            // Render charts with sample data for now
+            renderCharts();
+        }
+
+        // Chart rendering functions
+        function renderCharts() {
+            try {
+                renderRequestTypesChart();
+                renderStatusCodesChart();
+                renderTimelineChart();
+                renderUserActivityChart();
+            } catch (error) {
+                console.error('❌ Failed to render charts:', error);
+            }
+        }
+
+        function renderRequestTypesChart() {
+            const ctx = document.getElementById('requestTypesChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['API Requests', 'User Actions', 'Errors', 'Login/Logout'],
+                    datasets: [{
+                        data: [45, 25, 15, 15],
+                        backgroundColor: ['#3b82f6', '#10b981', '#ef4444', '#f59e0b'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: { size: 11 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderStatusCodesChart() {
+            const ctx = document.getElementById('statusCodesChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['200', '201', '400', '401', '404', '500'],
+                    datasets: [{
+                        label: 'Requests',
+                        data: [850, 120, 45, 23, 67, 12],
+                        backgroundColor: ['#10b981', '#10b981', '#f59e0b', '#f59e0b', '#f59e0b', '#ef4444'],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { font: { size: 11 } }
+                        },
+                        x: {
+                            ticks: { font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderTimelineChart() {
+            const ctx = document.getElementById('timelineChart').getContext('2d');
+            const hours = Array.from({length: 24}, (_, i) => i.toString().padStart(2, '0') + ':00');
+            const data = [12, 8, 5, 3, 2, 4, 8, 15, 25, 35, 42, 48, 45, 38, 41, 35, 28, 22, 18, 15, 12, 10, 8, 6];
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: hours,
+                    datasets: [{
+                        label: 'Requests',
+                        data: data,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 2,
+                        pointHoverRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { font: { size: 10 } }
+                        },
+                        x: {
+                            ticks: { 
+                                font: { size: 10 },
+                                maxTicksLimit: 12
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderUserActivityChart() {
+            const ctx = document.getElementById('userActivityChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['admin@example.com', 'user1@example.com', 'user2@example.com', 'user3@example.com', 'user4@example.com'],
+                    datasets: [{
+                        label: 'Actions',
+                        data: [125, 89, 67, 45, 32],
+                        backgroundColor: '#8b5cf6',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: { font: { size: 11 } }
+                        },
+                        y: {
+                            ticks: { 
+                                font: { size: 10 },
+                                callback: function(value, index) {
+                                    const label = this.getLabelForValue(value);
+                                    return label.length > 25 ? label.substring(0, 25) + '...' : label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
         }
 
         async function loadLogs(page = 1) {
