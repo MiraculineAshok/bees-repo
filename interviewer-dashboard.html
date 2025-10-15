@@ -736,8 +736,8 @@
                
                /* Fixed images in detail panel - 200x200 with aspect ratio preserved */
                .question-text-display img, .answer-text-display img {
-                   width: 200px;
-                   height: 200px;
+                   width: 200px !important;
+                   height: 200px !important;
                    display: block;
                    margin: 10px 0;
                    object-fit: contain;
@@ -745,6 +745,15 @@
                    background-color: #f8f9fa;
                    border: 1px solid #ddd;
                    border-radius: 4px;
+               }
+
+               /* Ensure rich content images are also properly sized */
+               .question-text-display p img, .answer-text-display p img,
+               .question-text-display div img, .answer-text-display div img {
+                   width: 200px !important;
+                   height: 200px !important;
+                   max-width: 200px !important;
+                   max-height: 200px !important;
                }
                
                .question-edit-input, .answer-edit-input {
