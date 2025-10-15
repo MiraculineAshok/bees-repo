@@ -7172,8 +7172,16 @@
                 if (response.ok && result.success) {
                     // Update display
                     const questionDisplay = questionElement.querySelector('.question-text-display');
-                    questionDisplay.textContent = newText;
-                    questionDisplay.style.display = 'inline';
+                    
+                    // Check if content is HTML and update accordingly
+                    if (/<[^>]*>/g.test(newText)) {
+                        // Rich content - use innerHTML and wrap in div
+                        questionDisplay.outerHTML = `<div class="question-text-display rich-content-wrapper">${newText}</div>`;
+                    } else {
+                        // Plain text - use textContent
+                        questionDisplay.textContent = newText;
+                        questionDisplay.style.display = 'inline';
+                    }
                     
                     // Show edit button
                     const editButton = questionElement.querySelector('.question-header .edit-btn');

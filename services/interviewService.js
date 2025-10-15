@@ -312,7 +312,7 @@ class InterviewService {
             
             const result = await pool.query(
                 `UPDATE interview_questions 
-                 SET question_text = $1, updated_at = CURRENT_TIMESTAMP
+                 SET question_text = $1, question_rich_content = $1, updated_at = CURRENT_TIMESTAMP
                  WHERE id = $2 
                  RETURNING *`,
                 [questionText, questionId]
