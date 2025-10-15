@@ -261,6 +261,25 @@
             align-items: center;
             margin-bottom: 0.25rem;
         }
+
+        .header-right-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .interview-controls-header {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .interview-controls-header .btn {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            min-width: 100px;
+            border-radius: 4px;
+        }
         
         .student-info-title {
             font-size: 1rem;
@@ -645,19 +664,6 @@
         .top-section .student-info-card {
             flex: 1;
             margin-bottom: 0;
-        }
-
-        .interview-controls-right {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            align-items: flex-end;
-        }
-
-        .interview-controls-right .btn {
-            padding: 0.5rem 1rem;
-            font-size: 0.875rem;
-            min-width: 120px;
         }
 
         /* Side Panel Styles */
@@ -1952,9 +1958,17 @@
             <div class="student-info-card">
                     <div class="student-info-header">
                 <h2 class="student-info-title">Candidate Information</h2>
-                        <div class="interview-timer-card">
-                            <span class="clock-icon">⏱️</span>
-                            <span id="duration-display">00:00:00</span>
+                        <div class="header-right-section">
+                            <div class="interview-timer-card">
+                                <span class="clock-icon">⏱️</span>
+                                <span id="duration-display">00:00:00</span>
+                            </div>
+                            <!-- Interview Control Buttons -->
+                            <div class="interview-controls-header">
+                                <button id="save-interview-btn" class="btn btn-success" onclick="saveInterview()">Save Interview</button>
+                                <button class="btn btn-danger" onclick="endInterview()">End Interview</button>
+                                <button class="btn btn-warning" onclick="cancelInterview()">Cancel Interview</button>
+                            </div>
                         </div>
                     </div>
                 <div class="info-grid">
@@ -1974,14 +1988,7 @@
                         <div class="info-label">Zeta ID</div>
                         <div class="info-value" id="candidate-zeta-id">Loading...</div>
                     </div>
-                </div>
-            </div>
-            
-                <!-- Interview Control Buttons -->
-                <div class="interview-controls-right">
-                    <button id="save-interview-btn" class="btn btn-success" onclick="saveInterview()">Save Interview</button>
-                    <button class="btn btn-danger" onclick="endInterview()">End Interview</button>
-                    <button class="btn btn-warning" onclick="cancelInterview()">Cancel Interview</button>
+                    </div>
                 </div>
             </div>
             
