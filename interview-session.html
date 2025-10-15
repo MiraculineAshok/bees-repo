@@ -4345,23 +4345,10 @@
         function addQuestionToBank(questionText) {
             // Show the modal with the question text
             document.getElementById('modal-question-text').value = questionText;
-            document.getElementById('modal-category-select').value = '';
-            document.getElementById('custom-category').value = '';
-            document.getElementById('custom-category-group').style.display = 'none';
+            document.getElementById('modal-tags').value = '';
             document.getElementById('category-modal').style.display = 'flex';
         }
 
-        function handleCategoryChange() {
-            const categorySelect = document.getElementById('modal-category-select');
-            const customCategoryGroup = document.getElementById('custom-category-group');
-            
-            if (categorySelect.value === 'Other') {
-                customCategoryGroup.style.display = 'block';
-                document.getElementById('custom-category').focus();
-            } else {
-                customCategoryGroup.style.display = 'none';
-            }
-        }
 
         function closeCategoryModal() {
             document.getElementById('category-modal').style.display = 'none';
@@ -4369,27 +4356,15 @@
 
         async function saveToQuestionBank() {
             const questionText = document.getElementById('modal-question-text').value.trim();
-            const categorySelect = document.getElementById('modal-category-select');
-            const customCategory = document.getElementById('custom-category').value.trim();
+            const tagsInput = document.getElementById('modal-tags').value.trim();
             
             if (!questionText) {
                 showError('Question text is required');
                 return;
             }
             
-            let category = categorySelect.value;
-            if (category === 'Other') {
-                if (!customCategory) {
-                    showError('Please enter a custom category');
-                    return;
-                }
-                category = customCategory;
-            }
-            
-            if (!category) {
-                showError('Please select a category');
-                return;
-            }
+            // Convert tags string to array
+            const tags = tagsInput ? tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
             
             try {
                 const response = await fetch('/api/question-bank', {
@@ -4399,7 +4374,8 @@
                     },
                     body: JSON.stringify({
                         question: questionText,
-                        category: category
+                        tags: tags,
+                        category: null // Using tags instead of category
                     })
                 });
                 
