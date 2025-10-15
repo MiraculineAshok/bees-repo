@@ -2,8 +2,8 @@
 (function() {
     'use strict';
     
-           // Function to get user data from localStorage or URL parameters
-           window.getUserData = function getUserData() {
+    // Function to get user data from localStorage or URL parameters
+    window.getUserData = function getUserData() {
                // Check URL parameters first (for OAuth callback)
                const urlParams = new URLSearchParams(window.location.search);
                const userEmail = urlParams.get('email');
@@ -39,6 +39,28 @@
         
         return null;
     }
+    
+    // Enhanced fetch wrapper that automatically adds user information
+    const originalFetch = window.fetch;
+    window.fetch = function(url, options = {}) {
+        // Only modify API requests
+        if (typeof url === 'string' && url.startsWith('/api/')) {
+            const userData = getUserData();
+            if (userData && userData.email) {
+                // Add user email to headers
+                options.headers = options.headers || {};
+                options.headers['x-user-email'] = userData.email;
+                
+                console.log('🔍 Adding user email to API request:', {
+                    url: url,
+                    email: userData.email,
+                    method: options.method || 'GET'
+                });
+            }
+        }
+        
+        return originalFetch.call(this, url, options);
+    };
     
     // Function to check if user is admin
     async function checkUserRole() {

@@ -116,8 +116,43 @@ async function enrichRequestWithUserInfo(req) {
         // Skip if already enriched
         if (req.userId && req.userRole && req.userEmail) return;
         
-        const userEmail = req.query.email || req.headers['x-user-email'];
+        // Try multiple ways to get user email
+        let userEmail = req.query.email || 
+                       req.headers['x-user-email'] || 
+                       req.body?.email ||
+                       req.headers['authorization']?.split(' ')[1]; // Bearer token
+        
+        // If we have a session, try to get email from session
+        if (!userEmail && req.session && req.session.user) {
+            userEmail = req.session.user.email;
+        }
+        
+        // Try to extract from cookies if available
+        if (!userEmail && req.cookies && req.cookies.user_email) {
+            userEmail = req.cookies.user_email;
+        }
+        
+        // Try to get from referrer header if it contains email
+        if (!userEmail && req.headers.referer) {
+            try {
+                const urlParams = new URL(req.headers.referer).searchParams;
+                userEmail = urlParams.get('email');
+            } catch (urlError) {
+                // Ignore URL parsing errors
+                console.log('❌ Could not parse referrer URL:', req.headers.referer);
+            }
+        }
+        
         console.log('🔍 Enriching request with user info for email:', userEmail);
+        console.log('🔍 Request details:', {
+            path: req.path,
+            query: JSON.stringify(req.query),
+            headers: {
+                'x-user-email': req.headers['x-user-email'],
+                'authorization': req.headers['authorization'] ? 'Bearer [REDACTED]' : undefined,
+                'referer': req.headers.referer
+            }
+        });
         
         if (!userEmail) {
             console.log('❌ No user email found in request');
