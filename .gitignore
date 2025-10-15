@@ -117,3 +117,4 @@ uploads/
 
 # Cloudinary credentials (if stored locally)
 config/cloudinary.js
+.env
