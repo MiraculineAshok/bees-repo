@@ -600,15 +600,17 @@
                    color: #666;
                }
 
-               /* Detail Panel Styles */
+               /* Detail Panel Styles - Larger width up to half page */
                .detail-panel {
                    position: fixed;
                    top: 0;
-                   right: -400px;
-                   width: 400px;
+                   right: -50%;
+                   width: 50%;
+                   min-width: 600px;
+                   max-width: 800px;
                    height: 100vh;
                    background: white;
-                   box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+                   box-shadow: -5px 0 15px rgba(0,0,0,0.3);
                    z-index: 1001;
                    transition: right 0.3s ease;
                    overflow-y: auto;
