@@ -9,16 +9,16 @@
     <style>
         @font-face {
             font-family: 'Zoho Puvi';
-            src: url('./Zoho Puvi/ZohoPuvi-Regular.ttf') format('truetype'),
-                 url('./Zoho Puvi/ZohoPuvi-Regular.otf') format('opentype');
+            src: url('./Zoho Puvi/OpenType-TT/Zoho Puvi Regular.ttf') format('truetype'),
+                 url('./Zoho Puvi/OpenType-PS/Zoho Puvi Regular.otf') format('opentype');
             font-weight: normal;
             font-style: normal;
         }
 
         @font-face {
             font-family: 'Zoho Puvi';
-            src: url('./Zoho Puvi/ZohoPuvi-Bold.ttf') format('truetype'),
-                 url('./Zoho Puvi/ZohoPuvi-Bold.otf') format('opentype');
+            src: url('./Zoho Puvi/OpenType-TT/Zoho Puvi Bold.ttf') format('truetype'),
+                 url('./Zoho Puvi/OpenType-PS/Zoho Puvi Bold.otf') format('opentype');
             font-weight: bold;
             font-style: normal;
         }
@@ -521,7 +521,7 @@
         });
 
         function initializeAuth() {
-            const userData = getUserData();
+            const userData = window.BeesAuth ? window.BeesAuth.getUserData() : null;
             if (userData && userData.email) {
                 const initial = userData.name ? userData.name.charAt(0).toUpperCase() : userData.email.charAt(0).toUpperCase();
                 document.getElementById('userInitial').textContent = initial;
@@ -535,7 +535,13 @@
 
         function confirmLogout() {
             if (confirm('Are you sure you want to logout?')) {
-                logoutUser();
+                if (window.BeesAuth && window.BeesAuth.logoutUser) {
+                    window.BeesAuth.logoutUser();
+                } else {
+                    // Fallback logout
+                    localStorage.removeItem('bees_user_data');
+                    window.location.href = '/';
+                }
             }
         }
 
@@ -551,7 +557,7 @@
         async function loadStats() {
             try {
                 console.log('📊 Loading audit stats...');
-                const userData = getUserData();
+                const userData = window.BeesAuth ? window.BeesAuth.getUserData() : null;
                 const email = userData?.email;
                 const url = email ? `/api/admin/audit-stats?email=${encodeURIComponent(email)}` : '/api/admin/audit-stats';
                 
@@ -606,7 +612,7 @@
         async function loadLogs(page = 1) {
             try {
                 console.log('🔍 Loading audit logs, page:', page);
-                const userData = getUserData();
+                const userData = window.BeesAuth ? window.BeesAuth.getUserData() : null;
                 const email = userData?.email;
                 console.log('👤 User data:', { email, userData });
                 
@@ -745,7 +751,7 @@
 
         async function exportLogs() {
             try {
-                const userData = getUserData();
+                const userData = window.BeesAuth ? window.BeesAuth.getUserData() : null;
                 const email = userData?.email;
                 
                 const params = new URLSearchParams({
@@ -810,7 +816,7 @@
             }
             
             try {
-                const userData = getUserData();
+                const userData = window.BeesAuth ? window.BeesAuth.getUserData() : null;
                 const email = userData?.email;
                 
                 const response = await fetch('/api/admin/audit-cleanup', {

@@ -17,16 +17,24 @@ function auditMiddleware(options = {}) {
         maxBodySize = 10000 // Max size of request/response body to log (in characters)
     } = options;
 
-    return (req, res, next) => {
+    return async (req, res, next) => {
         const startTime = Date.now();
         const correlationId = uuidv4();
         
         // Add correlation ID to request for tracking
         req.correlationId = correlationId;
+        req.startTime = startTime;
         
         // Skip logging for excluded paths
         if (shouldExclude(req.path, excludePaths, excludeStaticAssets)) {
             return next();
+        }
+
+        // Enrich request with user information BEFORE route handlers
+        try {
+            await enrichRequestWithUserInfo(req);
+        } catch (error) {
+            console.error('❌ Failed to enrich request with user info:', error.message);
         }
 
         // Capture original response methods
@@ -55,10 +63,7 @@ function auditMiddleware(options = {}) {
             const responseTime = endTime - startTime;
             
             try {
-                // Try to get user information from request
-                await enrichRequestWithUserInfo(req);
-                
-                // Log the API request
+                // Log the API request (user info already enriched)
                 await AuditService.logAPIRequest(req, res, responseTime);
                 
             } catch (error) {

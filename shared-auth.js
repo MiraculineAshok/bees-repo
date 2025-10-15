@@ -3,7 +3,7 @@
     'use strict';
     
            // Function to get user data from localStorage or URL parameters
-           function getUserData() {
+           window.getUserData = function getUserData() {
                // Check URL parameters first (for OAuth callback)
                const urlParams = new URLSearchParams(window.location.search);
                const userEmail = urlParams.get('email');
