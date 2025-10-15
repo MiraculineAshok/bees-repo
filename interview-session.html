@@ -619,7 +619,7 @@
             box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
         }
 
-
+        
         .interview-controls {
             display: flex;
             gap: 0.5rem;
@@ -785,6 +785,11 @@
         .panel-overlay.active {
             opacity: 1;
             visibility: visible;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
         .form-group {
@@ -1944,34 +1949,34 @@
     <main class="main-container">
         <div class="interview-main">
             <div class="top-section">
-                <div class="student-info-card">
+            <div class="student-info-card">
                     <div class="student-info-header">
-                    <h2 class="student-info-title">Candidate Information</h2>
+                <h2 class="student-info-title">Candidate Information</h2>
                         <div class="interview-timer-card">
                             <span class="clock-icon">⏱️</span>
                             <span id="duration-display">00:00:00</span>
                         </div>
                     </div>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <div class="info-label">Name</div>
-                            <div class="info-value" id="candidate-name">Loading...</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">Email</div>
-                            <div class="info-value" id="candidate-email">Loading...</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">Phone</div>
-                            <div class="info-value" id="candidate-phone">Loading...</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">Zeta ID</div>
-                            <div class="info-value" id="candidate-zeta-id">Loading...</div>
-                        </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Name</div>
+                        <div class="info-value" id="candidate-name">Loading...</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Email</div>
+                        <div class="info-value" id="candidate-email">Loading...</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Phone</div>
+                        <div class="info-value" id="candidate-phone">Loading...</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Zeta ID</div>
+                        <div class="info-value" id="candidate-zeta-id">Loading...</div>
                     </div>
                 </div>
-                
+            </div>
+            
                 <!-- Interview Control Buttons -->
                 <div class="interview-controls-right">
                     <button id="save-interview-btn" class="btn btn-success" onclick="saveInterview()">Save Interview</button>
@@ -2707,6 +2712,23 @@
             }
         }
 
+        // Helper function to extract first few words from HTML content
+        function getQuestionPreview(htmlContent, maxWords = 8) {
+            // Create a temporary div to parse HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = htmlContent;
+            
+            // Get text content without HTML tags
+            const textContent = tempDiv.textContent || tempDiv.innerText || '';
+            
+            // Split into words and take first maxWords
+            const words = textContent.trim().split(/\s+/);
+            const preview = words.slice(0, maxWords).join(' ');
+            
+            // Add ellipsis if there are more words
+            return words.length > maxWords ? preview + '...' : preview;
+        }
+
         function displayQuestions() {
             const chatMessages = document.getElementById('chat-messages');
             
@@ -2741,7 +2763,7 @@
                 <div class="question-item" data-question-id="${question.id}">
                     <div class="question-header" onclick="toggleQuestion(${question.id})">
                         <span class="question-number">Q${index + 1}</span>
-                        <div class="question-preview">${question.question_text}</div>
+                        <div class="question-preview">${getQuestionPreview(question.question_text)}</div>
                         <div class="question-actions">
                             <div class="correctness-slider-container">
                                 <label class="slider-label" onclick="event.stopPropagation()">Score: <span id="score-value-${question.id}">${question.correctness_score || '-'}</span>/10</label>
@@ -4509,7 +4531,6 @@
             const tagsInput = document.getElementById('ai-question-tags');
             const difficultySelect = document.getElementById('ai-difficulty-level');
             const generateBtn = document.getElementById('generate-ai-btn');
-            const spinner = generateBtn.querySelector('.loading-spinner');
             
             const tags = tagsInput.value.trim();
             const difficulty = difficultySelect.value;
@@ -4522,8 +4543,8 @@
 
             // Show loading state
             generateBtn.disabled = true;
-            spinner.style.display = 'inline-block';
-            generateBtn.innerHTML = '<span class="loading-spinner"></span> Generating...';
+            const originalText = generateBtn.innerHTML;
+            generateBtn.innerHTML = '<span class="loading-spinner" style="display: inline-block; width: 12px; height: 12px; border: 2px solid #ffffff; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 0.5rem;"></span> Generating...';
 
             try {
                 const response = await fetch('/api/generate-ai-question', {
@@ -4543,7 +4564,7 @@
                     // Initialize AI editor if not done already
                     initializeAIQuestionEditor();
                     
-                    // Set the generated question
+                    // Clear previous content and set the generated question
                     if (aiQuestionEditor) {
                         aiQuestionEditor.root.innerHTML = result.question;
                     }
