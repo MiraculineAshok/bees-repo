@@ -312,8 +312,13 @@ app.put('/api/users/bulk', async (req, res) => {
 // Interviewer: list sessions where interviewer is a panelist
 app.get('/api/interviewer/sessions', async (req, res) => {
   try {
+    console.log('🔍 /api/interviewer/sessions called');
+    
     const interviewerId = await getCurrentUserId(req);
+    console.log('👤 Current interviewer ID:', interviewerId);
+    
     if (!interviewerId) {
+      console.log('❌ User not authenticated');
       return res.status(401).json({ success: false, error: 'User not authenticated' });
     }
 
@@ -321,6 +326,7 @@ app.get('/api/interviewer/sessions', async (req, res) => {
     try {
       await pool.query('SELECT 1');
     } catch (_) {
+      console.log('❌ Database not available');
       return res.json({ success: true, data: [] });
     }
 
@@ -329,11 +335,20 @@ app.get('/api/interviewer/sessions', async (req, res) => {
     try {
       const reg = await pool.query("SELECT to_regclass('public.session_panelists') AS reg");
       hasPanel = !!reg.rows[0]?.reg;
+      console.log('📋 session_panelists table exists:', hasPanel);
     } catch (_) { hasPanel = false; }
 
     if (!hasPanel) {
+      console.log('❌ session_panelists table does not exist');
       return res.json({ success: true, data: [] });
     }
+
+    // Check what panelist assignments exist for this user
+    const panelCheck = await pool.query(
+      'SELECT session_id FROM session_panelists WHERE user_id = $1',
+      [interviewerId]
+    );
+    console.log(`🔍 User ${interviewerId} is assigned to ${panelCheck.rows.length} sessions:`, panelCheck.rows.map(r => r.session_id));
 
     const result = await pool.query(
       `SELECT ins.id, ins.name, ins.description, ins.status, ins.created_at
@@ -343,9 +358,15 @@ app.get('/api/interviewer/sessions', async (req, res) => {
         ORDER BY ins.created_at DESC`,
       [interviewerId]
     );
+    
+    console.log(`✅ Found ${result.rows.length} sessions for interviewer ${interviewerId}`);
+    result.rows.forEach(session => {
+      console.log(`   - Session ${session.id}: ${session.name} (${session.status})`);
+    });
+    
     res.json({ success: true, data: result.rows });
   } catch (error) {
-    console.error('Error getting interviewer sessions:', error);
+    console.error('❌ Error getting interviewer sessions:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
