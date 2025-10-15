@@ -588,18 +588,18 @@
         }
 
         .action-btn {
-            display: flex;
-            flex-direction: column;
+            display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            padding: 1rem;
+            padding: 0.5rem 1rem;
             background: white;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
             cursor: pointer;
             transition: all 0.2s ease;
-            min-width: 140px;
             font-family: 'Zoho Puvi', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 500;
         }
 
         .action-btn:hover {
@@ -619,16 +619,6 @@
             box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
         }
 
-        .btn-icon {
-            font-size: 1.5rem;
-        }
-
-        .btn-text {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #374151;
-            text-align: center;
-        }
 
         .interview-controls {
             display: flex;
@@ -643,6 +633,31 @@
         .interview-controls .btn {
             padding: 0.5rem 1rem;
             font-size: 0.875rem;
+        }
+
+        .top-section {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+            align-items: flex-start;
+        }
+
+        .top-section .student-info-card {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .interview-controls-right {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: flex-end;
+        }
+
+        .interview-controls-right .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            min-width: 120px;
         }
 
         /* Side Panel Styles */
@@ -1928,31 +1943,40 @@
 
     <main class="main-container">
         <div class="interview-main">
-            <div class="student-info-card">
-                <div class="student-info-header">
-                <h2 class="student-info-title">Candidate Information</h2>
-                    <div class="interview-timer-card">
-                        <span class="clock-icon">⏱️</span>
-                        <span id="duration-display">00:00:00</span>
+            <div class="top-section">
+                <div class="student-info-card">
+                    <div class="student-info-header">
+                    <h2 class="student-info-title">Candidate Information</h2>
+                        <div class="interview-timer-card">
+                            <span class="clock-icon">⏱️</span>
+                            <span id="duration-display">00:00:00</span>
+                        </div>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Name</div>
+                            <div class="info-value" id="candidate-name">Loading...</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Email</div>
+                            <div class="info-value" id="candidate-email">Loading...</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Phone</div>
+                            <div class="info-value" id="candidate-phone">Loading...</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Zeta ID</div>
+                            <div class="info-value" id="candidate-zeta-id">Loading...</div>
+                        </div>
                     </div>
                 </div>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <div class="info-label">Name</div>
-                        <div class="info-value" id="candidate-name">Loading...</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Email</div>
-                        <div class="info-value" id="candidate-email">Loading...</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Phone</div>
-                        <div class="info-value" id="candidate-phone">Loading...</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Zeta ID</div>
-                        <div class="info-value" id="candidate-zeta-id">Loading...</div>
-                    </div>
+                
+                <!-- Interview Control Buttons -->
+                <div class="interview-controls-right">
+                    <button id="save-interview-btn" class="btn btn-success" onclick="saveInterview()">Save Interview</button>
+                    <button class="btn btn-danger" onclick="endInterview()">End Interview</button>
+                    <button class="btn btn-warning" onclick="cancelInterview()">Cancel Interview</button>
                 </div>
             </div>
             
@@ -1964,24 +1988,14 @@
                 <!-- Question Action Buttons -->
                 <div class="question-actions">
                     <button class="action-btn custom-question-btn" onclick="openCustomQuestionPanel()">
-                        <span class="btn-icon">✏️</span>
-                        <span class="btn-text">Add Custom Question</span>
-                    </button>
+                        Add Custom Question
+                </button>
                     <button class="action-btn question-bank-btn" onclick="openQuestionBankPanel()">
-                        <span class="btn-icon">📚</span>
-                        <span class="btn-text">Add from Question Bank</span>
+                        Add from Question Bank
                     </button>
                     <button class="action-btn ai-question-btn" onclick="openAIQuestionPanel()">
-                        <span class="btn-icon">🤖</span>
-                        <span class="btn-text">Generate Question from AI</span>
-                    </button>
-                </div>
-                
-                <!-- Interview Control Buttons -->
-                <div class="interview-controls">
-                    <button id="save-interview-btn" class="btn btn-success" onclick="saveInterview()">Save Interview</button>
-                    <button class="btn btn-danger" onclick="endInterview()">End Interview</button>
-                    <button class="btn btn-warning" onclick="cancelInterview()">Cancel Interview</button>
+                        Generate Question from AI
+                </button>
                 </div>
                 
                 <div class="add-question-form" style="display: none;">
