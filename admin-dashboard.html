@@ -2009,7 +2009,6 @@
                         <thead>
                             <tr>
                                 <th><input type="checkbox" onchange="toggleAllRows(this.checked)" title="Select All"></th>
-                                <th>ID</th>
                                 <th>Student</th>
                                 <th>Interviewer</th>
                                 <th>Session</th>
@@ -2108,7 +2107,6 @@
                         <thead>
                             <tr>
                                 <th><input type="checkbox" onchange="toggleAllRows(this.checked)" title="Select All"></th>
-                                <th>ID</th>
                                 <th>Name</th>
                                 <th>Description</th>
                                 <th>Status</th>
@@ -2157,7 +2155,6 @@
                         <thead>
                             <tr>
                                 <th><input type="checkbox" onchange="toggleAllRows(this.checked)" title="Select All"></th>
-                                <th>ID</th>
                                 <th>Name</th>
                                 <th>Email</th>
                                 <th>Zeta ID</th>
@@ -2252,7 +2249,6 @@
                         <thead>
                             <tr>
                                 <th><input type="checkbox" id="select-all-users" onchange="toggleSelectAll()"></th>
-                                <th>ID</th>
                                 <th>Name</th>
                                 <th>Email</th>
                                 <th>Role</th>
@@ -3326,7 +3322,6 @@
             tbody.innerHTML = interviewList.map(interview => `
                 <tr data-row-id="${interview.id}">
                     <td><input type="checkbox" class="row-checkbox" data-row-id="${interview.id}" onchange="toggleRowSelection('${interview.id}')"></td>
-                    <td data-field="id">${interview.id}</td>
                     <td data-field="student_name">${interview.student_name || 'N/A'}</td>
                     <td data-field="interviewer_name">${interview.interviewer_name || 'N/A'}</td>
                     <td data-field="session_name">${interview.session_name || 'N/A'}</td>
@@ -3375,7 +3370,6 @@
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
                                     <th>Student</th>
                                     <th>Interviewer</th>
                                     <th>Session</th>
@@ -3389,7 +3383,6 @@
                             <tbody>
                                 ${groupInterviews.map(interview => `
                                     <tr>
-                                        <td>${interview.id}</td>
                                         <td>${interview.student_name || 'N/A'}</td>
                                         <td>${interview.interviewer_name || 'N/A'}</td>
                                         <td>${interview.session_name || 'N/A'}</td>
@@ -3793,7 +3786,6 @@
             tbody.innerHTML = sessionsData.map(session => `
                 <tr data-row-id="${session.id}">
                     <td><input type="checkbox" class="row-checkbox" data-row-id="${session.id}" onchange="toggleRowSelection('${session.id}')"></td>
-                    <td data-field="id">${session.id}</td>
                     <td data-field="name">${session.name}</td>
                     <td data-field="description">${session.description || 'N/A'}</td>
                     <td data-field="status"><span class="status-badge status-${session.status}">${session.status}</span></td>
@@ -3881,7 +3873,6 @@
                 return `
                     <tr data-row-id="${student.id}">
                         <td><input type="checkbox" class="row-checkbox" data-row-id="${student.id}" onchange="toggleRowSelection('${student.id}')"></td>
-                        <td data-field="id">${student.id}</td>
                         <td data-field="name">${student.name}</td>
                         <td data-field="email">${student.email}</td>
                         <td data-field="zeta_id">${student.zeta_id}</td>
@@ -5521,7 +5512,6 @@
             return `
                 <tr data-row-id="${session.id}">
                     <td><input type="checkbox" class="row-checkbox" data-row-id="${session.id}" onchange="toggleRowSelection('${session.id}')"></td>
-                    <td data-field="id">${session.id}</td>
                     <td data-field="name">${session.name}</td>
                     <td data-field="description">${session.description || 'N/A'}</td>
                     <td data-field="status"><span class="status-badge status-${session.status}">${session.status}</span></td>
@@ -6337,7 +6327,6 @@
             return `
                 <tr data-row-id="${user.id}">
                     <td><input type="checkbox" class="row-checkbox" onchange="toggleRowSelection(${user.id})"></td>
-                    <td>${user.id}</td>
                     <td class="editable" data-field="name">${user.name || 'N/A'}</td>
                     <td class="editable" data-field="email">${user.email}</td>
                     <td><span class="role-badge ${roleClass}">${status}</span></td>
