@@ -2717,7 +2717,7 @@
                     console.log('📋 Loaded questions from server:', result.data.length, 'questions');
                     console.log('📋 Questions data:', result.data);
                     questions = result.data;
-                    displayQuestions();
+                    await displayQuestions();
                 } else {
                     console.error('❌ Error loading questions:', result);
                     showError('Error loading questions');
@@ -2745,11 +2745,18 @@
             return words.length > maxWords ? preview + '...' : preview;
         }
 
-        function displayQuestions() {
+        async function displayQuestions() {
             const chatMessages = document.getElementById('chat-messages');
             
             console.log('displayQuestions called with questions:', questions);
             console.log('Number of questions:', questions.length);
+            
+            // Ensure question bank data is loaded for button visibility logic
+            if (!questionBankData || questionBankData.length === 0) {
+                console.log('🔄 Question bank data not loaded, loading now...');
+                await loadQuestionBankData();
+            }
+            
             questions.forEach((q, i) => {
                 console.log(`Question ${i}:`, {
                     id: q.id,
@@ -2778,10 +2785,30 @@
             chatMessages.innerHTML = questions.map((question, index) => {
                 // Check if this question already exists in question bank
                 const questionText = question.question_text || '';
-                const isFromQuestionBank = questionBankData.some(bankQuestion => 
-                    (bankQuestion.question || bankQuestion.question_text || '').trim().toLowerCase() === 
-                    questionText.trim().toLowerCase()
-                );
+                console.log('🔍 Checking question for bank status:', {
+                    questionText: questionText.substring(0, 50) + '...',
+                    questionBankDataLength: questionBankData?.length || 0
+                });
+                
+                const isFromQuestionBank = questionBankData && questionBankData.length > 0 && 
+                    questionBankData.some(bankQuestion => {
+                        const bankText = (bankQuestion.question || bankQuestion.question_text || '').trim().toLowerCase();
+                        const interviewText = questionText.trim().toLowerCase();
+                        const isMatch = bankText === interviewText;
+                        if (isMatch) {
+                            console.log('✅ Found match in question bank:', {
+                                bankText: bankText.substring(0, 50) + '...',
+                                interviewText: interviewText.substring(0, 50) + '...'
+                            });
+                        }
+                        return isMatch;
+                    });
+                
+                console.log('📊 Question bank status:', {
+                    questionText: questionText.substring(0, 30) + '...',
+                    isFromQuestionBank,
+                    willShowButton: !isFromQuestionBank
+                });
                 
                 return `
                 <div class="question-item" data-question-id="${question.id}">
@@ -3351,7 +3378,7 @@
                     hideUploadLoading(questionId);
                     
                     // Refresh the display
-                    displayQuestions();
+                    await displayQuestions();
                     showSuccess(`${uploadedUrls.length} image(s) uploaded successfully!`);
                 } else {
                     hideUploadLoading(questionId);
@@ -3502,7 +3529,7 @@
                     questions[questionIndex].answer_photo_url = newPhotoUrl;
                     
                     // Refresh the display
-                    displayQuestions();
+                    await displayQuestions();
                     showSuccess(`${deletedCount} image(s) deleted successfully!`);
                 } else {
                     console.error('Error deleting photo:', result);
@@ -4100,7 +4127,7 @@
                 const qText = (question.question || question.question_text || '').toString();
                 const escapedQuestion = qText.replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n');
                 return `
-                <div class="question-bank-item" onclick="selectQuestionFromBank(${question.id}, '${escapedQuestion}', this)">
+                <div class="question-bank-item" onclick="selectQuestionFromBank(${question.id}, '${escapedQuestion}', this)" data-question-id="${question.id}">
                     <div class="question-text">${qText}</div>
                     <div class="question-meta">
                         <span class="question-category">${question.category || 'Uncategorized'}</span>
@@ -4114,6 +4141,7 @@
 
         // Track questions being added to prevent duplicates
         const questionsBeingAdded = new Set();
+        const disabledQuestionItems = new Set();
 
         async function selectQuestionFromBank(questionId, questionText, el) {
             console.log('🔍 selectQuestionFromBank called with:', { 
@@ -4123,9 +4151,28 @@
                 currentInterview: currentInterview?.id 
             });
             
+            // Immediately disable this specific question item to prevent rapid clicks
+            const itemKey = `${questionId}-${questionText}`;
+            if (disabledQuestionItems.has(itemKey)) {
+                console.log('🚫 Question item already disabled, ignoring click');
+                return;
+            }
+            
+            // Disable immediately
+            disabledQuestionItems.add(itemKey);
+            if (el) {
+                el.style.pointerEvents = 'none';
+                el.style.opacity = '0.6';
+            }
+            
             if (!currentInterview) {
                 console.error('❌ No current interview found');
                 showError('No active interview found. Please start an interview first.');
+                disabledQuestionItems.delete(itemKey);
+                if (el) {
+                    el.style.pointerEvents = '';
+                    el.style.opacity = '';
+                }
                 return;
             }
             
@@ -4133,6 +4180,11 @@
             if (!questionText || questionText.trim() === '') {
                 console.error('❌ Invalid question text:', questionText);
                 showError('Invalid question text. Please try again.');
+                disabledQuestionItems.delete(itemKey);
+                if (el) {
+                    el.style.pointerEvents = '';
+                    el.style.opacity = '';
+                }
                 return;
             }
             
@@ -4142,7 +4194,7 @@
             if (questionsBeingAdded.has(normalizedQuestionText)) {
                 console.log('⏸️ Question already being added, ignoring duplicate request');
                 showError('This question is already being added. Please wait...');
-                return;
+                return; // Keep disabled
             }
             
             // Check for duplicate questions in current interview
@@ -4153,6 +4205,11 @@
             if (isDuplicate) {
                 console.log('⚠️ Duplicate question detected');
                 showError('This question has already been added to the interview. Please select a different question.');
+                disabledQuestionItems.delete(itemKey);
+                if (el) {
+                    el.style.pointerEvents = '';
+                    el.style.opacity = '';
+                }
                 return;
             }
             
@@ -4162,7 +4219,6 @@
             try {
                 // Show inline loading on clicked item
                 if (el) {
-                    el.style.pointerEvents = 'none';
                     const originalHtml = el.innerHTML;
                     el.setAttribute('data-original-html', originalHtml);
                     el.innerHTML = '<div class="question-text">Adding...</div><div class="question-meta">Please wait</div>';
@@ -4226,14 +4282,16 @@
                 console.error('Error adding question from bank:', error);
                 showError('Error adding question');
             } finally {
-                // Always remove from tracking set
+                // Always remove from tracking sets
                 questionsBeingAdded.delete(normalizedQuestionText);
+                disabledQuestionItems.delete(itemKey);
                 
                 if (el) {
                     // Restore item
                     const html = el.getAttribute('data-original-html');
                     if (html) el.innerHTML = html;
                     el.style.pointerEvents = '';
+                    el.style.opacity = '';
                 }
             }
         }
@@ -4298,7 +4356,7 @@
                     questions = questions.filter(q => q.id !== questionId);
                     
                     // Refresh the display
-                    displayQuestions();
+                    await displayQuestions();
                     showSuccess('Question deleted successfully');
                 } else {
                     showError('Error deleting question');
@@ -4344,7 +4402,7 @@
                     }
                     
                     // Refresh the display
-                    displayQuestions();
+                    await displayQuestions();
                     showSuccess(`Question scored: ${score}/10`);
                 } else {
                     showError('Error updating question score');
@@ -4669,7 +4727,7 @@
                     };
 
                     questions.push(newQuestion);
-                    displayQuestions();
+                    await displayQuestions();
                     showSuccess('Question added successfully!');
                 } else {
                     showError('Failed to save question to database');
