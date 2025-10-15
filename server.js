@@ -663,12 +663,25 @@ app.put('/api/authorized-users/bulk', async (req, res) => {
 // Helper function to get current user ID from request
 async function getCurrentUserId(req) {
   try {
+    console.log('🔍 getCurrentUserId called');
+    console.log('   req.query.email:', req.query.email);
+    console.log('   req.headers[x-user-email]:', req.headers['x-user-email']);
+    console.log('   All query params:', JSON.stringify(req.query));
+    console.log('   Relevant headers:', JSON.stringify({
+      'x-user-email': req.headers['x-user-email'],
+      'authorization': req.headers['authorization'] ? '[PRESENT]' : '[MISSING]',
+      'cookie': req.headers['cookie'] ? '[PRESENT]' : '[MISSING]'
+    }));
+    
     // Get user email from query parameter or headers
     const userEmail = req.query.email || req.headers['x-user-email'];
     
     if (!userEmail) {
+      console.log('❌ No user email found in request');
       return null;
     }
+    
+    console.log('📧 User email found:', userEmail);
     
     // Check if database is available
     try {
@@ -681,9 +694,11 @@ async function getCurrentUserId(req) {
       );
       
       if (result.rows.length > 0) {
+        console.log('✅ User ID found:', result.rows[0].id);
         return result.rows[0].id;
       }
       
+      console.log('❌ No user found with email:', userEmail);
       return null;
     } catch (dbError) {
       console.log('📝 Database unavailable, using mock data for getCurrentUserId');

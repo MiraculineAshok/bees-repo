@@ -253,15 +253,21 @@ class InterviewPage {
             
             let response, data;
             
+            // Get user email to pass to API
+            const userEmail = await this.getCurrentUserEmail();
+            console.log('📧 Current user email:', userEmail);
+            
             if (userRole === 'superadmin' || userRole === 'admin') {
                 // Admin users can see all sessions
                 console.log('✅ Admin user - loading all sessions');
-                response = await fetch('/api/admin/sessions');
+                const url = userEmail ? `/api/admin/sessions?email=${encodeURIComponent(userEmail)}` : '/api/admin/sessions';
+                response = await fetch(url);
                 data = await response.json();
             } else {
                 // Interviewer users only see sessions where they are panelists
                 console.log('✅ Interviewer user - loading sessions where user is panelist');
-                response = await fetch('/api/interviewer/sessions');
+                const url = userEmail ? `/api/interviewer/sessions?email=${encodeURIComponent(userEmail)}` : '/api/interviewer/sessions';
+                response = await fetch(url);
                 data = await response.json();
             }
             
@@ -280,23 +286,35 @@ class InterviewPage {
         }
     }
     
-    async getUserRole() {
+    async getCurrentUserEmail() {
         try {
             // Get user data from URL or localStorage
             const userEmail = this.getUrlParameter('email');
-            let email = userEmail;
+            if (userEmail) {
+                return userEmail;
+            }
             
-            if (!email) {
-                const storedUserData = localStorage.getItem('bees_user_data');
-                if (storedUserData) {
-                    try {
-                        const userData = JSON.parse(storedUserData);
-                        email = userData.email;
-                    } catch (error) {
-                        console.error('Error parsing stored user data:', error);
-                    }
+            const storedUserData = localStorage.getItem('bees_user_data');
+            if (storedUserData) {
+                try {
+                    const userData = JSON.parse(storedUserData);
+                    return userData.email;
+                } catch (error) {
+                    console.error('Error parsing stored user data:', error);
                 }
             }
+            
+            return null;
+        } catch (error) {
+            console.error('Error getting current user email:', error);
+            return null;
+        }
+    }
+
+    async getUserRole() {
+        try {
+            // Get user data from URL or localStorage
+            const email = await this.getCurrentUserEmail();
             
             if (email) {
                 const response = await fetch(`/api/user/role?email=${encodeURIComponent(email)}`);
