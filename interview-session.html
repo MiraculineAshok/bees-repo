@@ -4500,7 +4500,6 @@
 
             const questionText = customQuestionEditor.getText().trim();
             const questionHtml = customQuestionEditor.root.innerHTML;
-            const tags = document.getElementById('custom-question-tags').value.trim();
 
             if (!questionText) {
                 showError('Please enter a question');
@@ -4508,11 +4507,10 @@
             }
 
             // Add question to current interview
-            await addQuestionToInterview(questionHtml, tags ? tags.split(',').map(t => t.trim()) : []);
+            await addQuestionToInterview(questionHtml, []);
             
             // Clear the form
             customQuestionEditor.setText('');
-            document.getElementById('custom-question-tags').value = '';
             
             // Close panel
             closeSidePanel('custom-question-panel');
@@ -4661,14 +4659,13 @@
 
             const questionText = customQuestionEditor.getText().trim();
             const questionHtml = customQuestionEditor.root.innerHTML;
-            const tags = document.getElementById('custom-question-tags').value.trim();
 
             if (!questionText) {
                 showError('Please enter a question');
                 return;
             }
 
-            addToQuestionBankAPI(questionHtml, tags ? tags.split(',').map(t => t.trim()) : []);
+            addToQuestionBankAPI(questionHtml, []);
         }
 
         function addAIToQuestionBank() {
@@ -5259,10 +5256,6 @@
                 <div class="editor-wrapper">
                     <div id="custom-question-editor"></div>
                 </div>
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="custom-question-tags">Tags (comma-separated)</label>
-                <input type="text" id="custom-question-tags" class="form-input" placeholder="e.g., javascript, algorithms, problem-solving">
             </div>
             <div class="panel-actions">
                 <button class="btn btn-primary" onclick="addCustomQuestion()">Add Question</button>
