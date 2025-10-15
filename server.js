@@ -1798,13 +1798,22 @@ app.get('/api/admin/questions/:id/details', async (req, res) => {
 
 app.get('/api/admin/sessions', async (req, res) => {
   try {
+    console.log('🔍 /api/admin/sessions called');
+    console.log('   Query params:', JSON.stringify(req.query));
+    console.log('   User email from query:', req.query.email);
+    
     const sessions = await AdminService.getAllSessions();
+    console.log(`✅ Found ${sessions.length} total sessions for admin`);
+    sessions.forEach(session => {
+      console.log(`   - Session ${session.id}: ${session.name} (${session.status})`);
+    });
+    
     res.json({
       success: true,
       data: sessions
     });
   } catch (error) {
-    console.error('Error getting all sessions:', error);
+    console.error('❌ Error getting all sessions:', error);
     res.status(500).json({
       success: false,
       error: error.message

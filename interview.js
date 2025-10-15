@@ -257,16 +257,20 @@ class InterviewPage {
             const userEmail = await this.getCurrentUserEmail();
             console.log('📧 Current user email:', userEmail);
             
+            console.log('🎭 Determining API endpoint based on role:', userRole);
+            
             if (userRole === 'superadmin' || userRole === 'admin') {
-                // Admin users can see all sessions
-                console.log('✅ Admin user - loading all sessions');
+                // Admin/superadmin users can see all sessions
+                console.log('✅ Admin/Superadmin user - loading ALL sessions');
                 const url = userEmail ? `/api/admin/sessions?email=${encodeURIComponent(userEmail)}` : '/api/admin/sessions';
+                console.log('🌐 Calling admin endpoint:', url);
                 response = await fetch(url);
                 data = await response.json();
             } else {
                 // Interviewer users only see sessions where they are panelists
                 console.log('✅ Interviewer user - loading sessions where user is panelist');
                 const url = userEmail ? `/api/interviewer/sessions?email=${encodeURIComponent(userEmail)}` : '/api/interviewer/sessions';
+                console.log('🌐 Calling interviewer endpoint:', url);
                 response = await fetch(url);
                 data = await response.json();
             }
