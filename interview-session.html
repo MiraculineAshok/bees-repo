@@ -572,6 +572,185 @@
             position: sticky;
             bottom: 0;
         }
+
+        .question-actions {
+            display: flex;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-top: 1px solid #e2e8f0;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 140px;
+            font-family: 'Zoho Puvi', sans-serif;
+        }
+
+        .action-btn:hover {
+            border-color: #3b82f6;
+            background: #f8fafc;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+
+        .action-btn.custom-question-btn:hover {
+            border-color: #10b981;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+        }
+
+        .action-btn.ai-question-btn:hover {
+            border-color: #8b5cf6;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+        }
+
+        .btn-icon {
+            font-size: 1.5rem;
+        }
+
+        .btn-text {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+            text-align: center;
+        }
+
+        .interview-controls {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: #f1f5f9;
+            border-top: 1px solid #e2e8f0;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .interview-controls .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        /* Side Panel Styles */
+        .side-panel {
+            position: fixed;
+            top: 0;
+            right: -500px;
+            width: 500px;
+            height: 100vh;
+            background: white;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            transition: right 0.3s ease;
+            overflow-y: auto;
+            border-left: 1px solid #e2e8f0;
+        }
+
+        .side-panel.active {
+            right: 0;
+        }
+
+        .side-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            background: #f8f9fa;
+        }
+
+        .side-panel-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: #1f2937;
+            font-weight: 600;
+        }
+
+        .close-panel-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .close-panel-btn:hover {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .side-panel-content {
+            padding: 1.5rem;
+        }
+
+        .side-panel-content .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .side-panel-content .editor-wrapper {
+            height: 200px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background: white;
+        }
+
+        .side-panel-content .editor-wrapper .ql-editor {
+            height: 100%;
+            max-height: none;
+            padding: 12px 15px;
+            overflow-y: auto;
+        }
+
+        .panel-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .panel-actions .btn {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .form-help {
+            display: block;
+            margin-top: 0.25rem;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        /* Panel Overlay */
+        .panel-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .panel-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
         
         .form-group {
             margin-bottom: 0.5rem;
@@ -1762,7 +1941,30 @@
                     <div class="loading">Loading questions...</div>
                 </div>
                 
-                <div class="add-question-form">
+                <!-- Question Action Buttons -->
+                <div class="question-actions">
+                    <button class="action-btn custom-question-btn" onclick="openCustomQuestionPanel()">
+                        <span class="btn-icon">✏️</span>
+                        <span class="btn-text">Add Custom Question</span>
+                    </button>
+                    <button class="action-btn question-bank-btn" onclick="openQuestionBankPanel()">
+                        <span class="btn-icon">📚</span>
+                        <span class="btn-text">Add from Question Bank</span>
+                    </button>
+                    <button class="action-btn ai-question-btn" onclick="openAIQuestionPanel()">
+                        <span class="btn-icon">🤖</span>
+                        <span class="btn-text">Generate Question from AI</span>
+                    </button>
+                </div>
+                
+                <!-- Interview Control Buttons -->
+                <div class="interview-controls">
+                    <button id="save-interview-btn" class="btn btn-success" onclick="saveInterview()">Save Interview</button>
+                    <button class="btn btn-danger" onclick="endInterview()">End Interview</button>
+                    <button class="btn btn-warning" onclick="cancelInterview()">Cancel Interview</button>
+                </div>
+                
+                <div class="add-question-form" style="display: none;">
                     <!-- Custom Question Tab -->
                     <div id="custom-question-tab" class="question-tab active">
                         <div class="form-group">
@@ -4151,6 +4353,291 @@
             }
         }
 
+        // Side Panel Functions
+        function openCustomQuestionPanel() {
+            const panel = document.getElementById('custom-question-panel');
+            const overlay = document.getElementById('panel-overlay');
+            
+            closeAllPanels(); // Close any open panels first
+            
+            panel.classList.add('active');
+            overlay.classList.add('active');
+            
+            // Initialize custom question editor
+            initializeCustomQuestionEditor();
+        }
+
+        function openAIQuestionPanel() {
+            const panel = document.getElementById('ai-question-panel');
+            const overlay = document.getElementById('panel-overlay');
+            
+            closeAllPanels(); // Close any open panels first
+            
+            panel.classList.add('active');
+            overlay.classList.add('active');
+        }
+
+        function closeSidePanel(panelId) {
+            const panel = document.getElementById(panelId);
+            const overlay = document.getElementById('panel-overlay');
+            
+            if (panel) panel.classList.remove('active');
+            if (overlay) overlay.classList.remove('active');
+        }
+
+        function closeAllPanels() {
+            const panels = document.querySelectorAll('.side-panel');
+            const overlay = document.getElementById('panel-overlay');
+            
+            panels.forEach(panel => panel.classList.remove('active'));
+            if (overlay) overlay.classList.remove('active');
+            
+            // Also close question bank panel if open
+            const questionBankPanel = document.getElementById('question-bank-panel');
+            const questionBankOverlay = document.getElementById('question-bank-overlay');
+            if (questionBankPanel) questionBankPanel.classList.remove('open');
+            if (questionBankOverlay) questionBankOverlay.classList.remove('active');
+        }
+
+        // Custom Question Editor Functions
+        let customQuestionEditor = null;
+        let aiQuestionEditor = null;
+
+        function initializeCustomQuestionEditor() {
+            if (!customQuestionEditor) {
+                const container = document.getElementById('custom-question-editor');
+                if (container) {
+                    customQuestionEditor = new Quill(container, {
+                        theme: 'snow',
+                        modules: {
+                            toolbar: [
+                                [{ 'header': [1, 2, false] }],
+                                ['bold', 'italic', 'underline'],
+                                ['image', 'code-block'],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                ['clean']
+                            ]
+                        }
+                    });
+                }
+            }
+        }
+
+        function initializeAIQuestionEditor() {
+            if (!aiQuestionEditor) {
+                const container = document.getElementById('ai-question-editor');
+                if (container) {
+                    aiQuestionEditor = new Quill(container, {
+                        theme: 'snow',
+                        modules: {
+                            toolbar: [
+                                [{ 'header': [1, 2, false] }],
+                                ['bold', 'italic', 'underline'],
+                                ['image', 'code-block'],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                ['clean']
+                            ]
+                        }
+                    });
+                }
+            }
+        }
+
+        // Add Custom Question Function
+        function addCustomQuestion() {
+            if (!customQuestionEditor) {
+                showError('Editor not initialized');
+                return;
+            }
+
+            const questionText = customQuestionEditor.getText().trim();
+            const questionHtml = customQuestionEditor.root.innerHTML;
+            const tags = document.getElementById('custom-question-tags').value.trim();
+
+            if (!questionText) {
+                showError('Please enter a question');
+                return;
+            }
+
+            // Add question to current interview
+            addQuestionToInterview(questionHtml, tags ? tags.split(',').map(t => t.trim()) : []);
+            
+            // Clear the form
+            customQuestionEditor.setText('');
+            document.getElementById('custom-question-tags').value = '';
+            
+            // Close panel
+            closeSidePanel('custom-question-panel');
+        }
+
+        // AI Question Generation Functions
+        async function generateAIQuestion() {
+            const tagsInput = document.getElementById('ai-question-tags');
+            const difficultySelect = document.getElementById('ai-difficulty-level');
+            const generateBtn = document.getElementById('generate-ai-btn');
+            const spinner = generateBtn.querySelector('.loading-spinner');
+            
+            const tags = tagsInput.value.trim();
+            const difficulty = difficultySelect.value;
+            
+            if (!tags) {
+                showError('Please enter tags for AI generation');
+                tagsInput.focus();
+                return;
+            }
+
+            // Show loading state
+            generateBtn.disabled = true;
+            spinner.style.display = 'inline-block';
+            generateBtn.innerHTML = '<span class="loading-spinner"></span> Generating...';
+
+            try {
+                const response = await fetch('/api/generate-ai-question', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        tags: tags.split(',').map(t => t.trim()),
+                        difficulty: difficulty
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Initialize AI editor if not done already
+                    initializeAIQuestionEditor();
+                    
+                    // Set the generated question
+                    if (aiQuestionEditor) {
+                        aiQuestionEditor.root.innerHTML = result.question;
+                    }
+                    
+                    // Show the generated question section
+                    document.getElementById('ai-generated-question').style.display = 'block';
+                    
+                    showSuccess('Question generated successfully!');
+                } else {
+                    showError(result.error || 'Failed to generate question');
+                }
+            } catch (error) {
+                console.error('Error generating AI question:', error);
+                showError('Error generating question from AI');
+            } finally {
+                // Reset button state
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = '🤖 Generate Question';
+            }
+        }
+
+        function addAIQuestion() {
+            if (!aiQuestionEditor) {
+                showError('No question generated');
+                return;
+            }
+
+            const questionText = aiQuestionEditor.getText().trim();
+            const questionHtml = aiQuestionEditor.root.innerHTML;
+            const tags = document.getElementById('ai-question-tags').value.trim();
+
+            if (!questionText) {
+                showError('No question to add');
+                return;
+            }
+
+            // Add question to current interview
+            addQuestionToInterview(questionHtml, tags ? tags.split(',').map(t => t.trim()) : []);
+            
+            // Clear the form
+            document.getElementById('ai-question-tags').value = '';
+            document.getElementById('ai-generated-question').style.display = 'none';
+            if (aiQuestionEditor) aiQuestionEditor.setText('');
+            
+            // Close panel
+            closeSidePanel('ai-question-panel');
+        }
+
+        // Helper function to add question to interview
+        function addQuestionToInterview(questionHtml, tags = []) {
+            const newQuestion = {
+                id: Date.now(),
+                question_text: questionHtml,
+                tags: tags,
+                student_answer: '',
+                correctness_score: null,
+                answer_photo_url: null,
+                type: 'custom'
+            };
+
+            questions.push(newQuestion);
+            displayQuestions();
+            showSuccess('Question added successfully!');
+        }
+
+        // Add to Question Bank Functions
+        function addCustomToQuestionBank() {
+            if (!customQuestionEditor) {
+                showError('Editor not initialized');
+                return;
+            }
+
+            const questionText = customQuestionEditor.getText().trim();
+            const questionHtml = customQuestionEditor.root.innerHTML;
+            const tags = document.getElementById('custom-question-tags').value.trim();
+
+            if (!questionText) {
+                showError('Please enter a question');
+                return;
+            }
+
+            addToQuestionBankAPI(questionHtml, tags ? tags.split(',').map(t => t.trim()) : []);
+        }
+
+        function addAIToQuestionBank() {
+            if (!aiQuestionEditor) {
+                showError('No question generated');
+                return;
+            }
+
+            const questionText = aiQuestionEditor.getText().trim();
+            const questionHtml = aiQuestionEditor.root.innerHTML;
+            const tags = document.getElementById('ai-question-tags').value.trim();
+
+            if (!questionText) {
+                showError('No question to add');
+                return;
+            }
+
+            addToQuestionBankAPI(questionHtml, tags ? tags.split(',').map(t => t.trim()) : []);
+        }
+
+        async function addToQuestionBankAPI(questionHtml, tags = []) {
+            try {
+                const response = await fetch('/api/questions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        question: questionHtml,
+                        tags: tags,
+                        difficulty: 'intermediate'
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showSuccess('Question added to Question Bank!');
+                } else {
+                    showError('Failed to add question to bank');
+                }
+            } catch (error) {
+                console.error('Error adding question to bank:', error);
+                showError('Error adding question to bank');
+            }
+        }
+
         // Question Bank Panel Functions
         function openQuestionBankPanel() {
             const panel = document.getElementById('question-bank-panel');
@@ -4691,6 +5178,74 @@
         </div>
     </div>
 
+
+    <!-- Panel Overlay -->
+    <div id="panel-overlay" class="panel-overlay" onclick="closeAllPanels()"></div>
+
+    <!-- Custom Question Side Panel -->
+    <div id="custom-question-panel" class="side-panel">
+        <div class="side-panel-header">
+            <h3>Add Custom Question</h3>
+            <button class="close-panel-btn" onclick="closeSidePanel('custom-question-panel')">✕</button>
+        </div>
+        <div class="side-panel-content">
+            <div class="form-group">
+                <label class="form-label" for="custom-question-editor">Question</label>
+                <div class="editor-wrapper">
+                    <div id="custom-question-editor"></div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="custom-question-tags">Tags (comma-separated)</label>
+                <input type="text" id="custom-question-tags" class="form-input" placeholder="e.g., javascript, algorithms, problem-solving">
+            </div>
+            <div class="panel-actions">
+                <button class="btn btn-primary" onclick="addCustomQuestion()">Add Question</button>
+                <button class="btn btn-secondary" onclick="closeSidePanel('custom-question-panel')">Cancel</button>
+                <button class="add-to-bank-btn" onclick="addCustomToQuestionBank()" title="Add to Question Bank">📚 Add to Bank</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Question Generation Side Panel -->
+    <div id="ai-question-panel" class="side-panel">
+        <div class="side-panel-header">
+            <h3>Generate Question from AI</h3>
+            <button class="close-panel-btn" onclick="closeSidePanel('ai-question-panel')">✕</button>
+        </div>
+        <div class="side-panel-content">
+            <div class="form-group">
+                <label class="form-label" for="ai-question-tags">Tags for AI Generation</label>
+                <input type="text" id="ai-question-tags" class="form-input" placeholder="e.g., javascript, react, algorithms" required>
+                <small class="form-help">Enter tags to help AI generate relevant questions</small>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="ai-difficulty-level">Difficulty Level</label>
+                <select id="ai-difficulty-level" class="form-select">
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate" selected>Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <button class="btn btn-info" onclick="generateAIQuestion()" id="generate-ai-btn">
+                    <span class="loading-spinner" style="display: none;"></span>
+                    🤖 Generate Question
+                </button>
+            </div>
+            <div class="form-group" id="ai-generated-question" style="display: none;">
+                <label class="form-label">Generated Question</label>
+                <div class="editor-wrapper">
+                    <div id="ai-question-editor"></div>
+                </div>
+                <div class="panel-actions">
+                    <button class="btn btn-primary" onclick="addAIQuestion()">Add Question</button>
+                    <button class="btn btn-secondary" onclick="generateAIQuestion()">Generate New</button>
+                    <button class="add-to-bank-btn" onclick="addAIToQuestionBank()" title="Add to Question Bank">📚 Add to Bank</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 <script src="/shared-auth.js"></script>
 </body>

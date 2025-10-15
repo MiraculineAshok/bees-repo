@@ -1830,6 +1830,104 @@ app.get('/api/admin/questions/:id/details', async (req, res) => {
   }
 });
 
+// AI Question Generation API
+app.post('/api/generate-ai-question', async (req, res) => {
+    try {
+        const { tags, difficulty } = req.body;
+        
+        if (!tags || !Array.isArray(tags) || tags.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Tags are required for AI question generation'
+            });
+        }
+
+        // Check if OpenAI API key is configured
+        if (!process.env.OPENAI_API_KEY) {
+            return res.status(500).json({
+                success: false,
+                error: 'AI question generation is not configured. Please set OPENAI_API_KEY environment variable.'
+            });
+        }
+
+        // Create prompt for OpenAI
+        const prompt = `Generate a technical interview question based on the following requirements:
+        
+Tags: ${tags.join(', ')}
+Difficulty: ${difficulty || 'intermediate'}
+
+Please create a well-structured interview question that:
+1. Is relevant to the specified tags
+2. Matches the difficulty level
+3. Is suitable for a technical interview
+4. Includes clear context and expectations
+5. Can be answered in a reasonable interview timeframe
+
+Format the response as a clear, professional interview question. Do not include the answer.`;
+
+        // Call OpenAI API
+        const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: 'gpt-3.5-turbo',
+                messages: [
+                    {
+                        role: 'system',
+                        content: 'You are an expert technical interviewer who creates high-quality interview questions. Generate questions that are clear, relevant, and appropriate for the specified difficulty level.'
+                    },
+                    {
+                        role: 'user',
+                        content: prompt
+                    }
+                ],
+                max_tokens: 500,
+                temperature: 0.7
+            })
+        });
+
+        if (!openaiResponse.ok) {
+            const errorData = await openaiResponse.json().catch(() => ({}));
+            console.error('OpenAI API error:', errorData);
+            return res.status(500).json({
+                success: false,
+                error: 'Failed to generate question from AI service'
+            });
+        }
+
+        const aiResult = await openaiResponse.json();
+        
+        if (!aiResult.choices || !aiResult.choices[0] || !aiResult.choices[0].message) {
+            return res.status(500).json({
+                success: false,
+                error: 'Invalid response from AI service'
+            });
+        }
+
+        const generatedQuestion = aiResult.choices[0].message.content.trim();
+
+        // Format the question as HTML
+        const formattedQuestion = `<p>${generatedQuestion.replace(/\n/g, '</p><p>')}</p>`;
+
+        res.json({
+            success: true,
+            question: formattedQuestion,
+            tags: tags,
+            difficulty: difficulty
+        });
+
+    } catch (error) {
+        console.error('Error generating AI question:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Internal server error while generating question'
+        });
+    }
+});
+
 app.get('/api/admin/sessions', async (req, res) => {
   try {
     console.log('🔍 /api/admin/sessions called');
