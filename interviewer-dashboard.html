@@ -5027,8 +5027,11 @@
                     const editButton = questionElement.querySelector('.question-header .edit-btn');
                     editButton.style.display = 'inline-block';
                     
-                    // Remove input and actions
-                    input.remove();
+                    // Remove input and actions (handle both textarea and rich editor)
+                    const richEditor = questionElement.querySelector('.rich-text-editor-container');
+                    const textarea = questionElement.querySelector('.question-edit-input');
+                    if (richEditor) richEditor.remove();
+                    if (textarea) textarea.remove();
                     questionElement.querySelector('.edit-actions').remove();
                     
                     showSuccess('Question updated successfully');
@@ -5051,12 +5054,13 @@
             questionDisplay.style.display = 'inline';
             editButton.style.display = 'inline-block';
             
-            // Remove input and actions
+            // Remove input and actions (handle both textarea and rich editor)
             const richEditor = questionElement.querySelector('.rich-text-editor-container');
             const textarea = questionElement.querySelector('.question-edit-input');
             if (richEditor) richEditor.remove();
             if (textarea) textarea.remove();
-            questionElement.querySelector('.edit-actions').remove();
+            const editActions = questionElement.querySelector('.edit-actions');
+            if (editActions) editActions.remove();
         }
         
         // Edit question answer in interview details
