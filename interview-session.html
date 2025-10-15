@@ -2775,7 +2775,15 @@
                 }
             });
 
-            chatMessages.innerHTML = questions.map((question, index) => `
+            chatMessages.innerHTML = questions.map((question, index) => {
+                // Check if this question already exists in question bank
+                const questionText = question.question_text || '';
+                const isFromQuestionBank = questionBankData.some(bankQuestion => 
+                    (bankQuestion.question || bankQuestion.question_text || '').trim().toLowerCase() === 
+                    questionText.trim().toLowerCase()
+                );
+                
+                return `
                 <div class="question-item" data-question-id="${question.id}">
                     <div class="question-header" onclick="toggleQuestion(${question.id})">
                         <span class="question-number">Q${index + 1}</span>
@@ -2794,9 +2802,11 @@
                                        onclick="event.stopPropagation()"
                                        title="Rate answer quality (1-10)">
                             </div>
+                            ${!isFromQuestionBank ? `
                             <button class="add-to-bank-btn-small" onclick="event.stopPropagation(); addQuestionToBank('${question.question_text.replace(/'/g, "\\'")}')" title="Add to Question Bank">
                                 📚
                             </button>
+                            ` : ''}
                             <button class="delete-question-btn" onclick="event.stopPropagation(); deleteQuestion(${question.id})" title="Delete Question">
                                 🗑
                             </button>
@@ -2861,7 +2871,8 @@
                         </div>
                     </div>
                 </div>
-            `).join('');
+            `
+            }).join('');
             
             // Restore expanded state for questions that were previously expanded
             setTimeout(() => {
