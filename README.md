@@ -8,9 +8,10 @@ A comprehensive interview management system built with Node.js, Express, and Pos
 - **Student Management**: Search and manage student records
 - **Interview Sessions**: Conduct structured interviews with real-time tracking
 - **Question Bank**: Pre-loaded questions categorized by subject (Math, HR, English, Technical, etc.)
+- **🤖 AI Question Generation**: Generate contextual interview questions using OpenAI
 - **Photo Capture**: Upload and capture photos of student answer sheets
 - **Interview History**: View previous interviews for each student
-- **Verdict System**: Rate interviews (Tiger, Cow, Sheep)
+- **Verdict System**: Rate interviews with 1-10 scoring system
 
 ### 🎨 User Interface
 - **Responsive Design**: Works on desktop and mobile devices
@@ -20,7 +21,9 @@ A comprehensive interview management system built with Node.js, Express, and Pos
 
 ### 🔧 Technical Features
 - **PostgreSQL Database**: Robust data storage with proper relationships
+- **OpenAI Integration**: AI-powered question generation with GPT-3.5-turbo
 - **Cloudinary Integration**: Cloud-based image storage and optimization
+- **Comprehensive Audit System**: Track all user actions and API calls
 - **Mock Data Service**: Development mode with sample data
 - **RESTful API**: Well-structured API endpoints
 - **Error Handling**: Comprehensive error management and user feedback
@@ -39,6 +42,7 @@ A comprehensive interview management system built with Node.js, Express, and Pos
 - Node.js (v14 or higher)
 - PostgreSQL database
 - Cloudinary account (for image storage)
+- OpenAI API account (optional, for AI question generation)
 
 ### Setup
 
@@ -60,6 +64,7 @@ A comprehensive interview management system built with Node.js, Express, and Pos
    CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
    CLOUDINARY_API_KEY=your_cloudinary_api_key
    CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+   OPENAI_API_KEY=sk-your-openai-api-key-here  # Optional: For AI question generation
    NODE_ENV=development
    ```
 
@@ -75,6 +80,16 @@ A comprehensive interview management system built with Node.js, Express, and Pos
    ```
 
 The application will be available at `https://bees-repo.onrender.com`
+
+### 🤖 AI Question Generation Setup
+
+For AI-powered interview questions, you'll need an OpenAI API key:
+
+1. **Get OpenAI API Key**: Visit [OpenAI Platform](https://platform.openai.com/api-keys)
+2. **Add to Environment**: Set `OPENAI_API_KEY=sk-your-key-here`
+3. **For Render**: Add environment variable in dashboard
+
+**📖 Detailed Setup Guide**: See [AI_SETUP.md](./AI_SETUP.md) for complete instructions
 
 ## API Endpoints
 
