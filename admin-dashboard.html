@@ -2810,11 +2810,20 @@
                 createSession();
             });
 
-            // Add question form
-            document.getElementById('add-question-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                addQuestion();
-            });
+            // Add question form - ensure only one listener
+            const addQuestionForm = document.getElementById('add-question-form');
+            if (addQuestionForm) {
+                // Remove any existing listeners by cloning the element
+                const newForm = addQuestionForm.cloneNode(true);
+                addQuestionForm.parentNode.replaceChild(newForm, addQuestionForm);
+                
+                // Add single event listener
+                newForm.addEventListener('submit', function(e) {
+                    console.log('📋 Form submit event triggered');
+                    e.preventDefault();
+                    addQuestion();
+                });
+            }
         }
 
         // User authentication functions
@@ -4353,17 +4362,29 @@
                 });
 
                 console.log('📡 Response status:', response.status);
+                
+                if (!response.ok) {
+                    console.log('❌ HTTP Error - Status:', response.status);
+                    const errorText = await response.text();
+                    console.log('❌ Error response text:', errorText);
+                    showError(`Server error (${response.status}): ${errorText}`);
+                    return;
+                }
+                
                 const data = await response.json();
                 console.log('📦 Response data:', data);
+                console.log('📦 Response data.success:', data.success);
+                console.log('📦 Response data type:', typeof data.success);
                 
-                if (data.success) {
-                    console.log('✅ Success response');
+                if (data.success === true) {
+                    console.log('✅ Success response - closing modal and refreshing');
                     closeAddQuestionModal();
                     loadQuestions();
                     showSuccess('Question added successfully with tags: ' + currentQuestionTags.map(t => '#' + t).join(' '));
                 } else {
-                    console.log('❌ Error response:', data.error);
-                    showError('Error adding question: ' + data.error);
+                    console.log('❌ Error response - data.success is:', data.success);
+                    console.log('❌ Error message:', data.error);
+                    showError('Error adding question: ' + (data.error || 'Unknown error'));
                 }
             } catch (error) {
                 console.error('💥 Exception in addQuestion:', error);
