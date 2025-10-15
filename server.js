@@ -2448,14 +2448,7 @@ app.get('/getCode', async (req, res) => {
   }
 });
 
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({
-    error: 'Route not found',
-    path: req.originalUrl,
-    method: req.method
-  });
-});
+// 404 handler removed - was interfering with audit routes
 
 // Error handler
 app.use((err, req, res, next) => {
