@@ -747,6 +747,24 @@
                    word-wrap: break-word;
                }
                
+               /* Rich content wrapper for AI-generated questions with multiple elements */
+               .rich-content-wrapper {
+                   display: block;
+                   margin-top: 0.5rem;
+               }
+               
+               .rich-content-wrapper p {
+                   margin: 0.25rem 0;
+               }
+               
+               .rich-content-wrapper p:first-child {
+                   margin-top: 0;
+               }
+               
+               .rich-content-wrapper p:last-child {
+                   margin-bottom: 0;
+               }
+               
                /* Fixed images in detail panel - 200x200 with aspect ratio preserved */
                .question-text-display img, .answer-text-display img {
                    width: 200px !important;
@@ -3805,8 +3823,13 @@
                         questionsHtml = questionsData.data.map((q, index) => `
                             <div class="question-answer-item" id="question-${q.id}">
                                 <div class="question-header">
-                                    <p><strong>Q${index + 1}:</strong> <span class="question-text-display">${q.question_rich_content || q.question_text}</span></p>
-                                    <button class="icon-btn edit-btn" onclick="editQuestionText(${q.id}, '${q.question_text.replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')" title="Edit Question">✏️</button>
+                                    <p><strong>Q${index + 1}:</strong> 
+                                        ${q.question_rich_content ? 
+                                            `<div class="question-text-display rich-content-wrapper">${q.question_rich_content}</div>` : 
+                                            `<span class="question-text-display">${q.question_text}</span>`
+                                        }
+                                    </p>
+                                    <button class="icon-btn edit-btn" onclick="editQuestionText(${q.id}, '${(q.question_text || '').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')" title="Edit Question">✏️</button>
                                 </div>
                                 <div class="answer-section">
                                     <p><strong>Answer:</strong> <span class="answer-text-display">${q.student_answer || 'No answer provided'}</span></p>
