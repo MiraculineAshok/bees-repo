@@ -803,6 +803,30 @@
                    margin-bottom: 0.5rem;
                }
                
+               /* Rich text editor styles for edit mode */
+               .rich-text-editor-container {
+                   width: 100%;
+                   margin: 0.5rem 0;
+               }
+               
+               .rich-text-editor-container .ql-editor {
+                   min-height: 120px;
+                   max-height: 300px;
+                   overflow-y: auto;
+               }
+               
+               .rich-text-editor-container .ql-editor img {
+                   width: 200px;
+                   height: 200px;
+                   object-fit: contain;
+                   object-position: center;
+                   background-color: #f8f9fa;
+                   border: 1px solid #ddd;
+                   border-radius: 4px;
+                   display: block;
+                   margin: 10px 0;
+               }
+               
                .edit-actions {
                    display: flex;
                    gap: 0.5rem;
@@ -1333,6 +1357,10 @@
             color: #374151;
         }
     </style>
+    
+    <!-- Quill.js for rich text editing -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -4884,11 +4912,45 @@
             const questionDisplay = questionElement.querySelector('.question-text-display');
             const editButton = questionElement.querySelector('.question-header .edit-btn');
             
-            // Create input field
-            const input = document.createElement('textarea');
-            input.className = 'question-edit-input';
-            input.value = currentText;
-            input.rows = 3;
+            // Check if content contains HTML (like images)
+            const hasHTML = /<[^>]*>/g.test(currentText);
+            
+            let input;
+            if (hasHTML) {
+                // Create rich text editor for HTML content
+                const editorContainer = document.createElement('div');
+                editorContainer.className = 'rich-text-editor-container';
+                editorContainer.innerHTML = '<div id="question-editor-' + questionId + '"></div>';
+                
+                input = editorContainer;
+                
+                // Initialize Quill editor after adding to DOM
+                setTimeout(() => {
+                    const quill = new Quill('#question-editor-' + questionId, {
+                        theme: 'snow',
+                        modules: {
+                            toolbar: [
+                                ['bold', 'italic', 'underline'],
+                                ['link', 'image'],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                ['clean']
+                            ]
+                        }
+                    });
+                    
+                    // Set content
+                    quill.root.innerHTML = currentText;
+                    
+                    // Store quill instance for saving
+                    editorContainer.quillInstance = quill;
+                }, 100);
+            } else {
+                // Create textarea for plain text
+                input = document.createElement('textarea');
+                input.className = 'question-edit-input';
+                input.value = currentText;
+                input.rows = 3;
+            }
             
             // Create action buttons
             const actions = document.createElement('div');
@@ -4912,8 +4974,22 @@
         // Save question text
         async function saveQuestionText(questionId) {
             const questionElement = document.getElementById(`question-${questionId}`);
-            const input = questionElement.querySelector('.question-edit-input');
-            const newText = input.value.trim();
+            
+            // Check if it's a rich text editor or textarea
+            const richEditor = questionElement.querySelector('.rich-text-editor-container');
+            const textarea = questionElement.querySelector('.question-edit-input');
+            
+            let newText;
+            if (richEditor && richEditor.quillInstance) {
+                // Get content from Quill editor
+                newText = richEditor.quillInstance.root.innerHTML.trim();
+            } else if (textarea) {
+                // Get content from textarea
+                newText = textarea.value.trim();
+            } else {
+                showError('No input found');
+                return;
+            }
             
             if (!newText) {
                 showError('Question text cannot be empty');
@@ -4968,7 +5044,10 @@
             editButton.style.display = 'inline-block';
             
             // Remove input and actions
-            questionElement.querySelector('.question-edit-input').remove();
+            const richEditor = questionElement.querySelector('.rich-text-editor-container');
+            const textarea = questionElement.querySelector('.question-edit-input');
+            if (richEditor) richEditor.remove();
+            if (textarea) textarea.remove();
             questionElement.querySelector('.edit-actions').remove();
         }
         
