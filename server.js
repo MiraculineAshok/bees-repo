@@ -2629,35 +2629,6 @@ app.post('/api/admin/audit-cleanup', async (req, res) => {
   }
 });
 
-// Debug middleware to log all requests
-app.use((req, res, next) => {
-  if (req.url.includes('/api/admin/audit')) {
-    console.log('🔍 Request intercepted:', {
-      method: req.method,
-      url: req.url,
-      originalUrl: req.originalUrl,
-      path: req.path
-    });
-  }
-  next();
-});
-
-// Catch-all for unmatched API routes
-app.use('/api/*', (req, res) => {
-  console.log('❌ Unmatched API route:', {
-    method: req.method,
-    url: req.url,
-    originalUrl: req.originalUrl,
-    path: req.path
-  });
-  res.status(404).json({
-    success: false,
-    error: 'Route not found',
-    path: req.path,
-    method: req.method
-  });
-});
-
 // Add audit error middleware (must be after all routes)
 app.use(auditErrorMiddleware);
 
@@ -2682,6 +2653,35 @@ app.use(async (error, req, res, next) => {
       message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
     });
   }
+});
+
+// Debug middleware to log all requests (for troubleshooting)
+app.use((req, res, next) => {
+  if (req.url.includes('/api/admin/audit')) {
+    console.log('🔍 Request intercepted:', {
+      method: req.method,
+      url: req.url,
+      originalUrl: req.originalUrl,
+      path: req.path
+    });
+  }
+  next();
+});
+
+// Catch-all for unmatched API routes (MUST BE LAST)
+app.use('/api/*', (req, res) => {
+  console.log('❌ Unmatched API route:', {
+    method: req.method,
+    url: req.url,
+    originalUrl: req.originalUrl,
+    path: req.path
+  });
+  res.status(404).json({
+    success: false,
+    error: 'Route not found',
+    path: req.path,
+    method: req.method
+  });
 });
 
 // Start server with fallback when port in use (local dev)
