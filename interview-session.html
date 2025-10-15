@@ -4101,6 +4101,9 @@
             console.log('Question bank list updated in DOM');
         }
 
+        // Track questions being added to prevent duplicates
+        const questionsBeingAdded = new Set();
+
         async function selectQuestionFromBank(questionId, questionText, el) {
             console.log('🔍 selectQuestionFromBank called with:', { 
                 questionId, 
@@ -4122,15 +4125,28 @@
                 return;
             }
             
-            // Check for duplicate questions
+            const normalizedQuestionText = questionText.trim().toLowerCase();
+            
+            // Check if this question is currently being added
+            if (questionsBeingAdded.has(normalizedQuestionText)) {
+                console.log('⏸️ Question already being added, ignoring duplicate request');
+                showError('This question is already being added. Please wait...');
+                return;
+            }
+            
+            // Check for duplicate questions in current interview
             const isDuplicate = questions.some(q => 
-                q.question_text && q.question_text.trim().toLowerCase() === questionText.trim().toLowerCase()
+                q.question_text && q.question_text.trim().toLowerCase() === normalizedQuestionText
             );
             
             if (isDuplicate) {
+                console.log('⚠️ Duplicate question detected');
                 showError('This question has already been added to the interview. Please select a different question.');
                 return;
             }
+            
+            // Mark this question as being added
+            questionsBeingAdded.add(normalizedQuestionText);
             
             try {
                 // Show inline loading on clicked item
@@ -4199,6 +4215,9 @@
                 console.error('Error adding question from bank:', error);
                 showError('Error adding question');
             } finally {
+                // Always remove from tracking set
+                questionsBeingAdded.delete(normalizedQuestionText);
+                
                 if (el) {
                     // Restore item
                     const html = el.getAttribute('data-original-html');
