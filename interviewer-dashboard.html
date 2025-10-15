@@ -3829,11 +3829,11 @@
                                             `<span class="question-text-display">${q.question_text}</span>`
                                         }
                                     </p>
-                                    <button class="icon-btn edit-btn" onclick="editQuestionText(${q.id}, '${(q.question_text || '').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')" title="Edit Question">✏️</button>
+                                    <button class="icon-btn edit-btn edit-question-btn" data-question-id="${q.id}" data-question-text="${(q.question_text || '').replace(/"/g, '&quot;')}" title="Edit Question">✏️</button>
                                 </div>
                                 <div class="answer-section">
                                     <p><strong>Answer:</strong> <span class="answer-text-display">${q.student_answer || 'No answer provided'}</span></p>
-                                    <button class="icon-btn edit-btn" onclick="editQuestionAnswer(${q.id}, '${(q.student_answer || '').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r')}')" title="Edit Answer">✏️</button>
+                                    <button class="icon-btn edit-btn edit-answer-btn" data-question-id="${q.id}" data-answer-text="${(q.student_answer || '').replace(/"/g, '&quot;')}" title="Edit Answer">✏️</button>
                                 </div>
                                 ${q.answer_photo_url ? `
                                     <div class="photo-gallery">
@@ -4032,6 +4032,40 @@
             // Show panel
             detailPanel.classList.add('active');
             overlay.classList.add('active');
+            
+            // Add event listeners for edit buttons after content is loaded
+            setupEditButtonListeners();
+        }
+        
+        // Setup event listeners for edit buttons using data attributes
+        function setupEditButtonListeners() {
+            // Question edit buttons
+            document.querySelectorAll('.edit-question-btn').forEach(button => {
+                button.removeEventListener('click', handleEditQuestionClick); // Remove existing listeners
+                button.addEventListener('click', handleEditQuestionClick);
+            });
+            
+            // Answer edit buttons  
+            document.querySelectorAll('.edit-answer-btn').forEach(button => {
+                button.removeEventListener('click', handleEditAnswerClick); // Remove existing listeners
+                button.addEventListener('click', handleEditAnswerClick);
+            });
+        }
+        
+        // Handle question edit button clicks
+        function handleEditQuestionClick(event) {
+            const button = event.target;
+            const questionId = button.getAttribute('data-question-id');
+            const questionText = button.getAttribute('data-question-text');
+            editQuestionText(questionId, questionText);
+        }
+        
+        // Handle answer edit button clicks
+        function handleEditAnswerClick(event) {
+            const button = event.target;
+            const questionId = button.getAttribute('data-question-id');
+            const answerText = button.getAttribute('data-answer-text');
+            editQuestionAnswer(questionId, answerText);
         }
 
         function closeDetailPanel() {
