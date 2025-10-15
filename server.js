@@ -2444,7 +2444,7 @@ app.get('/getCode', async (req, res) => {
     return res.status(500).json({
       error: 'Failed to exchange authorization code for token',
       details: error.message
-    });
+  });
   }
 });
 
@@ -2469,6 +2469,24 @@ app.use((err, req, res, next) => {
 // Audit Log API Endpoints (Admin only)
 app.get('/api/admin/audit-logs', async (req, res) => {
   try {
+    console.log('🔍 Audit logs API called with params:', req.query);
+    
+    // Check if audit_logs table exists
+    try {
+      await pool.query('SELECT 1 FROM audit_logs LIMIT 1');
+      console.log('✅ audit_logs table exists');
+    } catch (tableError) {
+      console.log('❌ audit_logs table does not exist:', tableError.message);
+      return res.json({
+        success: true,
+        data: [],
+        total: 0,
+        limit: 100,
+        offset: 0,
+        message: 'Audit logs table not yet created. Please run the migration first.'
+      });
+    }
+
     const filters = {
       userId: req.query.userId || null,
       userEmail: req.query.userEmail || null,
@@ -2482,7 +2500,10 @@ app.get('/api/admin/audit-logs', async (req, res) => {
       orderDirection: req.query.orderDirection || 'DESC'
     };
 
+    console.log('📊 Fetching audit logs with filters:', filters);
     const result = await AuditService.getAuditLogs(filters);
+    console.log(`✅ Found ${result.logs.length} audit logs (total: ${result.total})`);
+    
     res.json({
       success: true,
       data: result.logs,
@@ -2492,33 +2513,66 @@ app.get('/api/admin/audit-logs', async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Error fetching audit logs:', error);
-    await AuditService.logError(error, {
-      actionName: 'FETCH_AUDIT_LOGS_ERROR',
-      endpoint: req.originalUrl,
-      method: req.method
-    });
+    console.error('❌ Error stack:', error.stack);
+    
+    // Try to log the error, but don't fail if audit system is broken
+    try {
+      await AuditService.logError(error, {
+        actionName: 'FETCH_AUDIT_LOGS_ERROR',
+        endpoint: req.originalUrl,
+        method: req.method
+      });
+    } catch (logError) {
+      console.error('❌ Failed to log audit error:', logError.message);
+    }
+    
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
 
 app.get('/api/admin/audit-stats', async (req, res) => {
   try {
+    console.log('📊 Audit stats API called');
+    
+    // Check if audit_logs table exists
+    try {
+      await pool.query('SELECT 1 FROM audit_logs LIMIT 1');
+    } catch (tableError) {
+      console.log('❌ audit_logs table does not exist for stats');
+      return res.json({
+        success: true,
+        data: []
+      });
+    }
+    
     const days = parseInt(req.query.days) || 30;
+    console.log(`📈 Fetching audit stats for last ${days} days`);
+    
     const stats = await AuditService.getAuditStats(days);
+    console.log(`✅ Found stats for ${stats.length} action types`);
+    
     res.json({
       success: true,
       data: stats
     });
   } catch (error) {
     console.error('❌ Error fetching audit stats:', error);
-    await AuditService.logError(error, {
-      actionName: 'FETCH_AUDIT_STATS_ERROR',
-      endpoint: req.originalUrl,
-      method: req.method
-    });
+    console.error('❌ Error stack:', error.stack);
+    
+    try {
+      await AuditService.logError(error, {
+        actionName: 'FETCH_AUDIT_STATS_ERROR',
+        endpoint: req.originalUrl,
+        method: req.method
+      });
+    } catch (logError) {
+      console.error('❌ Failed to log audit error:', logError.message);
+    }
+    
     res.status(500).json({
       success: false,
       error: error.message
@@ -2590,26 +2644,26 @@ function startServer(port) {
     console.log(`📍 Local: http://localhost:${port}`);
     console.log(`🏥 Health check: http://localhost:${port}/health`);
 
-    try {
-      await initializeDatabase();
-    } catch (error) {
-      console.error('❌ Database initialization failed:', error);
+  try {
+    await initializeDatabase();
+  } catch (error) {
+    console.error('❌ Database initialization failed:', error);
       console.error('This is likely due to missing DATABASE_URL environment variable.');
       console.error('Please check your Render environment variables.');
-    }
-
-    console.log('\n📋 Environment Configuration:');
-    console.log(`  BASE_URL: ${BASE_URL}`);
-    console.log(`  DATABASE_URL: ${process.env.DATABASE_URL ? '[SET]' : '[NOT SET]'}`);
-    console.log(`  DATABASE_POOL_URL: ${process.env.DATABASE_POOL_URL ? '[SET]' : '[NOT SET]'}`);
-    console.log(`  ZOHO_CLIENT_ID: ${process.env.ZOHO_CLIENT_ID ? '[SET]' : '[NOT SET]'}`);
-    console.log(`  ZOHO_CLIENT_SECRET: ${process.env.ZOHO_CLIENT_SECRET ? '[SET]' : '[NOT SET]'}`);
-    console.log(`  ZOHO_REDIRECT_URL: ${process.env.ZOHO_REDIRECT_URL || '[DEFAULT]'}`);
-    console.log(`  ZOHO_SCOPE: ${process.env.ZOHO_SCOPE || '[DEFAULT]'}`);
-    console.log(`  ZOHO_AUTH_URL: ${process.env.ZOHO_AUTH_URL || '[DEFAULT]'}`);
-    console.log(`  ZOHO_TOKEN_URL: ${process.env.ZOHO_TOKEN_URL || '[DEFAULT]'}`);
-    console.log(`  NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
-  });
+  }
+  
+  console.log('\n📋 Environment Configuration:');
+  console.log(`  BASE_URL: ${BASE_URL}`);
+  console.log(`  DATABASE_URL: ${process.env.DATABASE_URL ? '[SET]' : '[NOT SET]'}`);
+  console.log(`  DATABASE_POOL_URL: ${process.env.DATABASE_POOL_URL ? '[SET]' : '[NOT SET]'}`);
+  console.log(`  ZOHO_CLIENT_ID: ${process.env.ZOHO_CLIENT_ID ? '[SET]' : '[NOT SET]'}`);
+  console.log(`  ZOHO_CLIENT_SECRET: ${process.env.ZOHO_CLIENT_SECRET ? '[SET]' : '[NOT SET]'}`);
+  console.log(`  ZOHO_REDIRECT_URL: ${process.env.ZOHO_REDIRECT_URL || '[DEFAULT]'}`);
+  console.log(`  ZOHO_SCOPE: ${process.env.ZOHO_SCOPE || '[DEFAULT]'}`);
+  console.log(`  ZOHO_AUTH_URL: ${process.env.ZOHO_AUTH_URL || '[DEFAULT]'}`);
+  console.log(`  ZOHO_TOKEN_URL: ${process.env.ZOHO_TOKEN_URL || '[DEFAULT]'}`);
+  console.log(`  NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
+});
 
   server.on('error', (err) => {
     if (err && err.code === 'EADDRINUSE') {

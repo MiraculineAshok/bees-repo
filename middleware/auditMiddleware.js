@@ -109,21 +109,30 @@ function auditErrorMiddleware(error, req, res, next) {
 async function enrichRequestWithUserInfo(req) {
     try {
         // Skip if already enriched
-        if (req.userId && req.userRole) return;
+        if (req.userId && req.userRole && req.userEmail) return;
         
         const userEmail = req.query.email || req.headers['x-user-email'];
-        if (!userEmail) return;
+        console.log('🔍 Enriching request with user info for email:', userEmail);
+        
+        if (!userEmail) {
+            console.log('❌ No user email found in request');
+            return;
+        }
 
-        // Get user info from database (reuse existing getCurrentUserId logic)
+        // Get user info from database
         const pool = require('../db/pool');
         const result = await pool.query(
-            'SELECT id, role FROM authorized_users WHERE email = $1',
+            'SELECT id, email, role FROM authorized_users WHERE email = $1',
             [userEmail]
         );
 
         if (result.rows.length > 0) {
             req.userId = result.rows[0].id;
+            req.userEmail = result.rows[0].email;
             req.userRole = result.rows[0].role;
+            console.log('✅ User enriched:', { userId: req.userId, email: req.userEmail, role: req.userRole });
+        } else {
+            console.log('❌ User not found in database for email:', userEmail);
         }
     } catch (error) {
         // Don't break the request if user enrichment fails

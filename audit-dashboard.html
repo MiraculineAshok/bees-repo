@@ -550,20 +550,27 @@
 
         async function loadStats() {
             try {
+                console.log('📊 Loading audit stats...');
                 const userData = getUserData();
                 const email = userData?.email;
                 const url = email ? `/api/admin/audit-stats?email=${encodeURIComponent(email)}` : '/api/admin/audit-stats';
                 
+                console.log('🌐 Fetching stats from:', url);
                 const response = await fetch(url);
+                console.log('📡 Stats response status:', response.status);
+                
                 const result = await response.json();
+                console.log('📈 Stats result:', result);
                 
                 if (result.success) {
                     updateStatsDisplay(result.data);
                 } else {
                     console.error('Failed to load stats:', result.error);
+                    // Don't show error for stats, just keep default values
                 }
             } catch (error) {
                 console.error('Error loading stats:', error);
+                // Don't show error for stats, just keep default values
             }
         }
 
@@ -598,8 +605,10 @@
 
         async function loadLogs(page = 1) {
             try {
+                console.log('🔍 Loading audit logs, page:', page);
                 const userData = getUserData();
                 const email = userData?.email;
+                console.log('👤 User data:', { email, userData });
                 
                 const params = new URLSearchParams({
                     limit: '50',
@@ -611,16 +620,26 @@
                     params.set('email', email);
                 }
                 
+                console.log('🌐 Fetching:', `/api/admin/audit-logs?${params}`);
                 const response = await fetch(`/api/admin/audit-logs?${params}`);
+                console.log('📡 Response status:', response.status);
+                
                 const result = await response.json();
+                console.log('📊 API result:', result);
                 
                 if (result.success) {
-                    displayLogs(result.data);
-                    updatePagination(result.total, result.limit, result.offset);
+                    if (result.message) {
+                        showError(result.message);
+                    } else {
+                        displayLogs(result.data);
+                        updatePagination(result.total, result.limit, result.offset);
+                    }
                 } else {
-                    showError('Failed to load audit logs: ' + result.error);
+                    showError('Failed to load audit logs: ' + (result.error || 'Unknown error'));
+                    console.error('❌ API error details:', result);
                 }
             } catch (error) {
+                console.error('❌ Error loading audit logs:', error);
                 showError('Error loading audit logs: ' + error.message);
             }
         }

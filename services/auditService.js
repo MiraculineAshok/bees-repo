@@ -115,10 +115,21 @@ class AuditService {
     static async logAPIRequest(req, res, responseTime, error = null) {
         const correlationId = req.correlationId || uuidv4();
         
-        // Extract user information from request
-        const userEmail = req.query.email || req.headers['x-user-email'] || null;
-        const userId = req.userId || null; // Will be set by middleware if available
+        // Extract user information from request (enriched by middleware)
+        const userEmail = req.userEmail || req.query.email || req.headers['x-user-email'] || null;
+        const userId = req.userId || null;
         const userRole = req.userRole || null;
+        
+        console.log('📝 Logging API request:', {
+            method: req.method,
+            endpoint: req.originalUrl,
+            userId,
+            userEmail,
+            userRole,
+            statusCode: res.statusCode,
+            responseTime,
+            hasError: !!error
+        });
 
         // Sanitize sensitive data
         const sanitizedHeaders = this.sanitizeHeaders(req.headers);
