@@ -388,6 +388,10 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
+
+        .question-header.expanded .question-preview {
+            display: none;
+        }
         
         .question-actions {
             display: flex;
@@ -701,17 +705,33 @@
         }
 
         .side-panel-content .editor-wrapper {
-            height: 200px;
+            height: 300px;
             border: 1px solid #d1d5db;
             border-radius: 6px;
             background: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .side-panel-content .editor-wrapper .ql-toolbar {
+            border: none;
+            border-bottom: 1px solid #d1d5db;
+            flex-shrink: 0;
+        }
+
+        .side-panel-content .editor-wrapper .ql-container {
+            flex: 1;
+            border: none;
+            display: flex;
+            flex-direction: column;
         }
 
         .side-panel-content .editor-wrapper .ql-editor {
-            height: 100%;
-            max-height: none;
+            flex: 1;
             padding: 12px 15px;
             overflow-y: auto;
+            max-height: none;
+            min-height: 0;
         }
 
         .panel-actions {
@@ -4444,7 +4464,7 @@
         }
 
         // Add Custom Question Function
-        function addCustomQuestion() {
+        async function addCustomQuestion() {
             if (!customQuestionEditor) {
                 showError('Editor not initialized');
                 return;
@@ -4460,7 +4480,7 @@
             }
 
             // Add question to current interview
-            addQuestionToInterview(questionHtml, tags ? tags.split(',').map(t => t.trim()) : []);
+            await addQuestionToInterview(questionHtml, tags ? tags.split(',').map(t => t.trim()) : []);
             
             // Clear the form
             customQuestionEditor.setText('');
@@ -4531,7 +4551,7 @@
             }
         }
 
-        function addAIQuestion() {
+        async function addAIQuestion() {
             if (!aiQuestionEditor) {
                 showError('No question generated');
                 return;
@@ -4547,7 +4567,7 @@
             }
 
             // Add question to current interview
-            addQuestionToInterview(questionHtml, tags ? tags.split(',').map(t => t.trim()) : []);
+            await addQuestionToInterview(questionHtml, tags ? tags.split(',').map(t => t.trim()) : []);
             
             // Clear the form
             document.getElementById('ai-question-tags').value = '';
@@ -4559,20 +4579,50 @@
         }
 
         // Helper function to add question to interview
-        function addQuestionToInterview(questionHtml, tags = []) {
-            const newQuestion = {
-                id: Date.now(),
-                question_text: questionHtml,
-                tags: tags,
-                student_answer: '',
-                correctness_score: null,
-                answer_photo_url: null,
-                type: 'custom'
-            };
+        async function addQuestionToInterview(questionHtml, tags = []) {
+            if (!currentInterview || !currentInterview.id) {
+                showError('No active interview found');
+                return;
+            }
 
-            questions.push(newQuestion);
-            displayQuestions();
-            showSuccess('Question added successfully!');
+            try {
+                // Save to database first
+                const response = await fetch(`/api/interviews/${currentInterview.id}/questions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        question_text: questionHtml,
+                        question_rich_content: questionHtml,
+                        tags: tags
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Add to local array with the actual database ID
+                    const newQuestion = {
+                        id: result.data.id,
+                        question_text: questionHtml,
+                        tags: tags,
+                        student_answer: '',
+                        correctness_score: null,
+                        answer_photo_url: null,
+                        type: 'custom'
+                    };
+
+                    questions.push(newQuestion);
+                    displayQuestions();
+                    showSuccess('Question added successfully!');
+                } else {
+                    showError('Failed to save question to database');
+                }
+            } catch (error) {
+                console.error('Error saving question:', error);
+                showError('Error saving question');
+            }
         }
 
         // Add to Question Bank Functions
