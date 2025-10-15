@@ -245,25 +245,71 @@ class InterviewPage {
 
     async loadInterviewSessions() {
         try {
-            // Prefer interviewer-specific sessions where they are a panelist
-            let response = await fetch('/api/interviewer/sessions');
-            let data = await response.json();
-            if (!response.ok || !data.success) {
-                // Fallback to all sessions if needed
+            console.log('🔄 Loading interview sessions...');
+            
+            // Check user role
+            const userRole = await this.getUserRole();
+            console.log('👤 User role:', userRole);
+            
+            let response, data;
+            
+            if (userRole === 'superadmin' || userRole === 'admin') {
+                // Admin users can see all sessions
+                console.log('✅ Admin user - loading all sessions');
                 response = await fetch('/api/admin/sessions');
                 data = await response.json();
+            } else {
+                // Interviewer users only see sessions where they are panelists
+                console.log('✅ Interviewer user - loading sessions where user is panelist');
+                response = await fetch('/api/interviewer/sessions');
+                data = await response.json();
             }
+            
             if (data.success) {
                 const all = Array.isArray(data.data) ? data.data : [];
                 this.sessions = all.filter(s => s.status === 'active');
+                console.log(`📋 Loaded ${this.sessions.length} active sessions`);
                 this.displaySessions();
             } else {
-                console.log('No active sessions found');
+                console.log('⚠️ No active sessions found');
                 this.showError('No active interview sessions available');
             }
         } catch (error) {
-            console.error('Error loading sessions:', error);
+            console.error('❌ Error loading sessions:', error);
             this.showError('Error loading interview sessions');
+        }
+    }
+    
+    async getUserRole() {
+        try {
+            // Get user data from URL or localStorage
+            const userEmail = this.getUrlParameter('email');
+            let email = userEmail;
+            
+            if (!email) {
+                const storedUserData = localStorage.getItem('bees_user_data');
+                if (storedUserData) {
+                    try {
+                        const userData = JSON.parse(storedUserData);
+                        email = userData.email;
+                    } catch (error) {
+                        console.error('Error parsing stored user data:', error);
+                    }
+                }
+            }
+            
+            if (email) {
+                const response = await fetch(`/api/user/role?email=${encodeURIComponent(email)}`);
+                const result = await response.json();
+                if (result.success) {
+                    return result.role;
+                }
+            }
+            
+            return 'interviewer'; // Default role
+        } catch (error) {
+            console.error('Error checking user role:', error);
+            return 'interviewer'; // Default role
         }
     }
 
