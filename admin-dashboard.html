@@ -4308,20 +4308,39 @@
             }
         }
 
+        // Prevent multiple submissions
+        let isSubmittingQuestion = false;
+
         async function addQuestion() {
+            console.log('🔍 addQuestion called');
+            
+            if (isSubmittingQuestion) {
+                console.log('⏸️ Already submitting, ignoring duplicate call');
+                return;
+            }
+            
+            isSubmittingQuestion = true;
+            
             const questionText = document.getElementById('question-text').value;
+            console.log('📝 Question text:', questionText);
+            console.log('🏷️ Current tags:', currentQuestionTags);
             
             if (!questionText) {
+                console.log('❌ No question text');
                 showError('Please enter the question text');
+                isSubmittingQuestion = false;
                 return;
             }
             
             if (currentQuestionTags.length === 0) {
+                console.log('❌ No tags');
                 showError('Please add at least one tag');
+                isSubmittingQuestion = false;
                 return;
             }
 
             try {
+                console.log('🚀 Sending request to /api/question-bank');
                 const response = await fetch('/api/question-bank', {
                     method: 'POST',
                     headers: {
@@ -4333,18 +4352,24 @@
                     })
                 });
 
+                console.log('📡 Response status:', response.status);
                 const data = await response.json();
+                console.log('📦 Response data:', data);
                 
                 if (data.success) {
+                    console.log('✅ Success response');
                     closeAddQuestionModal();
                     loadQuestions();
                     showSuccess('Question added successfully with tags: ' + currentQuestionTags.map(t => '#' + t).join(' '));
                 } else {
+                    console.log('❌ Error response:', data.error);
                     showError('Error adding question: ' + data.error);
                 }
             } catch (error) {
-                console.error('Error adding question:', error);
-                showError('Error adding question');
+                console.error('💥 Exception in addQuestion:', error);
+                showError('Error adding question: ' + error.message);
+            } finally {
+                isSubmittingQuestion = false;
             }
         }
 
