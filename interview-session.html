@@ -796,6 +796,11 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Ensure all ql-editor instances have overflow scroll */
+        .ql-editor {
+            overflow-y: auto !important;
+        }
         
         .form-group {
             margin-bottom: 0.5rem;
