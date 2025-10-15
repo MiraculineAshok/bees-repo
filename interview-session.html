@@ -801,6 +801,13 @@
         .ql-editor {
             overflow-y: auto !important;
         }
+
+        .form-label-with-action {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
         
         .form-group {
             margin-bottom: 0.5rem;
@@ -4710,7 +4717,7 @@
 
         async function addToQuestionBankAPI(questionHtml, tags = []) {
             try {
-                const response = await fetch('/api/questions', {
+                const response = await fetch('/api/question-bank', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -4718,7 +4725,7 @@
                     body: JSON.stringify({
                         question: questionHtml,
                         tags: tags,
-                        difficulty: 'intermediate'
+                        category: null // Using tags instead of category
                     })
                 });
 
@@ -4726,11 +4733,11 @@
                 if (result.success) {
                     showSuccess('Question added to Question Bank!');
                 } else {
-                    showError('Failed to add question to bank');
+                    showError('Failed to add question to bank: ' + (result.error || 'Unknown error'));
                 }
             } catch (error) {
                 console.error('Error adding question to bank:', error);
-                showError('Error adding question to bank');
+                showError('Error adding question to bank: ' + error.message);
             }
         }
 
@@ -5317,14 +5324,16 @@
                 </button>
             </div>
             <div class="form-group" id="ai-generated-question" style="display: none;">
-                <label class="form-label">Generated Question</label>
+                <div class="form-label-with-action">
+                    <label class="form-label">Generated Question</label>
+                    <button class="add-to-bank-btn" onclick="addAIToQuestionBank()" title="Add to Question Bank">📚 Add to Bank</button>
+                </div>
                 <div class="editor-wrapper">
                     <div id="ai-question-editor"></div>
                 </div>
                 <div class="panel-actions">
                     <button class="btn btn-primary" onclick="addAIQuestion()">Add Question</button>
                     <button class="btn btn-secondary" onclick="generateAIQuestion()">Generate New</button>
-                    <button class="add-to-bank-btn" onclick="addAIToQuestionBank()" title="Add to Question Bank">📚 Add to Bank</button>
                 </div>
             </div>
         </div>
