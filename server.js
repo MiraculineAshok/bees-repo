@@ -14,6 +14,11 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const fs = require('fs');
 const pool = require('./db/pool');
+
+// Audit System
+const AuditService = require('./services/auditService');
+const { auditMiddleware, auditErrorMiddleware, logUserAction } = require('./middleware/auditMiddleware');
+
 // Cloudinary configuration (optional)
 let cloudinary = null;
 try {
@@ -88,6 +93,15 @@ app.use(cors()); // Enable CORS
 app.use(morgan('combined')); // Logging
 app.use(express.json({ limit: '50mb' })); // Parse JSON bodies with 50MB limit for rich text with images
 app.use(express.urlencoded({ extended: true, limit: '50mb' })); // Parse URL-encoded bodies with 50MB limit
+
+// Audit Middleware - Log all API requests and responses
+app.use(auditMiddleware({
+    excludePaths: ['/health', '/favicon.ico', '/logo.png', '/logo1.png'],
+    excludeStaticAssets: true,
+    logRequestBody: true,
+    logResponseBody: true,
+    maxBodySize: 5000 // Limit body logging to 5KB to prevent huge logs
+}));
 // Legacy standalone dashboards (kept for full-featured list views and filters)
 app.get('/admin-dashboard.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'admin-dashboard.html'));
@@ -95,6 +109,10 @@ app.get('/admin-dashboard.html', (req, res) => {
 
 app.get('/interviewer-dashboard.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'interviewer-dashboard.html'));
+});
+
+app.get('/audit-dashboard.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'audit-dashboard.html'));
 });
 
 // Serve static files with explicit MIME types
@@ -867,6 +885,22 @@ app.post('/api/interviews', async (req, res) => {
   try {
     const { student_id, interviewer_id, session_id } = req.body;
     const interview = await InterviewService.createInterview(student_id, interviewer_id, session_id);
+    
+    // Log interview creation
+    await AuditService.logUserAction(
+      'CREATE_INTERVIEW',
+      interviewer_id,
+      req.query.email || req.headers['x-user-email'],
+      req.userRole,
+      {
+        student_id,
+        session_id,
+        interview_id: interview.id
+      },
+      'INTERVIEW',
+      interview.id
+    );
+    
     res.status(201).json({
       success: true,
       data: interview
@@ -2382,6 +2416,22 @@ app.get('/getCode', async (req, res) => {
       if (userName) redirectUrl.searchParams.set('name', userName);
       redirectUrl.searchParams.set('role', userRole);
       console.log('Redirecting user to legacy dashboard:', { targetPath, userEmail, userName, userRole });
+      
+      // Log successful login to audit system
+      await AuditService.logAuth(
+        'LOGIN_SUCCESS',
+        userEmail,
+        true,
+        {
+          userName,
+          userRole,
+          targetDashboard: targetPath,
+          oauthProvider: 'zoho'
+        },
+        req.ip || req.connection.remoteAddress,
+        req.headers['user-agent']
+      );
+      
       res.redirect(redirectUrl.toString());
     } catch (parseError) {
       console.error('Error parsing token response:', parseError);
@@ -2414,6 +2464,123 @@ app.use((err, req, res, next) => {
     error: 'Something went wrong!',
     message: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
   });
+});
+
+// Audit Log API Endpoints (Admin only)
+app.get('/api/admin/audit-logs', async (req, res) => {
+  try {
+    const filters = {
+      userId: req.query.userId || null,
+      userEmail: req.query.userEmail || null,
+      actionType: req.query.actionType || null,
+      startDate: req.query.startDate || null,
+      endDate: req.query.endDate || null,
+      success: req.query.success !== undefined ? req.query.success === 'true' : null,
+      limit: parseInt(req.query.limit) || 100,
+      offset: parseInt(req.query.offset) || 0,
+      orderBy: req.query.orderBy || 'created_at',
+      orderDirection: req.query.orderDirection || 'DESC'
+    };
+
+    const result = await AuditService.getAuditLogs(filters);
+    res.json({
+      success: true,
+      data: result.logs,
+      total: result.total,
+      limit: result.limit,
+      offset: result.offset
+    });
+  } catch (error) {
+    console.error('❌ Error fetching audit logs:', error);
+    await AuditService.logError(error, {
+      actionName: 'FETCH_AUDIT_LOGS_ERROR',
+      endpoint: req.originalUrl,
+      method: req.method
+    });
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+app.get('/api/admin/audit-stats', async (req, res) => {
+  try {
+    const days = parseInt(req.query.days) || 30;
+    const stats = await AuditService.getAuditStats(days);
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('❌ Error fetching audit stats:', error);
+    await AuditService.logError(error, {
+      actionName: 'FETCH_AUDIT_STATS_ERROR',
+      endpoint: req.originalUrl,
+      method: req.method
+    });
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+app.post('/api/admin/audit-cleanup', async (req, res) => {
+  try {
+    const daysToKeep = parseInt(req.body.daysToKeep) || 90;
+    const deletedCount = await AuditService.cleanupOldLogs(daysToKeep);
+    
+    await AuditService.logUserAction(
+      'AUDIT_CLEANUP',
+      req.userId,
+      req.query.email || req.headers['x-user-email'],
+      req.userRole,
+      { daysToKeep, deletedCount }
+    );
+    
+    res.json({
+      success: true,
+      data: { deletedCount }
+    });
+  } catch (error) {
+    console.error('❌ Error cleaning up audit logs:', error);
+    await AuditService.logError(error, {
+      actionName: 'AUDIT_CLEANUP_ERROR',
+      endpoint: req.originalUrl,
+      method: req.method
+    });
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Add audit error middleware (must be after all routes)
+app.use(auditErrorMiddleware);
+
+// Global error handler
+app.use(async (error, req, res, next) => {
+  // Log the error to audit system
+  await AuditService.logError(error, {
+    userId: req.userId,
+    userEmail: req.query.email || req.headers['x-user-email'],
+    userRole: req.userRole,
+    actionName: 'UNHANDLED_ERROR',
+    endpoint: req.originalUrl,
+    method: req.method,
+    correlationId: req.correlationId
+  });
+
+  // Send error response
+  if (!res.headersSent) {
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
+    });
+  }
 });
 
 // Start server with fallback when port in use (local dev)
