@@ -2466,8 +2466,20 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Test route to debug audit API issues
+app.get('/api/admin/audit-test', (req, res) => {
+  console.log('🧪 Audit test route called');
+  res.json({ success: true, message: 'Audit routes are working', timestamp: new Date().toISOString() });
+});
+
 // Audit Log API Endpoints (Admin only)
 app.get('/api/admin/audit-logs', async (req, res) => {
+  console.log('🔍 /api/admin/audit-logs route hit!');
+  console.log('   Method:', req.method);
+  console.log('   URL:', req.url);
+  console.log('   Original URL:', req.originalUrl);
+  console.log('   Query params:', req.query);
+  
   try {
     console.log('🔍 Audit logs API called with params:', req.query);
     
@@ -2535,6 +2547,12 @@ app.get('/api/admin/audit-logs', async (req, res) => {
 });
 
 app.get('/api/admin/audit-stats', async (req, res) => {
+  console.log('📊 /api/admin/audit-stats route hit!');
+  console.log('   Method:', req.method);
+  console.log('   URL:', req.url);
+  console.log('   Original URL:', req.originalUrl);
+  console.log('   Query params:', req.query);
+  
   try {
     console.log('📊 Audit stats API called');
     
@@ -2609,6 +2627,35 @@ app.post('/api/admin/audit-cleanup', async (req, res) => {
       error: error.message
     });
   }
+});
+
+// Debug middleware to log all requests
+app.use((req, res, next) => {
+  if (req.url.includes('/api/admin/audit')) {
+    console.log('🔍 Request intercepted:', {
+      method: req.method,
+      url: req.url,
+      originalUrl: req.originalUrl,
+      path: req.path
+    });
+  }
+  next();
+});
+
+// Catch-all for unmatched API routes
+app.use('/api/*', (req, res) => {
+  console.log('❌ Unmatched API route:', {
+    method: req.method,
+    url: req.url,
+    originalUrl: req.originalUrl,
+    path: req.path
+  });
+  res.status(404).json({
+    success: false,
+    error: 'Route not found',
+    path: req.path,
+    method: req.method
+  });
 });
 
 // Add audit error middleware (must be after all routes)
