@@ -732,13 +732,17 @@
                    word-wrap: break-word;
                }
                
-               /* Fixed images in detail panel */
+               /* Fixed images in detail panel - 200x200 with aspect ratio preserved */
                .question-text-display img, .answer-text-display img {
                    width: 200px;
                    height: 200px;
                    display: block;
                    margin: 10px 0;
-                   object-fit: cover;
+                   object-fit: contain;
+                   object-position: center;
+                   background-color: #f8f9fa;
+                   border: 1px solid #ddd;
+                   border-radius: 4px;
                }
                
                .question-edit-input, .answer-edit-input {

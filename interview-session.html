@@ -645,12 +645,16 @@
             font-style: normal;
         }
         
-        /* Fixed image sizes in the editor */
+        /* Fixed image sizes in the editor - 200x200 with aspect ratio preserved */
         #question-editor-container .ql-editor img {
             width: 200px;
             height: 200px;
             display: inline-block;
-            object-fit: cover;
+            object-fit: contain;
+            object-position: center;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
         
         .editor-wrapper {
@@ -1727,7 +1731,7 @@
         <div class="interview-main">
             <div class="student-info-card">
                 <div class="student-info-header">
-                    <h2 class="student-info-title">Candidate Information</h2>
+                <h2 class="student-info-title">Candidate Information</h2>
                     <div class="interview-timer-card">
                         <span class="clock-icon">⏱️</span>
                         <span id="duration-display">00:00:00</span>
