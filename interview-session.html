@@ -2829,6 +2829,9 @@
                                        onclick="event.stopPropagation()"
                                        title="Rate answer quality (1-10)">
                             </div>
+                            <button class="ai-eval-btn" onclick="event.stopPropagation(); evaluateQuestionAI(${question.id})" title="AI Evaluate">
+                                🤖
+                            </button>
                             ${!isFromQuestionBank ? `
                             <button class="add-to-bank-btn-small" onclick="event.stopPropagation(); addQuestionToBank('${question.question_text.replace(/'/g, "\\'")}')" title="Add to Question Bank">
                                 📚
@@ -2952,6 +2955,48 @@
                     console.warn('⚠️ Some question elements are not ready for interaction');
                 }
             }, 100);
+        }
+
+        async function evaluateQuestionAI(questionId) {
+            try {
+                const q = questions.find(x => String(x.id) === String(questionId));
+                if (!q) { showError('Question not found'); return; }
+                const payload = {
+                    question_text: q.question_text || q.question_rich_content || '',
+                    answer_text: q.student_answer || ''
+                };
+                const res = await fetch('/api/evaluate-question', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const json = await res.json();
+                if (!res.ok || !json.success) {
+                    showError(json.error || 'AI evaluation failed');
+                    return;
+                }
+
+                const data = json.data || {};
+                const modal = document.createElement('div');
+                modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:2000;';
+                modal.innerHTML = `
+                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;max-width:560px;width:90%;padding:16px;box-shadow:0 10px 24px rgba(0,0,0,0.2)">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                            <h3 style="margin:0;color:#111827">AI Evaluation</h3>
+                            <button onclick="this.closest('div').parentElement.parentElement.remove()" style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:6px;padding:4px 8px;cursor:pointer">✕</button>
+                        </div>
+                        <div style="font-size:14px;color:#374151;line-height:1.5">
+                            <div><strong>Difficulty:</strong> ${data.difficulty_label || 'unknown'} (${data.difficulty_score ?? '-'}/10)</div>
+                            <div><strong>Answer Score:</strong> ${data.answer_score == null ? '-' : data.answer_score + '/10'}</div>
+                            <div style="margin-top:8px"><strong>Rationale:</strong> ${data.rationale || '—'}</div>
+                        </div>
+                    </div>`;
+                modal.onclick = (e)=>{ if(e.target===modal) modal.remove(); };
+                document.body.appendChild(modal);
+            } catch (e) {
+                console.error('AI evaluation error:', e);
+                showError('AI evaluation error');
+            }
         }
 
 

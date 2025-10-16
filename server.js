@@ -1928,6 +1928,109 @@ Format the response as a clear, professional interview question. Do not include 
     }
 });
 
+// Evaluate a question (and optional answer) for difficulty and score
+app.post('/api/evaluate-question', async (req, res) => {
+  try {
+    const { question_text, answer_text } = req.body || {};
+
+    if (!question_text || typeof question_text !== 'string' || question_text.trim() === '') {
+      return res.status(400).json({ success: false, error: 'question_text is required' });
+    }
+
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(500).json({
+        success: false,
+        error: 'AI evaluation is not configured. Please set OPENAI_API_KEY environment variable.'
+      });
+    }
+
+    const model = process.env.OPENAI_MODEL || 'gpt-3.5-turbo';
+    const wantsAnswerEval = !!(answer_text && String(answer_text).trim());
+
+    const userPrompt = `You are an expert interviewer. Analyze the following question${wantsAnswerEval ? ' and the provided candidate answer' : ''}.
+
+Question:
+"""
+${question_text}
+"""
+
+${wantsAnswerEval ? `Candidate Answer:
+"""
+${answer_text}
+"""` : ''}
+
+Return STRICT JSON only with keys:
+- difficulty_label: one of ["easy","medium","hard"]
+- difficulty_score: integer 1-10 (10 hardest)
+- answer_score: integer 0-10 or null if no answer
+- rationale: short one-sentence rationale
+
+Example:
+{"difficulty_label":"medium","difficulty_score":6,"answer_score":8,"rationale":"…"}`;
+
+    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: 'system', content: 'You are a terse, structured evaluator. Always return valid JSON only.' },
+          { role: 'user', content: userPrompt }
+        ],
+        temperature: 0.2,
+        max_tokens: 200
+      })
+    });
+
+    if (!openaiResponse.ok) {
+      const err = await openaiResponse.json().catch(() => ({}));
+      console.error('OpenAI evaluation error:', err);
+      return res.status(500).json({ success: false, error: 'Failed to evaluate question' });
+    }
+
+    const data = await openaiResponse.json();
+    const content = data?.choices?.[0]?.message?.content || '';
+
+    // Attempt to parse JSON from response
+    let parsed;
+    try {
+      parsed = JSON.parse(content);
+    } catch {
+      // Fallback: extract JSON object heuristically
+      const match = content.match(/\{[\s\S]*\}/);
+      if (match) {
+        try { parsed = JSON.parse(match[0]); } catch {}
+      }
+    }
+
+    if (!parsed || typeof parsed !== 'object') {
+      return res.status(200).json({
+        success: true,
+        data: {
+          difficulty_label: 'unknown',
+          difficulty_score: null,
+          answer_score: wantsAnswerEval ? null : null,
+          rationale: 'AI response could not be parsed'
+        }
+      });
+    }
+
+    // Normalize/validate
+    const difficulty_label = String(parsed.difficulty_label || '').toLowerCase();
+    const difficulty_score = Number(parsed.difficulty_score);
+    const answer_score = parsed.answer_score == null ? null : Number(parsed.answer_score);
+    const rationale = String(parsed.rationale || '').slice(0, 300);
+
+    return res.json({ success: true, data: { difficulty_label, difficulty_score, answer_score, rationale } });
+  } catch (error) {
+    console.error('Error evaluating question:', error);
+    res.status(500).json({ success: false, error: 'Error evaluating question' });
+  }
+});
+
 app.get('/api/admin/sessions', async (req, res) => {
   try {
     console.log('🔍 /api/admin/sessions called');
