@@ -599,6 +599,8 @@ class AdminService {
                     s.email,
                     s.zeta_id,
                     s.phone,
+                    s.school,
+                    s.location,
                     s.created_at,
                     COUNT(i.id) as interview_count,
                     (
@@ -615,7 +617,7 @@ class AdminService {
                     ) as recent_verdicts
                 FROM students s
                 LEFT JOIN interviews i ON s.id = i.student_id
-                GROUP BY s.id, s.first_name, s.last_name, s.email, s.zeta_id, s.phone, s.created_at
+                GROUP BY s.id, s.first_name, s.last_name, s.email, s.zeta_id, s.phone, s.school, s.location, s.created_at
                 ORDER BY s.created_at DESC
             `);
 
