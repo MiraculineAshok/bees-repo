@@ -2376,7 +2376,7 @@
             /* Consistent column widths for consolidation table */
             .data-table.fixed-columns { table-layout: fixed; width: 100%; }
             #consolidation.data-table th,
-            #consolidation .data-table td { text-overflow: ellipsis; }
+            #consolidation .data-table td { white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
             /* Specific width allocations (sum <= 100%) */
             #consolidation .data-table th:nth-child(1),
             #consolidation .data-table td:nth-child(1) { width: 14%; }
