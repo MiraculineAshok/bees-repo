@@ -2376,7 +2376,7 @@
             /* Consistent column widths for consolidation table */
             .data-table.fixed-columns { table-layout: fixed; width: 100%; }
             #consolidation.data-table th,
-            #consolidation .data-table td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            #consolidation .data-table td { overflow: hidden; text-overflow: ellipsis; }
             /* Specific width allocations (sum <= 100%) */
             #consolidation .data-table th:nth-child(1),
             #consolidation .data-table td:nth-child(1) { width: 14%; }
@@ -2400,6 +2400,10 @@
             #consolidation .data-table td:nth-child(10) { width: 8%; }
             /* Allow multiline where needed inside constrained cells */
             #consolidation .data-table td div[style*="max-height:64px"] { white-space: normal; }
+            /* Ensure action menus render above rows and not clipped */
+            #consolidation .table-container { position: relative; overflow: visible; }
+            #consolidation .action-menu-container { position: relative; overflow: visible; }
+            #consolidation .user-action-menu { position: absolute; z-index: 3000; right: 0; top: 100%; }
     </style>
 
     <!-- Create Session Modal -->

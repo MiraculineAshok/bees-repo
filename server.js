@@ -1342,10 +1342,116 @@ app.delete('/api/interviews/:id', async (req, res) => {
     if (!(await InterviewService.isDatabaseAvailable())) {
       return res.json({ success: true, message: 'Interview deleted (mock)' });
     }
+    // Capture affected student/session BEFORE delete
+    const info = await pool.query('SELECT student_id, session_id FROM interviews WHERE id = $1', [id]);
+    if (info.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Interview not found' });
+    }
+    const { student_id, session_id } = info.rows[0];
+
+    // Delete interview (cascades to interview_questions via FK)
     const result = await pool.query('DELETE FROM interviews WHERE id = $1 RETURNING id', [id]);
     if (result.rowCount === 0) {
       return res.status(404).json({ success: false, error: 'Interview not found' });
     }
+
+    // Recalculate question_bank statistics based on remaining interview_questions
+    try {
+      await pool.query(`
+        UPDATE question_bank qb SET
+          times_asked = COALESCE(sub.cnt, 0),
+          total_score = COALESCE(sub.total, 0),
+          average_score = CASE WHEN COALESCE(sub.cnt,0) > 0 THEN (COALESCE(sub.total,0)::numeric / sub.cnt)::float ELSE 0 END
+        FROM (
+          SELECT question_text, COUNT(*) AS cnt, COALESCE(SUM(correctness_score), 0) AS total
+          FROM interview_questions
+          GROUP BY question_text
+        ) sub
+        WHERE qb.question = sub.question_text
+      `);
+      // Zero-out stats for questions no longer present in interview_questions
+      await pool.query(`
+        UPDATE question_bank qb
+        SET times_asked = 0, total_score = 0, average_score = 0
+        WHERE NOT EXISTS (
+          SELECT 1 FROM interview_questions iq WHERE iq.question_text = qb.question
+        )
+      `);
+    } catch (e) {
+      console.warn('⚠️ Failed to recalc question_bank stats after interview delete:', e.message);
+    }
+
+    // Recompute consolidation for this student/session
+    try {
+      const agg = await pool.query(`
+        SELECT 
+          s.id AS student_id,
+          CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+          s.email AS student_email,
+          s.zeta_id AS zeta_id,
+          i.session_id AS session_id,
+          iss.name AS session_name,
+          ARRAY_AGG(i.id ORDER BY i.created_at) AS interview_ids,
+          ARRAY_AGG(i.interviewer_id ORDER BY i.created_at) AS interviewer_ids,
+          ARRAY_AGG(au.name ORDER BY i.created_at) AS interviewer_names,
+          ARRAY_REMOVE(ARRAY_AGG(i.verdict ORDER BY i.created_at), NULL) AS verdicts,
+          MAX(i.created_at) AS last_interview_at
+        FROM interviews i
+        JOIN students s ON s.id = i.student_id
+        LEFT JOIN authorized_users au ON au.id = i.interviewer_id
+        LEFT JOIN interview_sessions iss ON iss.id = i.session_id
+        WHERE i.student_id = $1 AND ($2::int IS NULL OR i.session_id = $2::int)
+        GROUP BY s.id, s.first_name, s.last_name, s.email, s.zeta_id, i.session_id, iss.name
+      `, [student_id, session_id]);
+
+      if (agg.rows.length === 0) {
+        await pool.query('DELETE FROM interview_consolidation WHERE student_id = $1 AND (session_id = $2 OR ($2 IS NULL AND session_id IS NULL))', [student_id, session_id]);
+      } else {
+        const r = agg.rows[0];
+        const verdicts = (r.verdicts || []).filter(v => v != null && String(v).trim() !== '').map(v => String(v).toLowerCase());
+        let status = null;
+        if (verdicts.length > 0) {
+          const last = verdicts[verdicts.length - 1];
+          const classify = (v) => v.includes('selected') ? 'selected' : (v.includes('reject') ? 'rejected' : ((v.includes('hold')||v.includes('maybe')||v.includes('wait')) ? 'waitlisted' : null));
+          status = classify(last) || (verdicts.some(v=>v.includes('selected')) ? 'selected' : verdicts.some(v=>v.includes('reject')) ? 'rejected' : verdicts.some(v=>v.includes('hold')||v.includes('maybe')||v.includes('wait')) ? 'waitlisted' : null);
+        }
+        await pool.query(`
+          INSERT INTO interview_consolidation (
+            student_id, session_id, student_name, student_email, zeta_id, session_name,
+            interview_ids, interviewer_ids, interviewer_names, verdicts, status, last_interview_at, updated_at
+          ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12, CURRENT_TIMESTAMP)
+          ON CONFLICT (student_id, session_id)
+          DO UPDATE SET 
+            student_name = EXCLUDED.student_name,
+            student_email = EXCLUDED.student_email,
+            zeta_id = EXCLUDED.zeta_id,
+            session_name = EXCLUDED.session_name,
+            interview_ids = EXCLUDED.interview_ids,
+            interviewer_ids = EXCLUDED.interviewer_ids,
+            interviewer_names = EXCLUDED.interviewer_names,
+            verdicts = EXCLUDED.verdicts,
+            status = EXCLUDED.status,
+            last_interview_at = EXCLUDED.last_interview_at,
+            updated_at = CURRENT_TIMESTAMP
+        `, [
+          r.student_id,
+          r.session_id,
+          r.student_name,
+          r.student_email,
+          r.zeta_id,
+          r.session_name,
+          r.interview_ids || [],
+          r.interviewer_ids || [],
+          r.interviewer_names || [],
+          r.verdicts || [],
+          status,
+          r.last_interview_at
+        ]);
+      }
+    } catch (e) {
+      console.warn('⚠️ Failed to update consolidation after interview delete:', e.message);
+    }
+
     res.json({ success: true, message: 'Interview deleted successfully' });
   } catch (error) {
     console.error('Error deleting interview:', error);
