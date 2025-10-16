@@ -2204,6 +2204,7 @@
                     <h2 class="section-title">Students</h2>
                     <div class="header-actions">
                         <input type="text" id="students-inline-search" class="form-input" placeholder="Search students..." oninput="displayStudents()" style="max-width:240px">
+                        <button class="btn btn-info" onclick="openBulkImportStudents()">Bulk Import</button>
                         <button class="btn btn-primary" onclick="refreshStudents()">Refresh</button>
                     </div>
                 </div>
@@ -2407,6 +2408,33 @@
     </style>
 
     <!-- Create Session Modal -->
+        <!-- Bulk Import Students Modal -->
+        <div id="bulk-import-students-modal" class="modal">
+            <div class="modal-content" style="max-width:720px">
+                <div class="modal-header">
+                    <h3 class="modal-title">Bulk Import Students</h3>
+                    <button class="close" onclick="closeBulkImportStudents()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p>You can paste text (CSV) or upload a file (.csv, .xls, .xlsx).</p>
+                    <div style="display:flex; gap:16px; flex-wrap:wrap">
+                        <div style="flex:1; min-width:260px">
+                            <label class="form-label">Paste CSV (name,email,zeta_id,phone)</label>
+                            <textarea id="bulk-students-text" class="form-textarea" rows="8" placeholder="John Doe,john@example.com,Z123,9876543210\nJane Roe,jane@example.com,Z124,9876543211"></textarea>
+                        </div>
+                        <div style="flex:1; min-width:260px">
+                            <label class="form-label">Upload File (.csv, .xls, .xlsx)</label>
+                            <input id="bulk-students-file" type="file" accept=".csv,.xls,.xlsx" />
+                            <div style="font-size:12px;color:#6b7280;margin-top:6px">Max size 5MB</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="display:flex;gap:8px;justify-content:flex-end">
+                    <button class="btn btn-secondary" onclick="closeBulkImportStudents()">Cancel</button>
+                    <button class="btn btn-primary" onclick="submitBulkImportStudents()">Import</button>
+                </div>
+            </div>
+        </div>
     <div id="create-session-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -2509,6 +2537,44 @@
         </div>
     </div>
     <script>
+        function openBulkImportStudents(){
+            const m = document.getElementById('bulk-import-students-modal'); if (m) m.style.display='block';
+        }
+        function closeBulkImportStudents(){
+            const m = document.getElementById('bulk-import-students-modal'); if (m) m.style.display='none';
+            const t = document.getElementById('bulk-students-text'); if (t) t.value='';
+            const f = document.getElementById('bulk-students-file'); if (f) f.value='';
+        }
+        async function submitBulkImportStudents(){
+            try{
+                const text = document.getElementById('bulk-students-text')?.value?.trim();
+                const file = document.getElementById('bulk-students-file')?.files?.[0] || null;
+                let payload = null; let useFile = !!file;
+                if (!useFile){
+                    if (!text){ showError('Provide CSV text or select a file'); return; }
+                    // Parse simple CSV lines: name,email,zeta_id,phone
+                    const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+                    const students = lines.map(l=>{
+                        const [name,email,zeta_id,phone] = l.split(',');
+                        return { name: (name||'').trim(), email: (email||'').trim(), zeta_id: (zeta_id||'').trim(), phone: (phone||'').trim() };
+                    }).filter(s=>s.email);
+                    payload = { students };
+                }
+                let res;
+                if (useFile){
+                    const fd = new FormData();
+                    fd.append('file', file);
+                    res = await fetch('/api/admin/students/bulk-import/file', { method:'POST', body: fd });
+                } else {
+                    res = await fetch('/api/admin/students/bulk-import/text', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+                }
+                const json = await res.json();
+                if (!res.ok || !json.success) throw new Error(json.error||'Import failed');
+                showSuccess(`Imported ${json.count||0} students`);
+                closeBulkImportStudents();
+                refreshStudents();
+            }catch(e){ console.error(e); showError(e.message||'Failed to import'); }
+        }
         function setClearFiltersVisibility(section) {
             try {
                 const map = {

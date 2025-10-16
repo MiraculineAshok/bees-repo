@@ -2316,6 +2316,76 @@ app.get('/api/admin/students', async (req, res) => {
   }
 });
 
+// Bulk import students (text JSON)
+app.post('/api/admin/students/bulk-import/text', async (req, res) => {
+  try {
+    const { students } = req.body || {};
+    if (!Array.isArray(students) || students.length === 0) {
+      return res.status(400).json({ success: false, error: 'No students provided' });
+    }
+    let inserted = 0;
+    for (const s of students) {
+      const name = (s.name||'').trim();
+      const email = (s.email||'').trim();
+      const zeta = (s.zeta_id||'').trim();
+      const phone = (s.phone||'').trim();
+      if (!email) continue;
+      await pool.query(
+        `INSERT INTO students (first_name, last_name, email, zeta_id, phone)
+         VALUES ($1,$2,$3,$4,$5)
+         ON CONFLICT (email) DO UPDATE SET zeta_id = EXCLUDED.zeta_id, phone = EXCLUDED.phone, updated_at = CURRENT_TIMESTAMP`,
+        [name.split(' ')[0]||name, name.split(' ').slice(1).join(' ')||'', email, zeta||null, phone||null]
+      );
+      inserted++;
+    }
+    res.json({ success: true, count: inserted });
+  } catch (e) {
+    console.error('Bulk import (text) failed:', e);
+    res.status(500).json({ success: false, error: 'Bulk import failed' });
+  }
+});
+
+// Bulk import students (file upload - CSV/XLS/XLSX)
+app.post('/api/admin/students/bulk-import/file', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ success: false, error: 'File is required' });
+    const buf = req.file.buffer;
+    const name = (req.file.originalname||'').toLowerCase();
+    let rows = [];
+    if (name.endsWith('.csv')) {
+      // Minimal CSV parsing (utf-8, comma separated)
+      const text = buf.toString('utf8');
+      rows = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean).map(l=>l.split(','));
+    } else if (name.endsWith('.xls') || name.endsWith('.xlsx')) {
+      // XLS/XLSX via optional dependency
+      let xlsx = null;
+      try { xlsx = require('xlsx'); } catch { return res.status(400).json({ success:false, error: 'XLS/XLSX not supported on server (xlsx not installed)' }); }
+      const wb = xlsx.read(buf, { type: 'buffer' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const json = xlsx.utils.sheet_to_json(ws, { header: 1 });
+      rows = json.filter(r=>Array.isArray(r) && r.length>0);
+    } else {
+      return res.status(400).json({ success: false, error: 'Unsupported file type' });
+    }
+    let inserted = 0;
+    for (const r of rows) {
+      const [name, email, zeta_id, phone] = r;
+      if (!email) continue;
+      await pool.query(
+        `INSERT INTO students (first_name, last_name, email, zeta_id, phone)
+         VALUES ($1,$2,$3,$4,$5)
+         ON CONFLICT (email) DO UPDATE SET zeta_id = EXCLUDED.zeta_id, phone = EXCLUDED.phone, updated_at = CURRENT_TIMESTAMP`,
+        [String(name||'').split(' ')[0]||'', String(name||'').split(' ').slice(1).join(' ')||'', String(email||'').trim(), (zeta_id||null), (phone||null)]
+      );
+      inserted++;
+    }
+    res.json({ success: true, count: inserted });
+  } catch (e) {
+    console.error('Bulk import (file) failed:', e);
+    res.status(500).json({ success: false, error: 'Bulk import failed' });
+  }
+});
+
 app.get('/api/admin/students/stats', async (req, res) => {
   try {
     const stats = await AdminService.getStudentStats();
