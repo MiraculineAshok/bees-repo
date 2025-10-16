@@ -1695,6 +1695,9 @@
         .table th[data-field] { cursor: pointer; }
         .sort-indicator .asc,
         .sort-indicator .desc { cursor: pointer; }
+        .data-table { table-layout: fixed; }
+        .data-table th, .data-table td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .scrollable-cell { max-height: 64px; overflow: auto; }
     </style>
 
     <script>
