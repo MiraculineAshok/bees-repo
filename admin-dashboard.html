@@ -2229,6 +2229,8 @@
                                 <th data-field="email" onclick="sortBy('students','email')">Email <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th data-field="zeta_id" onclick="sortBy('students','zeta_id')">Zeta ID <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th data-field="phone" onclick="sortBy('students','phone')">Phone <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                <th>School</th>
+                                <th>Location</th>
                                 <th data-field="interview_count" onclick="sortBy('students','interview_count')">Interviews <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th>Verdicts</th>
                                 <th data-field="created_at" onclick="sortBy('students','created_at')">Created At <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
@@ -2451,6 +2453,10 @@
                     <textarea id="session-description" class="form-textarea" placeholder="Brief description of the interview session"></textarea>
                 </div>
                 <div class="form-group">
+                    <label class="form-label" for="session-location">Location</label>
+                    <input type="text" id="session-location" class="form-input" placeholder="e.g., Chennai Campus">
+                </div>
+                <div class="form-group">
                     <label class="form-label" for="panelist-search">Panelists (Interviewers)</label>
                     <div class="panelist-container">
                         <div class="panelist-search-container">
@@ -2554,11 +2560,11 @@
                 let payload = null; let useFile = !!file;
                 if (!useFile){
                     if (!text){ showError('Provide CSV text or select a file'); return; }
-                    // Parse simple CSV lines: name,email,zeta_id,phone
+                    // Parse simple CSV lines: name,email,zeta_id,phone,school,location
                     const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
                     const students = lines.map(l=>{
-                        const [name,email,zeta_id,phone] = l.split(',');
-                        return { name: (name||'').trim(), email: (email||'').trim(), zeta_id: (zeta_id||'').trim(), phone: (phone||'').trim() };
+                        const [name,email,zeta_id,phone,school,location] = l.split(',');
+                        return { name: (name||'').trim(), email: (email||'').trim(), zeta_id: (zeta_id||'').trim(), phone: (phone||'').trim(), school:(school||'').trim(), location:(location||'').trim() };
                     }).filter(s=>s.email);
                     payload = { students };
                 }
@@ -4271,6 +4277,8 @@
                         <td data-field="zeta_id">${student.zeta_id}</td>
                         <td data-field="phone">${student.phone || 'N/A'}</td>
                         <td data-field="interview_count">${student.interview_count || 0}</td>
+                        <td>${student.school || '-'}</td>
+                        <td>${student.location || '-'}</td>
                         <td data-field="verdicts">${verdictsDisplay}</td>
                         <td data-field="created_at">${student.created_at ? formatDate(student.created_at) : '-'}</td>
                         <td>
@@ -4329,6 +4337,7 @@
                     body: JSON.stringify({
                         name: name,
                         description: description,
+                        location: document.getElementById('session-location').value || null,
                         created_by: currentUserId || undefined,
                         panelists: selectedPanelists
                     })

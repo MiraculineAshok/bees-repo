@@ -48,6 +48,8 @@ async function initializeDatabase() {
         phone VARCHAR(20),
         address TEXT,
         zeta_id VARCHAR(255) UNIQUE NOT NULL,
+        school VARCHAR(255),
+        location VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -118,6 +120,7 @@ async function initializeDatabase() {
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         description TEXT,
+        location VARCHAR(255),
         status VARCHAR(20) DEFAULT 'active',
         created_by INTEGER REFERENCES authorized_users(id) ON DELETE SET NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -159,6 +162,14 @@ async function initializeDatabase() {
     }
 
     // Add missing columns to existing table if they don't exist
+    try {
+      await pool.query(`ALTER TABLE students ADD COLUMN IF NOT EXISTS school VARCHAR(255)`);
+      await pool.query(`ALTER TABLE students ADD COLUMN IF NOT EXISTS location VARCHAR(255)`);
+      await pool.query(`ALTER TABLE interview_sessions ADD COLUMN IF NOT EXISTS location VARCHAR(255)`);
+      console.log('✅ Ensured school/location columns exist');
+    } catch (error) {
+      console.log('⚠️ Could not add school/location columns (may already exist):', error.message);
+    }
     try {
       await pool.query(`
         ALTER TABLE question_bank 

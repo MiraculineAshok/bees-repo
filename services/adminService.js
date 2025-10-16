@@ -397,10 +397,10 @@ class AdminService {
             // Create the session
             const createdBy = sessionData.created_by || 1;
             const sessionResult = await client.query(`
-                INSERT INTO interview_sessions (name, description, created_by)
-                VALUES ($1, $2, $3)
+                INSERT INTO interview_sessions (name, description, location, created_by)
+                VALUES ($1, $2, $3, $4)
                 RETURNING *
-            `, [sessionData.name, sessionData.description, createdBy]);
+            `, [sessionData.name, sessionData.description, sessionData.location || null, createdBy]);
 
             const session = sessionResult.rows[0];
 

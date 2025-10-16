@@ -2255,7 +2255,7 @@ app.get('/api/admin/sessions', async (req, res) => {
 
 app.post('/api/admin/sessions', async (req, res) => {
   try {
-    const { name, description, panelists = [] } = req.body;
+    const { name, description, location, panelists = [] } = req.body;
     if (!name) {
       return res.status(400).json({
         success: false,
@@ -2263,7 +2263,7 @@ app.post('/api/admin/sessions', async (req, res) => {
       });
     }
 
-    const session = await AdminService.createSession({ name, description, panelists });
+    const session = await AdminService.createSession({ name, description, location, panelists });
     res.json({
       success: true,
       data: session
@@ -2335,12 +2335,14 @@ app.post('/api/admin/students/bulk-import/text', async (req, res) => {
       const email = (s.email||'').trim();
       const zeta = (s.zeta_id||'').trim();
       const phone = (s.phone||'').trim();
+      const school = (s.school||'').trim();
+      const location = (s.location||'').trim();
       if (!email) continue;
       await pool.query(
-        `INSERT INTO students (first_name, last_name, email, zeta_id, phone)
-         VALUES ($1,$2,$3,$4,$5)
-         ON CONFLICT (email) DO UPDATE SET zeta_id = EXCLUDED.zeta_id, phone = EXCLUDED.phone, updated_at = CURRENT_TIMESTAMP`,
-        [name.split(' ')[0]||name, name.split(' ').slice(1).join(' ')||'', email, zeta||null, phone||null]
+        `INSERT INTO students (first_name, last_name, email, zeta_id, phone, school, location)
+         VALUES ($1,$2,$3,$4,$5,$6,$7)
+         ON CONFLICT (email) DO UPDATE SET zeta_id = EXCLUDED.zeta_id, phone = EXCLUDED.phone, school = EXCLUDED.school, location = EXCLUDED.location, updated_at = CURRENT_TIMESTAMP`,
+        [name.split(' ')[0]||name, name.split(' ').slice(1).join(' ')||'', email, zeta||null, phone||null, school||null, location||null]
       );
       inserted++;
     }
@@ -2375,13 +2377,13 @@ app.post('/api/admin/students/bulk-import/file', upload.single('file'), async (r
     }
     let inserted = 0;
     for (const r of rows) {
-      const [name, email, zeta_id, phone] = r;
+      const [name, email, zeta_id, phone, school, location] = r;
       if (!email) continue;
       await pool.query(
-        `INSERT INTO students (first_name, last_name, email, zeta_id, phone)
-         VALUES ($1,$2,$3,$4,$5)
-         ON CONFLICT (email) DO UPDATE SET zeta_id = EXCLUDED.zeta_id, phone = EXCLUDED.phone, updated_at = CURRENT_TIMESTAMP`,
-        [String(name||'').split(' ')[0]||'', String(name||'').split(' ').slice(1).join(' ')||'', String(email||'').trim(), (zeta_id||null), (phone||null)]
+        `INSERT INTO students (first_name, last_name, email, zeta_id, phone, school, location)
+         VALUES ($1,$2,$3,$4,$5,$6,$7)
+         ON CONFLICT (email) DO UPDATE SET zeta_id = EXCLUDED.zeta_id, phone = EXCLUDED.phone, school = EXCLUDED.school, location = EXCLUDED.location, updated_at = CURRENT_TIMESTAMP`,
+        [String(name||'').split(' ')[0]||'', String(name||'').split(' ').slice(1).join(' ')||'', String(email||'').trim(), (zeta_id||null), (phone||null), (school||null), (location||null)]
       );
       inserted++;
     }
