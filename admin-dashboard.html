@@ -2319,7 +2319,7 @@
                                 <th data-field="role" onclick="sortBy('users','role')">Role <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th data-field="status" onclick="sortBy('users','status')">Status <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th data-field="created_at" onclick="sortBy('users','created_at')">Created At <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
-                                <th data-field="last_login_at" onclick="sortBy('users','last_login_at')">Last Login <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -6811,8 +6811,7 @@
                     <td class="editable" data-field="email">${user.email}</td>
                     <td><span class="role-badge ${roleClass}">${status}</span></td>
                     <td><span class="status-badge ${statusClass}">Active</span></td>
-                    <td>${new Date(user.created_at).toLocaleDateString()}</td>
-                    <td>${user.updated_at ? new Date(user.updated_at).toLocaleDateString() : 'Never'}</td>
+                    <td>${formatDate(user.created_at)}</td>
                     <td>
                         <div class="action-menu-container">
                             <button class="icon-btn menu-btn" onclick="toggleUserMenu(${user.id})" title="More Actions">⋮</button>
@@ -6915,10 +6914,7 @@
                                 <label>Created At:</label>
                             <span>${formatDate(user.created_at)}</span>
                             </div>
-                            <div class="detail-item">
-                                <label>Last Login:</label>
-                            <span>${user.last_login_at ? formatDate(user.last_login_at) : 'Never'}</span>
-                            </div>
+                            
                         </div>
                     </div>
                 </div>
