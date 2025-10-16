@@ -1691,6 +1691,12 @@
         </div>
     </div>
 
+    <style>
+        .table th[data-field] { cursor: pointer; }
+        .sort-indicator .asc,
+        .sort-indicator .desc { cursor: pointer; }
+    </style>
+
     <script>
         // Inline sort/search for interviewer lists
         const interviewerSortState = { field: 'created_at', dir: 'desc' };
