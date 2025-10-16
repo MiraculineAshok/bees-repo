@@ -65,7 +65,6 @@ const AuthService = require('./services/authService');
 const InterviewService = require('./services/interviewService');
 const QuestionBankService = require('./services/questionBankService');
 const AdminService = require('./services/adminService');
-const pool = require('./db/pool');
 const InterviewerService = require('./services/interviewerService');
 
 const app = express();
