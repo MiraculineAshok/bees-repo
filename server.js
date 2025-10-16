@@ -1900,7 +1900,7 @@ app.get('/api/admin/consolidation/:id/interviews', async (req, res) => {
     if (cons.rows.length === 0) return res.status(404).json({ success: false, error: 'Not found' });
     const { student_id, session_id } = cons.rows[0];
     const interviews = await pool.query(`
-      SELECT i.id, i.created_at, i.verdict, i.overall_notes,
+      SELECT i.id, i.created_at, i.status, i.verdict, i.overall_notes,
              au.name AS interviewer_name, iss.name AS session_name
       FROM interviews i
       LEFT JOIN authorized_users au ON au.id = i.interviewer_id

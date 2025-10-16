@@ -2906,7 +2906,7 @@
                                       <button onclick="updateConsolidationStatus(${r.id},'waitlisted')" class="menu-item">Waitlist</button>
                                   </div>
                                 </div>
-                                <button class="btn btn-primary" onclick="openConsDetail(${r.id})">View</button>
+                                <button class="icon-btn" title="View" onclick="openConsDetail(${r.id})" aria-label="View details" style="border:1px solid #e5e7eb;background:#fff;border-radius:6px;padding:6px 8px;cursor:pointer">👁️</button>
                             </td>
                         </tr>
                     `;
@@ -2970,8 +2970,10 @@
                         <div style="margin-top:6px;border:1px solid #e5e7eb;border-radius:8px">
                            ${interviews.map(i=>`
                              <details style=\"border-bottom:1px solid #e5e7eb;padding:8px\">
-                               <summary style=\"cursor:pointer;color:#111827\">#${i.id} - ${i.interviewer_name||'-'} - ${i.verdict||'-'} - ${i.created_at? new Date(i.created_at).toLocaleString() : '-'} </summary>
+                               <summary style=\"cursor:pointer;color:#111827\">#${i.id} • ${i.interviewer_name||'-'} • Status: ${i.status||'-'} • Verdict: ${i.verdict||'-'} • ${i.created_at? new Date(i.created_at).toLocaleString() : '-'} </summary>
                                <div style=\"margin-top:6px;color:#374151\"><strong>Notes:</strong><br>${(i.overall_notes||'').replace(/\\n/g,'<br>') || '-'}</div>
+                               <div style=\"margin-top:10px\"><strong>Questions & Answers</strong></div>
+                               <div id=\"iq-${i.id}\" style=\"margin-top:6px\">Loading questions...</div>
                              </details>
                            `).join('')}
                         </div>
@@ -2979,6 +2981,29 @@
                     </div>`;
                 setTimeout(()=>{ panel.style.right='0px'; }, 10);
                 overlay.onclick = ()=>{ overlay.style.display='none'; panel.style.right='-520px'; };
+                // Fetch questions per interview and render
+                for (const interview of interviews){
+                    try{
+                        const qRes = await fetch(`/api/interviews/${interview.id}/questions`);
+                        const qJson = await qRes.json();
+                        const container = document.getElementById(`iq-${interview.id}`);
+                        if (!container) continue;
+                        if (!qRes.ok || !qJson.success){ container.textContent = 'Failed to load questions'; continue; }
+                        const qas = (qJson.data||[]);
+                        if (!qas.length){ container.textContent = 'No questions recorded'; continue; }
+                        container.innerHTML = qas.map(q=>`
+                          <div style=\"border:1px solid #e5e7eb;border-radius:6px;padding:8px;margin-bottom:8px\">
+                            <div style=\"font-weight:600;color:#111827;margin-bottom:4px\">Q: ${q.question_text||'-'}</div>
+                            ${q.question_rich_content? `<div style=\"color:#374151;margin-bottom:6px\">${q.question_rich_content}</div>` : ''}
+                            <div style=\"color:#374151\"><strong>Answer:</strong> ${(q.student_answer||'-').toString().replace(/\\n/g,'<br>')}</div>
+                            ${q.answer_photo_url? `<div style=\"margin-top:6px\"><img src=\"${q.answer_photo_url}\" alt=\"answer photo\" style=\"width:200px;height:200px;object-fit:contain;border:1px solid #e5e7eb;border-radius:4px\"></div>` : ''}
+                          </div>
+                        `).join('');
+                    }catch(err){
+                        const container = document.getElementById(`iq-${interview.id}`);
+                        if (container) container.textContent = 'Failed to load questions';
+                    }
+                }
             }catch(e){ console.error(e); showError('Failed to open details'); }
         }
 
