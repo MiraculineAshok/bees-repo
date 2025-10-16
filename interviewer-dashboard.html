@@ -3550,20 +3550,40 @@
                 const response = await fetch('/api/admin/questions/analytics');
                 const result = await response.json();
 
-                if (result.success) {
-                    questions = result.data || []; // Store in global questions variable
-                    allQuestions = questions; // Keep for backward compatibility
+                let data = [];
+                if (result && result.success && Array.isArray(result.data)) {
+                    data = result.data;
+                }
 
-                    // Don't populate filter here - it will be populated when filter panel is opened
-
-                    // Display questions using the new unified system
-                    displayQuestionAnalytics(questions);
-                } else {
-                    console.error('Failed to load questions analytics:', result.error);
-                    if (tbody) {
-                        tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Failed to load questions.</td></tr>';
+                // Fallback: load from question bank if analytics empty
+                if (!data || data.length === 0) {
+                    console.warn('⚠️ Analytics returned no questions. Falling back to /api/question-bank');
+                    try {
+                        const qbRes = await fetch('/api/question-bank');
+                        const qbJson = await qbRes.json();
+                        if (qbJson && qbJson.success && Array.isArray(qbJson.data)) {
+                            // Normalize fields to analytics shape
+                            data = qbJson.data.map(q => ({
+                                id: q.id,
+                                question: q.question || q.question_text || '',
+                                category: q.category || null,
+                                tags: q.tags || null,
+                                times_asked: q.times_asked ?? q.count_of_times_asked ?? 0,
+                                total_score: q.total_score ?? 0,
+                                average_score: q.average_score ?? 0,
+                                success_rate: q.success_rate ?? 0
+                            }));
+                        }
+                    } catch (fallbackErr) {
+                        console.error('❌ Fallback /api/question-bank failed:', fallbackErr);
                     }
                 }
+
+                questions = data || [];
+                allQuestions = questions;
+
+                // Display questions using the new unified system
+                displayQuestionAnalytics(questions);
             } catch (error) {
                 console.error('Error loading questions analytics:', error);
                 if (tbody) {
