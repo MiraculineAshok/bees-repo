@@ -2359,6 +2359,9 @@
                         </tbody>
                     </table>
                 </div>
+                <!-- Slide-in detail panel -->
+                <div id="cons-detail-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.35);display:none;z-index:1600"></div>
+                <div id="cons-detail-panel" style="position:fixed;top:0;right:-520px;width:520px;height:100%;background:#fff;border-left:1px solid #e5e7eb;box-shadow:-8px 0 24px rgba(0,0,0,0.1);z-index:1700;transition:right 0.25s ease;overflow:auto"></div>
             </section>
         </main>
     </div>
@@ -2868,7 +2871,8 @@
                 }
                 const badge = (v)=>{
                     const t=String(v||'').toLowerCase();
-                    const color = t.includes('select')? '#10b981' : t.includes('reject')? '#ef4444' : t.includes('wait')||t.includes('hold')||t.includes('maybe')? '#f59e0b' : '#6b7280';
+                    const tiger=t.includes('tiger'), cow=t.includes('cow'), sheep=t.includes('sheep');
+                    const color = tiger? '#10b981' : cow? '#f59e0b' : sheep? '#6b7280' : (t.includes('select')? '#10b981' : t.includes('reject')? '#ef4444' : (t.includes('wait')||t.includes('hold')||t.includes('maybe'))? '#f59e0b' : '#6b7280');
                     return `<span style="display:inline-block;background:${color};color:#fff;padding:3px 8px;border-radius:12px;font-size:11px;margin:2px;white-space:nowrap">${v||'-'}</span>`;
                 };
                 const html = rows.map(r => {
@@ -2886,7 +2890,12 @@
                             <td>${interviewerNames}</td>
                             <td>${verdicts}</td>
                             <td><span class="status-badge ${status}">${status}</span></td>
-                            <td>${notes}</td>
+                            <td>
+                                <div style="max-height:64px;overflow:hidden;position:relative">
+                                    <div>${notes}</div>
+                                    ${notes && notes.length>120 ? '<div style="position:absolute;bottom:0;left:0;right:0;height:24px;background:linear-gradient(180deg, rgba(255,255,255,0), #fff)"></div>' : ''}
+                                </div>
+                            </td>
                             <td>${lastAt}</td>
                             <td>
                                 <div class="action-menu-container">
@@ -2895,9 +2904,9 @@
                                       <button onclick="updateConsolidationStatus(${r.id},'selected')" class="menu-item">Select</button>
                                       <button onclick="updateConsolidationStatus(${r.id},'rejected')" class="menu-item">Reject</button>
                                       <button onclick="updateConsolidationStatus(${r.id},'waitlisted')" class="menu-item">Waitlist</button>
-                                      <button onclick="openConsDetail(${r.id})" class="menu-item">Details</button>
                                   </div>
                                 </div>
+                                <button class="btn btn-primary" onclick="openConsDetail(${r.id})">View</button>
                             </td>
                         </tr>
                     `;
@@ -2925,38 +2934,52 @@
             }catch(e){ showError('Failed to update status'); }
         }
 
-        function openConsDetail(id){
-            const rowEl = document.getElementById('consolidation-table-body');
-            // Load fresh and find the row
-            fetch('/api/admin/consolidation').then(r=>r.json()).then(j=>{
-                const item = (j.data||[]).find(x=>String(x.id)===String(id));
+        async function openConsDetail(id){
+            try{
+                const res = await fetch('/api/admin/consolidation');
+                const json = await res.json();
+                const item = (json.data||[]).find(x=>String(x.id)===String(id));
                 if (!item){ showError('Record not found'); return; }
-                const verdicts = Array.isArray(item.verdicts)? item.verdicts.join(' | ') : '-';
-                const interviewerNames = Array.isArray(item.interviewer_names)? item.interviewer_names.join(', ') : '-';
-                const lastAt = item.last_interview_at ? new Date(item.last_interview_at).toLocaleString() : '-';
-                const notes = item.notes ? item.notes.replace(/\n/g,'<br>') : '-';
-                const modal = document.createElement('div');
-                modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:2000;';
-                modal.innerHTML = `
-                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;max-width:720px;width:92%;padding:16px;box-shadow:0 10px 24px rgba(0,0,0,0.2)">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                      <h3 style="margin:0;color:#111827">Consolidated Record</h3>
-                      <button onclick="this.closest('div').parentElement.parentElement.remove()" style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:6px;padding:4px 8px;cursor:pointer">✕</button>
-                    </div>
-                    <div style="font-size:14px;color:#374151;line-height:1.5">
-                      <div><strong>Student:</strong> ${item.student_name||'-'} (${item.zeta_id||'-'})</div>
-                      <div><strong>Email:</strong> ${item.student_email||'-'}</div>
-                      <div><strong>Session:</strong> ${item.session_name||'-'}</div>
-                      <div><strong>Interviewers:</strong> ${interviewerNames}</div>
-                      <div><strong>Verdicts:</strong> ${verdicts}</div>
-                      <div><strong>Status:</strong> ${item.status||'-'}</div>
-                      <div><strong>Last Interview:</strong> ${lastAt}</div>
-                      <div style="margin-top:8px"><strong>Notes:</strong><br>${notes}</div>
-                    </div>
-                  </div>`;
-                modal.onclick=(e)=>{ if(e.target===modal) modal.remove(); };
-                document.body.appendChild(modal);
-            });
+                const interviewsRes = await fetch(`/api/admin/consolidation/${id}/interviews`);
+                const interviewsJson = await interviewsRes.json();
+                const interviews = interviewsJson.success ? (interviewsJson.data||[]) : [];
+                const verdictBadge = (v)=>{
+                    const t=String(v||'').toLowerCase();
+                    const tiger=t.includes('tiger'), cow=t.includes('cow'), sheep=t.includes('sheep');
+                    const color = tiger? '#10b981' : cow? '#f59e0b' : sheep? '#6b7280' : '#6b7280';
+                    return `<span style="display:inline-block;background:${color};color:#fff;padding:3px 8px;border-radius:12px;font-size:11px;margin:2px;white-space:nowrap">${v||'-'}</span>`;
+                };
+                const overlay = document.getElementById('cons-detail-overlay');
+                const panel = document.getElementById('cons-detail-panel');
+                overlay.style.display='block';
+                panel.innerHTML = `
+                    <div style="padding:16px">
+                      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                        <h3 style="margin:0;color:#111827">Consolidated Record</h3>
+                        <button onclick="document.getElementById('cons-detail-overlay').style.display='none';document.getElementById('cons-detail-panel').style.right='-520px';" style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:6px;padding:4px 8px;cursor:pointer">✕</button>
+                      </div>
+                      <div style="font-size:14px;color:#374151;line-height:1.6">
+                        <div><strong>Student:</strong> ${item.student_name||'-'} (${item.zeta_id||'-'})</div>
+                        <div><strong>Email:</strong> ${item.student_email||'-'}</div>
+                        <div><strong>Session:</strong> ${item.session_name||'-'}</div>
+                        <div><strong>Status:</strong> ${item.status||'-'}</div>
+                        <div style="margin:8px 0"><strong>Verdicts:</strong> ${(item.verdicts||[]).map(verdictBadge).join(' ')}</div>
+                        <div><strong>Last Interview:</strong> ${item.last_interview_at? new Date(item.last_interview_at).toLocaleString() : '-'}</div>
+                        <div style="margin-top:8px"><strong>Notes:</strong><br>${(item.notes||'').replace(/\n/g,'<br>') || '-'}</div>
+                        <div style="margin-top:12px"><strong>Interviews</strong></div>
+                        <div style="margin-top:6px;border:1px solid #e5e7eb;border-radius:8px">
+                           ${interviews.map(i=>`
+                             <details style=\"border-bottom:1px solid #e5e7eb;padding:8px\">
+                               <summary style=\"cursor:pointer;color:#111827\">#${i.id} - ${i.interviewer_name||'-'} - ${i.verdict||'-'} - ${i.created_at? new Date(i.created_at).toLocaleString() : '-'} </summary>
+                               <div style=\"margin-top:6px;color:#374151\"><strong>Notes:</strong><br>${(i.overall_notes||'').replace(/\\n/g,'<br>') || '-'}</div>
+                             </details>
+                           `).join('')}
+                        </div>
+                      </div>
+                    </div>`;
+                setTimeout(()=>{ panel.style.right='0px'; }, 10);
+                overlay.onclick = ()=>{ overlay.style.display='none'; panel.style.right='-520px'; };
+            }catch(e){ console.error(e); showError('Failed to open details'); }
         }
 
         // User authentication functions

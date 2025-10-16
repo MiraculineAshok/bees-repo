@@ -1890,6 +1890,31 @@ app.put('/api/admin/consolidation/:id/status', async (req, res) => {
   }
 });
 
+// Get interviews for a consolidation record
+app.get('/api/admin/consolidation/:id/interviews', async (req, res) => {
+  try {
+    if (!pool) return res.json({ success: true, data: [] });
+    const id = Number(req.params.id);
+    // Lookup student_id and session_id
+    const cons = await pool.query('SELECT student_id, session_id FROM interview_consolidation WHERE id = $1', [id]);
+    if (cons.rows.length === 0) return res.status(404).json({ success: false, error: 'Not found' });
+    const { student_id, session_id } = cons.rows[0];
+    const interviews = await pool.query(`
+      SELECT i.id, i.created_at, i.verdict, i.overall_notes,
+             au.name AS interviewer_name, iss.name AS session_name
+      FROM interviews i
+      LEFT JOIN authorized_users au ON au.id = i.interviewer_id
+      LEFT JOIN interview_sessions iss ON iss.id = i.session_id
+      WHERE i.student_id = $1 AND ($2::int IS NULL OR i.session_id = $2::int)
+      ORDER BY i.created_at DESC
+    `, [student_id, session_id]);
+    res.json({ success: true, data: interviews.rows });
+  } catch (e) {
+    console.error('Error fetching consolidation interviews:', e);
+    res.status(500).json({ success: false, error: 'Failed to fetch interviews' });
+  }
+});
+
 // AI Question Generation API
 app.post('/api/generate-ai-question', async (req, res) => {
     try {
