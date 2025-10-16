@@ -3133,12 +3133,12 @@
 
             tbody.innerHTML = paginatedData.map(interview => `
                 <tr>
-                    <td>${new Date(interview.created_at).toLocaleDateString()}</td>
+                    <td>${formatDate(interview.created_at || interview.interview_date)}</td>
                     <td>${interview.student_name}</td>
                     <td>${interview.zeta_id}</td>
                     <td>${interview.session_name || 'N/A'}</td>
                     <td><span class="status-badge status-${interview.status}">${interview.status}</span></td>
-                    <td>${interview.verdict || 'N/A'}</td>
+                    <td>${interview.verdict ? `<span style="display:inline-block;padding:2px 6px;border-radius:10px;color:#fff;background:${String(interview.verdict).toLowerCase().includes('tiger')?'#10b981':String(interview.verdict).toLowerCase().includes('cow')?'#f59e0b':String(interview.verdict).toLowerCase().includes('sheep')?'#6b7280':'#6b7280'}">${interview.verdict}</span>` : 'N/A'}</td>
                     <td>${formatDuration(interview.duration_seconds)}</td>
                     <td>
                         ${interview.status === 'in_progress' ? `<button class="btn btn-primary btn-sm" onclick="resumeMyInterview(${interview.id})">Resume</button>` : ''}
