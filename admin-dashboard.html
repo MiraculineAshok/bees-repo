@@ -1368,10 +1368,9 @@
             border: 1px solid #e5e7eb; 
             border-radius: 8px; 
             box-shadow: 0 10px 20px rgba(0,0,0,0.1); 
-            z-index: 3000; 
+            z-index: 1000; 
             min-width: 160px; 
             padding: 4px 0;
-            overflow: visible;
         }
         .user-action-menu.hidden { display: none; }
         .menu-item { 
@@ -2374,23 +2373,6 @@
         .table th[data-field] { cursor: pointer; }
         .sort-indicator .asc,
         .sort-indicator .desc { cursor: pointer; }
-            /* Fixed column sizes with overflow hint */
-            .data-table { table-layout: fixed; }
-            .data-table th, .data-table td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-            .overflow-hint { position: relative; }
-            .overflow-hint::after { content: '…'; position: absolute; right: 4px; bottom: 2px; color: #9ca3af; }
-            .scrollable-cell { max-height: 64px; overflow: auto; }
-            /* Ensure action menus render above rows and not clipped */
-            .table-container { position: relative; overflow: visible; }
-            .user-action-menu { position: absolute; z-index: 2000; }
-            .action-menu-container { position: relative; overflow: visible; }
-            .data-table tbody tr { overflow: visible; }
-            .data-table { overflow: visible; }
-            /* Wider question column where present */
-            #questions .data-table th[data-field="question"],
-            #questions .data-table td.question-cell { width: 50%; }
-            /* Consolidation notes cell scroll */
-            #consolidation .data-table td .scrollable-cell { max-height: 96px; }
     </style>
 
     <!-- Create Session Modal -->
@@ -2907,12 +2889,13 @@
                             <td>${r.student_email || '-'}</td>
                             <td>${r.zeta_id || '-'}</td>
                             <td>${r.session_name || '-'}</td>
-                            <td class="overflow-hint">${interviewerNames}</td>
-                            <td class="overflow-hint">${verdicts}</td>
+                            <td>${interviewerNames}</td>
+                            <td>${verdicts}</td>
                             <td><span class="status-badge ${status}" style="display:inline-block;padding:3px 8px;border-radius:12px;color:#fff;background:${String(status).toLowerCase().includes('select')?'#10b981':String(status).toLowerCase().includes('reject')?'#ef4444':String(status).toLowerCase().includes('wait')?'#f59e0b':'#6b7280'}">${status}</span></td>
                             <td>
-                                <div class="scrollable-cell">
-                                    <div class="overflow-hint">${notes}</div>
+                                <div style="max-height:64px;overflow:hidden;position:relative">
+                                    <div>${notes}</div>
+                                    ${notes && notes.length>120 ? '<div style="position:absolute;bottom:0;left:0;right:0;height:24px;background:linear-gradient(180deg, rgba(255,255,255,0), #fff)"></div>' : ''}
                                 </div>
                             </td>
                             <td>${lastAt}</td>
@@ -2936,6 +2919,11 @@
                 const tbody = document.getElementById('consolidation-table-body');
                 if (tbody) tbody.innerHTML = '<tr><td colspan="9" class="error">Error loading consolidation</td></tr>';
             }
+        }
+
+        function toggleConsMenu(id){
+            const el = document.getElementById(`cons-menu-${id}`);
+            if (!el) return; el.classList.toggle('hidden');
         }
 
         // Inline search + sort for Consolidation
@@ -2984,11 +2972,6 @@
             return out;
         }
 
-        function toggleConsMenu(id){
-            const el = document.getElementById(`cons-menu-${id}`);
-            if (!el) return; el.classList.toggle('hidden');
-        }
-
         async function updateConsolidationStatus(id, status){
             try{
                 const res = await fetch(`/api/admin/consolidation/${id}/status`,{ method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({status}) });
@@ -3031,22 +3014,26 @@
                         <div style="margin:8px 0"><strong>Verdicts:</strong> ${(item.verdicts||[]).map(verdictBadge).join(' ')}</div>
                         <div><strong>Last Interview:</strong> ${item.last_interview_at? new Date(item.last_interview_at).toLocaleString() : '-'}</div>
                         <div style="margin-top:8px"><strong>Notes:</strong><br>${(item.notes||'').replace(/\n/g,'<br>') || '-'}</div>
-                        <div style="margin-top:12px"><strong>Interviews</strong></div>
-                        <div style="margin-top:6px;border:1px solid #e5e7eb;border-radius:8px">
+                <div style="margin-top:12px"><strong>Interviews</strong></div>
+                <div style="margin-top:6px;border:1px solid #e5e7eb;border-radius:8px">
                            ${interviews.map(i=>`
-                             <details style=\"border-bottom:1px solid #e5e7eb;padding:8px\">
-                               <summary style=\"cursor:pointer;color:#111827;display:flex;justify-content:space-between;align-items:center;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:8px\">
-                                 <span style=\"font-weight:600\">Interview #${i.id}</span>
-                                 <span style=\"opacity:0.7\">▶</span>
-                               </summary>
-                               <div style=\"margin-top:8px;color:#374151\"><strong>Interviewer:</strong> ${i.interviewer_name||'-'}</div>
-                               <div style=\"margin-top:4px;color:#374151\"><strong>Status:</strong> <span style=\"display:inline-block;padding:2px 6px;border-radius:10px;color:#fff;background:${(i.status||'').toLowerCase().includes('select')?'#10b981':(i.status||'').toLowerCase().includes('reject')?'#ef4444':(i.status||'').toLowerCase().includes('wait')?'#f59e0b':'#6b7280'}\">${i.status||'-'}</span></div>
-                               <div style=\"margin-top:4px;color:#374151\"><strong>Verdict:</strong> <span style=\"display:inline-block;padding:2px 6px;border-radius:10px;color:#fff;background:${(i.verdict||'').toLowerCase().includes('tiger')?'#10b981':(i.verdict||'').toLowerCase().includes('cow')?'#f59e0b':(i.verdict||'').toLowerCase().includes('sheep')?'#6b7280':'#6b7280'}\">${i.verdict||'-'}</span></div>
-                               <div style=\"margin-top:4px;color:#374151\"><strong>Time:</strong> ${i.created_at? new Date(i.created_at).toLocaleString() : '-'} </div>
-                               <div style=\"margin-top:6px;color:#374151\"><strong>Notes:</strong><br>${(i.overall_notes||'').replace(/\\n/g,'<br>') || '-'}</div>
-                               <div style=\"margin-top:10px\"><strong>Questions & Answers</strong></div>
-                               <div id=\"iq-${i.id}\" style=\"margin-top:6px\">Loading questions...</div>
-                             </details>
+                     <details style=\"border-bottom:1px solid #e5e7eb;padding:8px\">
+                       <summary style=\"cursor:pointer;color:#111827;display:flex;justify-content:space-between;align-items:center;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:8px\">
+                         <div>
+                           <div style=\"font-weight:600\">Interview #${i.id}</div>
+                           <div style=\"opacity:.85\">${i.interviewer_name||'-'}</div>
+                           <div style=\"margin-top:4px\">
+                             <span style=\"display:inline-block;padding:2px 6px;border-radius:10px;color:#fff;background:${(i.status||'').toLowerCase().includes('select')?'#10b981':(i.status||'').toLowerCase().includes('reject')?'#ef4444':(i.status||'').toLowerCase().includes('wait')?'#f59e0b':'#6b7280'}\">${i.status||'-'}</span>
+                             <span style=\"display:inline-block;margin-left:6px;padding:2px 6px;border-radius:10px;color:#fff;background:${(i.verdict||'').toLowerCase().includes('tiger')?'#10b981':(i.verdict||'').toLowerCase().includes('cow')?'#f59e0b':(i.verdict||'').toLowerCase().includes('sheep')?'#6b7280':'#6b7280'}\">${i.verdict||'-'}</span>
+                           </div>
+                           <div style=\"font-size:12px;color:#6b7280;margin-top:4px\">${i.created_at? new Date(i.created_at).toLocaleString() : '-'} </div>
+                         </div>
+                         <span style=\"opacity:0.7\">▶</span>
+                       </summary>
+                       <div style=\"margin-top:6px;color:#374151\"><strong>Notes:</strong><br>${(i.overall_notes||'').replace(/\\n/g,'<br>') || '-'}</div>
+                       <div style=\"margin-top:10px\"><strong>Questions & Answers</strong></div>
+                       <div id=\"iq-${i.id}\" style=\"margin-top:6px\">Loading questions...</div>
+                     </details>
                            `).join('')}
                         </div>
                       </div>
@@ -3066,7 +3053,7 @@
                         container.innerHTML = qas.map(q=>`
                           <div style=\"border:1px solid #e5e7eb;border-radius:6px;padding:8px;margin-bottom:8px\">
                             <div style=\"font-weight:600;color:#111827;margin-bottom:4px\">Q: ${q.question_text||'-'}</div>
-                            ${q.question_rich_content? `<div style=\"color:#374151;margin-bottom:6px\">${q.question_rich_content.replace(/<img /g, '<img style=\\\"width:200px;height:200px;object-fit:contain;border:1px solid #e5e7eb;border-radius:4px\\\" ')}</div>` : ''}
+                            ${q.question_rich_content? `<div style=\"color:#374151;margin-bottom:6px\">${q.question_rich_content.replace(/<img(.*?)>/g, '<img$1 style=\\"width:200px;height:200px;object-fit:contain;border:1px solid #e5e7eb;border-radius:4px\\" >')}</div>` : ''}
                             <div style=\"color:#374151\"><strong>Answer:</strong> ${(q.student_answer||'-').toString().replace(/\\n/g,'<br>')}</div>
                             ${q.answer_photo_url? `<div style=\"margin-top:6px\"><img src=\"${q.answer_photo_url}\" alt=\"answer photo\" style=\"width:200px;height:200px;object-fit:contain;border:1px solid #e5e7eb;border-radius:4px\"></div>` : ''}
                           </div>

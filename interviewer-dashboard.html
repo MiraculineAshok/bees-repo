@@ -1695,23 +1695,6 @@
         .table th[data-field] { cursor: pointer; }
         .sort-indicator .asc,
         .sort-indicator .desc { cursor: pointer; }
-        /* Fixed column sizes with overflow hint */
-        .table { table-layout: fixed; }
-        .table th, .table td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .overflow-hint { position: relative; }
-        .overflow-hint::after { content: '…'; position: absolute; right: 4px; bottom: 2px; color: #9ca3af; }
-        .scrollable-cell { max-height: 64px; overflow: auto; }
-        /* Ensure action menus render above rows and not clipped */
-        .table-container { position: relative; overflow: visible; }
-        .user-action-menu { position: absolute; z-index: 3000; overflow: visible; }
-        .action-menu-container { position: relative; overflow: visible; }
-        .table tbody tr { overflow: visible; }
-        .table { overflow: visible; }
-        /* Give ample width for question text */
-        #questions .data-table th[data-field="question"],
-        #questions .data-table td.question-cell,
-        #questions .table th[data-field="question"],
-        #questions .table td.question-cell { width: 55%; }
     </style>
 
     <script>
