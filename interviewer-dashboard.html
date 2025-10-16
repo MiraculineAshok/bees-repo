@@ -3626,21 +3626,36 @@
             const container = document.querySelector('#questions-section .table-container');
             if (!tbody) return;
 
-            if (!questionsToDisplay.length) {
+            // Fallback to global questions if no argument provided
+            let data = Array.isArray(questionsToDisplay) ? questionsToDisplay : (window.questions || window.allQuestions || []);
+
+            // Inline search support
+            const searchBox = document.getElementById('interviewer-questions-inline-search');
+            const term = (searchBox?.value || '').toLowerCase().trim();
+            if (term) {
+                data = data.filter(q => {
+                    const text = (q.question_text || q.question || '').toLowerCase();
+                    const category = (q.category || '').toLowerCase();
+                    const tagsHit = Array.isArray(q.tags) && q.tags.some(t => String(t).toLowerCase().includes(term));
+                    return text.includes(term) || category.includes(term) || tagsHit;
+                });
+            }
+
+            if (!data || data.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No questions found.</td></tr>';
                 return;
             }
 
             // Sort by created_at descending (recent first)
-            questionsToDisplay.sort((a, b) => {
+            data.sort((a, b) => {
                 const dateA = new Date(a.created_at || a.created_date);
                 const dateB = new Date(b.created_at || b.created_date);
                 return dateB - dateA;
             });
             
             // Update pagination
-            updateTotalPages(questionsToDisplay, 'questions');
-            const paginatedData = getPaginatedData(questionsToDisplay, 'questions');
+            updateTotalPages(data, 'questions');
+            const paginatedData = getPaginatedData(data, 'questions');
 
             tbody.innerHTML = paginatedData.map(q => {
                 const timesAsked = q.times_asked ?? q.count_of_times_asked ?? 0;
@@ -3716,10 +3731,10 @@
                 }
                 
                 const startIndex = (currentPage['questions'] - 1) * ITEMS_PER_PAGE + 1;
-                const endIndex = Math.min(currentPage['questions'] * ITEMS_PER_PAGE, questionsToDisplay.length);
+                const endIndex = Math.min(currentPage['questions'] * ITEMS_PER_PAGE, data.length);
                 const infoHTML = `
                     <div class="pagination-info">
-                        <span>Showing ${startIndex}-${endIndex} of ${questionsToDisplay.length} questions</span>
+                        <span>Showing ${startIndex}-${endIndex} of ${data.length} questions</span>
                         <span>Page ${currentPage['questions']} of ${totalPages['questions']}</span>
                     </div>
                 `;
