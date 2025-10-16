@@ -799,7 +799,6 @@
         .btn-primary:hover {
             background: #1d4ed8;
         }
-
         .btn-secondary {
             background: #6b7280;
             color: white;
@@ -1595,7 +1594,6 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             border-left: 4px solid #000000;
         }
-
         .stat-value {
             font-size: 2rem;
             font-weight: 700;
@@ -2441,7 +2439,6 @@
             <img id="modal-image" src="" alt="Answer Image">
         </div>
     </div>
-
     <script>
         function setClearFiltersVisibility(section) {
             try {
@@ -3237,7 +3234,6 @@
         }
 
         // REMOVED: Old conflicting applyFiltersToInterviews function
-
         // REMOVED: Old conflicting applySortingToInterviews function
         
         function getSortFunction(sortKey) {
@@ -3631,14 +3627,14 @@
                     <td data-field="tags">${tagsDisplay}</td>
                     <td data-field="times_asked">${question.times_asked || question.count_of_times_asked || 0}</td>
                     <td data-field="average_score">
-                        ${question.average_score > 0 ? `
+                        ${Number(question.average_score || 0) > 0 ? `
                             <div style="display:flex;align-items:center;gap:0.5rem">
-                                <span style="font-weight:600">${question.average_score.toFixed(2)}</span>
-                                <span style="display:inline-block;background:${question.average_score > 8 ? '#10b981' : question.average_score >= 6 ? '#f59e0b' : '#ef4444'};color:#fff;padding:2px 6px;border-radius:8px;font-size:9px;font-weight:600">${question.average_score > 8 ? '#easy' : question.average_score >= 6 ? '#medium' : '#hard'}</span>
+                                <span style="font-weight:600">${(Number(question.average_score || 0)).toFixed(2)}</span>
+                                <span style="display:inline-block;background:${Number(question.average_score || 0) > 8 ? '#10b981' : Number(question.average_score || 0) >= 6 ? '#f59e0b' : '#ef4444'};color:#fff;padding:2px 6px;border-radius:8px;font-size:9px;font-weight:600">${Number(question.average_score || 0) > 8 ? '#easy' : Number(question.average_score || 0) >= 6 ? '#medium' : '#hard'}</span>
                             </div>
                         ` : '-'}
                     </td>
-                    <td data-field="success_rate">${question.success_rate || 0}%</td>
+                    <td data-field="success_rate">${Number(question.success_rate || 0)}%</td>
                     <td>
                         <button class="icon-btn edit-btn" onclick="startEdit('${question.id}')" title="Edit">✏️</button>
                         <button class="icon-btn delete-btn" onclick="deleteQuestion('${question.id}')" title="Delete">🗑️</button>
@@ -4037,7 +4033,6 @@
                 allInterviewers = [];
             }
         }
-
         function displaySearchResults(interviewers, searchTerm) {
             const resultsContainer = document.getElementById('panelist-search-results');
             
@@ -4447,10 +4442,10 @@
                         </div>
                         <div class="stat-card">
                             <div class="stat-value">
-                                ${question.average_score > 0 ? `
+                                ${Number(question.average_score || 0) > 0 ? `
                                     <div style="display:flex;align-items:center;gap:0.5rem;justify-content:center">
-                                        <span>${question.average_score.toFixed(2)}</span>
-                                        <span style="display:inline-block;background:${question.average_score > 8 ? '#10b981' : question.average_score >= 6 ? '#f59e0b' : '#ef4444'};color:#fff;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:600">${question.average_score > 8 ? '#easy' : question.average_score >= 6 ? '#medium' : '#hard'}</span>
+                                        <span>${(Number(question.average_score || 0)).toFixed(2)}</span>
+                                        <span style="display:inline-block;background:${Number(question.average_score || 0) > 8 ? '#10b981' : Number(question.average_score || 0) >= 6 ? '#f59e0b' : '#ef4444'};color:#fff;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:600">${Number(question.average_score || 0) > 8 ? '#easy' : Number(question.average_score || 0) >= 6 ? '#medium' : '#hard'}</span>
                                     </div>
                                 ` : '-'}
                             </div>
@@ -4461,7 +4456,7 @@
                             <div class="stat-label">Total Score</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-value">${question.success_rate || 0}%</div>
+                            <div class="stat-value">${Number(question.success_rate || 0)}%</div>
                             <div class="stat-label">Success Rate</div>
                         </div>
                     </div>
@@ -4826,7 +4821,6 @@
             
             return filterConfigs[tab] || '';
         }
-
         function generateSortOptions(tab) {
             const sortConfigs = {
                 'interviews': `
@@ -5603,7 +5597,7 @@
                     <td data-field="times_asked">${question.times_asked || 0}</td>
                     <td data-field="times_answered_correctly">${question.times_answered_correctly || 0}</td>
                     <td data-field="times_answered_incorrectly">${question.times_answered_incorrectly || 0}</td>
-                    <td data-field="success_rate">${question.success_rate || 0}%</td>
+                    <td data-field="success_rate">${Number(question.success_rate || 0)}%</td>
                     <td>
                         <button class="icon-btn favorite-btn ${favoriteQuestionIds.has(question.id) ? 'favorited' : ''}" 
                                 onclick="toggleFavorite('${question.id}')" title="Toggle Favorite">
@@ -5615,7 +5609,6 @@
                 </tr>
             `;
         }
-
         function generateSessionRow(session) {
             return `
                 <tr data-row-id="${session.id}">
@@ -6386,7 +6379,6 @@
                 showError('Failed to load authorized users');
             }
         }
-
         function displayUsers(usersData = users, groupBy = '') {
             const tbody = document.getElementById('users-table-body');
             if (!tbody) return;
@@ -7170,7 +7162,6 @@
             const editActions = questionElement.querySelector('.edit-actions');
             if (editActions) editActions.remove();
         }
-        
         // Edit question answer in interview details
         async function editQuestionAnswer(questionId, currentAnswer) {
             const questionElement = document.getElementById(`question-${questionId}`);
@@ -7295,10 +7286,10 @@
                         <div class="detail-item">
                             <div class="detail-label">Average Score</div>
                             <div class="detail-value">
-                                ${question.average_score > 0 ? `
+                                ${Number(question.average_score || 0) > 0 ? `
                                     <div style="display:flex;align-items:center;gap:0.5rem">
-                                        <span>${question.average_score.toFixed(2)}</span>
-                                        <span style="display:inline-block;background:${question.average_score > 8 ? '#10b981' : question.average_score >= 6 ? '#f59e0b' : '#ef4444'};color:#fff;padding:2px 6px;border-radius:8px;font-size:9px;font-weight:600">${question.average_score > 8 ? '#easy' : question.average_score >= 6 ? '#medium' : '#hard'}</span>
+                                        <span>${(Number(question.average_score || 0)).toFixed(2)}</span>
+                                        <span style="display:inline-block;background:${Number(question.average_score || 0) > 8 ? '#10b981' : Number(question.average_score || 0) >= 6 ? '#f59e0b' : '#ef4444'};color:#fff;padding:2px 6px;border-radius:8px;font-size:9px;font-weight:600">${Number(question.average_score || 0) > 8 ? '#easy' : Number(question.average_score || 0) >= 6 ? '#medium' : '#hard'}</span>
                                     </div>
                                 ` : '-'}
                             </div>
@@ -7309,7 +7300,7 @@
                         </div>
                         <div class="detail-item">
                             <div class="detail-label">Success Rate</div>
-                            <div class="detail-value">${question.success_rate}%</div>
+                            <div class="detail-value">${Number(question.success_rate || 0)}%</div>
                         </div>
                     </div>
                 `;
@@ -7842,7 +7833,6 @@
                 showError('Error applying bulk edit');
             }
         }
-
         async function startEdit(rowId, data) {
             if (currentEditRow) {
                 cancelEdit();
@@ -8571,7 +8561,6 @@
             contentDiv.innerHTML = tableHTML;
             previewDiv.style.display = 'block';
         }
-
         async function startBulkImport() {
             const importBtn = document.getElementById('import-btn');
             
