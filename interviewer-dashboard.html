@@ -1695,8 +1695,11 @@
         .table th[data-field] { cursor: pointer; }
         .sort-indicator .asc,
         .sort-indicator .desc { cursor: pointer; }
-        .data-table { table-layout: fixed; }
-        .data-table th, .data-table td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        /* Fixed column sizes with overflow hint */
+        .table { table-layout: fixed; }
+        .table th, .table td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .overflow-hint { position: relative; }
+        .overflow-hint::after { content: '…'; position: absolute; right: 4px; bottom: 2px; color: #9ca3af; }
         .scrollable-cell { max-height: 64px; overflow: auto; }
     </style>
 
