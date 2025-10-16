@@ -3908,6 +3908,7 @@
                         <td data-field="phone">${student.phone || 'N/A'}</td>
                         <td data-field="interview_count">${student.interview_count || 0}</td>
                         <td data-field="verdicts">${verdictsDisplay}</td>
+                        <td data-field="created_at">${student.created_at ? formatDate(student.created_at) : '-'}</td>
                         <td>
                             <button class="icon-btn edit-btn" onclick="startEdit('${student.id}')" title="Edit">✏️</button>
                             <button class="icon-btn delete-btn" onclick="deleteRecord('${student.id}', 'student')" title="Delete">🗑️</button>
