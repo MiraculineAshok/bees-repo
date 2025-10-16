@@ -1845,11 +1845,16 @@ app.get('/api/admin/consolidation', async (req, res) => {
         c.student_email,
         c.zeta_id,
         c.session_name,
-        c.interview_ids,
         c.interviewer_ids,
         c.interviewer_names,
         c.verdicts,
         c.status,
+        -- concatenate latest notes from interviews for this student+session
+        (
+          SELECT STRING_AGG(COALESCE(i.overall_notes, ''), ' \n---\n ' ORDER BY i.created_at DESC)
+          FROM interviews i
+          WHERE i.student_id = c.student_id AND (c.session_id IS NULL OR i.session_id = c.session_id)
+        ) AS notes,
         c.last_interview_at,
         c.created_at,
         c.updated_at
@@ -1860,6 +1865,28 @@ app.get('/api/admin/consolidation', async (req, res) => {
   } catch (error) {
     console.error('Error fetching consolidation:', error);
     res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Update consolidation status (select/reject/waitlist)
+app.put('/api/admin/consolidation/:id/status', async (req, res) => {
+  try {
+    if (!pool) return res.status(503).json({ success: false, error: 'DB unavailable' });
+    const id = Number(req.params.id);
+    const { status } = req.body || {};
+    const allowed = ['selected','rejected','waitlisted'];
+    if (!allowed.includes(String(status).toLowerCase())) {
+      return res.status(400).json({ success: false, error: 'Invalid status' });
+    }
+    const result = await pool.query(
+      `UPDATE interview_consolidation SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *`,
+      [String(status).toLowerCase(), id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ success: false, error: 'Not found' });
+    res.json({ success: true, data: result.rows[0] });
+  } catch (e) {
+    console.error('Error updating consolidation status:', e);
+    res.status(500).json({ success: false, error: 'Failed to update status' });
   }
 });
 
