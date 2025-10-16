@@ -4856,8 +4856,13 @@
         // Utility functions
         function formatDate(dateString) {
             if (!dateString) return 'N/A';
-            const date = new Date(dateString);
-            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+            const d = new Date(dateString);
+            if (isNaN(d.getTime())) return 'N/A';
+            const dd = String(d.getDate()).padStart(2, '0');
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const mmm = months[d.getMonth()];
+            const yyyy = d.getFullYear();
+            return `${dd}/${mmm}/${yyyy}`;
         }
 
         function formatDuration(seconds) {
