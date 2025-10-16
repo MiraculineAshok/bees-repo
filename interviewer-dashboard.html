@@ -1488,11 +1488,11 @@
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th data-field="question">Question <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                    <th data-field="question" onclick="sortByQuestion('question')">Question <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                     <th>Tags</th>
-                                    <th data-field="times_asked">Times Asked <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
-                                    <th data-field="average_score">Avg Score <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
-                                    <th data-field="success_rate">Success Rate <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                    <th data-field="times_asked" onclick="sortByQuestion('times_asked')">Times Asked <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                    <th data-field="average_score" onclick="sortByQuestion('average_score')">Avg Score <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                    <th data-field="success_rate" onclick="sortByQuestion('success_rate')">Success Rate <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -1698,6 +1698,24 @@
     </style>
 
     <script>
+        // Sorting state for Question Analysis
+        window.questionSortState = { field: 'times_asked', dir: 'desc' };
+        function sortByQuestion(field){
+            const s = window.questionSortState;
+            if (s.field === field){ s.dir = s.dir === 'asc' ? 'desc' : 'asc'; } else { s.field = field; s.dir = 'asc'; }
+            updateQuestionSortIndicators();
+            if (typeof displayQuestionAnalytics==='function') displayQuestionAnalytics(window.allQuestions||window.questions||[]);
+        }
+        function updateQuestionSortIndicators(){
+            const thead = document.querySelector('#questions-section thead');
+            if (!thead) return; const {field,dir}=window.questionSortState;
+            thead.querySelectorAll('th[data-field] .sort-indicator .asc').forEach(s=> s.style.opacity='0.3');
+            thead.querySelectorAll('th[data-field] .sort-indicator .desc').forEach(s=> s.style.opacity='0.3');
+            const asc = thead.querySelector(`th[data-field="${field}"] .sort-indicator .asc`);
+            const desc = thead.querySelector(`th[data-field="${field}"] .sort-indicator .desc`);
+            if (asc) asc.style.opacity = dir==='asc' ? '1' : '0.3';
+            if (desc) desc.style.opacity = dir==='desc' ? '1' : '0.3';
+        }
         // Inline sort/search for interviewer lists
         const interviewerSortState = { field: 'created_at', dir: 'desc' };
         function sortByInterviewer(field){
@@ -3673,17 +3691,10 @@
                 });
             }
 
-            // Sort support based on header clicks
-            const thead = document.querySelector('#questions-section thead');
-            const activeTh = thead && thead.querySelector('th[data-field] .sort-indicator .asc[style*="opacity: 1"], th[data-field] .sort-indicator .desc[style*="opacity: 1"]');
-            // Default sort: times_asked desc
-            let field = 'times_asked';
-            let dir = 'desc';
-            if (activeTh) {
-                const thEl = activeTh.closest('th[data-field]');
-                field = thEl ? thEl.getAttribute('data-field') : field;
-                dir = activeTh.classList.contains('asc') ? 'asc' : 'desc';
-            }
+            // Sort using questionSortState
+            const state = window.questionSortState || { field: 'times_asked', dir: 'desc' };
+            let field = state.field;
+            let dir = state.dir;
             const asc = dir === 'asc';
             const getVal = (q, f) => {
                 if (f === 'question') return (q.question_text || q.question || '').toLowerCase();
@@ -3699,12 +3710,7 @@
                 return;
             }
 
-            // Sort by created_at descending (recent first)
-            data.sort((a, b) => {
-                const dateA = new Date(a.created_at || a.created_date);
-                const dateB = new Date(b.created_at || b.created_date);
-                return dateB - dateA;
-            });
+            // Note: do not override header sort with created_at here
             
             // Update pagination
             updateTotalPages(data, 'questions');
