@@ -1400,7 +1400,8 @@ app.delete('/api/interviews/:id', async (req, res) => {
         JOIN students s ON s.id = i.student_id
         LEFT JOIN authorized_users au ON au.id = i.interviewer_id
         LEFT JOIN interview_sessions iss ON iss.id = i.session_id
-        WHERE i.student_id = $1 AND ($2::int IS NULL OR i.session_id = $2::int)
+        WHERE i.student_id = $1 
+          AND ( (i.session_id IS NULL AND $2 IS NULL) OR i.session_id = $2 )
         GROUP BY s.id, s.first_name, s.last_name, s.email, s.zeta_id, i.session_id, iss.name
       `, [student_id, session_id]);
 
@@ -1409,11 +1410,16 @@ app.delete('/api/interviews/:id', async (req, res) => {
       } else {
         const r = agg.rows[0];
         const verdicts = (r.verdicts || []).filter(v => v != null && String(v).trim() !== '').map(v => String(v).toLowerCase());
+        // If verdicts array contains values that no longer correspond to existing interviews, drop them
+        // Build a set of interviews that still exist for safety
+        const existing = await pool.query('SELECT id, verdict FROM interviews WHERE student_id = $1 AND ((session_id IS NULL AND $2 IS NULL) OR session_id = $2) ORDER BY created_at', [r.student_id, r.session_id]);
+        const normalizedExistingVerdicts = (existing.rows||[]).map(x => (x.verdict||'').toLowerCase()).filter(v => v !== '');
+        const filteredVerdicts = verdicts.filter(v => normalizedExistingVerdicts.includes(v));
         let status = null;
         if (verdicts.length > 0) {
           const last = verdicts[verdicts.length - 1];
           const classify = (v) => v.includes('selected') ? 'selected' : (v.includes('reject') ? 'rejected' : ((v.includes('hold')||v.includes('maybe')||v.includes('wait')) ? 'waitlisted' : null));
-          status = classify(last) || (verdicts.some(v=>v.includes('selected')) ? 'selected' : verdicts.some(v=>v.includes('reject')) ? 'rejected' : verdicts.some(v=>v.includes('hold')||v.includes('maybe')||v.includes('wait')) ? 'waitlisted' : null);
+          status = classify(last) || (filteredVerdicts.some(v=>v.includes('selected')) ? 'selected' : filteredVerdicts.some(v=>v.includes('reject')) ? 'rejected' : filteredVerdicts.some(v=>v.includes('hold')||v.includes('maybe')||v.includes('wait')) ? 'waitlisted' : null);
         }
         await pool.query(`
           INSERT INTO interview_consolidation (
@@ -1443,7 +1449,7 @@ app.delete('/api/interviews/:id', async (req, res) => {
           r.interview_ids || [],
           r.interviewer_ids || [],
           r.interviewer_names || [],
-          r.verdicts || [],
+          filteredVerdicts || [],
           status,
           r.last_interview_at
         ]);
