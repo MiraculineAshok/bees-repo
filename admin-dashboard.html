@@ -2004,6 +2004,9 @@
                     <a href="#" class="nav-link" data-section="users">
                         <i>👤</i> Users
                     </a>
+                    <a href="#" class="nav-link" data-section="consolidation">
+                        <i>📚</i> Consolidation
+                    </a>
                 </li>
             </ul>
         </nav>
@@ -2322,6 +2325,37 @@
                             <tr>
                                 <td colspan="9" class="loading">Loading users...</td>
                             </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Consolidation Section -->
+            <section id="consolidation" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">Consolidation</h2>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="loadConsolidation()">Refresh</button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Email</th>
+                                <th>Zeta ID</th>
+                                <th>Session</th>
+                                <th>Interviews</th>
+                                <th>Interviewers</th>
+                                <th>Verdicts</th>
+                                <th>Status</th>
+                                <th>Last Interview</th>
+                            </tr>
+                        </thead>
+                        <tbody id="consolidation-table-body">
+                            <tr><td colspan="9" class="loading">Loading consolidation...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -2819,6 +2853,47 @@
             }
         }
 
+        async function loadConsolidation() {
+            try {
+                const tbody = document.getElementById('consolidation-table-body');
+                if (tbody) tbody.innerHTML = '<tr><td colspan="9" class="loading">Loading consolidation...</td></tr>';
+                const res = await fetch('/api/admin/consolidation');
+                const json = await res.json();
+                if (!res.ok || !json.success) throw new Error(json.error || 'Failed to load');
+                const rows = json.data || [];
+                if (!tbody) return;
+                if (rows.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No consolidation data</td></tr>';
+                    return;
+                }
+                const html = rows.map(r => {
+                    const interviewLinks = Array.isArray(r.interview_ids) ? r.interview_ids.map(id => `#${id}`).join(', ') : '-';
+                    const interviewerNames = Array.isArray(r.interviewer_names) ? r.interviewer_names.join(', ') : '-';
+                    const verdicts = Array.isArray(r.verdicts) ? r.verdicts.join(' | ') : '-';
+                    const lastAt = r.last_interview_at ? new Date(r.last_interview_at).toLocaleString() : '-';
+                    const status = r.status || '-';
+                    return `
+                        <tr>
+                            <td>${r.student_name || '-'}</td>
+                            <td>${r.student_email || '-'}</td>
+                            <td>${r.zeta_id || '-'}</td>
+                            <td>${r.session_name || '-'}</td>
+                            <td>${interviewLinks}</td>
+                            <td>${interviewerNames}</td>
+                            <td>${verdicts}</td>
+                            <td>${status}</td>
+                            <td>${lastAt}</td>
+                        </tr>
+                    `;
+                }).join('');
+                tbody.innerHTML = html;
+            } catch (e) {
+                console.error('Error loading consolidation:', e);
+                const tbody = document.getElementById('consolidation-table-body');
+                if (tbody) tbody.innerHTML = '<tr><td colspan="9" class="error">Error loading consolidation</td></tr>';
+            }
+        }
+
         // User authentication functions
         function checkUserLoginStatus() {
             // Check URL parameters for user data (from OAuth callback)
@@ -2922,7 +2997,8 @@
                 'sessions': 'Interview Sessions',
                 'students': 'Students',
                 'my-interviews': 'My Interviews',
-                'users': 'Users'
+                'users': 'Users',
+                'consolidation': 'Consolidation'
             };
             document.getElementById('page-title').textContent = titles[section];
 
@@ -2934,6 +3010,8 @@
             currentSection = section;
             if (section === 'my-interviews') {
                 loadMyInterviewsForAdmin();
+            } else if (section === 'consolidation') {
+                loadConsolidation();
             }
         }
 

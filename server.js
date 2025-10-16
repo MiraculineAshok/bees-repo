@@ -64,6 +64,7 @@ const AuthService = require('./services/authService');
 const InterviewService = require('./services/interviewService');
 const QuestionBankService = require('./services/questionBankService');
 const AdminService = require('./services/adminService');
+const pool = require('./db/pool');
 const InterviewerService = require('./services/interviewerService');
 
 const app = express();
@@ -1827,6 +1828,37 @@ app.get('/api/admin/questions/:id/details', async (req, res) => {
       success: false,
       error: error.message
     });
+  }
+});
+
+// Consolidation API
+app.get('/api/admin/consolidation', async (req, res) => {
+  try {
+    if (!pool) return res.json({ success: true, data: [] });
+    const result = await pool.query(`
+      SELECT 
+        c.id,
+        c.student_id,
+        c.session_id,
+        c.student_name,
+        c.student_email,
+        c.zeta_id,
+        c.session_name,
+        c.interview_ids,
+        c.interviewer_ids,
+        c.interviewer_names,
+        c.verdicts,
+        c.status,
+        c.last_interview_at,
+        c.created_at,
+        c.updated_at
+      FROM interview_consolidation c
+      ORDER BY c.last_interview_at DESC NULLS LAST, c.student_name
+    `);
+    res.json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error('Error fetching consolidation:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
