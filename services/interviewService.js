@@ -171,6 +171,17 @@ class InterviewService {
                      RETURNING *`,
                     [interviewId, questionText, questionRichContent, nextOrder]
                 );
+                // Best-effort: increment times_asked in question_bank for matching question
+                try {
+                    await pool.query(
+                        `UPDATE question_bank 
+                         SET times_asked = COALESCE(times_asked, 0) + 1, updated_at = CURRENT_TIMESTAMP
+                         WHERE LOWER(question) = LOWER($1)`,
+                        [questionText]
+                    );
+                } catch (e) {
+                    console.warn('⚠️ Could not increment times_asked for question_bank:', e.message);
+                }
                 return result.rows[0];
             } catch (richContentError) {
                 // If column doesn't exist, fall back to just question_text
@@ -182,6 +193,17 @@ class InterviewService {
                          RETURNING *`,
                         [interviewId, questionText, nextOrder]
                     );
+                    // Best-effort: increment times_asked in question_bank
+                    try {
+                        await pool.query(
+                            `UPDATE question_bank 
+                             SET times_asked = COALESCE(times_asked, 0) + 1, updated_at = CURRENT_TIMESTAMP
+                             WHERE LOWER(question) = LOWER($1)`,
+                            [questionText]
+                        );
+                    } catch (e) {
+                        console.warn('⚠️ Could not increment times_asked for question_bank:', e.message);
+                    }
                     return result.rows[0];
                 }
                 throw richContentError;
@@ -537,9 +559,9 @@ class InterviewService {
         }
 
         try {
-            // First, get the question to check if it has an associated image
+            // First, get the question text and any associated image
             const questionResult = await pool.query(
-                'SELECT answer_photo_url FROM interview_questions WHERE id = $1',
+                'SELECT question_text, answer_photo_url FROM interview_questions WHERE id = $1',
                 [questionId]
             );
 
@@ -568,6 +590,20 @@ class InterviewService {
                     console.warn('⚠️ Error deleting image from Cloudinary (continuing anyway):', error.message);
                     // Don't throw the error - we want to continue even if Cloudinary deletion fails
                 }
+            }
+
+            // Best-effort: decrement times_asked in question_bank for matching question
+            try {
+                if (question.question_text) {
+                    await pool.query(
+                        `UPDATE question_bank 
+                         SET times_asked = GREATEST(COALESCE(times_asked, 0) - 1, 0), updated_at = CURRENT_TIMESTAMP
+                         WHERE LOWER(question) = LOWER($1)`,
+                        [question.question_text]
+                    );
+                }
+            } catch (e) {
+                console.warn('⚠️ Could not decrement times_asked for question_bank:', e.message);
             }
 
             console.log('✅ Question deleted successfully');
