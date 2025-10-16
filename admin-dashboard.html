@@ -2654,6 +2654,22 @@
             const { field, dir } = inlineSortState[tab] || { field: 'created_at', dir: 'desc' };
             const asc = dir === 'asc';
             const getVal = (item) => {
+                if (tab === 'questions') {
+                    switch (field) {
+                        case 'times_asked':
+                            return Number(item.times_asked ?? item.count_of_times_asked ?? 0);
+                        case 'average_score':
+                            return Number(item.average_score ?? 0);
+                        case 'success_rate':
+                            return Number(item.success_rate ?? 0);
+                        case 'question':
+                            return (item.question ?? item.question_text ?? '').toString().toLowerCase();
+                        case 'created_at':
+                            return new Date(item.created_at || 0).getTime();
+                        default:
+                            return (item[field] ?? '').toString().toLowerCase();
+                    }
+                }
                 switch (field) {
                     case 'created_at':
                         return new Date(item.created_at || item.interview_date || 0).getTime();
