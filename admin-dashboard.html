@@ -2410,26 +2410,26 @@
     <!-- Create Session Modal -->
         <!-- Bulk Import Students Modal -->
         <div id="bulk-import-students-modal" class="modal">
-            <div class="modal-content" style="max-width:720px">
-                <div class="modal-header">
-                    <h3 class="modal-title">Bulk Import Students</h3>
-                    <button class="close" onclick="closeBulkImportStudents()">&times;</button>
+            <div class="modal-content" style="max-width:720px;padding:0;overflow:hidden">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #e5e7eb;background:#111827;color:#fff">
+                    <h3 class="modal-title" style="margin:0;font-size:16px">Bulk Import Students</h3>
+                    <button class="close" onclick="closeBulkImportStudents()" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:4px 8px;cursor:pointer">✕</button>
                 </div>
-                <div class="modal-body">
-                    <p>You can paste text (CSV) or upload a file (.csv, .xls, .xlsx).</p>
-                    <div style="display:flex; gap:16px; flex-wrap:wrap">
-                        <div style="flex:1; min-width:260px">
-                            <label class="form-label">Paste CSV (name,email,zeta_id,phone)</label>
+                <div class="modal-body" style="padding:16px;background:#f9fafb">
+                    <div style="display:flex;gap:16px;flex-wrap:wrap">
+                        <div style="flex:1;min-width:280px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:12px">
+                            <div style="font-weight:600;margin-bottom:6px;color:#111827">Paste CSV</div>
+                            <div style="font-size:12px;color:#6b7280;margin-bottom:8px">Format: name,email,zeta_id,phone</div>
                             <textarea id="bulk-students-text" class="form-textarea" rows="8" placeholder="John Doe,john@example.com,Z123,9876543210\nJane Roe,jane@example.com,Z124,9876543211"></textarea>
                         </div>
-                        <div style="flex:1; min-width:260px">
-                            <label class="form-label">Upload File (.csv, .xls, .xlsx)</label>
-                            <input id="bulk-students-file" type="file" accept=".csv,.xls,.xlsx" />
-                            <div style="font-size:12px;color:#6b7280;margin-top:6px">Max size 5MB</div>
+                        <div style="flex:1;min-width:280px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:12px">
+                            <div style="font-weight:600;margin-bottom:6px;color:#111827">Upload File</div>
+                            <div style="font-size:12px;color:#6b7280;margin-bottom:8px">Accepted: .csv, .xls, .xlsx (max 5MB)</div>
+                            <input id="bulk-students-file" type="file" accept=".csv,.xls,.xlsx" style="background:#f9fafb;border:1px dashed #cbd5e1;padding:10px;border-radius:8px;width:100%" />
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer" style="display:flex;gap:8px;justify-content:flex-end">
+                <div class="modal-footer" style="display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;border-top:1px solid #e5e7eb;background:#fff">
                     <button class="btn btn-secondary" onclick="closeBulkImportStudents()">Cancel</button>
                     <button class="btn btn-primary" onclick="submitBulkImportStudents()">Import</button>
                 </div>
@@ -2538,10 +2538,12 @@
     </div>
     <script>
         function openBulkImportStudents(){
-            const m = document.getElementById('bulk-import-students-modal'); if (m) m.style.display='block';
+            const m = document.getElementById('bulk-import-students-modal'); 
+            if (m){ m.classList.add('active'); m.style.display='flex'; }
         }
         function closeBulkImportStudents(){
-            const m = document.getElementById('bulk-import-students-modal'); if (m) m.style.display='none';
+            const m = document.getElementById('bulk-import-students-modal'); 
+            if (m){ m.classList.remove('active'); m.style.display='none'; }
             const t = document.getElementById('bulk-students-text'); if (t) t.value='';
             const f = document.getElementById('bulk-students-file'); if (f) f.value='';
         }
