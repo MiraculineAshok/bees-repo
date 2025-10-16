@@ -1437,11 +1437,7 @@
                     <div class="section-header">
                         <h2 class="section-title">My Interviews</h2>
                         <div class="header-actions">
-                            <button class="btn-filter-toggle" onclick="toggleFilterPanel('interviews')" title="Filter & Sort Options">
-                                <span class="filter-icon">⚙️</span>
-                                <span class="filter-text">Filters</span>
-                            </button>
-                            <button class="btn btn-secondary" title="Clear filters" onclick="clearFilters('interviews')">🧹</button>
+                            <input type="text" id="interviewer-inline-search" class="form-input" placeholder="Search..." oninput="displayInterviews()" style="max-width:220px">
                         </div>
                     </div>
                     
@@ -1454,13 +1450,13 @@
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th>Date</th>
-                                    <th>Student Name</th>
-                                    <th>Zeta ID</th>
-                                    <th>Session</th>
-                                    <th>Status</th>
-                                    <th>Verdict</th>
-                                    <th>Duration</th>
+                                    <th data-field="created_at" onclick="sortByInterviewer('created_at')">Date <span class="sort-indicator"></span></th>
+                                    <th data-field="student_name" onclick="sortByInterviewer('student_name')">Student Name <span class="sort-indicator"></span></th>
+                                    <th data-field="zeta_id" onclick="sortByInterviewer('zeta_id')">Zeta ID <span class="sort-indicator"></span></th>
+                                    <th data-field="session_name" onclick="sortByInterviewer('session_name')">Session <span class="sort-indicator"></span></th>
+                                    <th data-field="status" onclick="sortByInterviewer('status')">Status <span class="sort-indicator"></span></th>
+                                    <th data-field="verdict" onclick="sortByInterviewer('verdict')">Verdict <span class="sort-indicator"></span></th>
+                                    <th data-field="duration_seconds" onclick="sortByInterviewer('duration_seconds')">Duration <span class="sort-indicator"></span></th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -1480,10 +1476,7 @@
                         <div class="header-actions">
                             <button class="btn btn-success" onclick="openAddQuestionModal()">Add Question</button>
                             <button class="btn btn-info" onclick="openBulkImportModal()">Bulk Import</button>
-                            <button class="btn-filter-toggle" onclick="openQuestionFilterPanel()" title="Filter & Sort Options">
-                                <span class="filter-icon">⚙️</span>
-                                <span class="filter-text">Filters</span>
-                            </button>
+                            <input type="text" id="interviewer-questions-inline-search" class="form-input" placeholder="Search questions..." oninput="displayQuestionAnalytics()" style="max-width:260px">
                         </div>
                     </div>
                     
@@ -1699,6 +1692,40 @@
     </div>
 
     <script>
+        // Inline sort/search for interviewer lists
+        const interviewerSortState = { field: 'created_at', dir: 'desc' };
+        function sortByInterviewer(field){
+            if (interviewerSortState.field === field){
+                interviewerSortState.dir = interviewerSortState.dir === 'asc' ? 'desc' : 'asc';
+            } else { interviewerSortState.field = field; interviewerSortState.dir = 'asc'; }
+            displayInterviews();
+        }
+        function applyInterviewerInline(list){
+            const term = document.getElementById('interviewer-inline-search')?.value || '';
+            const t = term.toLowerCase();
+            let filtered = term ? list.filter(i => (
+                (i.student_name||'').toLowerCase().includes(t) ||
+                (i.zeta_id||'').toLowerCase().includes(t) ||
+                (i.session_name||'').toLowerCase().includes(t) ||
+                (i.status||'').toLowerCase().includes(t) ||
+                (i.verdict||'').toLowerCase().includes(t)
+            )) : [...list];
+            const {field,dir}=interviewerSortState; const asc=dir==='asc';
+            const getVal = (x)=>{
+                if (field==='created_at') return new Date(x.created_at||x.interview_date||0).getTime();
+                if (field==='duration_seconds') return Number(x.duration_seconds||0);
+                return (x[field]??'').toString().toLowerCase();
+            };
+            filtered.sort((a,b)=>{ const av=getVal(a), bv=getVal(b); if(av<bv) return asc?-1:1; if(av>bv) return asc?1:-1; return 0; });
+            return filtered;
+        }
+        function updateInterviewerSortIndicators(){
+            const thead = document.querySelector('#interviews-section thead');
+            if (!thead) return; const {field,dir}=interviewerSortState;
+            thead.querySelectorAll('th[data-field] .sort-indicator').forEach(s=>s.textContent='');
+            const th = thead.querySelector(`th[data-field="${field}"] .sort-indicator`);
+            if (th) th.textContent = dir==='asc' ? '▲' : '▼';
+        }
         // Inline Questions filter (replaces old panel for Questions tab)
         function debounce(fn, d=200){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), d);} }
         function bindInlineQuestionFilters(){
@@ -3067,16 +3094,12 @@
                 return;
             }
 
-            // Sort by created_at descending (recent first)
-            interviewsToDisplay.sort((a, b) => {
-                const dateA = new Date(a.created_at || a.interview_date);
-                const dateB = new Date(b.created_at || b.interview_date);
-                return dateB - dateA;
-            });
+            // Inline search + sort
+            const filtered = applyInterviewerInline(interviewsToDisplay);
             
             // Update pagination
-            updateTotalPages(interviewsToDisplay, 'interviews');
-            const paginatedData = getPaginatedData(interviewsToDisplay, 'interviews');
+            updateTotalPages(filtered, 'interviews');
+            const paginatedData = getPaginatedData(filtered, 'interviews');
 
             tbody.innerHTML = paginatedData.map(interview => `
                 <tr>
@@ -3124,15 +3147,16 @@
                 }
                 
                 const startIndex = (currentPage['interviews'] - 1) * ITEMS_PER_PAGE + 1;
-                const endIndex = Math.min(currentPage['interviews'] * ITEMS_PER_PAGE, interviewsToDisplay.length);
+                const endIndex = Math.min(currentPage['interviews'] * ITEMS_PER_PAGE, filtered.length);
                 const infoHTML = `
                     <div class="pagination-info">
-                        <span>Showing ${startIndex}-${endIndex} of ${interviewsToDisplay.length} interviews</span>
+                        <span>Showing ${startIndex}-${endIndex} of ${filtered.length} interviews</span>
                         <span>Page ${currentPage['interviews']} of ${totalPages['interviews']}</span>
                     </div>
                 `;
                 container.insertAdjacentHTML('beforeend', infoHTML);
                 console.log('✅ Pagination info added to container');
+                updateInterviewerSortIndicators();
             } else {
                 console.error('❌ Container not found for pagination!');
                 console.error('Looking for: #interviews-section .table-container');

@@ -2064,11 +2064,7 @@
                 <div class="section-header">
                     <h2 class="section-title">All Interviews</h2>
                     <div class="header-actions">
-                        <button class="btn-filter-toggle" onclick="toggleFilterPanel()" title="Filter & Sort Options">
-                            <span class="filter-icon">⚙️</span>
-                            <span class="filter-text">Filters</span>
-                        </button>
-                        <button id="clear-filters-interviews" class="btn btn-secondary" style="display:none" onclick="clearFilters('interviews')">Clear filters</button>
+                        <input type="text" id="interviews-inline-search" class="form-input" placeholder="Search..." oninput="displayInterviews()" style="max-width:220px">
                         <button class="btn btn-primary" onclick="refreshInterviews()">Refresh</button>
                     </div>
                 </div>
@@ -2094,13 +2090,13 @@
                         <thead>
                             <tr>
                                 <th><input type="checkbox" onchange="toggleAllRows(this.checked)" title="Select All"></th>
-                                <th>Student</th>
-                                <th>Interviewer</th>
-                                <th>Session</th>
-                                <th>Date</th>
-                                <th>Duration</th>
-                                <th>Status</th>
-                                <th>Verdict</th>
+                                <th data-field="student_name" onclick="sortBy('interviews','student_name')">Student <span class="sort-indicator"></span></th>
+                                <th data-field="interviewer_name" onclick="sortBy('interviews','interviewer_name')">Interviewer <span class="sort-indicator"></span></th>
+                                <th data-field="session_name" onclick="sortBy('interviews','session_name')">Session <span class="sort-indicator"></span></th>
+                                <th data-field="created_at" onclick="sortBy('interviews','created_at')">Date <span class="sort-indicator"></span></th>
+                                <th data-field="duration_seconds" onclick="sortBy('interviews','duration_seconds')">Duration <span class="sort-indicator"></span></th>
+                                <th data-field="status" onclick="sortBy('interviews','status')">Status <span class="sort-indicator"></span></th>
+                                <th data-field="verdict" onclick="sortBy('interviews','verdict')">Verdict <span class="sort-indicator"></span></th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -2118,11 +2114,7 @@
                 <div class="section-header">
                     <h2 class="section-title">Questions Analytics</h2>
                     <div class="header-actions">
-                        <button class="btn-filter-toggle" onclick="toggleFilterPanel('questions')" title="Filter & Sort Options">
-                            <span class="filter-icon">⚙️</span>
-                            <span class="filter-text">Filters</span>
-                        </button>
-                        <button id="clear-filters-questions" class="btn btn-secondary" style="display:none" onclick="clearFilters('questions')">Clear filters</button>
+                        <input type="text" id="questions-inline-search" class="form-input" placeholder="Search questions..." oninput="displayQuestions()" style="max-width:260px">
                         <button class="btn btn-success" onclick="openAddQuestionModal()">Add Question</button>
                         <button class="btn btn-info" onclick="openBulkImportModal()">Bulk Import</button>
                         <button class="btn btn-primary" onclick="refreshQuestions()">Refresh</button>
@@ -2145,11 +2137,11 @@
                         <thead>
                             <tr>
                                 <th><input type="checkbox" onchange="toggleAllRows(this.checked)" title="Select All"></th>
-                                <th>Question</th>
+                                <th data-field="question" onclick="sortBy('questions','question')">Question <span class="sort-indicator"></span></th>
                                 <th>Tags</th>
-                                <th>Times Asked</th>
-                                <th>Avg Score</th>
-                                <th>Success Rate</th>
+                                <th data-field="times_asked" onclick="sortBy('questions','times_asked')">Times Asked <span class="sort-indicator"></span></th>
+                                <th data-field="average_score" onclick="sortBy('questions','average_score')">Avg Score <span class="sort-indicator"></span></th>
+                                <th data-field="success_rate" onclick="sortBy('questions','success_rate')">Success Rate <span class="sort-indicator"></span></th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -2167,11 +2159,7 @@
                 <div class="section-header">
                     <h2 class="section-title">Interview Sessions</h2>
                     <div class="header-actions">
-                        <button class="btn-filter-toggle" onclick="toggleFilterPanel('sessions')" title="Filter & Sort Options">
-                            <span class="filter-icon">⚙️</span>
-                            <span class="filter-text">Filters</span>
-                        </button>
-                        <button id="clear-filters-sessions" class="btn btn-secondary" style="display:none" onclick="clearFilters('sessions')">Clear filters</button>
+                        <input type="text" id="sessions-inline-search" class="form-input" placeholder="Search sessions..." oninput="displaySessions()" style="max-width:240px">
                         <button class="btn btn-primary" onclick="openCreateSessionModal()">Create Session</button>
                     </div>
                 </div>
@@ -2192,12 +2180,12 @@
                         <thead>
                             <tr>
                                 <th><input type="checkbox" onchange="toggleAllRows(this.checked)" title="Select All"></th>
-                                <th>Name</th>
+                                <th data-field="name" onclick="sortBy('sessions','name')">Name <span class="sort-indicator"></span></th>
                                 <th>Description</th>
-                                <th>Status</th>
+                                <th data-field="status" onclick="sortBy('sessions','status')">Status <span class="sort-indicator"></span></th>
                                 <th>Panelists</th>
-                                <th>Created By</th>
-                                <th>Created At</th>
+                                <th data-field="created_by_name" onclick="sortBy('sessions','created_by_name')">Created By <span class="sort-indicator"></span></th>
+                                <th data-field="created_at" onclick="sortBy('sessions','created_at')">Created At <span class="sort-indicator"></span></th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -2215,11 +2203,7 @@
                 <div class="section-header">
                     <h2 class="section-title">Students</h2>
                     <div class="header-actions">
-                        <button class="btn-filter-toggle" onclick="toggleFilterPanel('students')" title="Filter & Sort Options">
-                            <span class="filter-icon">⚙️</span>
-                            <span class="filter-text">Filters</span>
-                        </button>
-                        <button id="clear-filters-students" class="btn btn-secondary" style="display:none" onclick="clearFilters('students')">Clear filters</button>
+                        <input type="text" id="students-inline-search" class="form-input" placeholder="Search students..." oninput="displayStudents()" style="max-width:240px">
                         <button class="btn btn-primary" onclick="refreshStudents()">Refresh</button>
                     </div>
                 </div>
@@ -2240,11 +2224,11 @@
                         <thead>
                             <tr>
                                 <th><input type="checkbox" onchange="toggleAllRows(this.checked)" title="Select All"></th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Zeta ID</th>
-                                <th>Phone</th>
-                                <th>Interviews</th>
+                                <th data-field="name" onclick="sortBy('students','name')">Name <span class="sort-indicator"></span></th>
+                                <th data-field="email" onclick="sortBy('students','email')">Email <span class="sort-indicator"></span></th>
+                                <th data-field="zeta_id" onclick="sortBy('students','zeta_id')">Zeta ID <span class="sort-indicator"></span></th>
+                                <th data-field="phone" onclick="sortBy('students','phone')">Phone <span class="sort-indicator"></span></th>
+                                <th data-field="interview_count" onclick="sortBy('students','interview_count')">Interviews <span class="sort-indicator"></span></th>
                                 <th>Verdicts</th>
                                 <th>Actions</th>
                             </tr>
@@ -2263,11 +2247,7 @@
                 <div class="section-header">
                     <h2 class="section-title">My Interviews</h2>
                     <div class="header-actions">
-                        <button class="btn-filter-toggle" onclick="toggleFilterPanel('my-interviews')" title="Filter & Sort Options">
-                            <span class="filter-icon">⚙️</span>
-                            <span class="filter-text">Filters</span>
-                        </button>
-                        <button id="clear-filters-my-interviews" class="btn btn-secondary" style="display:none" onclick="clearFilters('my-interviews')">Clear filters</button>
+                        <input type="text" id="my-interviews-inline-search" class="form-input" placeholder="Search..." oninput="loadMyInterviewsForAdmin()" style="max-width:220px">
                         <button class="btn btn-primary" onclick="loadMyInterviewsForAdmin()">Refresh</button>
                     </div>
                 </div>
@@ -2287,13 +2267,13 @@
                         <thead>
                             <tr>
                                 <th><input type="checkbox" onchange="toggleAllRows(this.checked)" title="Select All"></th>
-                                <th>Date</th>
-                                <th>Student</th>
-                                <th>Zeta ID</th>
-                                <th>Session</th>
-                                <th>Status</th>
-                                <th>Verdict</th>
-                                <th>Duration</th>
+                                <th data-field="created_at" onclick="sortBy('my-interviews','created_at')">Date <span class="sort-indicator"></span></th>
+                                <th data-field="student_name" onclick="sortBy('my-interviews','student_name')">Student <span class="sort-indicator"></span></th>
+                                <th data-field="zeta_id" onclick="sortBy('my-interviews','zeta_id')">Zeta ID <span class="sort-indicator"></span></th>
+                                <th data-field="session_name" onclick="sortBy('my-interviews','session_name')">Session <span class="sort-indicator"></span></th>
+                                <th data-field="status" onclick="sortBy('my-interviews','status')">Status <span class="sort-indicator"></span></th>
+                                <th data-field="verdict" onclick="sortBy('my-interviews','verdict')">Verdict <span class="sort-indicator"></span></th>
+                                <th data-field="duration_seconds" onclick="sortBy('my-interviews','duration_seconds')">Duration <span class="sort-indicator"></span></th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -2309,11 +2289,7 @@
                 <div class="section-header">
                     <h2 class="section-title">Users</h2>
                     <div class="header-actions">
-                        <button class="btn-filter-toggle" onclick="toggleFilterPanel('users')" title="Filter & Sort Options">
-                            <span class="filter-icon">⚙️</span>
-                            <span class="filter-text">Filters</span>
-                        </button>
-                        <button id="clear-filters-users" class="btn btn-secondary" style="display:none" onclick="clearFilters('users')">Clear filters</button>
+                        <input type="text" id="users-inline-search" class="form-input" placeholder="Search users..." oninput="displayUsers()" style="max-width:220px">
                         <button class="btn btn-primary" onclick="refreshUsers()">Refresh</button>
                     </div>
                 </div>
@@ -2334,12 +2310,12 @@
                         <thead>
                             <tr>
                                 <th><input type="checkbox" id="select-all-users" onchange="toggleSelectAll()"></th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Role</th>
-                                <th>Status</th>
-                                <th>Created At</th>
-                                <th>Last Login</th>
+                                <th data-field="name" onclick="sortBy('users','name')">Name <span class="sort-indicator"></span></th>
+                                <th data-field="email" onclick="sortBy('users','email')">Email <span class="sort-indicator"></span></th>
+                                <th data-field="role" onclick="sortBy('users','role')">Role <span class="sort-indicator"></span></th>
+                                <th data-field="status" onclick="sortBy('users','status')">Status <span class="sort-indicator"></span></th>
+                                <th data-field="created_at" onclick="sortBy('users','created_at')">Created At <span class="sort-indicator"></span></th>
+                                <th data-field="last_login_at" onclick="sortBy('users','last_login_at')">Last Login <span class="sort-indicator"></span></th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -2447,149 +2423,7 @@
         </div>
     </div>
 
-    <!-- Filter Panel Overlay -->
-    <div id="filter-panel-overlay" class="filter-panel-overlay" onclick="closeFilterPanel()"></div>
-
-    <!-- Filter Panel -->
-    <div id="filter-panel" class="filter-panel">
-        <div class="filter-panel-header">
-            <h3>Filter & Sort Options</h3>
-            <button class="close-btn" onclick="closeFilterPanel()">✕</button>
-        </div>
-        <div class="filter-panel-content">
-            <!-- Search Section -->
-            <div class="filter-section">
-                <div class="filter-section-title">🔍 Search & Filter</div>
-                <div class="filter-row">
-                    <div class="filter-group">
-                        <label>Search:</label>
-                        <input type="text" id="search-interviews" class="form-input" placeholder="Search by student name, email, Zeta ID, or interviewer..." onkeyup="applyFilters('interviews')">
-                    </div>
-                    <div class="filter-group">
-                        <label>Status:</label>
-                        <select id="status-filter" class="form-select" onchange="applyFilters('interviews')">
-                            <option value="">All Statuses</option>
-                            <option value="completed">Completed</option>
-                            <option value="in_progress">In Progress</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>Session:</label>
-                        <select id="session-filter" class="form-select" onchange="applyFilters('interviews')">
-                            <option value="">All Sessions</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>Verdict:</label>
-                        <select id="verdict-filter" class="form-select" onchange="applyFilters('interviews')">
-                            <option value="">All Verdicts</option>
-                            <option value="Tiger">Tiger</option>
-                            <option value="Cow">Cow</option>
-                            <option value="Sheep">Sheep</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="filter-row">
-                    <div class="filter-group">
-                        <label>Interviewer:</label>
-                        <select id="interviewer-filter" class="form-select" onchange="applyFilters('interviews')">
-                            <option value="">All Interviewers</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>Date From:</label>
-                        <input type="date" id="date-from" class="form-input" onchange="applyFilters('interviews')">
-                    </div>
-                    <div class="filter-group">
-                        <label>Date To:</label>
-                        <input type="date" id="date-to" class="form-input" onchange="applyFilters('interviews')">
-                    </div>
-                    <div class="filter-group">
-                        <label>Duration (min):</label>
-                        <input type="number" id="duration-min" class="form-input" placeholder="Minutes" min="0" onchange="applyFilters('interviews')">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sort Section -->
-            <div class="sort-section">
-                <div class="filter-section-title">📊 Sort Options</div>
-                <div class="sort-options">
-                    <div class="sort-option">
-                        <label>Primary Sort:</label>
-                        <select id="sort-by" class="form-select" onchange="applyFilters('interviews')">
-                            <option value="created_at_desc">Date (Newest First)</option>
-                            <option value="created_at_asc">Date (Oldest First)</option>
-                            <option value="student_name_asc">Student Name (A-Z)</option>
-                            <option value="student_name_desc">Student Name (Z-A)</option>
-                            <option value="duration_desc">Duration (Longest First)</option>
-                            <option value="duration_asc">Duration (Shortest First)</option>
-                            <option value="status_asc">Status (A-Z)</option>
-                            <option value="verdict_asc">Verdict (A-Z)</option>
-                            <option value="interviewer_asc">Interviewer (A-Z)</option>
-                            <option value="session_asc">Session (A-Z)</option>
-                        </select>
-                    </div>
-                    <div class="sort-option">
-                        <label>Secondary Sort:</label>
-                        <select id="sort-by-2" class="form-select" onchange="applyFilters('interviews')">
-                            <option value="">None</option>
-                            <option value="student_name_asc">Student Name (A-Z)</option>
-                            <option value="student_name_desc">Student Name (Z-A)</option>
-                            <option value="created_at_desc">Date (Newest First)</option>
-                            <option value="created_at_asc">Date (Oldest First)</option>
-                            <option value="duration_desc">Duration (Longest First)</option>
-                            <option value="duration_asc">Duration (Shortest First)</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Group By Section -->
-            <div class="group-by-section">
-                <div class="filter-section-title">📋 Group By</div>
-                <div class="group-by-options">
-                    <div class="group-by-option">
-                        <input type="radio" id="group-none" name="group-by" value="" onchange="applyFilters('interviews')" checked>
-                        <label for="group-none">No Grouping</label>
-                    </div>
-                    <div class="group-by-option">
-                        <input type="radio" id="group-session" name="group-by" value="session" onchange="applyFilters('interviews')">
-                        <label for="group-session">Session</label>
-                    </div>
-                    <div class="group-by-option">
-                        <input type="radio" id="group-status" name="group-by" value="status" onchange="applyFilters('interviews')">
-                        <label for="group-status">Status</label>
-                    </div>
-                    <div class="group-by-option">
-                        <input type="radio" id="group-verdict" name="group-by" value="verdict" onchange="applyFilters('interviews')">
-                        <label for="group-verdict">Verdict</label>
-                    </div>
-                    <div class="group-by-option">
-                        <input type="radio" id="group-interviewer" name="group-by" value="interviewer" onchange="applyFilters('interviews')">
-                        <label for="group-interviewer">Interviewer</label>
-                    </div>
-                    <div class="group-by-option">
-                        <input type="radio" id="group-date" name="group-by" value="date" onchange="applyFilters('interviews')">
-                        <label for="group-date">Date</label>
-                    </div>
-                    <div class="group-by-option">
-                        <input type="radio" id="group-duration" name="group-by" value="duration" onchange="applyFilters('interviews')">
-                        <label for="group-duration">Duration Range</label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="filter-actions">
-                <button class="btn-filter" onclick="applyFilters('interviews', true)">Apply Filters</button>
-                <button class="btn-clear" onclick="clearAllFilters()">Clear All</button>
-                <button class="btn-export" onclick="exportInterviews()">Export CSV</button>
-                <button class="btn btn-secondary" onclick="refreshInterviews()">Refresh Data</button>
-            </div>
-        </div>
-    </div>
+    <!-- legacy filter panel removed -->
 
     <!-- Image Modal -->
     <div id="image-modal" class="image-modal" onclick="closeImageModal()">
@@ -2684,6 +2518,89 @@
             users: 1,
             'my-interviews': 1
         };
+
+        // Inline sorting state per tab
+        const inlineSortState = {
+            'interviews': { field: 'created_at', dir: 'desc' },
+            'questions': { field: 'created_at', dir: 'desc' },
+            'sessions': { field: 'created_at', dir: 'desc' },
+            'students': { field: 'name', dir: 'asc' },
+            'users': { field: 'name', dir: 'asc' },
+            'my-interviews': { field: 'created_at', dir: 'desc' }
+        };
+
+        function sortBy(tab, field) {
+            const s = inlineSortState[tab] || (inlineSortState[tab] = { field, dir: 'asc' });
+            if (s.field === field) {
+                s.dir = s.dir === 'asc' ? 'desc' : 'asc';
+            } else {
+                s.field = field; s.dir = 'asc';
+            }
+            updateSortIndicators(tab);
+            // re-render
+            switch (tab) {
+                case 'interviews': displayInterviews(); break;
+                case 'questions': displayQuestions(); break;
+                case 'sessions': displaySessions(); break;
+                case 'students': displayStudents(); break;
+                case 'users': displayUsers(); break;
+                case 'my-interviews': displayMyInterviews(); break;
+            }
+        }
+
+        function updateSortIndicators(tab) {
+            let sectionSel = '#interviews';
+            if (tab === 'questions') sectionSel = '#questions';
+            else if (tab === 'sessions') sectionSel = '#sessions';
+            else if (tab === 'students') sectionSel = '#students';
+            else if (tab === 'users') sectionSel = '#users';
+            else if (tab === 'my-interviews') sectionSel = '#my-interviews';
+
+            const state = inlineSortState[tab];
+            const thead = document.querySelector(`${sectionSel} thead`);
+            if (!thead) return;
+            thead.querySelectorAll('th[data-field]').forEach(th => {
+                const span = th.querySelector('.sort-indicator');
+                if (!span) return;
+                if (th.getAttribute('data-field') === state.field) {
+                    span.textContent = state.dir === 'asc' ? '▲' : '▼';
+                } else {
+                    span.textContent = '';
+                }
+            });
+        }
+
+        function applyInlineSearch(list, term, fields) {
+            if (!term) return list;
+            const t = term.toLowerCase();
+            return list.filter(item => fields.some(f => {
+                const v = (item[f] ?? '').toString().toLowerCase();
+                return v.includes(t);
+            }));
+        }
+
+        function applyInlineSort(list, tab) {
+            const { field, dir } = inlineSortState[tab] || { field: 'created_at', dir: 'desc' };
+            const asc = dir === 'asc';
+            const getVal = (item) => {
+                switch (field) {
+                    case 'created_at':
+                        return new Date(item.created_at || item.interview_date || 0).getTime();
+                    case 'duration_seconds':
+                        return Number(item.duration_seconds || 0);
+                    case 'interview_count':
+                        return Number(item.interview_count || 0);
+                    default:
+                        return (item[field] ?? '').toString().toLowerCase();
+                }
+            };
+            return [...list].sort((a, b) => {
+                const av = getVal(a), bv = getVal(b);
+                if (av < bv) return asc ? -1 : 1;
+                if (av > bv) return asc ? 1 : -1;
+                return 0;
+            });
+        }
 
         // Pagination utility functions
         function getPaginatedData(data, section) {
@@ -3089,16 +3006,14 @@
                 return;
             }
 
-            // Sort by created_at descending (recent first)
-            interviewsData.sort((a, b) => {
-                const dateA = new Date(a.created_at || a.interview_date);
-                const dateB = new Date(b.created_at || b.interview_date);
-                return dateB - dateA;
-            });
+            // Inline search + sort
+            const term = document.getElementById('my-interviews-inline-search')?.value || '';
+            let list = applyInlineSearch(interviewsData, term, ['student_name','student_email','zeta_id','session_name','status','verdict']);
+            list = applyInlineSort(list, 'my-interviews');
             
             // Update pagination
-            updateTotalPages(interviewsData, 'my-interviews');
-            const paginatedData = getPaginatedData(interviewsData, 'my-interviews');
+            updateTotalPages(list, 'my-interviews');
+            const paginatedData = getPaginatedData(list, 'my-interviews');
 
             tbody.innerHTML = paginatedData.map(interview => `
                 <tr data-row-id="${interview.id}">
@@ -3138,14 +3053,17 @@
                 }
                 
                 const startIndex = (currentPage['my-interviews'] - 1) * ITEMS_PER_PAGE + 1;
-                const endIndex = Math.min(currentPage['my-interviews'] * ITEMS_PER_PAGE, interviewsData.length);
+                const endIndex = Math.min(currentPage['my-interviews'] * ITEMS_PER_PAGE, list.length);
                 const infoHTML = `
                     <div class="pagination-info">
-                        <span>Showing ${startIndex}-${endIndex} of ${interviewsData.length} interviews</span>
+                        <span>Showing ${startIndex}-${endIndex} of ${list.length} interviews</span>
                         <span>Page ${currentPage['my-interviews']} of ${totalPages['my-interviews']}</span>
                     </div>
                 `;
                 container.insertAdjacentHTML('beforeend', infoHTML);
+
+                // Update sort indicators
+                updateSortIndicators('my-interviews');
             }
         }
 
@@ -3267,15 +3185,10 @@
                 return;
             }
 
-            // Use the new unified filter system and sort by recent first
-            let filteredInterviews = applyUnifiedFilters('interviews', interviews);
-            
-            // Sort by created_at descending (recent first)
-            filteredInterviews.sort((a, b) => {
-                const dateA = new Date(a.created_at || a.interview_date);
-                const dateB = new Date(b.created_at || b.interview_date);
-                return dateB - dateA;
-            });
+            // Inline search + sort
+            const term = document.getElementById('interviews-inline-search')?.value || '';
+            let filteredInterviews = applyInlineSearch(interviews, term, ['student_name','student_email','zeta_id','interviewer_name','session_name','status','verdict']);
+            filteredInterviews = applyInlineSort(filteredInterviews, 'interviews');
             
             // Update pagination
             updateTotalPages(filteredInterviews, 'interviews');
@@ -3309,6 +3222,9 @@
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', infoHTML);
+
+            // Update sort indicators
+            updateSortIndicators('interviews');
         }
 
         // REMOVED: Old conflicting applyFiltersToInterviews function
@@ -3661,16 +3577,14 @@
                 return;
             }
 
-            // Sort by created_at descending (recent first)
-            questionsData.sort((a, b) => {
-                const dateA = new Date(a.created_at || a.created_date);
-                const dateB = new Date(b.created_at || b.created_date);
-                return dateB - dateA;
-            });
+            // Inline search + sort
+            const term = document.getElementById('questions-inline-search')?.value || '';
+            let list = applyInlineSearch(questionsData, term, ['question','question_text','category']);
+            list = applyInlineSort(list, 'questions');
             
             // Update pagination
-            updateTotalPages(questionsData, 'questions');
-            const paginatedData = getPaginatedData(questionsData, 'questions');
+            updateTotalPages(list, 'questions');
+            const paginatedData = getPaginatedData(list, 'questions');
 
             tbody.innerHTML = paginatedData.map(question => {
                 // Debug: Log first question's tags
@@ -3744,14 +3658,17 @@
                 }
                 
                 const startIndex = (currentPage['questions'] - 1) * ITEMS_PER_PAGE + 1;
-                const endIndex = Math.min(currentPage['questions'] * ITEMS_PER_PAGE, questionsData.length);
+            const endIndex = Math.min(currentPage['questions'] * ITEMS_PER_PAGE, list.length);
                 const infoHTML = `
                     <div class="pagination-info">
-                        <span>Showing ${startIndex}-${endIndex} of ${questionsData.length} questions</span>
+                    <span>Showing ${startIndex}-${endIndex} of ${list.length} questions</span>
                         <span>Page ${currentPage['questions']} of ${totalPages['questions']}</span>
                     </div>
                 `;
                 container.insertAdjacentHTML('beforeend', infoHTML);
+
+            // Update sort indicators
+            updateSortIndicators('questions');
             }
             
             // Attach reliable click handlers for all edit buttons (avoid inline parsing edge cases)
@@ -3877,7 +3794,12 @@
                 return;
             }
 
-            tbody.innerHTML = sessionsData.map(session => `
+            // Inline search + sort
+            const term = document.getElementById('sessions-inline-search')?.value || '';
+            let list = applyInlineSearch(sessionsData, term, ['name','description','status','created_by_name']);
+            list = applyInlineSort(list, 'sessions');
+
+            tbody.innerHTML = list.map(session => `
                 <tr data-row-id="${session.id}">
                     <td><input type="checkbox" class="row-checkbox" data-row-id="${session.id}" onchange="toggleRowSelection('${session.id}')"></td>
                     <td data-field="name">${session.name}</td>
@@ -3911,6 +3833,9 @@
             
             // Reinitialize bulk edit controls after data is loaded
             initializeBulkEditControls();
+
+            // Update sort indicators
+            updateSortIndicators('sessions');
         }
 
         // Students functions
@@ -3943,7 +3868,12 @@
                 return;
             }
 
-            tbody.innerHTML = studentsData.map(student => {
+            // Inline search + sort
+            const term = document.getElementById('students-inline-search')?.value || '';
+            let list = applyInlineSearch(studentsData, term, ['name','email','zeta_id','phone']);
+            list = applyInlineSort(list, 'students');
+
+            tbody.innerHTML = list.map(student => {
                 // Format verdicts
                 let verdictsDisplay = '-';
                 if (student.recent_verdicts && student.recent_verdicts.length > 0) {
@@ -3999,6 +3929,9 @@
             
             // Reinitialize bulk edit controls after data is loaded
             initializeBulkEditControls();
+
+            // Update sort indicators
+            updateSortIndicators('students');
         }
 
         // Modal functions
@@ -6454,6 +6387,11 @@
                 return;
             }
 
+            // Inline search + sort
+            const term = document.getElementById('users-inline-search')?.value || '';
+            let list = applyInlineSearch(usersData, term, ['name','email','role','status']);
+            list = applyInlineSort(list, 'users');
+
             let html = '';
             
             if (groupBy) {
@@ -6467,12 +6405,13 @@
                 });
             } else {
                 // Display users without grouping
-                usersData.forEach(user => {
-                    html += generateUserRow(user);
-                });
+                list.forEach(user => { html += generateUserRow(user); });
             }
 
             tbody.innerHTML = html;
+
+            // Update sort indicators
+            updateSortIndicators('users');
         }
 
         function generateUserRow(user) {
