@@ -3082,20 +3082,23 @@
             const container = document.querySelector('#interviews-section .table-container');
             if (!tbody) return;
 
-            if (interviewsToDisplay.length === 0) {
+            // Fallback to global list if arg is not provided
+            const baseList = Array.isArray(interviewsToDisplay) ? interviewsToDisplay : (window.interviews || []);
+
+            if (!baseList || baseList.length === 0) {
                 showEmptyState('interviews-table-body', 'No interviews found.');
                 return;
             }
 
             // Handle grouping if specified
             if (groupBy) {
-                const groupedData = groupInterviews(interviewsToDisplay, groupBy);
+                const groupedData = groupInterviews(baseList, groupBy);
                 displayGroupedInterviews(groupedData, tbody);
                 return;
             }
 
             // Inline search + sort
-            const filtered = applyInterviewerInline(interviewsToDisplay);
+            const filtered = applyInterviewerInline(baseList);
             
             // Update pagination
             updateTotalPages(filtered, 'interviews');
