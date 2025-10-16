@@ -1450,13 +1450,13 @@
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th data-field="created_at" onclick="sortByInterviewer('created_at')">Date <span class="sort-indicator"></span></th>
-                                    <th data-field="student_name" onclick="sortByInterviewer('student_name')">Student Name <span class="sort-indicator"></span></th>
-                                    <th data-field="zeta_id" onclick="sortByInterviewer('zeta_id')">Zeta ID <span class="sort-indicator"></span></th>
-                                    <th data-field="session_name" onclick="sortByInterviewer('session_name')">Session <span class="sort-indicator"></span></th>
-                                    <th data-field="status" onclick="sortByInterviewer('status')">Status <span class="sort-indicator"></span></th>
-                                    <th data-field="verdict" onclick="sortByInterviewer('verdict')">Verdict <span class="sort-indicator"></span></th>
-                                    <th data-field="duration_seconds" onclick="sortByInterviewer('duration_seconds')">Duration <span class="sort-indicator"></span></th>
+                                    <th data-field="created_at" onclick="sortByInterviewer('created_at')">Date <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                    <th data-field="student_name" onclick="sortByInterviewer('student_name')">Student Name <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                    <th data-field="zeta_id" onclick="sortByInterviewer('zeta_id')">Zeta ID <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                    <th data-field="session_name" onclick="sortByInterviewer('session_name')">Session <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                    <th data-field="status" onclick="sortByInterviewer('status')">Status <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                    <th data-field="verdict" onclick="sortByInterviewer('verdict')">Verdict <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                    <th data-field="duration_seconds" onclick="sortByInterviewer('duration_seconds')">Duration <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -1722,9 +1722,12 @@
         function updateInterviewerSortIndicators(){
             const thead = document.querySelector('#interviews-section thead');
             if (!thead) return; const {field,dir}=interviewerSortState;
-            thead.querySelectorAll('th[data-field] .sort-indicator').forEach(s=>s.textContent='');
-            const th = thead.querySelector(`th[data-field="${field}"] .sort-indicator`);
-            if (th) th.textContent = dir==='asc' ? '▲' : '▼';
+            thead.querySelectorAll('th[data-field] .sort-indicator .asc').forEach(s=> s.style.opacity='0.3');
+            thead.querySelectorAll('th[data-field] .sort-indicator .desc').forEach(s=> s.style.opacity='0.3');
+            const asc = thead.querySelector(`th[data-field="${field}"] .sort-indicator .asc`);
+            const desc = thead.querySelector(`th[data-field="${field}"] .sort-indicator .desc`);
+            if (asc) asc.style.opacity = dir==='asc' ? '1' : '0.3';
+            if (desc) desc.style.opacity = dir==='desc' ? '1' : '0.3';
         }
         // Inline Questions filter (replaces old panel for Questions tab)
         function debounce(fn, d=200){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), d);} }
