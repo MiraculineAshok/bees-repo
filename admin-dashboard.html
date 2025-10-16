@@ -2333,7 +2333,8 @@
             <section id="consolidation" class="content-section">
                 <div class="section-header">
                     <h2 class="section-title">Consolidation</h2>
-                    <div class="header-actions">
+                    <div class="header-actions" style="display:flex;gap:8px;align-items:center">
+                        <input id="consolidation-search" type="text" class="form-input" placeholder="Search..." oninput="onConsolidationSearch(this.value)" style="max-width:220px">
                         <button class="btn btn-primary" onclick="loadConsolidation()">Refresh</button>
                     </div>
                 </div>
@@ -2342,15 +2343,15 @@
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th>Student</th>
-                                <th>Email</th>
-                                <th>Zeta ID</th>
-                                <th>Session</th>
+                                <th class="sortable" onclick="setConsolidationSort('student_name')">Student <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                <th class="sortable" onclick="setConsolidationSort('student_email')">Email <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                <th class="sortable" onclick="setConsolidationSort('zeta_id')">Zeta ID <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                <th class="sortable" onclick="setConsolidationSort('session_name')">Session <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th>Interviewers</th>
                                 <th>Verdicts</th>
-                                <th>Status</th>
+                                <th class="sortable" onclick="setConsolidationSort('status')">Status <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th>Notes</th>
-                                <th>Last Interview</th>
+                                <th class="sortable" onclick="setConsolidationSort('last_interview_at')">Last Interview <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -2863,7 +2864,8 @@
                 const res = await fetch('/api/admin/consolidation');
                 const json = await res.json();
                 if (!res.ok || !json.success) throw new Error(json.error || 'Failed to load');
-                const rows = json.data || [];
+                window.__consolidationRows = json.data || [];
+                const rows = applyConsolidationFiltersAndSort(window.__consolidationRows);
                 if (!tbody) return;
                 if (rows.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No consolidation data</td></tr>';
@@ -2889,11 +2891,11 @@
                             <td>${r.session_name || '-'}</td>
                             <td>${interviewerNames}</td>
                             <td>${verdicts}</td>
-                            <td><span class="status-badge ${status}">${status}</span></td>
+                            <td><span class="status-badge ${status}" style="display:inline-block;padding:3px 8px;border-radius:12px;color:#fff;background:${String(status).toLowerCase().includes('select')?'#10b981':String(status).toLowerCase().includes('reject')?'#ef4444':String(status).toLowerCase().includes('wait')?'#f59e0b':'#6b7280'}">${status}</span></td>
                             <td>
-                                <div style="max-height:64px;overflow:hidden;position:relative">
+                                <div style="max-height:64px;overflow:auto;position:relative">
                                     <div>${notes}</div>
-                                    ${notes && notes.length>120 ? '<div style="position:absolute;bottom:0;left:0;right:0;height:24px;background:linear-gradient(180deg, rgba(255,255,255,0), #fff)"></div>' : ''}
+                                    ${notes && notes.length>120 ? '' : ''}
                                 </div>
                             </td>
                             <td>${lastAt}</td>
@@ -2917,6 +2919,52 @@
                 const tbody = document.getElementById('consolidation-table-body');
                 if (tbody) tbody.innerHTML = '<tr><td colspan="9" class="error">Error loading consolidation</td></tr>';
             }
+        }
+
+        // Inline search + sort for Consolidation
+        let consolidationSortField = '';
+        let consolidationSortDir = 'asc';
+        function onConsolidationSearch(val){
+            window.__consolidationSearch = (val||'').trim().toLowerCase();
+            loadConsolidation();
+        }
+        function setConsolidationSort(field){
+            if (consolidationSortField === field){
+                consolidationSortDir = consolidationSortDir === 'asc' ? 'desc' : 'asc';
+            } else {
+                consolidationSortField = field; consolidationSortDir = 'asc';
+            }
+            loadConsolidation();
+        }
+        function applyConsolidationFiltersAndSort(items){
+            let out = Array.isArray(items)? [...items] : [];
+            const q = window.__consolidationSearch || '';
+            if (q){
+                out = out.filter(r=>{
+                    const hay = `${r.student_name||''} ${r.student_email||''} ${r.zeta_id||''} ${r.session_name||''} ${r.status||''} ${(r.verdicts||[]).join(' ')}`.toLowerCase();
+                    return hay.includes(q);
+                });
+            }
+            if (consolidationSortField){
+                out.sort((a,b)=>{
+                    const av = a[consolidationSortField];
+                    const bv = b[consolidationSortField];
+                    if (av == null && bv == null) return 0;
+                    if (av == null) return consolidationSortDir==='asc' ? -1 : 1;
+                    if (bv == null) return consolidationSortDir==='asc' ? 1 : -1;
+                    if (consolidationSortField === 'last_interview_at'){
+                        const ad = av ? new Date(av).getTime() : 0;
+                        const bd = bv ? new Date(bv).getTime() : 0;
+                        return consolidationSortDir==='asc' ? ad-bd : bd-ad;
+                    }
+                    const as = String(av).toLowerCase();
+                    const bs = String(bv).toLowerCase();
+                    if (as < bs) return consolidationSortDir==='asc' ? -1 : 1;
+                    if (as > bs) return consolidationSortDir==='asc' ? 1 : -1;
+                    return 0;
+                });
+            }
+            return out;
         }
 
         function toggleConsMenu(id){
@@ -2970,7 +3018,14 @@
                         <div style="margin-top:6px;border:1px solid #e5e7eb;border-radius:8px">
                            ${interviews.map(i=>`
                              <details style=\"border-bottom:1px solid #e5e7eb;padding:8px\">
-                               <summary style=\"cursor:pointer;color:#111827\">#${i.id} • ${i.interviewer_name||'-'} • Status: ${i.status||'-'} • Verdict: ${i.verdict||'-'} • ${i.created_at? new Date(i.created_at).toLocaleString() : '-'} </summary>
+                               <summary style=\"cursor:pointer;color:#111827;display:flex;justify-content:space-between;align-items:center;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:8px\">
+                                 <span style=\"font-weight:600\">Interview #${i.id}</span>
+                                 <span style=\"opacity:0.7\">▶</span>
+                               </summary>
+                               <div style=\"margin-top:8px;color:#374151\"><strong>Interviewer:</strong> ${i.interviewer_name||'-'}</div>
+                               <div style=\"margin-top:4px;color:#374151\"><strong>Status:</strong> <span style=\"display:inline-block;padding:2px 6px;border-radius:10px;color:#fff;background:${(i.status||'').toLowerCase().includes('select')?'#10b981':(i.status||'').toLowerCase().includes('reject')?'#ef4444':(i.status||'').toLowerCase().includes('wait')?'#f59e0b':'#6b7280'}\">${i.status||'-'}</span></div>
+                               <div style=\"margin-top:4px;color:#374151\"><strong>Verdict:</strong> <span style=\"display:inline-block;padding:2px 6px;border-radius:10px;color:#fff;background:${(i.verdict||'').toLowerCase().includes('tiger')?'#10b981':(i.verdict||'').toLowerCase().includes('cow')?'#f59e0b':(i.verdict||'').toLowerCase().includes('sheep')?'#6b7280':'#6b7280'}\">${i.verdict||'-'}</span></div>
+                               <div style=\"margin-top:4px;color:#374151\"><strong>Time:</strong> ${i.created_at? new Date(i.created_at).toLocaleString() : '-'} </div>
                                <div style=\"margin-top:6px;color:#374151\"><strong>Notes:</strong><br>${(i.overall_notes||'').replace(/\\n/g,'<br>') || '-'}</div>
                                <div style=\"margin-top:10px\"><strong>Questions & Answers</strong></div>
                                <div id=\"iq-${i.id}\" style=\"margin-top:6px\">Loading questions...</div>
@@ -2994,7 +3049,7 @@
                         container.innerHTML = qas.map(q=>`
                           <div style=\"border:1px solid #e5e7eb;border-radius:6px;padding:8px;margin-bottom:8px\">
                             <div style=\"font-weight:600;color:#111827;margin-bottom:4px\">Q: ${q.question_text||'-'}</div>
-                            ${q.question_rich_content? `<div style=\"color:#374151;margin-bottom:6px\">${q.question_rich_content}</div>` : ''}
+                            ${q.question_rich_content? `<div style=\"color:#374151;margin-bottom:6px\">${q.question_rich_content.replace(/<img /g, '<img style=\\\"width:200px;height:200px;object-fit:contain;border:1px solid #e5e7eb;border-radius:4px\\\" ')}</div>` : ''}
                             <div style=\"color:#374151\"><strong>Answer:</strong> ${(q.student_answer||'-').toString().replace(/\\n/g,'<br>')}</div>
                             ${q.answer_photo_url? `<div style=\"margin-top:6px\"><img src=\"${q.answer_photo_url}\" alt=\"answer photo\" style=\"width:200px;height:200px;object-fit:contain;border:1px solid #e5e7eb;border-radius:4px\"></div>` : ''}
                           </div>
