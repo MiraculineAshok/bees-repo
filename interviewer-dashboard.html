@@ -3711,10 +3711,10 @@
             const paginatedData = getPaginatedData(data, 'questions');
 
             tbody.innerHTML = paginatedData.map(q => {
-                const timesAsked = q.times_asked ?? q.count_of_times_asked ?? 0;
-                const avgScore = q.average_score ?? 0;
-                const totalScore = q.total_score ?? 0;
-                const success = q.success_rate != null ? `${q.success_rate}%` : '-';
+                const timesAsked = Number(q.times_asked ?? q.count_of_times_asked ?? 0) || 0;
+                const avgScoreNum = Number(q.average_score ?? 0) || 0;
+                const totalScore = Number(q.total_score ?? 0) || 0;
+                const success = `${Number(q.success_rate ?? 0) || 0}%`;
                 const isFavorited = favoriteQuestionIds.has(q.id);
                 
                 // Debug: Log first question's tags
@@ -3750,10 +3750,10 @@
                         <td>${tagsDisplay}</td>
                         <td>${timesAsked}</td>
                         <td>
-                            ${avgScore > 0 ? `
+                            ${avgScoreNum > 0 ? `
                                 <div style="display:flex;align-items:center;gap:0.5rem">
-                                    <span style="font-weight:600">${avgScore.toFixed(2)}</span>
-                                    <span style="display:inline-block;background:${avgScore > 8 ? '#10b981' : avgScore >= 6 ? '#f59e0b' : '#ef4444'};color:#fff;padding:2px 6px;border-radius:8px;font-size:9px;font-weight:600">${avgScore > 8 ? '#easy' : avgScore >= 6 ? '#medium' : '#hard'}</span>
+                                    <span style="font-weight:600">${avgScoreNum.toFixed(2)}</span>
+                                    <span style="display:inline-block;background:${avgScoreNum > 8 ? '#10b981' : avgScoreNum >= 6 ? '#f59e0b' : '#ef4444'};color:#fff;padding:2px 6px;border-radius:8px;font-size:9px;font-weight:600">${avgScoreNum > 8 ? '#easy' : avgScoreNum >= 6 ? '#medium' : '#hard'}</span>
                                 </div>
                             ` : '-'}
                         </td>
