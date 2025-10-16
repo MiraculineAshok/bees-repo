@@ -1488,11 +1488,11 @@
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>Question</th>
+                                    <th data-field="question">Question <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                     <th>Tags</th>
-                                    <th>Times Asked</th>
-                                    <th>Avg Score</th>
-                                    <th>Success Rate</th>
+                                    <th data-field="times_asked">Times Asked <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                    <th data-field="average_score">Avg Score <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                    <th data-field="success_rate">Success Rate <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -3652,6 +3652,27 @@
                     return text.includes(term) || category.includes(term) || tagsHit;
                 });
             }
+
+            // Sort support based on header clicks
+            const thead = document.querySelector('#questions-section thead');
+            const activeTh = thead && thead.querySelector('th[data-field] .sort-indicator .asc[style*="opacity: 1"], th[data-field] .sort-indicator .desc[style*="opacity: 1"]');
+            // Default sort: times_asked desc
+            let field = 'times_asked';
+            let dir = 'desc';
+            if (activeTh) {
+                const thEl = activeTh.closest('th[data-field]');
+                field = thEl ? thEl.getAttribute('data-field') : field;
+                dir = activeTh.classList.contains('asc') ? 'asc' : 'desc';
+            }
+            const asc = dir === 'asc';
+            const getVal = (q, f) => {
+                if (f === 'question') return (q.question_text || q.question || '').toLowerCase();
+                if (f === 'times_asked') return Number(q.times_asked || q.count_of_times_asked || 0);
+                if (f === 'average_score') return Number(q.average_score || 0);
+                if (f === 'success_rate') return Number(q.success_rate || 0);
+                return (q[f] !== undefined ? q[f] : '').toString().toLowerCase();
+            };
+            data.sort((a,b)=>{ const av=getVal(a,field), bv=getVal(b,field); if(av<bv) return asc?-1:1; if(av>bv) return asc?1:-1; return 0; });
 
             if (!data || data.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No questions found.</td></tr>';

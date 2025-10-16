@@ -122,6 +122,62 @@ class AdminService {
         try {
             // Try with tags and score columns first, fallback if columns don't exist
             try {
+                // Persistently recalculate and store times_asked, total_score, average_score from interview data
+                try {
+                    await pool.query(`
+                        WITH stats AS (
+                            SELECT 
+                                qb2.question AS q,
+                                COUNT(iq.id) AS times_asked_calc,
+                                COALESCE(SUM(iq.correctness_score), 0) AS total_score_calc,
+                                CASE 
+                                    WHEN COUNT(iq.id) > 0 THEN ROUND((SUM(iq.correctness_score))::DECIMAL / COUNT(iq.id), 2)
+                                    ELSE 0
+                                END AS avg_score_calc
+                            FROM question_bank qb2
+                            LEFT JOIN interview_questions iq ON qb2.question = iq.question_text
+                            GROUP BY qb2.question
+                        )
+                        UPDATE question_bank qb
+                        SET 
+                            times_asked = COALESCE(s.times_asked_calc, qb.times_asked),
+                            total_score = COALESCE(s.total_score_calc, qb.total_score),
+                            average_score = COALESCE(s.avg_score_calc, qb.average_score),
+                            updated_at = CURRENT_TIMESTAMP
+                        FROM stats s
+                        WHERE LOWER(qb.question) = LOWER(s.q);
+                    `);
+                } catch (recalcErr) {
+                    // If correctness_score doesn't exist, fallback to computing from is_correct
+                    if (recalcErr.code === '42703') {
+                        console.warn('⚠️ correctness_score column not found, recomputing averages using is_correct');
+                        await pool.query(`
+                            WITH stats AS (
+                                SELECT 
+                                    qb2.question AS q,
+                                    COUNT(iq.id) AS times_asked_calc,
+                                    COALESCE(SUM(CASE WHEN iq.is_correct = true THEN 10 ELSE 0 END), 0) AS total_score_calc,
+                                    CASE 
+                                        WHEN COUNT(iq.id) > 0 THEN ROUND((SUM(CASE WHEN iq.is_correct = true THEN 10 ELSE 0 END))::DECIMAL / COUNT(iq.id), 2)
+                                        ELSE 0
+                                    END AS avg_score_calc
+                                FROM question_bank qb2
+                                LEFT JOIN interview_questions iq ON qb2.question = iq.question_text
+                                GROUP BY qb2.question
+                            )
+                            UPDATE question_bank qb
+                            SET 
+                                times_asked = COALESCE(s.times_asked_calc, qb.times_asked),
+                                total_score = COALESCE(s.total_score_calc, qb.total_score),
+                                average_score = COALESCE(s.avg_score_calc, qb.average_score),
+                                updated_at = CURRENT_TIMESTAMP
+                            FROM stats s
+                            WHERE LOWER(qb.question) = LOWER(s.q);
+                        `);
+                    } else {
+                        console.warn('⚠️ Error recalculating question_bank aggregates:', recalcErr.message);
+                    }
+                }
                 const result = await pool.query(`
                     SELECT 
                         qb.id,
