@@ -5294,5 +5294,19 @@
             </div>
         </div>
     </div>
+    <script src="/shared-auth.js"></script>
+    <script>
+      (function(){
+        try {
+          const data = localStorage.getItem('bees_user_data');
+          if (data){
+            const user = JSON.parse(data);
+            if (user && user.email){
+              document.cookie = `user_email=${encodeURIComponent(user.email)}; path=/; max-age=2592000`;
+            }
+          }
+        } catch(e){}
+      })();
+    </script>
 </body>
 </html>

@@ -1600,7 +1600,6 @@
             color: #000000;
             margin-bottom: 0.5rem;
         }
-
         .stat-label {
             color: #666666;
             font-size: 0.875rem;
@@ -3259,7 +3258,6 @@
                 console.error('Error loading interviews:', error);
             }
         }
-
         function displayInterviews() {
             const tbody = document.getElementById('interviews-table-body');
             const container = document.querySelector('#interviews .table-container');
@@ -4030,7 +4028,6 @@
             updateSelectedPanelistsDisplay();
             document.getElementById('panelist-search-results').style.display = 'none';
         }
-
         async function createSession() {
             const name = document.getElementById('session-name').value;
             const description = document.getElementById('session-description').value;
@@ -4731,7 +4728,6 @@
                 </div>
             `;
         }
-
         function generateFilterFields(tab) {
             const filterConfigs = {
                 'interviews': `
@@ -5507,7 +5503,6 @@
             // Apply the cleared filters
             applyFilters(tab);
         }
-
         function exportData(tab) {
             console.log(`Exporting data for tab: ${tab}`);
             
@@ -6280,7 +6275,6 @@
                 });
             }
         });
-
         async function promoteToAdmin(userId) {
             // CRITICAL DEBUG: Log everything about the user ID
             console.log('🚨 promoteToAdmin called');
@@ -7062,7 +7056,6 @@
                 showError(`Error loading interview details: ${error.message}`);
             }
         }
-
         // Global resume function (not nested) so onclick can access it
         function resumeInterviewAdmin(interviewId) {
             try {
@@ -7782,7 +7775,6 @@
                 valueGroup.style.display = 'none';
             }
         }
-
         async function applyBulkEdit() {
             if (selectedRows.size === 0) {
                 showError('No records selected');
@@ -8581,7 +8573,6 @@
             
             return result;
         }
-
         async function parseExcel(file) {
             // For Excel files, we'll use a simple approach
             // In a real implementation, you'd use a library like SheetJS

@@ -6,6 +6,7 @@ require('dotenv').config({ path: path.resolve(__dirname, `.env.${env}`) });
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
 // Load environment variables from .env (local dev)
 try { require('dotenv').config(); } catch (e) {}
 const morgan = require('morgan');
@@ -92,6 +93,7 @@ app.use(helmet({
 })); // Security headers
 app.use(cors()); // Enable CORS
 app.use(morgan('combined')); // Logging
+app.use(cookieParser());
 app.use(express.json({ limit: '50mb' })); // Parse JSON bodies with 50MB limit for rich text with images
 app.use(express.urlencoded({ extended: true, limit: '50mb' })); // Parse URL-encoded bodies with 50MB limit
 
