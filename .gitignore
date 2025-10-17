@@ -104,11 +104,11 @@ temp/
 
 # Uploaded files
 uploads/
-*.jpg
-*.jpeg
-*.png
-*.gif
-*.webp
+uploads/*.jpg
+uploads/*.jpeg
+uploads/*.png
+uploads/*.gif
+uploads/*.webp
 
 # Database files
 *.db
