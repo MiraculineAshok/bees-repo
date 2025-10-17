@@ -21,31 +21,24 @@
 
         .dashboard-container {
             display: flex;
+            flex-direction: column;
             min-height: 100vh;
         }
 
-        /* Sidebar */
+        /* Top Navigation */
         .sidebar {
-            width: 250px;
+            width: 100%;
             background: #000000;
             color: white;
-            padding: 1.5rem 0;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
+            padding: 0;
+            position: sticky;
+            top: 0;
             z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .sidebar-header {
-            padding: 0 1.5rem 2rem;
-            border-bottom: 1px solid #333333;
-            margin-bottom: 1rem;
-        }
-
-        .sidebar-header h2 {
-            color: #ffffff;
-            font-size: 1.5rem;
-            font-weight: 700;
+            display: none;
         }
         
         .logo-container {
@@ -58,39 +51,43 @@
 
         .sidebar-nav {
             list-style: none;
+            display: flex;
+            align-items: center;
+            margin: 0;
+            padding: 0;
         }
 
         .nav-item {
-            margin-bottom: 0.25rem;
+            margin: 0;
         }
 
         .nav-link {
             display: block;
-            padding: 0.75rem 1.5rem;
+            padding: 1rem 1.5rem;
             color: #cccccc;
             text-decoration: none;
             transition: all 0.2s ease;
-            border-left: 3px solid transparent;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
         }
 
         .nav-link:hover,
         .nav-link.active {
             background: #333333;
             color: white;
-            border-left-color: #ffffff;
+            border-bottom-color: #ffffff;
         }
 
         .nav-link i {
-            margin-right: 0.75rem;
-            width: 20px;
-            text-align: center;
+            margin-right: 0.5rem;
         }
 
         /* Main Content */
         .main-content {
-            margin-left: 250px;
+            margin-left: 0;
             flex: 1;
             padding: 2rem;
+            max-width: 100%;
         }
 
         .header {
@@ -157,6 +154,7 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
             padding: 2rem;
             border: 1px solid #000000;
+            width: 100%;
         }
 
         .content-section.active {
