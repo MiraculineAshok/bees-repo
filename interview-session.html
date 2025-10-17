@@ -5206,25 +5206,52 @@
             `).join('');
         }
 
+        // Track ongoing question additions to prevent duplicates
+        const addingQuestions = new Set();
+        
         async function selectPanelQuestion(questionId) {
-            // Remove previous selection
-            document.querySelectorAll('.question-bank-panel-item').forEach(item => {
-                item.classList.remove('selected');
-            });
+            // Prevent duplicate additions - check if already adding this question
+            if (addingQuestions.has(questionId)) {
+                console.log('⚠️ Already adding question', questionId, '- ignoring duplicate click');
+                return;
+            }
             
-            // Add selection to clicked item
-            const selectedItem = document.querySelector(`[data-question-id="${questionId}"]`);
-            if (selectedItem) {
-                selectedItem.classList.add('selected');
+            // Mark as being added
+            addingQuestions.add(questionId);
+            
+            try {
+                // Remove previous selection
+                document.querySelectorAll('.question-bank-panel-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
                 
-                // Find the question data
-                const question = panelQuestionBankData.find(q => q.id === questionId);
-                if (question) {
-                    // Add the question to the interview
-                    await addQuestionFromPanel(question.question_text);
+                // Add selection to clicked item
+                const selectedItem = document.querySelector(`[data-question-id="${questionId}"]`);
+                if (selectedItem) {
+                    selectedItem.classList.add('selected');
+                    // Disable the item to prevent further clicks
+                    selectedItem.style.pointerEvents = 'none';
+                    selectedItem.style.opacity = '0.6';
                     
-                    // Close the panel
-                    closeQuestionBankPanel();
+                    // Find the question data
+                    const question = panelQuestionBankData.find(q => q.id === questionId);
+                    if (question) {
+                        // Add the question to the interview
+                        await addQuestionFromPanel(question.question_text);
+                        
+                        // Close the panel
+                        closeQuestionBankPanel();
+                    }
+                }
+            } finally {
+                // Always remove from tracking set after operation completes
+                addingQuestions.delete(questionId);
+                
+                // Re-enable the item if it still exists
+                const selectedItem = document.querySelector(`[data-question-id="${questionId}"]`);
+                if (selectedItem) {
+                    selectedItem.style.pointerEvents = '';
+                    selectedItem.style.opacity = '';
                 }
             }
         }
