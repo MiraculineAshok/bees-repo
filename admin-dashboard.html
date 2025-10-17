@@ -2447,86 +2447,31 @@
         .table th[data-field] { cursor: pointer; }
         .sort-indicator .asc,
         .sort-indicator .desc { cursor: pointer; }
-            /* Global table settings for all list views */
-            .data-table { 
-                table-layout: fixed; 
-                width: 100%; 
-            }
-            .data-table th,
-            .data-table td { 
-                white-space: normal; 
-                overflow-wrap: break-word; 
-                word-break: break-word;
-                vertical-align: top;
-            }
-            
-            /* Interviews table column widths */
-            #interviews .data-table th:nth-child(1), #interviews .data-table td:nth-child(1) { width: 12%; } /* Student */
-            #interviews .data-table th:nth-child(2), #interviews .data-table td:nth-child(2) { width: 10%; } /* Zeta ID */
-            #interviews .data-table th:nth-child(3), #interviews .data-table td:nth-child(3) { width: 15%; } /* Session */
-            #interviews .data-table th:nth-child(4), #interviews .data-table td:nth-child(4) { width: 10%; } /* Date */
-            #interviews .data-table th:nth-child(5), #interviews .data-table td:nth-child(5) { width: 12%; } /* Interviewer */
-            #interviews .data-table th:nth-child(6), #interviews .data-table td:nth-child(6) { width: 10%; } /* Duration */
-            #interviews .data-table th:nth-child(7), #interviews .data-table td:nth-child(7) { width: 10%; } /* Status */
-            #interviews .data-table th:nth-child(8), #interviews .data-table td:nth-child(8) { width: 10%; } /* Verdict */
-            #interviews .data-table th:nth-child(9), #interviews .data-table td:nth-child(9) { width: 11%; } /* Actions */
-            
-            /* Questions table column widths */
-            #questions .data-table th:nth-child(1), #questions .data-table td:nth-child(1) { width: 40%; } /* Question */
-            #questions .data-table th:nth-child(2), #questions .data-table td:nth-child(2) { width: 15%; } /* Tags */
-            #questions .data-table th:nth-child(3), #questions .data-table td:nth-child(3) { width: 10%; } /* Times Asked */
-            #questions .data-table th:nth-child(4), #questions .data-table td:nth-child(4) { width: 10%; } /* Avg Score */
-            #questions .data-table th:nth-child(5), #questions .data-table td:nth-child(5) { width: 10%; } /* Success Rate */
-            #questions .data-table th:nth-child(6), #questions .data-table td:nth-child(6) { width: 5%; } /* Favorite */
-            #questions .data-table th:nth-child(7), #questions .data-table td:nth-child(7) { width: 10%; } /* Actions */
-            
-            /* Sessions table column widths */
-            #sessions .data-table th:nth-child(1), #sessions .data-table td:nth-child(1) { width: 18%; } /* Name */
-            #sessions .data-table th:nth-child(2), #sessions .data-table td:nth-child(2) { width: 20%; } /* Description */
-            #sessions .data-table th:nth-child(3), #sessions .data-table td:nth-child(3) { width: 10%; } /* Status */
-            #sessions .data-table th:nth-child(4), #sessions .data-table td:nth-child(4) { width: 18%; } /* Panelists */
-            #sessions .data-table th:nth-child(5), #sessions .data-table td:nth-child(5) { width: 12%; } /* Created By */
-            #sessions .data-table th:nth-child(6), #sessions .data-table td:nth-child(6) { width: 10%; } /* Created At */
-            #sessions .data-table th:nth-child(7), #sessions .data-table td:nth-child(7) { width: 12%; } /* Actions */
-            
-            /* Students table column widths */
-            #students .data-table th:nth-child(1), #students .data-table td:nth-child(1) { width: 15%; } /* Name */
-            #students .data-table th:nth-child(2), #students .data-table td:nth-child(2) { width: 18%; } /* Email */
-            #students .data-table th:nth-child(3), #students .data-table td:nth-child(3) { width: 10%; } /* Zeta ID */
-            #students .data-table th:nth-child(4), #students .data-table td:nth-child(4) { width: 12%; } /* Phone */
-            #students .data-table th:nth-child(5), #students .data-table td:nth-child(5) { width: 12%; } /* School */
-            #students .data-table th:nth-child(6), #students .data-table td:nth-child(6) { width: 10%; } /* Location */
-            #students .data-table th:nth-child(7), #students .data-table td:nth-child(7) { width: 10%; } /* Created At */
-            #students .data-table th:nth-child(8), #students .data-table td:nth-child(8) { width: 13%; } /* Actions */
-            
-            /* My Interviews table column widths */
-            #my-interviews .data-table th:nth-child(1), #my-interviews .data-table td:nth-child(1) { width: 15%; } /* Student */
-            #my-interviews .data-table th:nth-child(2), #my-interviews .data-table td:nth-child(2) { width: 12%; } /* Zeta ID */
-            #my-interviews .data-table th:nth-child(3), #my-interviews .data-table td:nth-child(3) { width: 18%; } /* Session */
-            #my-interviews .data-table th:nth-child(4), #my-interviews .data-table td:nth-child(4) { width: 12%; } /* Date */
-            #my-interviews .data-table th:nth-child(5), #my-interviews .data-table td:nth-child(5) { width: 12%; } /* Duration */
-            #my-interviews .data-table th:nth-child(6), #my-interviews .data-table td:nth-child(6) { width: 10%; } /* Status */
-            #my-interviews .data-table th:nth-child(7), #my-interviews .data-table td:nth-child(7) { width: 10%; } /* Verdict */
-            #my-interviews .data-table th:nth-child(8), #my-interviews .data-table td:nth-child(8) { width: 11%; } /* Actions */
-            
-            /* Users table column widths */
-            #users .data-table th:nth-child(1), #users .data-table td:nth-child(1) { width: 20%; } /* Name */
-            #users .data-table th:nth-child(2), #users .data-table td:nth-child(2) { width: 25%; } /* Email */
-            #users .data-table th:nth-child(3), #users .data-table td:nth-child(3) { width: 12%; } /* Role */
-            #users .data-table th:nth-child(4), #users .data-table td:nth-child(4) { width: 12%; } /* Status */
-            #users .data-table th:nth-child(5), #users .data-table td:nth-child(5) { width: 12%; } /* Created At */
-            #users .data-table th:nth-child(6), #users .data-table td:nth-child(6) { width: 19%; } /* Actions */
-            
-            /* Consolidation table column widths */
-            #consolidation .data-table th:nth-child(1), #consolidation .data-table td:nth-child(1) { width: 14%; } /* Student */
-            #consolidation .data-table th:nth-child(2), #consolidation .data-table td:nth-child(2) { width: 16%; } /* Session */
-            #consolidation .data-table th:nth-child(3), #consolidation .data-table td:nth-child(3) { width: 10%; } /* Interviewers */
-            #consolidation .data-table th:nth-child(4), #consolidation .data-table td:nth-child(4) { width: 12%; } /* Verdicts */
-            #consolidation .data-table th:nth-child(5), #consolidation .data-table td:nth-child(5) { width: 14%; } /* Notes */
-            #consolidation .data-table th:nth-child(6), #consolidation .data-table td:nth-child(6) { width: 12%; } /* Last Interview */
-            #consolidation .data-table th:nth-child(7), #consolidation .data-table td:nth-child(7) { width: 10%; } /* Status */
-            #consolidation .data-table th:nth-child(8), #consolidation .data-table td:nth-child(8) { width: 12%; } /* Actions */
-            
+            /* Consistent column widths for consolidation table */
+            .data-table.fixed-columns { table-layout: fixed; width: 100%; }
+            #consolidation.data-table th,
+            #consolidation .data-table td { white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
+            /* Specific width allocations (sum <= 100%) */
+            #consolidation .data-table th:nth-child(1),
+            #consolidation .data-table td:nth-child(1) { width: 14%; }
+            #consolidation .data-table th:nth-child(2),
+            #consolidation .data-table td:nth-child(2) { width: 16%; }
+            #consolidation .data-table th:nth-child(3),
+            #consolidation .data-table td:nth-child(3) { width: 10%; }
+            #consolidation .data-table th:nth-child(4),
+            #consolidation .data-table td:nth-child(4) { width: 12%; }
+            #consolidation .data-table th:nth-child(5),
+            #consolidation .data-table td:nth-child(5) { width: 14%; }
+            #consolidation .data-table th:nth-child(6),
+            #consolidation .data-table td:nth-child(6) { width: 12%; }
+            #consolidation .data-table th:nth-child(7),
+            #consolidation .data-table td:nth-child(7) { width: 10%; }
+            #consolidation .data-table th:nth-child(8),
+            #consolidation .data-table td:nth-child(8) { width: 8%; }
+            #consolidation .data-table th:nth-child(9),
+            #consolidation .data-table td:nth-child(9) { width: 12%; }
+            #consolidation .data-table th:nth-child(10),
+            #consolidation .data-table td:nth-child(10) { width: 8%; }
             /* Allow multiline where needed inside constrained cells */
             #consolidation .data-table td div[style*="max-height:64px"] { white-space: normal; }
             /* Ensure action menus render above rows and not clipped */
