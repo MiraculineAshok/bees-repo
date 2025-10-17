@@ -2128,7 +2128,7 @@ Format the response as a clear, professional interview question. Do not include 
 // Evaluate a question (and optional answer) for difficulty and score
 app.post('/api/evaluate-question', async (req, res) => {
   try {
-    const { question_text, answer_text } = req.body || {};
+    const { question_text, answer_text, answer_image_url } = req.body || {};
 
     if (!question_text || typeof question_text !== 'string' || question_text.trim() === '') {
       return res.status(400).json({ success: false, error: 'question_text is required' });
@@ -2141,7 +2141,7 @@ app.post('/api/evaluate-question', async (req, res) => {
       });
     }
 
-    const model = process.env.OPENAI_MODEL || 'gpt-3.5-turbo';
+    const model = (answer_image_url ? (process.env.OPENAI_VISION_MODEL || 'gpt-4o-mini') : (process.env.OPENAI_MODEL || 'gpt-3.5-turbo'));
     const wantsAnswerEval = !!(answer_text && String(answer_text).trim());
 
     const userPrompt = `You are an expert interviewer. Analyze the following question${wantsAnswerEval ? ' and the provided candidate answer' : ''}.
@@ -2160,12 +2160,13 @@ Return STRICT JSON only with keys:
 - difficulty_label: one of ["easy","medium","hard"]
 - difficulty_score: integer 1-10 (10 hardest)
 - answer_score: integer 0-10 or null if no answer
-- rationale: short one-sentence summary for a hiring panel
-- strengths: short bullet-style sentence listing key strengths
-- gaps: short bullet-style sentence listing key gaps
+- rationale: 1-2 sentence summary for a hiring panel (why this score)
+- strengths: concise comma-separated strengths (max 5)
+- gaps: concise comma-separated gaps (max 5)
+- explanation: 3-5 sentences elaborating how the score was derived, referencing specific parts of the answer
 
 Example:
-{"difficulty_label":"medium","difficulty_score":6,"answer_score":8,"rationale":"…","strengths":"…","gaps":"…"}`;
+{"difficulty_label":"medium","difficulty_score":6,"answer_score":8,"rationale":"Clear approach and correct trade-offs.","strengths":"identified core data structures, discussed complexity","gaps":"no edge cases, limited testing","explanation":"Candidate outlined hashmap approach with O(1) access, correctly handled collisions. However, they omitted thread-safety concerns and persistence trade-offs, which slightly lowers the score."}`;
 
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -2176,11 +2177,21 @@ Example:
       body: JSON.stringify({
         model,
         messages: [
-          { role: 'system', content: 'You are a terse, structured evaluator. Always return valid JSON only.' },
-          { role: 'user', content: userPrompt }
+          { role: 'system', content: 'You are a structured evaluator. Always return valid JSON only and keep it concise but informative.' },
+          {
+            role: 'user',
+            content: (
+              answer_image_url
+                ? [
+                    { type: 'text', text: userPrompt },
+                    { type: 'image_url', image_url: { url: answer_image_url } }
+                  ]
+                : userPrompt
+            )
+          }
         ],
         temperature: 0.2,
-        max_tokens: 200
+        max_tokens: 500
       })
     });
 
@@ -2221,9 +2232,12 @@ Example:
     const difficulty_label = String(parsed.difficulty_label || '').toLowerCase();
     const difficulty_score = Number(parsed.difficulty_score);
     const answer_score = parsed.answer_score == null ? null : Number(parsed.answer_score);
-    const rationale = String(parsed.rationale || '').slice(0, 300);
+    const rationale = String(parsed.rationale || '').slice(0, 600);
+    const strengths = String(parsed.strengths || '').slice(0, 600);
+    const gaps = String(parsed.gaps || '').slice(0, 600);
+    const explanation = String(parsed.explanation || parsed.rationale || '').slice(0, 1000);
 
-    return res.json({ success: true, data: { difficulty_label, difficulty_score, answer_score, rationale } });
+    return res.json({ success: true, data: { difficulty_label, difficulty_score, answer_score, rationale, strengths, gaps, explanation } });
   } catch (error) {
     console.error('Error evaluating question:', error);
     res.status(500).json({ success: false, error: 'Error evaluating question' });

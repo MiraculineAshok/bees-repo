@@ -2974,7 +2974,8 @@
                     .trim();
                 const payload = {
                     question_text: questionText,
-                    answer_text: answerText
+                    answer_text: answerText,
+                    answer_image_url: q.answer_photo_url || undefined
                 };
                 const res = await fetch('/api/evaluate-question', {
                     method: 'POST',
@@ -3003,12 +3004,11 @@
                             </div>
                             <div style="margin-top:10px">
                                <div style="font-weight:600;color:#111827;margin-bottom:4px">Detailed Evaluation</div>
-                               <ul style="margin:0 0 0 16px;padding:0;list-style:disc">
-                                  <li><strong>What was assessed:</strong> Clarity, completeness, technical depth, and correctness.</li>
-                                  <li><strong>Strengths:</strong> ${data.strengths || '—'}</li>
-                                  <li><strong>Gaps:</strong> ${data.gaps || '—'}</li>
-                               </ul>
+                               <div><strong>What was assessed:</strong> Clarity, completeness, technical depth, and correctness.</div>
+                               <div style="margin-top:6px"><strong>Strengths:</strong> ${data.strengths || '—'}</div>
+                               <div style="margin-top:4px"><strong>Gaps:</strong> ${data.gaps || '—'}</div>
                                <div style="margin-top:8px"><strong>Summary:</strong> ${data.rationale || '—'}</div>
+                               ${data.explanation ? `<div style=\"margin-top:8px\"><strong>Explanation:</strong> ${data.explanation}</div>` : ''}
                             </div>
                             <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
                                ${data.answer_score != null ? `<button id="set-ai-score-btn" class="btn btn-primary btn-sm">Set this score</button>` : ''}
