@@ -2130,6 +2130,16 @@
                     </div>
                 </div>
                 
+                <!-- Advanced Filters for Questions -->
+                <div id="advanced-filters-questions" class="adv-filters">
+                    <span class="adv-label">where</span>
+                    <div id="filters-container-questions" class="filters-container"></div>
+                    <div class="filters-actions">
+                        <button class="btn btn-secondary btn-compact" onclick="addQuestionsFilterRow()">+ Add filter</button>
+                        <button class="link-btn" onclick="clearAdvancedFiltersQuestions()">Clear filters</button>
+                    </div>
+                </div>
+                
                 <div class="table-container">
                     <!-- Bulk Edit Controls -->
                     <div class="bulk-edit-controls">
@@ -2171,6 +2181,16 @@
                     <div class="header-actions">
                         <input type="text" id="sessions-inline-search" class="form-input" placeholder="Search sessions..." oninput="displaySessions()" style="max-width:240px">
                         <button class="btn btn-primary" onclick="openCreateSessionModal()">Create Session</button>
+                    </div>
+                </div>
+                
+                <!-- Advanced Filters for Sessions -->
+                <div id="advanced-filters-sessions" class="adv-filters">
+                    <span class="adv-label">where</span>
+                    <div id="filters-container-sessions" class="filters-container"></div>
+                    <div class="filters-actions">
+                        <button class="btn btn-secondary btn-compact" onclick="addSessionsFilterRow()">+ Add filter</button>
+                        <button class="link-btn" onclick="clearAdvancedFiltersSessions()">Clear filters</button>
                     </div>
                 </div>
                 
@@ -3256,6 +3276,246 @@
             });
         }
 
+        // ============ Questions Filter Functions ============
+        const questionsFilterFields = [
+            { value:'question', label:'Question Text' },
+            { value:'tags', label:'Tags' },
+            { value:'times_asked', label:'Times Asked' },
+            { value:'average_score', label:'Average Score' }
+        ];
+        function addQuestionsFilterRow(){
+            const c = document.getElementById('filters-container-questions'); if (!c) return;
+            const isFirst = c.querySelectorAll('.filter-row-adv').length === 0;
+            const row = document.createElement('div');
+            row.className = 'filter-row-adv';
+            row.style.cssText = 'display:flex;gap:8px;align-items:center;flex-wrap:wrap';
+            const connectorHtml = isFirst ? '' : `<select class="filter-connector form-select" style="min-width:90px">
+<option value="AND">AND</option>
+<option value="OR">OR</option>
+<option value="NOT">NOT</option>
+</select>`;
+            row.innerHTML = `
+                ${connectorHtml}
+                <select class="filter-field form-select" style="min-width:140px">
+                    ${questionsFilterFields.map(f=>`<option value="${f.value}">${f.label}</option>`).join('')}
+                </select>
+                <select class="filter-op form-select" style="min-width:140px"></select>
+                <input type="text" class="filter-value form-input" placeholder="Value" style="min-width:180px">
+                <input type="text" class="filter-value2 form-input" placeholder="Value 2" style="display:none;min-width:120px">
+                <button class="btn btn-secondary" onclick="removeQuestionsFilterRow(this);">Remove</button>
+            `;
+            c.appendChild(row);
+            bindQuestionsFilterRow(row);
+            updateQuestionsFilterFieldOptions();
+            displayQuestions();
+        }
+        function bindQuestionsFilterRow(row){
+            const fieldSel = row.querySelector('.filter-field');
+            const opSel = row.querySelector('.filter-op');
+            const v1 = row.querySelector('.filter-value');
+            const v2 = row.querySelector('.filter-value2');
+            function refreshOps(){
+                const f = fieldSel.value;
+                const isNumeric = (f === 'times_asked' || f === 'average_score');
+                const ops = isNumeric ? ['=','≠','>','≥','<','≤','between','not_between'] : textOps;
+                opSel.innerHTML = ops.map(o=>`<option value="${o}">${o}</option>`).join('');
+                v1.type = isNumeric ? 'number' : 'text';
+                v2.type = isNumeric ? 'number' : 'text';
+                v2.style.display = 'none'; v2.value = '';
+                opSel.onchange = ()=>{
+                    const op = opSel.value;
+                    if (op==='between' || op==='not_between') { v2.style.display='inline-block'; } else { v2.style.display='none'; v2.value=''; }
+                    displayQuestions();
+                };
+            }
+            fieldSel.onchange = ()=>{ refreshOps(); updateQuestionsFilterFieldOptions(); displayQuestions(); };
+            v1.oninput = ()=> displayQuestions();
+            v2.oninput = ()=> displayQuestions();
+            const connEl = row.querySelector('.filter-connector');
+            if (connEl) connEl.onchange = ()=> displayQuestions();
+            refreshOps();
+        }
+        function clearAdvancedFiltersQuestions(){ const c=document.getElementById('filters-container-questions'); if(c){ c.innerHTML=''; } displayQuestions(); }
+        function removeQuestionsFilterRow(btn){ const row = btn.parentElement; row && row.remove(); updateQuestionsFilterFieldOptions(); displayQuestions(); }
+        function updateQuestionsFilterFieldOptions(){ updateAdvFieldOptions('filters-container-questions', questionsFilterFields); }
+        function applyAdvancedFiltersQuestions(items){
+            const c = document.getElementById('filters-container-questions'); if (!c) return items;
+            const rows = Array.from(c.querySelectorAll('.filter-row-adv'));
+            if (rows.length===0) return items;
+            function matchRow(item, row){
+                const field = row.querySelector('.filter-field').value;
+                const op = row.querySelector('.filter-op').value;
+                const v1 = row.querySelector('.filter-value').value;
+                const v2 = row.querySelector('.filter-value2').value;
+                if (!v1 && op !== 'not_between') return true;
+                const valRaw = item[field];
+                if (field==='times_asked' || field==='average_score'){
+                    const num = Number(valRaw) || 0;
+                    const n1 = Number(v1) || 0;
+                    const n2 = Number(v2) || 0;
+                    switch(op){
+                        case '=': return num === n1;
+                        case '≠': return num !== n1;
+                        case '>': return num > n1;
+                        case '≥': return num >= n1;
+                        case '<': return num < n1;
+                        case '≤': return num <= n1;
+                        case 'between': return num >= Math.min(n1,n2) && num <= Math.max(n1,n2);
+                        case 'not_between': return num < Math.min(n1,n2) || num > Math.max(n1,n2);
+                        default: return true;
+                    }
+                } else {
+                    const val = (valRaw ?? '').toString().trim().toLowerCase();
+                    const q = (v1||'').trim().toLowerCase();
+                    switch(op){
+                        case 'contains': return val.includes(q);
+                        case 'equals': return val===q;
+                        case 'starts_with': return val.startsWith(q);
+                        case 'ends_with': return val.endsWith(q);
+                        case 'not_contains': return !val.includes(q);
+                        case 'not_equals': return val!==q;
+                        default: return true;
+                    }
+                }
+            }
+            return items.filter(r=>{
+                let result = true; let first = true;
+                for (const row of rows){
+                    const connEl = row.querySelector('.filter-connector');
+                    const conn = connEl ? connEl.value : 'AND';
+                    const m = matchRow(r, row);
+                    if (first){ result = m; first=false; continue; }
+                    if (conn==='AND') result = result && m;
+                    else if (conn==='OR') result = result || m;
+                    else if (conn==='NOT') result = result && !m;
+                }
+                return result;
+            });
+        }
+
+        // ============ Sessions Filter Functions ============
+        const sessionsFilterFields = [
+            { value:'name', label:'Name' },
+            { value:'description', label:'Description' },
+            { value:'status', label:'Status' },
+            { value:'created_by_name', label:'Created By' },
+            { value:'created_at', label:'Created At' }
+        ];
+        function addSessionsFilterRow(){
+            const c = document.getElementById('filters-container-sessions'); if (!c) return;
+            const isFirst = c.querySelectorAll('.filter-row-adv').length === 0;
+            const row = document.createElement('div');
+            row.className = 'filter-row-adv';
+            row.style.cssText = 'display:flex;gap:8px;align-items:center;flex-wrap:wrap';
+            const connectorHtml = isFirst ? '' : `<select class="filter-connector form-select" style="min-width:90px">
+<option value="AND">AND</option>
+<option value="OR">OR</option>
+<option value="NOT">NOT</option>
+</select>`;
+            row.innerHTML = `
+                ${connectorHtml}
+                <select class="filter-field form-select" style="min-width:140px">
+                    ${sessionsFilterFields.map(f=>`<option value="${f.value}">${f.label}</option>`).join('')}
+                </select>
+                <select class="filter-op form-select" style="min-width:140px"></select>
+                <input type="text" class="filter-value form-input" placeholder="Value" style="min-width:180px">
+                <input type="date" class="filter-value2 form-input" style="display:none">
+                <button class="btn btn-secondary" onclick="removeSessionsFilterRow(this);">Remove</button>
+            `;
+            c.appendChild(row);
+            bindSessionsFilterRow(row);
+            updateSessionsFilterFieldOptions();
+            displaySessions();
+        }
+        function bindSessionsFilterRow(row){
+            const fieldSel = row.querySelector('.filter-field');
+            const opSel = row.querySelector('.filter-op');
+            const v1 = row.querySelector('.filter-value');
+            const v2 = row.querySelector('.filter-value2');
+            function refreshOps(){
+                const f = fieldSel.value;
+                const isDate = (f === 'created_at');
+                const ops = isDate ? dateOps : textOps;
+                opSel.innerHTML = ops.map(o=>`<option value="${o}">${o}</option>`).join('');
+                v1.type = isDate ? 'date' : 'text';
+                v2.style.display = 'none'; v2.value = '';
+                opSel.onchange = ()=>{
+                    const op = opSel.value;
+                    if (isDate && (op==='between' || op==='not_between')) { v2.style.display='block'; } else { v2.style.display='none'; v2.value=''; }
+                    displaySessions();
+                };
+            }
+            fieldSel.onchange = ()=>{ refreshOps(); updateSessionsFilterFieldOptions(); displaySessions(); };
+            v1.oninput = ()=> displaySessions();
+            v2.oninput = ()=> displaySessions();
+            const connEl = row.querySelector('.filter-connector');
+            if (connEl) connEl.onchange = ()=> displaySessions();
+            refreshOps();
+        }
+        function clearAdvancedFiltersSessions(){ const c=document.getElementById('filters-container-sessions'); if(c){ c.innerHTML=''; } displaySessions(); }
+        function removeSessionsFilterRow(btn){ const row = btn.parentElement; row && row.remove(); updateSessionsFilterFieldOptions(); displaySessions(); }
+        function updateSessionsFilterFieldOptions(){ updateAdvFieldOptions('filters-container-sessions', sessionsFilterFields); }
+        function applyAdvancedFiltersSessions(items){
+            const c = document.getElementById('filters-container-sessions'); if (!c) return items;
+            const rows = Array.from(c.querySelectorAll('.filter-row-adv'));
+            if (rows.length===0) return items;
+            function matchRow(item, row){
+                const field = row.querySelector('.filter-field').value;
+                const op = row.querySelector('.filter-op').value;
+                const v1 = row.querySelector('.filter-value').value;
+                const v2 = row.querySelector('.filter-value2').value;
+                if (!v1 && op !== 'not_between') return true;
+                const valRaw = item[field];
+                if (field==='created_at'){
+                    const ts = valRaw ? new Date(valRaw).getTime() : 0;
+                    if (!v1) return true;
+                    const d1 = v1 ? new Date(v1) : null;
+                    const t1 = d1 ? (d1.setHours(0,0,0,0), d1.getTime()) : NaN;
+                    const d2 = v2 ? new Date(v2) : null;
+                    const t2 = d2 ? (d2.setHours(23,59,59,999), d2.getTime()) : NaN;
+                    const dayStart = d1 ? t1 : NaN;
+                    const dayEnd = d1 ? (new Date(v1)).setHours(23,59,59,999) : NaN;
+                    switch(op){
+                        case '=': return !isNaN(dayStart) && ts>=dayStart && ts<=dayEnd;
+                        case '≠': return !isNaN(dayStart) && (ts<dayStart || ts>dayEnd);
+                        case '>': return ts>t1;
+                        case '≥': return ts>=t1;
+                        case '<': return ts<t1;
+                        case '≤': return ts<=t1;
+                        case 'between': return !isNaN(t1)&&!isNaN(t2) && ts>=Math.min(t1,t2) && ts<=Math.max(t1,t2);
+                        case 'not_between': return (isNaN(t1)||isNaN(t2)) ? true : (ts<Math.min(t1,t2) || ts>Math.max(t1,t2));
+                        default: return true;
+                    }
+                } else {
+                    if (!v1) return true;
+                    const val = (valRaw ?? '').toString().trim().toLowerCase();
+                    const q = (v1||'').trim().toLowerCase();
+                    switch(op){
+                        case 'contains': return val.includes(q);
+                        case 'equals': return val===q;
+                        case 'starts_with': return val.startsWith(q);
+                        case 'ends_with': return val.endsWith(q);
+                        case 'not_contains': return !val.includes(q);
+                        case 'not_equals': return val!==q;
+                        default: return true;
+                    }
+                }
+            }
+            return items.filter(r=>{
+                let result = true; let first = true;
+                for (const row of rows){
+                    const connEl = row.querySelector('.filter-connector');
+                    const conn = connEl ? connEl.value : 'AND';
+                    const m = matchRow(r, row);
+                    if (first){ result = m; first=false; continue; }
+                    if (conn==='AND') result = result && m;
+                    else if (conn==='OR') result = result || m;
+                    else if (conn==='NOT') result = result && !m;
+                }
+                return result;
+            });
+        }
+
         async function updateConsolidationStatus(id, status){
             try{
                 const res = await fetch(`/api/admin/consolidation/${id}/status`,{ method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({status}) });
@@ -4240,9 +4500,10 @@
                 return;
             }
 
-            // Inline search + sort
+            // Inline search + advanced filters + sort
             const term = document.getElementById('questions-inline-search')?.value || '';
             let list = applyInlineSearch(questionsData, term, ['question','question_text','category']);
+            list = applyAdvancedFiltersQuestions(list);
             list = applyInlineSort(list, 'questions');
             
             // Update pagination
@@ -4456,9 +4717,10 @@
                 return;
             }
 
-            // Inline search + sort
+            // Inline search + advanced filters + sort
             const term = document.getElementById('sessions-inline-search')?.value || '';
             let list = applyInlineSearch(sessionsData, term, ['name','description','status','created_by_name']);
+            list = applyAdvancedFiltersSessions(list);
             list = applyInlineSort(list, 'sessions');
 
             tbody.innerHTML = list.map(session => `
