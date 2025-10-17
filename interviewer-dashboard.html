@@ -2331,6 +2331,8 @@
             url.searchParams.set('tab', sectionName);
             window.history.replaceState({}, '', url);
         }
+        // Expose to window for onclick handlers
+        window.showSection = showSection;
 
         // Activate section from URL param, e.g., ?tab=my-interviews or ?tab=questions
         document.addEventListener('DOMContentLoaded', function() {
