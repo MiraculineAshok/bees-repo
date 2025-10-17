@@ -9334,7 +9334,9 @@
             const cells = row.querySelectorAll('td:not(:last-child)');
             cells.forEach((cell, index) => {
                 const field = cell.dataset.field;
-                if (field && originalData[field] !== undefined) {
+                // Special handling for panelists field which maps to panelist_names in data
+                const isSpecialField = (field === 'panelists' && section === 'sessions');
+                if (field && (originalData[field] !== undefined || isSpecialField)) {
                     let displayValue = originalData[field] || 'N/A';
                     
                     // Handle special field formatting
@@ -9375,6 +9377,8 @@
                     } else if (field === 'panelists' && section === 'sessions') {
                         // For sessions, restore panelists as simple text (panelist_names)
                         displayValue = originalData.panelist_names || '—';
+                        // Clear any child elements (like select dropdown) and set text
+                        cell.innerHTML = '';
                         cell.textContent = displayValue;
                     } else {
                         cell.textContent = displayValue;
