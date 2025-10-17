@@ -9372,6 +9372,10 @@
                                 style="margin-left:8px"
                             >${favoriteBtn}</button>
                         `;
+                    } else if (field === 'panelists' && section === 'sessions') {
+                        // For sessions, restore panelists as simple text (panelist_names)
+                        displayValue = originalData.panelist_names || '—';
+                        cell.textContent = displayValue;
                     } else {
                         cell.textContent = displayValue;
                     }
