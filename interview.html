@@ -47,17 +47,18 @@
         /* Ensure dropdown aligns under the input */
         .search-section .form-group { position: relative; }
         .suggestion-item {
-            display: flex; align-items: center; justify-content: space-between;
+            display: flex; align-items: center; gap: 12px;
             padding: 10px 12px; cursor: pointer;
             transition: background 0.15s ease;
         }
         .suggestion-item + .suggestion-item { border-top: 1px solid #f1f5f9; }
         .suggestion-item:hover { background: #f8fafc; }
-        .suggestion-main { display: flex; flex-direction: column; }
+        .suggestion-main { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; flex: 1; }
         .suggestion-name { font-weight: 600; color: #111827; }
         .suggestion-meta { font-size: 12px; color: #6b7280; }
-        .suggestion-action { color: #9ca3af; font-size: 14px; margin-left: 12px; }
-        .suggestion-item:hover .suggestion-action { color: #111827; }
+        .suggestion-field { display: flex; align-items: center; gap: 4px; font-size: 13px; }
+        .suggestion-field-label { color: #6b7280; font-weight: 500; }
+        .suggestion-field-value { color: #111827; }
     </style>
 </head>
 <body>
@@ -217,12 +218,13 @@
             function show(items){
                 if (!items || items.length===0) { hide(); return; }
                 box.innerHTML = items.map(s => `
-                    <div class=\"suggestion-item\" data-id=\"${s.id}\"> 
+                    <div class=\"suggestion-item\" data-student='${JSON.stringify(s).replace(/'/g, "&#39;")}' data-id=\"${s.id}\"> 
                         <div class=\"suggestion-main\">
-                            <div class=\"suggestion-name\">${(s.first_name || '')} ${(s.last_name || '')} <small class=\"suggestion-meta\">${s.zeta_id || ''}</small></div>
-                            <div class=\"suggestion-meta\">${s.email || ''}</div>
+                            <span class=\"suggestion-name\">${(s.first_name || '')} ${(s.last_name || '')}</span>
+                            <span class=\"suggestion-field\"><span class=\"suggestion-field-label\">Zeta ID:</span><span class=\"suggestion-field-value\">${s.zeta_id || ''}</span></span>
+                            <span class=\"suggestion-field\"><span class=\"suggestion-field-label\">Email:</span><span class=\"suggestion-field-value\">${s.email || ''}</span></span>
+                            ${s.phone ? `<span class=\"suggestion-field\"><span class=\"suggestion-field-label\">Phone:</span><span class=\"suggestion-field-value\">${s.phone}</span></span>` : ''}
                         </div>
-                        <div class=\"suggestion-action\">Select →</div>
                     </div>`).join('');
                 box.style.display='block';
                 box.querySelectorAll('.suggestion-item').forEach(el => {
@@ -243,18 +245,14 @@
                             return;
                         }
                         
-                        const id = el.getAttribute('data-id');
-                        // Populate selection then proceed like search
-                        input.value = el.querySelector('small')?.textContent || '';
+                        // Get student data from data attribute
+                        const studentData = JSON.parse(el.getAttribute('data-student'));
                         hide();
-                        if (typeof window.handleStudentSelected === 'function') {
-                            window.handleStudentSelected(id);
-                        } else {
-                            const zid = input.value.trim();
-                            const sessionId = sessionSelect.value;
-                            if (zid && sessionId) {
-                                window.location.href = `/interview-session.html?zeta_id=${encodeURIComponent(zid)}&session_id=${encodeURIComponent(sessionId)}`;
-                            }
+                        input.value = studentData.zeta_id || '';
+                        
+                        // Display student info card instead of navigating directly
+                        if (window.interviewPage && typeof window.interviewPage.displayStudentInfo === 'function') {
+                            window.interviewPage.displayStudentInfo(studentData);
                         }
                     };
                 });
