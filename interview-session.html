@@ -2961,9 +2961,20 @@
             try {
                 const q = questions.find(x => String(x.id) === String(questionId));
                 if (!q) { showError('Question not found'); return; }
+                // Build safe text inputs for AI: strip images and convert HTML to text for answer
+                const questionText = (q.question_rich_content || q.question_text || '')
+                    .replace(/<img[^>]*>/gi, '')
+                    .replace(/<br\s*\/?>/gi, '\n')
+                    .replace(/<[^>]+>/g, '')
+                    .trim();
+                const answerText = (q.student_answer || '')
+                    .replace(/<img[^>]*>/gi, '[image omitted]')
+                    .replace(/<br\s*\/?>/gi, '\n')
+                    .replace(/<[^>]+>/g, '')
+                    .trim();
                 const payload = {
-                    question_text: q.question_text || q.question_rich_content || '',
-                    answer_text: q.student_answer || ''
+                    question_text: questionText,
+                    answer_text: answerText
                 };
                 const res = await fetch('/api/evaluate-question', {
                     method: 'POST',
@@ -2980,19 +2991,54 @@
                 const modal = document.createElement('div');
                 modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:2000;';
                 modal.innerHTML = `
-                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;max-width:560px;width:90%;padding:16px;box-shadow:0 10px 24px rgba(0,0,0,0.2)">
+                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;max-width:620px;width:92%;padding:16px;box-shadow:0 10px 24px rgba(0,0,0,0.2)">
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
                             <h3 style="margin:0;color:#111827">AI Evaluation</h3>
                             <button onclick="this.closest('div').parentElement.parentElement.remove()" style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:6px;padding:4px 8px;cursor:pointer">✕</button>
                         </div>
-                        <div style="font-size:14px;color:#374151;line-height:1.5">
-                            <div><strong>Difficulty:</strong> ${data.difficulty_label || 'unknown'} (${data.difficulty_score ?? '-'}/10)</div>
-                            <div><strong>Answer Score:</strong> ${data.answer_score == null ? '-' : data.answer_score + '/10'}</div>
-                            <div style="margin-top:8px"><strong>Rationale:</strong> ${data.rationale || '—'}</div>
+                        <div style="font-size:14px;color:#374151;line-height:1.6">
+                            <div style="display:flex;gap:12px;flex-wrap:wrap">
+                               <div><strong>Difficulty:</strong> <span style="text-transform:capitalize">${data.difficulty_label || 'unknown'}</span> (${data.difficulty_score ?? '-'}/10)</div>
+                               <div><strong>Answer Score:</strong> ${data.answer_score == null ? '-' : data.answer_score + '/10'}</div>
+                            </div>
+                            <div style="margin-top:10px">
+                               <div style="font-weight:600;color:#111827;margin-bottom:4px">Detailed Evaluation</div>
+                               <ul style="margin:0 0 0 16px;padding:0;list-style:disc">
+                                  <li><strong>What was assessed:</strong> Clarity, completeness, technical depth, and correctness.</li>
+                                  <li><strong>Strengths:</strong> ${data.strengths || '—'}</li>
+                                  <li><strong>Gaps:</strong> ${data.gaps || '—'}</li>
+                               </ul>
+                               <div style="margin-top:8px"><strong>Summary:</strong> ${data.rationale || '—'}</div>
+                            </div>
+                            <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
+                               ${data.answer_score != null ? `<button id="set-ai-score-btn" class="btn btn-primary btn-sm">Set this score</button>` : ''}
+                            </div>
                         </div>
                     </div>`;
                 modal.onclick = (e)=>{ if(e.target===modal) modal.remove(); };
                 document.body.appendChild(modal);
+
+                // Bind score setter
+                const setBtn = modal.querySelector('#set-ai-score-btn');
+                if (setBtn && data.answer_score != null) {
+                    setBtn.onclick = async ()=>{
+                        try{
+                            // Update backend score
+                            const resp = await fetch(`/api/interview-questions/${questionId}/score`,{
+                                method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ correctness_score: parseInt(data.answer_score) })
+                            });
+                            const js = await resp.json();
+                            if (!resp.ok || js.success===false){ showError(js.error||'Failed to set score'); return; }
+                            // Update local slider and label
+                            const slider = document.getElementById(`score-slider-${questionId}`);
+                            const label = document.getElementById(`score-value-${questionId}`);
+                            if (slider){ slider.value = parseInt(data.answer_score); slider.classList.add('scored'); }
+                            if (label){ label.textContent = parseInt(data.answer_score); }
+                            showSuccess('Score updated from AI');
+                            modal.remove();
+                        }catch(err){ console.error(err); showError('Failed to set score'); }
+                    };
+                }
             } catch (e) {
                 console.error('AI evaluation error:', e);
                 showError('AI evaluation error');

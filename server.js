@@ -2160,10 +2160,12 @@ Return STRICT JSON only with keys:
 - difficulty_label: one of ["easy","medium","hard"]
 - difficulty_score: integer 1-10 (10 hardest)
 - answer_score: integer 0-10 or null if no answer
-- rationale: short one-sentence rationale
+- rationale: short one-sentence summary for a hiring panel
+- strengths: short bullet-style sentence listing key strengths
+- gaps: short bullet-style sentence listing key gaps
 
 Example:
-{"difficulty_label":"medium","difficulty_score":6,"answer_score":8,"rationale":"…"}`;
+{"difficulty_label":"medium","difficulty_score":6,"answer_score":8,"rationale":"…","strengths":"…","gaps":"…"}`;
 
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
