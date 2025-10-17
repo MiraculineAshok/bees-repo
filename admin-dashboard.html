@@ -3154,10 +3154,11 @@
                 <select class=\"filter-op form-select\" style=\"min-width:140px\"></select>
                 <input type=\"text\" class=\"filter-value form-input\" placeholder=\"Value\" style=\"min-width:180px\">
                 <input type=\"date\" class=\"filter-value2 form-input\" style=\"display:none\">
-                <button class=\"btn btn-secondary\" onclick=\"this.parentElement.remove(); loadConsolidation();\">Remove</button>
+                <button class=\"btn btn-secondary\" onclick=\"removeFilterRow(this,'filters-container-cons');\">Remove</button>
             `;
             c.appendChild(row);
             bindConsFilterRow(row);
+            updateConsFilterFieldOptions();
             loadConsolidation();
         }
         function bindConsFilterRow(row){
@@ -3179,7 +3180,7 @@
                     loadConsolidation();
                 };
             }
-            fieldSel.onchange = ()=>{ refreshOps(); loadConsolidation(); };
+            fieldSel.onchange = ()=>{ refreshOps(); updateConsFilterFieldOptions(); loadConsolidation(); };
             v1.oninput = ()=> loadConsolidation();
             v2.oninput = ()=> loadConsolidation();
             const connEl = row.querySelector('.filter-connector');
@@ -3187,6 +3188,7 @@
             refreshOps();
         }
         function clearAdvancedFiltersCons(){ const c=document.getElementById('filters-container-cons'); if(c){ c.innerHTML=''; } loadConsolidation(); }
+        function updateConsFilterFieldOptions(){ updateAdvFieldOptions('filters-container-cons', consFilterFields); }
         function applyAdvancedFiltersCons(items){
             const c = document.getElementById('filters-container-cons'); if (!c) return items;
             const rows = Array.from(c.querySelectorAll('.filter-row-adv'));
@@ -3793,10 +3795,11 @@
                 <select class=\"filter-op form-select\" style=\"min-width:140px\"></select>
                 <input type=\"text\" class=\"filter-value form-input\" placeholder=\"Value\" style=\"min-width:180px\">
                 <input type=\"date\" class=\"filter-value2 form-input\" style=\"display:none\">
-                <button class=\"btn btn-secondary\" onclick=\"this.parentElement.remove(); displayInterviews();\">Remove</button>
+                <button class=\"btn btn-secondary\" onclick=\"removeFilterRow(this,'filters-container');\">Remove</button>
             `;
             c.appendChild(row);
             bindFilterRow(row);
+            updateInterviewsFilterFieldOptions();
             displayInterviews();
         }
         function bindFilterRow(row){
@@ -3817,7 +3820,7 @@
                     displayInterviews();
                 };
             }
-            fieldSel.onchange = ()=>{ refreshOps(); displayInterviews(); };
+            fieldSel.onchange = ()=>{ refreshOps(); updateInterviewsFilterFieldOptions(); displayInterviews(); };
             v1.oninput = ()=> displayInterviews();
             v2.oninput = ()=> displayInterviews();
             const connEl = row.querySelector('.filter-connector');
@@ -3825,6 +3828,10 @@
             refreshOps();
         }
         function clearAdvancedFilters(){ const c=document.getElementById('filters-container'); if(c){ c.innerHTML=''; } displayInterviews(); }
+        function removeFilterRow(btn, containerId){ const row = btn.parentElement; row && row.remove(); if (containerId==='filters-container'){ updateInterviewsFilterFieldOptions(); displayInterviews(); } if (containerId==='filters-container-cons'){ updateConsFilterFieldOptions(); loadConsolidation(); } }
+        function normalizeFilterConnectors(containerId){ const c=document.getElementById(containerId); if(!c) return; const rows=Array.from(c.querySelectorAll('.filter-row-adv')); rows.forEach((r,i)=>{ const conn=r.querySelector('.filter-connector'); if(conn){ conn.style.display = i===0 ? 'none' : 'inline-block'; }}); }
+        function updateAdvFieldOptions(containerId, fields){ const c=document.getElementById(containerId); if(!c) return; const rows=Array.from(c.querySelectorAll('.filter-row-adv')); const selected = new Set(rows.map(r=> (r.querySelector('.filter-field')?.value)||'')); rows.forEach(r=>{ const sel=r.querySelector('.filter-field'); if(!sel) return; const cur=sel.value; const opts = fields.filter(f=> f.value===cur || !selected.has(f.value)); sel.innerHTML = opts.map(f=>`<option value="${f.value}">${f.label}</option>`).join(''); sel.value = cur; }); normalizeFilterConnectors(containerId); }
+        function updateInterviewsFilterFieldOptions(){ updateAdvFieldOptions('filters-container', filterFields); }
         function applyAdvancedFilters(items){
             const c = document.getElementById('filters-container'); if (!c) return items;
             const rows = Array.from(c.querySelectorAll('.filter-row-adv'));
