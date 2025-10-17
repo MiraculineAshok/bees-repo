@@ -353,8 +353,12 @@ class AdminService {
                 ? `COALESCE((SELECT STRING_AGG(au2.name, ', ')
                              FROM session_panelists sp
                              JOIN authorized_users au2 ON sp.user_id = au2.id
-                             WHERE sp.session_id = ins.id), '') as panelist_names,`
-                : `'' as panelist_names,`;
+                             WHERE sp.session_id = ins.id), '') as panelist_names,
+                   COALESCE((SELECT ARRAY_AGG(sp.user_id)
+                             FROM session_panelists sp
+                             WHERE sp.session_id = ins.id), ARRAY[]::integer[]) as panelist_ids,`
+                : `'' as panelist_names,
+                   ARRAY[]::integer[] as panelist_ids,`;
 
             const query = `
                 SELECT 
