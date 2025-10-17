@@ -2959,6 +2959,7 @@
         }
 
         async function evaluateQuestionAI(questionId) {
+            let loadingModal = null;
             try {
                 const q = questions.find(x => String(x.id) === String(questionId));
                 if (!q) { showError('Question not found'); return; }
@@ -2971,6 +2972,17 @@
                     showError('Please provide an answer first before requesting AI evaluation.');
                     return;
                 }
+                
+                // Show loading modal
+                loadingModal = document.createElement('div');
+                loadingModal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:2000;';
+                loadingModal.innerHTML = `
+                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:24px;text-align:center;box-shadow:0 10px 24px rgba(0,0,0,0.2);">
+                        <div style="display:inline-block;width:40px;height:40px;border:4px solid #f3f4f6;border-top:4px solid #3b82f6;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:12px"></div>
+                        <div style="font-size:16px;color:#374151;font-weight:500">Evaluating Question ${q.questionNumber || questions.indexOf(q) + 1}...</div>
+                        <div style="font-size:14px;color:#6b7280;margin-top:4px">Please wait while AI analyzes the answer</div>
+                    </div>`;
+                document.body.appendChild(loadingModal);
                 
                 // Build safe text inputs for AI: strip images and convert HTML to text for answer
                 const questionText = (q.question_rich_content || q.question_text || '')
@@ -2994,18 +3006,26 @@
                     body: JSON.stringify(payload)
                 });
                 const json = await res.json();
+                
+                // Remove loading modal
+                if (loadingModal) {
+                    loadingModal.remove();
+                    loadingModal = null;
+                }
+                
                 if (!res.ok || !json.success) {
                     showError(json.error || 'AI evaluation failed');
                     return;
                 }
 
                 const data = json.data || {};
+                const questionNumber = q.questionNumber || questions.indexOf(q) + 1;
                 const modal = document.createElement('div');
                 modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:2000;';
                 modal.innerHTML = `
                     <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;max-width:620px;width:92%;padding:16px;box-shadow:0 10px 24px rgba(0,0,0,0.2)">
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                            <h3 style="margin:0;color:#111827">AI Evaluation</h3>
+                            <h3 style="margin:0;color:#111827">AI Evaluation - Question ${questionNumber}</h3>
                             <button onclick="this.closest('div').parentElement.parentElement.remove()" style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:6px;padding:4px 8px;cursor:pointer">✕</button>
                         </div>
                         <div style="font-size:14px;color:#374151;line-height:1.6">
@@ -3053,6 +3073,11 @@
             } catch (e) {
                 console.error('AI evaluation error:', e);
                 showError('AI evaluation error');
+            } finally {
+                // Always remove loading modal if it exists
+                if (loadingModal) {
+                    loadingModal.remove();
+                }
             }
         }
 
