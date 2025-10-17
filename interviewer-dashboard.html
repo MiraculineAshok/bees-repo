@@ -2303,6 +2303,7 @@
         }
 
         async function loadDashboardData() {
+            console.log('🚀 loadDashboardData: starting...');
             try {
                 await Promise.all([
                     loadMyInterviews(),
@@ -2311,8 +2312,9 @@
                     loadStats(),
                     loadSessions() // Load sessions data but don't populate filters yet
                 ]);
+                console.log('✅ loadDashboardData: all data loaded');
             } catch (error) {
-                console.error('Error loading dashboard data:', error);
+                console.error('❌ loadDashboardData: Error:', error);
             }
         }
 
@@ -3131,13 +3133,20 @@
 
         async function loadMyInterviews() {
             const tbody = document.getElementById('interviews-table-body');
+            if (!tbody) {
+                console.error('❌ interviews-table-body not found');
+                return;
+            }
             tbody.innerHTML = `<tr><td colspan="8" class="loading">Loading interviews...</td></tr>`;
             try {
                 const userEmail = currentUser?.email || '';
+                console.log('📊 loadMyInterviews: fetching with email:', userEmail);
                 const response = await fetch(`/api/interviewer/interviews?email=${encodeURIComponent(userEmail)}`);
                 const result = await response.json();
+                console.log('📊 loadMyInterviews: API response:', result);
                 if (result.success) {
                     interviews = result.data; // Store in global interviews variable
+                    console.log('✅ loadMyInterviews: loaded', interviews.length, 'interviews');
                     
                     // Populate filter options with real data
                     populateFilterOptions();
@@ -3145,10 +3154,11 @@
                     // Display interviews using the new unified system
                     displayInterviews(interviews);
                 } else {
+                    console.error('❌ loadMyInterviews: API returned error:', result.error);
                     showEmptyState('interviews-table-body', 'Failed to load interviews.');
                 }
             } catch (error) {
-                console.error('Error loading interviews:', error);
+                console.error('❌ loadMyInterviews: Exception:', error);
                 showEmptyState('interviews-table-body', 'Error loading interviews.');
             }
         }
@@ -3710,14 +3720,18 @@
 
         async function loadQuestions() {
             const tbody = document.getElementById('question-bank-list');
-            if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="7" class="loading">Loading questions...</td></tr>';
+            if (!tbody) {
+                console.error('❌ question-bank-list not found');
+                return;
             }
+            tbody.innerHTML = '<tr><td colspan="7" class="loading">Loading questions...</td></tr>';
 
             try {
+                console.log('📚 loadQuestions: fetching analytics');
                 // Always load analytics for Question Analysis view
                 const response = await fetch('/api/admin/questions/analytics');
                 const result = await response.json();
+                console.log('📚 loadQuestions: analytics response:', result);
 
                 let data = [];
                 if (result && result.success && Array.isArray(result.data)) {
@@ -3730,6 +3744,7 @@
                     try {
                         const qbRes = await fetch('/api/question-bank');
                         const qbJson = await qbRes.json();
+                        console.log('📚 loadQuestions: fallback response:', qbJson);
                         if (qbJson && qbJson.success && Array.isArray(qbJson.data)) {
                             // Normalize fields to analytics shape
                             data = qbJson.data.map(q => ({
@@ -3750,11 +3765,12 @@
 
                 questions = data || [];
                 allQuestions = questions;
+                console.log('✅ loadQuestions: loaded', questions.length, 'questions');
 
                 // Display questions using the new unified system
                 displayQuestionAnalytics(questions);
             } catch (error) {
-                console.error('Error loading questions analytics:', error);
+                console.error('❌ loadQuestions: Exception:', error);
                 if (tbody) {
                     tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Error loading questions.</td></tr>';
                 }
