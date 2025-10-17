@@ -2184,6 +2184,15 @@
                 </div>
                 
                 <div class="table-container">
+                    <!-- Advanced Filters (compact) for Sessions -->
+                    <div id="advanced-filters-sessions" class="adv-filters">
+                        <span class="adv-label">where</span>
+                        <div id="filters-container-sessions" class="filters-container"></div>
+                        <div class="filters-actions">
+                            <button class="btn btn-secondary btn-compact" onclick="addSessionFilterRow()">+ Add filter</button>
+                            <button class="link-btn" onclick="clearAdvancedFiltersSessions()">Clear filters</button>
+                        </div>
+                    </div>
                     <!-- Bulk Edit Controls -->
                     <div class="bulk-edit-controls">
                         <div class="bulk-edit-info" id="bulk-edit-selected-count">0 records selected</div>
@@ -3867,6 +3876,18 @@
         function clearAdvancedFiltersUsers(){ const c=document.getElementById('filters-container-users'); if(c) c.innerHTML=''; displayUsers(); }
         function applyAdvancedFiltersUsers(items){ return applyGenericFilters(items, 'filters-container-users'); }
 
+        // Sessions filters
+        const sessionFilterFields = [
+            { value:'name', label:'Name' },
+            { value:'description', label:'Description' },
+            { value:'status', label:'Status' },
+            { value:'created_by_name', label:'Created By' },
+            { value:'created_at', label:'Created At' }
+        ];
+        function addSessionFilterRow(){ addGenericFilterRow('filters-container-sessions', sessionFilterFields, displaySessions); }
+        function clearAdvancedFiltersSessions(){ const c=document.getElementById('filters-container-sessions'); if(c) c.innerHTML=''; displaySessions(); }
+        function applyAdvancedFiltersSessions(items){ return applyGenericFilters(items, 'filters-container-sessions'); }
+
         // Generic helpers (reuses same UI pattern)
         function addGenericFilterRow(containerId, fields, onChange){
             const c = document.getElementById(containerId); if (!c) return;
@@ -4628,9 +4649,10 @@
                 return;
             }
 
-            // Inline search + sort
+            // Inline search + advanced filters + sort
             const term = document.getElementById('sessions-inline-search')?.value || '';
             let list = applyInlineSearch(sessionsData, term, ['name','description','status','created_by_name']);
+            list = applyAdvancedFiltersSessions(list);
             list = applyInlineSort(list, 'sessions');
 
             tbody.innerHTML = list.map(session => `
