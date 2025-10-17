@@ -1441,6 +1441,16 @@
                         </div>
                     </div>
                     
+                    <!-- Advanced Filters for Interviews -->
+                    <div id="advanced-filters-interviews" class="adv-filters" style="margin:1rem 0;padding:1rem;background:#f9fafb;border-radius:6px">
+                        <span class="adv-label" style="font-weight:600;margin-right:8px">where</span>
+                        <div id="filters-container-interviews" class="filters-container"></div>
+                        <div class="filters-actions" style="margin-top:8px;display:flex;gap:8px">
+                            <button class="btn btn-secondary" style="padding:0.5rem 1rem;font-size:0.875rem" onclick="addInterviewsFilterRow()">+ Add filter</button>
+                            <button class="link-btn" style="background:none;border:none;color:#6b7280;cursor:pointer;text-decoration:underline" onclick="clearAdvancedFiltersInterviews()">Clear filters</button>
+                        </div>
+                    </div>
+                    
                     <!-- Results Summary -->
                     <div id="results-summary" class="results-summary" style="display: none;">
                         <strong>0</strong> interviews found
@@ -1477,6 +1487,16 @@
                             <button class="btn btn-success" onclick="openAddQuestionModal()">Add Question</button>
                             <button class="btn btn-info" onclick="openBulkImportModal()">Bulk Import</button>
                             <input type="text" id="interviewer-questions-inline-search" class="form-input" placeholder="Search questions..." oninput="displayQuestionAnalytics()" style="max-width:260px">
+                        </div>
+                    </div>
+                    
+                    <!-- Advanced Filters for Questions -->
+                    <div id="advanced-filters-questions-interviewer" class="adv-filters" style="margin:1rem 0;padding:1rem;background:#f9fafb;border-radius:6px">
+                        <span class="adv-label" style="font-weight:600;margin-right:8px">where</span>
+                        <div id="filters-container-questions-interviewer" class="filters-container"></div>
+                        <div class="filters-actions" style="margin-top:8px;display:flex;gap:8px">
+                            <button class="btn btn-secondary" style="padding:0.5rem 1rem;font-size:0.875rem" onclick="addQuestionsFilterRowInterviewer()">+ Add filter</button>
+                            <button class="link-btn" style="background:none;border:none;color:#6b7280;cursor:pointer;text-decoration:underline" onclick="clearAdvancedFiltersQuestionsInterviewer()">Clear filters</button>
                         </div>
                     </div>
                     
@@ -2577,6 +2597,280 @@
             return filtered;
         }
 
+        // ============ Advanced Filter Functions ============
+        const textOps = ['contains','equals','starts_with','ends_with','not_contains','not_equals'];
+        const dateOps = ['=','≠','>','≥','<','≤','between','not_between'];
+        
+        // Interviews Filter Functions
+        const interviewsFilterFields = [
+            { value:'student_name', label:'Student' },
+            { value:'zeta_id', label:'Zeta ID' },
+            { value:'session_name', label:'Session' },
+            { value:'status', label:'Status' },
+            { value:'verdict', label:'Verdict' },
+            { value:'created_at', label:'Date' }
+        ];
+        
+        function addInterviewsFilterRow(){
+            const c = document.getElementById('filters-container-interviews'); if (!c) return;
+            const isFirst = c.querySelectorAll('.filter-row-adv').length === 0;
+            const row = document.createElement('div');
+            row.className = 'filter-row-adv';
+            row.style.cssText = 'display:flex;gap:8px;align-items:center;flex-wrap:wrap';
+            const connectorHtml = isFirst ? '' : `<select class="filter-connector form-select" style="min-width:90px;padding:0.4rem 0.6rem;border:1px solid #d1d5db;border-radius:4px">
+<option value="AND">AND</option>
+<option value="OR">OR</option>
+<option value="NOT">NOT</option>
+</select>`;
+            row.innerHTML = `
+                ${connectorHtml}
+                <select class="filter-field form-select" style="min-width:140px;padding:0.4rem 0.6rem;border:1px solid #d1d5db;border-radius:4px">
+                    ${interviewsFilterFields.map(f=>`<option value="${f.value}">${f.label}</option>`).join('')}
+                </select>
+                <select class="filter-op form-select" style="min-width:140px;padding:0.4rem 0.6rem;border:1px solid #d1d5db;border-radius:4px"></select>
+                <input type="text" class="filter-value form-input" placeholder="Value" style="min-width:180px;padding:0.4rem 0.6rem;border:1px solid #d1d5db;border-radius:4px">
+                <input type="date" class="filter-value2 form-input" style="display:none;padding:0.4rem 0.6rem;border:1px solid #d1d5db;border-radius:4px">
+                <button class="btn btn-secondary" style="padding:0.4rem 0.8rem;font-size:0.875rem" onclick="removeInterviewsFilterRow(this);">Remove</button>
+            `;
+            c.appendChild(row);
+            bindInterviewsFilterRow(row);
+            updateInterviewsFilterFieldOptions();
+            displayInterviews();
+        }
+        
+        function bindInterviewsFilterRow(row){
+            const fieldSel = row.querySelector('.filter-field');
+            const opSel = row.querySelector('.filter-op');
+            const v1 = row.querySelector('.filter-value');
+            const v2 = row.querySelector('.filter-value2');
+            function refreshOps(){
+                const f = fieldSel.value;
+                const isDate = (f === 'created_at');
+                const ops = isDate ? dateOps : textOps;
+                opSel.innerHTML = ops.map(o=>`<option value="${o}">${o}</option>`).join('');
+                v1.type = isDate ? 'date' : 'text';
+                v2.style.display = 'none'; v2.value = '';
+                opSel.onchange = ()=>{
+                    const op = opSel.value;
+                    if (isDate && (op==='between' || op==='not_between')) { v2.style.display='inline-block'; } else { v2.style.display='none'; v2.value=''; }
+                    displayInterviews();
+                };
+            }
+            fieldSel.onchange = ()=>{ refreshOps(); updateInterviewsFilterFieldOptions(); displayInterviews(); };
+            v1.oninput = ()=> displayInterviews();
+            v2.oninput = ()=> displayInterviews();
+            const connEl = row.querySelector('.filter-connector');
+            if (connEl) connEl.onchange = ()=> displayInterviews();
+            refreshOps();
+        }
+        
+        function clearAdvancedFiltersInterviews(){ const c=document.getElementById('filters-container-interviews'); if(c){ c.innerHTML=''; } displayInterviews(); }
+        function removeInterviewsFilterRow(btn){ const row = btn.parentElement; row && row.remove(); updateInterviewsFilterFieldOptions(); displayInterviews(); }
+        function updateInterviewsFilterFieldOptions(){ updateAdvFieldOptions('filters-container-interviews', interviewsFilterFields); }
+        function updateAdvFieldOptions(containerId, fields){ 
+            const c=document.getElementById(containerId); if(!c) return; 
+            const rows=Array.from(c.querySelectorAll('.filter-row-adv')); 
+            const selected = new Set(rows.map(r=> (r.querySelector('.filter-field')?.value)||'')); 
+            rows.forEach(r=>{ 
+                const sel=r.querySelector('.filter-field'); if(!sel) return; 
+                const cur=sel.value; 
+                const opts = fields.filter(f=> f.value===cur || !selected.has(f.value)); 
+                sel.innerHTML = opts.map(f=>`<option value="${f.value}">${f.label}</option>`).join(''); 
+                sel.value = cur; 
+            }); 
+            normalizeFilterConnectors(containerId); 
+        }
+        function normalizeFilterConnectors(containerId){ 
+            const c=document.getElementById(containerId); if(!c) return; 
+            const rows=Array.from(c.querySelectorAll('.filter-row-adv')); 
+            rows.forEach((r,i)=>{ 
+                const conn=r.querySelector('.filter-connector'); 
+                if(conn){ conn.style.display = i===0 ? 'none' : 'inline-block'; }
+            }); 
+        }
+        
+        function applyAdvancedFiltersInterviews(items){
+            const c = document.getElementById('filters-container-interviews'); if (!c) return items;
+            const rows = Array.from(c.querySelectorAll('.filter-row-adv'));
+            if (rows.length===0) return items;
+            function matchRow(item, row){
+                const field = row.querySelector('.filter-field').value;
+                const op = row.querySelector('.filter-op').value;
+                const v1 = row.querySelector('.filter-value').value;
+                const v2 = row.querySelector('.filter-value2').value;
+                if (!v1 && op !== 'not_between') return true;
+                const valRaw = item[field];
+                if (field==='created_at'){
+                    const ts = valRaw ? new Date(valRaw).getTime() : 0;
+                    if (!v1) return true;
+                    const d1 = v1 ? new Date(v1) : null;
+                    const t1 = d1 ? (d1.setHours(0,0,0,0), d1.getTime()) : NaN;
+                    const d2 = v2 ? new Date(v2) : null;
+                    const t2 = d2 ? (d2.setHours(23,59,59,999), d2.getTime()) : NaN;
+                    const dayStart = d1 ? t1 : NaN;
+                    const dayEnd = d1 ? (new Date(v1)).setHours(23,59,59,999) : NaN;
+                    switch(op){
+                        case '=': return !isNaN(dayStart) && ts>=dayStart && ts<=dayEnd;
+                        case '≠': return !isNaN(dayStart) && (ts<dayStart || ts>dayEnd);
+                        case '>': return ts>t1;
+                        case '≥': return ts>=t1;
+                        case '<': return ts<t1;
+                        case '≤': return ts<=t1;
+                        case 'between': return !isNaN(t1)&&!isNaN(t2) && ts>=Math.min(t1,t2) && ts<=Math.max(t1,t2);
+                        case 'not_between': return (isNaN(t1)||isNaN(t2)) ? true : (ts<Math.min(t1,t2) || ts>Math.max(t1,t2));
+                        default: return true;
+                    }
+                } else {
+                    if (!v1) return true;
+                    const val = (valRaw ?? '').toString().trim().toLowerCase();
+                    const q = (v1||'').trim().toLowerCase();
+                    switch(op){
+                        case 'contains': return val.includes(q);
+                        case 'equals': return val===q;
+                        case 'starts_with': return val.startsWith(q);
+                        case 'ends_with': return val.endsWith(q);
+                        case 'not_contains': return !val.includes(q);
+                        case 'not_equals': return val!==q;
+                        default: return true;
+                    }
+                }
+            }
+            return items.filter(r=>{
+                let result = true; let first = true;
+                for (const row of rows){
+                    const connEl = row.querySelector('.filter-connector');
+                    const conn = connEl ? connEl.value : 'AND';
+                    const m = matchRow(r, row);
+                    if (first){ result = m; first=false; continue; }
+                    if (conn==='AND') result = result && m;
+                    else if (conn==='OR') result = result || m;
+                    else if (conn==='NOT') result = result && !m;
+                }
+                return result;
+            });
+        }
+        
+        // Questions Filter Functions
+        const questionsFilterFieldsInterviewer = [
+            { value:'question', label:'Question Text' },
+            { value:'tags', label:'Tags' },
+            { value:'times_asked', label:'Times Asked' },
+            { value:'average_score', label:'Average Score' }
+        ];
+        
+        function addQuestionsFilterRowInterviewer(){
+            const c = document.getElementById('filters-container-questions-interviewer'); if (!c) return;
+            const isFirst = c.querySelectorAll('.filter-row-adv').length === 0;
+            const row = document.createElement('div');
+            row.className = 'filter-row-adv';
+            row.style.cssText = 'display:flex;gap:8px;align-items:center;flex-wrap:wrap';
+            const connectorHtml = isFirst ? '' : `<select class="filter-connector form-select" style="min-width:90px;padding:0.4rem 0.6rem;border:1px solid #d1d5db;border-radius:4px">
+<option value="AND">AND</option>
+<option value="OR">OR</option>
+<option value="NOT">NOT</option>
+</select>`;
+            row.innerHTML = `
+                ${connectorHtml}
+                <select class="filter-field form-select" style="min-width:140px;padding:0.4rem 0.6rem;border:1px solid #d1d5db;border-radius:4px">
+                    ${questionsFilterFieldsInterviewer.map(f=>`<option value="${f.value}">${f.label}</option>`).join('')}
+                </select>
+                <select class="filter-op form-select" style="min-width:140px;padding:0.4rem 0.6rem;border:1px solid #d1d5db;border-radius:4px"></select>
+                <input type="text" class="filter-value form-input" placeholder="Value" style="min-width:180px;padding:0.4rem 0.6rem;border:1px solid #d1d5db;border-radius:4px">
+                <input type="text" class="filter-value2 form-input" placeholder="Value 2" style="display:none;min-width:120px;padding:0.4rem 0.6rem;border:1px solid #d1d5db;border-radius:4px">
+                <button class="btn btn-secondary" style="padding:0.4rem 0.8rem;font-size:0.875rem" onclick="removeQuestionsFilterRowInterviewer(this);">Remove</button>
+            `;
+            c.appendChild(row);
+            bindQuestionsFilterRowInterviewer(row);
+            updateQuestionsFilterFieldOptionsInterviewer();
+            displayQuestionAnalytics();
+        }
+        
+        function bindQuestionsFilterRowInterviewer(row){
+            const fieldSel = row.querySelector('.filter-field');
+            const opSel = row.querySelector('.filter-op');
+            const v1 = row.querySelector('.filter-value');
+            const v2 = row.querySelector('.filter-value2');
+            function refreshOps(){
+                const f = fieldSel.value;
+                const isNumeric = (f === 'times_asked' || f === 'average_score');
+                const ops = isNumeric ? ['=','≠','>','≥','<','≤','between','not_between'] : textOps;
+                opSel.innerHTML = ops.map(o=>`<option value="${o}">${o}</option>`).join('');
+                v1.type = isNumeric ? 'number' : 'text';
+                v2.type = isNumeric ? 'number' : 'text';
+                v2.style.display = 'none'; v2.value = '';
+                opSel.onchange = ()=>{
+                    const op = opSel.value;
+                    if (op==='between' || op==='not_between') { v2.style.display='inline-block'; } else { v2.style.display='none'; v2.value=''; }
+                    displayQuestionAnalytics();
+                };
+            }
+            fieldSel.onchange = ()=>{ refreshOps(); updateQuestionsFilterFieldOptionsInterviewer(); displayQuestionAnalytics(); };
+            v1.oninput = ()=> displayQuestionAnalytics();
+            v2.oninput = ()=> displayQuestionAnalytics();
+            const connEl = row.querySelector('.filter-connector');
+            if (connEl) connEl.onchange = ()=> displayQuestionAnalytics();
+            refreshOps();
+        }
+        
+        function clearAdvancedFiltersQuestionsInterviewer(){ const c=document.getElementById('filters-container-questions-interviewer'); if(c){ c.innerHTML=''; } displayQuestionAnalytics(); }
+        function removeQuestionsFilterRowInterviewer(btn){ const row = btn.parentElement; row && row.remove(); updateQuestionsFilterFieldOptionsInterviewer(); displayQuestionAnalytics(); }
+        function updateQuestionsFilterFieldOptionsInterviewer(){ updateAdvFieldOptions('filters-container-questions-interviewer', questionsFilterFieldsInterviewer); }
+        
+        function applyAdvancedFiltersQuestionsInterviewer(items){
+            const c = document.getElementById('filters-container-questions-interviewer'); if (!c) return items;
+            const rows = Array.from(c.querySelectorAll('.filter-row-adv'));
+            if (rows.length===0) return items;
+            function matchRow(item, row){
+                const field = row.querySelector('.filter-field').value;
+                const op = row.querySelector('.filter-op').value;
+                const v1 = row.querySelector('.filter-value').value;
+                const v2 = row.querySelector('.filter-value2').value;
+                if (!v1 && op !== 'not_between') return true;
+                const valRaw = item[field];
+                if (field==='times_asked' || field==='average_score'){
+                    const num = Number(valRaw) || 0;
+                    const n1 = Number(v1) || 0;
+                    const n2 = Number(v2) || 0;
+                    switch(op){
+                        case '=': return num === n1;
+                        case '≠': return num !== n1;
+                        case '>': return num > n1;
+                        case '≥': return num >= n1;
+                        case '<': return num < n1;
+                        case '≤': return num <= n1;
+                        case 'between': return num >= Math.min(n1,n2) && num <= Math.max(n1,n2);
+                        case 'not_between': return num < Math.min(n1,n2) || num > Math.max(n1,n2);
+                        default: return true;
+                    }
+                } else {
+                    const val = (valRaw ?? '').toString().trim().toLowerCase();
+                    const q = (v1||'').trim().toLowerCase();
+                    switch(op){
+                        case 'contains': return val.includes(q);
+                        case 'equals': return val===q;
+                        case 'starts_with': return val.startsWith(q);
+                        case 'ends_with': return val.endsWith(q);
+                        case 'not_contains': return !val.includes(q);
+                        case 'not_equals': return val!==q;
+                        default: return true;
+                    }
+                }
+            }
+            return items.filter(r=>{
+                let result = true; let first = true;
+                for (const row of rows){
+                    const connEl = row.querySelector('.filter-connector');
+                    const conn = connEl ? connEl.value : 'AND';
+                    const m = matchRow(r, row);
+                    if (first){ result = m; first=false; continue; }
+                    if (conn==='AND') result = result && m;
+                    else if (conn==='OR') result = result || m;
+                    else if (conn==='NOT') result = result && !m;
+                }
+                return result;
+            });
+        }
+
         // Sorting functions
         function sortInterviews(interviews, sortBy) {
             if (!sortBy) return interviews;
@@ -3125,8 +3419,9 @@
                 return;
             }
 
-            // Inline search + sort
-            const filtered = applyInterviewerInline(baseList);
+            // Inline search + advanced filters + sort
+            let filtered = applyInterviewerInline(baseList);
+            filtered = applyAdvancedFiltersInterviews(filtered);
             
             // Update pagination
             updateTotalPages(filtered, 'interviews');
@@ -3691,6 +3986,9 @@
                     return text.includes(term) || category.includes(term) || tagsHit;
                 });
             }
+
+            // Apply advanced filters
+            data = applyAdvancedFiltersQuestionsInterviewer(data);
 
             // Sort using questionSortState
             const state = window.questionSortState || { field: 'times_asked', dir: 'desc' };
