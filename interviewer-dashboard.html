@@ -21,31 +21,34 @@
 
         .dashboard-container {
             display: flex;
+            flex-direction: column;
             min-height: 100vh;
         }
 
-        /* Sidebar */
+        /* Unified Header with Navigation */
         .sidebar {
-            width: 250px;
+            width: 100%;
             background: #000000;
             color: white;
-            padding: 1.5rem 0;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
+            padding: 0.75rem 2rem;
+            position: sticky;
+            top: 0;
             z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
         }
 
         .sidebar-header {
-            padding: 0 1.5rem 2rem;
-            border-bottom: 1px solid #333333;
-            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
         }
 
-        .sidebar-header h2 {
-            color: #ffffff;
-            font-size: 1.5rem;
-            font-weight: 700;
+        .sidebar-header .logo {
+            display: flex;
+            align-items: center;
         }
         
         .logo-container {
@@ -58,19 +61,27 @@
 
         .sidebar-nav {
             list-style: none;
+            display: flex;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+            gap: 0.25rem;
+            flex: 1;
         }
 
         .nav-item {
-            margin-bottom: 0.25rem;
+            margin: 0;
         }
 
         .nav-link {
             display: block;
-            padding: 0.75rem 1.5rem;
+            padding: 0.75rem 1.25rem;
             color: #cccccc;
             text-decoration: none;
             transition: all 0.2s ease;
-            border-left: 3px solid transparent;
+            border-radius: 6px;
+            white-space: nowrap;
+            font-size: 0.9rem;
             cursor: pointer;
         }
 
@@ -78,32 +89,39 @@
         .nav-link.active {
             background: #333333;
             color: white;
-            border-left-color: #ffffff;
         }
 
-        .nav-link i {
-            margin-right: 0.75rem;
-            width: 20px;
-            text-align: center;
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-actions .btn-primary {
+            background: #dc3545;
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        .header-actions .btn-primary:hover {
+            background: #c82333;
         }
 
         /* Main Content */
         .main-content {
-            margin-left: 250px;
+            margin-left: 0;
             flex: 1;
             padding: 2rem;
+            max-width: 100%;
         }
 
         .header {
-            background: white;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-            margin-bottom: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid #000000;
+            display: none;
         }
 
         .header-left {
@@ -1364,50 +1382,38 @@
 </head>
 <body>
     <div class="dashboard-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
+        <!-- Unified Header with Navigation -->
+        <nav class="sidebar">
             <div class="sidebar-header">
-                <div class="logo-container">
-                    <img src="/logo1.png" alt="BEES Logo" style="height: 35px; width: auto;">
-                    <span style="margin-left: 10px; font-size: 1.2rem;">Interviewer</span>
+                <a href="/" class="logo">
+                    <img src="/logo3.png" alt="BEES Logo" style="height: 40px; width: auto;">
+                </a>
+            </div>
+            <ul class="sidebar-nav">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" onclick="showSection('interviews')">
+                        My Interviews
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" onclick="showSection('questions')">
+                        Question Analysis
+                    </a>
+                </li>
+            </ul>
+            <div class="header-actions">
+                <button id="start-interview-btn" class="btn-primary" onclick="window.location.href='/interview'">Start Interview</button>
+                <div class="user-info" style="position:relative">
+                    <div class="user-avatar" id="user-avatar" style="cursor:pointer;background:#fff;color:#000">I</div>
+                    <div id="avatar-menu" style="position:absolute;right:0;top:56px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 10px 20px rgba(0,0,0,0.1);display:none;min-width:140px;z-index:10">
+                        <button id="logout-btn" style="width:100%;background:#fff;border:none;text-align:left;padding:10px 12px;cursor:pointer">Logout</button>
+                    </div>
                 </div>
             </div>
-            <nav>
-                <ul class="sidebar-nav">
-                    <li class="nav-item">
-                        <a href="#" class="nav-link active" onclick="showSection('interviews')">
-                            <i>📋</i>
-                            My Interviews
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link" onclick="showSection('questions')">
-                            <i>❓</i>
-                            Question Analysis
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </aside>
+        </nav>
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Header -->
-            <header class="header">
-                <div class="header-left">
-                    <a href="/" class="home-link">← Home</a>
-                    <h1 id="page-title">My Interviews</h1>
-                </div>
-                <div class="header-actions" style="position:relative;display:flex;gap:8px;align-items:center">
-                    <button id="start-interview-btn" class="btn-primary" style="padding:8px 12px;border-radius:6px;border:1px solid #dc2626;background:#dc2626;color:#fff;cursor:pointer" onclick="window.location.href='/interview'">Start Interview</button>
-                    <div class="user-info">
-                        <div class="user-avatar" id="user-avatar" style="cursor:pointer">I</div>
-                        <div id="avatar-menu" style="position:absolute;right:0;top:52px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 10px 20px rgba(0,0,0,0.1);display:none;min-width:140px;z-index:10">
-                            <button id="logout-btn" style="width:100%;background:#fff;border:none;text-align:left;padding:10px 12px;cursor:pointer">Logout</button>
-                        </div>
-                    </div>
-                </div>
-            </header>
 
             <!-- My Interviews Section -->
             <section id="interviews-section" class="content-section active">
