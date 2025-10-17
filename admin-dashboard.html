@@ -2079,7 +2079,7 @@
                     <div id="filters-container" class="filters-container"></div>
                     <div class="filters-actions">
                         <button class="btn btn-secondary btn-compact" onclick="addFilterRow()">+ Add filter</button>
-                        <button class="link-btn" onclick="clearAllFilters()">Clear filters</button>
+                        <button class="link-btn" onclick="clearAdvancedFilters()">Clear filters</button>
                     </div>
                 </div>
                 
@@ -3687,7 +3687,7 @@
             if (connEl) connEl.onchange = ()=> displayInterviews();
             refreshOps();
         }
-        function clearAllFilters(){ const c=document.getElementById('filters-container'); if(c){ c.innerHTML=''; displayInterviews(); } }
+        function clearAdvancedFilters(){ const c=document.getElementById('filters-container'); if(c){ c.innerHTML=''; } displayInterviews(); }
         function applyAdvancedFilters(items){
             const c = document.getElementById('filters-container'); if (!c) return items;
             const rows = Array.from(c.querySelectorAll('.filter-row-adv'));
