@@ -2352,6 +2352,16 @@
                     </div>
                 </div>
 
+                <!-- Advanced Filters (compact) for Consolidation -->
+                <div id="advanced-filters-cons" class="adv-filters">
+                    <span class="adv-label">where</span>
+                    <div id="filters-container-cons" class="filters-container"></div>
+                    <div class="filters-actions">
+                        <button class="btn btn-secondary btn-compact" onclick="addConsFilterRow()">+ Add filter</button>
+                        <button class="link-btn" onclick="clearAdvancedFiltersCons()">Clear filters</button>
+                    </div>
+                </div>
+
                 <div class="table-container">
                     <table class="data-table fixed-columns">
                         <thead>
@@ -3010,7 +3020,9 @@
                 const json = await res.json();
                 if (!res.ok || !json.success) throw new Error(json.error || 'Failed to load');
                 window.__consolidationRows = json.data || [];
-                const rows = applyConsolidationFiltersAndSort(window.__consolidationRows);
+                let rows = applyConsolidationFiltersAndSort(window.__consolidationRows);
+                // Apply advanced filters for consolidation
+                rows = applyAdvancedFiltersCons(rows);
                 if (!tbody) return;
                 if (rows.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No consolidation data</td></tr>';
@@ -3115,6 +3127,131 @@
                 });
             }
             return out;
+        }
+
+        // Advanced Filters for Consolidation
+        const consFilterFields = [
+            { value:'student_name', label:'Student' },
+            { value:'student_email', label:'Email' },
+            { value:'zeta_id', label:'Zeta ID' },
+            { value:'session_name', label:'Session' },
+            { value:'status', label:'Status' },
+            { value:'verdicts', label:'Verdicts' },
+            { value:'last_interview_at', label:'Last Interview' }
+        ];
+        function addConsFilterRow(){
+            const c = document.getElementById('filters-container-cons'); if (!c) return;
+            const isFirst = c.querySelectorAll('.filter-row-adv').length === 0;
+            const row = document.createElement('div');
+            row.className = 'filter-row-adv';
+            row.style.cssText = 'display:flex;gap:8px;align-items:center;flex-wrap:wrap';
+            const connectorHtml = isFirst ? '' : `<select class=\"filter-connector form-select\" style=\"min-width:90px\">\n<option value=\"AND\">AND<\/option>\n<option value=\"OR\">OR<\/option>\n<option value=\"NOT\">NOT<\/option>\n<\/select>`;
+            row.innerHTML = `
+                ${connectorHtml}
+                <select class=\"filter-field form-select\" style=\"min-width:140px\">
+                    ${consFilterFields.map(f=>`<option value=\"${f.value}\">${f.label}</option>`).join('')}
+                </select>
+                <select class=\"filter-op form-select\" style=\"min-width:140px\"></select>
+                <input type=\"text\" class=\"filter-value form-input\" placeholder=\"Value\" style=\"min-width:180px\">
+                <input type=\"date\" class=\"filter-value2 form-input\" style=\"display:none\">
+                <button class=\"btn btn-secondary\" onclick=\"this.parentElement.remove(); loadConsolidation();\">Remove</button>
+            `;
+            c.appendChild(row);
+            bindConsFilterRow(row);
+            loadConsolidation();
+        }
+        function bindConsFilterRow(row){
+            const fieldSel = row.querySelector('.filter-field');
+            const opSel = row.querySelector('.filter-op');
+            const v1 = row.querySelector('.filter-value');
+            const v2 = row.querySelector('.filter-value2');
+            function refreshOps(){
+                const f = fieldSel.value;
+                const isDate = (f === 'last_interview_at');
+                const isArray = (f === 'verdicts');
+                const ops = isDate ? dateOps : textOps;
+                opSel.innerHTML = ops.map(o=>`<option value=\"${o}\">${o}</option>`).join('');
+                v1.type = isDate ? 'date' : 'text';
+                v2.style.display = 'none'; v2.value = '';
+                opSel.onchange = ()=>{
+                    const op = opSel.value;
+                    if (isDate && (op==='between' || op==='not_between')) { v2.style.display='block'; } else { v2.style.display='none'; v2.value=''; }
+                    loadConsolidation();
+                };
+            }
+            fieldSel.onchange = ()=>{ refreshOps(); loadConsolidation(); };
+            v1.oninput = ()=> loadConsolidation();
+            v2.oninput = ()=> loadConsolidation();
+            const connEl = row.querySelector('.filter-connector');
+            if (connEl) connEl.onchange = ()=> loadConsolidation();
+            refreshOps();
+        }
+        function clearAdvancedFiltersCons(){ const c=document.getElementById('filters-container-cons'); if(c){ c.innerHTML=''; } loadConsolidation(); }
+        function applyAdvancedFiltersCons(items){
+            const c = document.getElementById('filters-container-cons'); if (!c) return items;
+            const rows = Array.from(c.querySelectorAll('.filter-row-adv'));
+            if (rows.length===0) return items;
+            function matchRow(r, row){
+                const field = row.querySelector('.filter-field').value;
+                const op = row.querySelector('.filter-op').value;
+                const v1 = row.querySelector('.filter-value').value;
+                const v2 = row.querySelector('.filter-value2').value;
+                const valRaw = r[field];
+                if (field==='last_interview_at'){
+                    const ts = valRaw ? new Date(valRaw).getTime() : 0;
+                    const t1 = v1 ? new Date(v1).getTime() : NaN;
+                    const t2 = v2 ? new Date(v2).getTime() : NaN;
+                    switch(op){
+                        case '=': return ts===t1;
+                        case '≠': return ts!==t1;
+                        case '>': return ts>t1;
+                        case '≥': return ts>=t1;
+                        case '<': return ts<t1;
+                        case '≤': return ts<=t1;
+                        case 'between': return !isNaN(t1)&&!isNaN(t2) && ts>=Math.min(t1,t2) && ts<=Math.max(t1,t2);
+                        case 'not_between': return !isNaN(t1)&&!isNaN(t2) && (ts<Math.min(t1,t2) || ts>Math.max(t1,t2));
+                        default: return true;
+                    }
+                } else if (field==='verdicts'){
+                    const list = Array.isArray(valRaw) ? valRaw.map(v=> String(v).toLowerCase()) : [];
+                    const q = (v1||'').toLowerCase();
+                    const joined = list.join(' ');
+                    switch(op){
+                        case 'contains': return joined.includes(q);
+                        case 'equals': return joined===q;
+                        case 'starts_with': return joined.startsWith(q);
+                        case 'ends_with': return joined.endsWith(q);
+                        case 'not_contains': return !joined.includes(q);
+                        case 'not_equals': return joined!==q;
+                        default: return true;
+                    }
+                } else {
+                    const val = (valRaw ?? '').toString().toLowerCase();
+                    const q = (v1||'').toLowerCase();
+                    switch(op){
+                        case 'contains': return val.includes(q);
+                        case 'equals': return val===q;
+                        case 'starts_with': return val.startsWith(q);
+                        case 'ends_with': return val.endsWith(q);
+                        case 'not_contains': return !val.includes(q);
+                        case 'not_equals': return val!==q;
+                        default: return true;
+                    }
+                }
+            }
+            return items.filter(r=>{
+                let result = true; let first = true;
+                for (const row of rows){
+                    const connEl = row.querySelector('.filter-connector');
+                    const conn = connEl ? connEl.value : 'AND';
+                    const m = matchRow(r, row);
+                    if (first){ result = m; first=false; continue; }
+                    if (conn==='AND') result = result && m;
+                    else if (conn==='OR') result = result || m;
+                    else if (conn==='NOT') result = result && !m;
+                }
+                return result;
+            });
         }
 
         async function updateConsolidationStatus(id, status){
