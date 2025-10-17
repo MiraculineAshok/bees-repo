@@ -2962,6 +2962,16 @@
             try {
                 const q = questions.find(x => String(x.id) === String(questionId));
                 if (!q) { showError('Question not found'); return; }
+                
+                // Check if there's an answer (text or image)
+                const hasTextAnswer = q.student_answer && q.student_answer.trim().length > 0;
+                const hasImageAnswer = q.answer_photo_url && q.answer_photo_url.trim().length > 0;
+                
+                if (!hasTextAnswer && !hasImageAnswer) {
+                    showError('Please provide an answer first before requesting AI evaluation.');
+                    return;
+                }
+                
                 // Build safe text inputs for AI: strip images and convert HTML to text for answer
                 const questionText = (q.question_rich_content || q.question_text || '')
                     .replace(/<img[^>]*>/gi, '')
