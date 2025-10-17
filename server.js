@@ -77,11 +77,11 @@ app.use(helmet({
         directives: {
             defaultSrc: ["'self'"],
             baseUri: ["'self'"],
-            connectSrc: ["'self'", "https://api.cloudinary.com", "https://cdn.quilljs.com"], // Allow Cloudinary API calls and Quill.js source maps
+            connectSrc: ["'self'", "https://api.cloudinary.com"], // Allow Cloudinary API calls
             fontSrc: ["'self'", "https:", "data:"],
             formAction: ["'self'"],
             frameAncestors: ["'self'"],
-            imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://bees-repo.onrender.com"],
+            imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
             objectSrc: ["'none'"],
             scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.quilljs.com"], // Allow Quill.js CDN
             scriptSrcAttr: ["'unsafe-inline'"], // Allow inline event handlers
@@ -129,17 +129,6 @@ app.use(express.static(path.join(__dirname), {
     }
   }
 }));
-
-// Explicit icon routes (ensure availability in all environments)
-app.get('/view.png', (req, res) => {
-  res.sendFile(path.join(__dirname, 'view.png'));
-});
-app.get('/edit.png', (req, res) => {
-  res.sendFile(path.join(__dirname, 'edit.png'));
-});
-app.get('/delete.png', (req, res) => {
-  res.sendFile(path.join(__dirname, 'delete.png'));
-});
 
 // Ensure uploads directory exists
 const uploadsDir = 'uploads';

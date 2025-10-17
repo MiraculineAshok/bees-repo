@@ -782,7 +782,7 @@
         }
 
         .btn {
-            padding: 0.9rem 1rem;
+            padding: 0.5rem 1rem;
             border-radius: 4px;
             font-size: 0.875rem;
             font-weight: 500;
@@ -2084,15 +2084,6 @@
                 </div>
                 
                 <div class="table-container">
-                    <!-- Advanced Filters (compact) for Questions -->
-                    <div id="advanced-filters-questions" class="adv-filters">
-                        <span class="adv-label">where</span>
-                        <div id="filters-container-questions" class="filters-container"></div>
-                        <div class="filters-actions">
-                            <button class="btn btn-secondary btn-compact" onclick="addQuestionFilterRow()">+ Add filter</button>
-                            <button class="link-btn" onclick="clearAdvancedFiltersQuestions()">Clear filters</button>
-                        </div>
-                    </div>
                     <!-- Bulk Edit Controls -->
                     <div class="bulk-edit-controls">
                         <div class="bulk-edit-info" id="bulk-edit-selected-count">0 records selected</div>
@@ -2184,15 +2175,6 @@
                 </div>
                 
                 <div class="table-container">
-                    <!-- Advanced Filters (compact) for Sessions -->
-                    <div id="advanced-filters-sessions" class="adv-filters">
-                        <span class="adv-label">where</span>
-                        <div id="filters-container-sessions" class="filters-container"></div>
-                        <div class="filters-actions">
-                            <button class="btn btn-secondary btn-compact" onclick="addSessionFilterRow()">+ Add filter</button>
-                            <button class="link-btn" onclick="clearAdvancedFiltersSessions()">Clear filters</button>
-                        </div>
-                    </div>
                     <!-- Bulk Edit Controls -->
                     <div class="bulk-edit-controls">
                         <div class="bulk-edit-info" id="bulk-edit-selected-count">0 records selected</div>
@@ -2238,15 +2220,6 @@
                 </div>
                 
                 <div class="table-container">
-                    <!-- Advanced Filters (compact) for Students -->
-                    <div id="advanced-filters-students" class="adv-filters">
-                        <span class="adv-label">where</span>
-                        <div id="filters-container-students" class="filters-container"></div>
-                        <div class="filters-actions">
-                            <button class="btn btn-secondary btn-compact" onclick="addStudentFilterRow()">+ Add filter</button>
-                            <button class="link-btn" onclick="clearAdvancedFiltersStudents()">Clear filters</button>
-                        </div>
-                    </div>
                     <!-- Bulk Edit Controls -->
                     <div class="bulk-edit-controls">
                         <div class="bulk-edit-info" id="bulk-edit-selected-count">0 records selected</div>
@@ -2293,15 +2266,6 @@
                     </div>
                 </div>
                 <div class="table-container">
-                    <!-- Advanced Filters (compact) for My Interviews -->
-                    <div id="advanced-filters-myint" class="adv-filters">
-                        <span class="adv-label">where</span>
-                        <div id="filters-container-myint" class="filters-container"></div>
-                        <div class="filters-actions">
-                            <button class="btn btn-secondary btn-compact" onclick="addMyIntFilterRow()">+ Add filter</button>
-                            <button class="link-btn" onclick="clearAdvancedFiltersMyInt()">Clear filters</button>
-                        </div>
-                    </div>
                     <!-- Bulk Edit Controls -->
                     <div class="bulk-edit-controls">
                         <div class="bulk-edit-info" id="bulk-edit-selected-count">0 records selected</div>
@@ -2345,15 +2309,6 @@
                 </div>
                 
                 <div class="table-container">
-                    <!-- Advanced Filters (compact) for Users -->
-                    <div id="advanced-filters-users" class="adv-filters">
-                        <span class="adv-label">where</span>
-                        <div id="filters-container-users" class="filters-container"></div>
-                        <div class="filters-actions">
-                            <button class="btn btn-secondary btn-compact" onclick="addUserFilterRow()">+ Add filter</button>
-                            <button class="link-btn" onclick="clearAdvancedFiltersUsers()">Clear filters</button>
-                        </div>
-                    </div>
                     <!-- Bulk Edit Controls -->
                     <div class="bulk-edit-controls">
                         <div class="bulk-edit-info" id="bulk-edit-selected-count">0 records selected</div>
@@ -3110,7 +3065,7 @@
                                       <button onclick="updateConsolidationStatus(${r.id},'waitlisted')" class="menu-item">Waitlist</button>
                                   </div>
                                 </div>
-                                <button class="icon-btn" title="View" onclick="openConsDetail(${r.id})" aria-label="View details" style="border:1px solid #e5e7eb;background:#fff;border-radius:6px;padding:6px 8px;cursor:pointer"><img src="/view.png" alt="View" width="18" height="18"></button>
+                                <button class="icon-btn" title="View" onclick="openConsDetail(${r.id})" aria-label="View details" style="border:1px solid #e5e7eb;background:#fff;border-radius:6px;padding:6px 8px;cursor:pointer"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
                             </td>
                         </tr>
                     `;
@@ -3591,10 +3546,9 @@
                 return;
             }
 
-            // Inline search + advanced filters + sort
+            // Inline search + sort
             const term = document.getElementById('my-interviews-inline-search')?.value || '';
             let list = applyInlineSearch(interviewsData, term, ['student_name','student_email','zeta_id','session_name','status','verdict']);
-            list = applyAdvancedFiltersMyInt(list);
             list = applyInlineSort(list, 'my-interviews');
             
             // Update pagination
@@ -3613,9 +3567,9 @@
                     <td data-field="duration_seconds">${formatDuration(interview.duration_seconds)}</td>
                     <td>
                         ${interview.status === 'in_progress' ? `<button class="icon-btn" onclick="resumeInterviewAdmin(${interview.id})" title="Resume">⏵</button>` : ''}
-                        <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit"><img src="/edit.png" alt="Edit" width="18" height="18"></button>
-                        <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete"><img src="/delete.png" alt="Delete" width="18" height="18"></button>
-                        <button class="icon-btn" onclick="viewInterview(${interview.id})" title="View"><img src="/view.png" alt="View" width="18" height="18"></button>
+                        <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit">✏️</button>
+                        <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete">🗑️</button>
+                        <button class="icon-btn" onclick="viewInterview(${interview.id})" title="View">👁️</button>
                     </td>
                 </tr>
             `).join('');
@@ -3709,9 +3663,9 @@
                             <td data-field="verdict">${interview.verdict || 'N/A'}</td>
                             <td data-field="duration_seconds">${formatDuration(interview.duration_seconds)}</td>
                             <td>
-                                <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit"><img src="/edit.png" alt="Edit" width="18" height="18"></button>
-                                <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete"><img src="/delete.png" alt="Delete" width="18" height="18"></button>
-                                <button class="icon-btn" onclick="viewInterview(${interview.id})" title="View"><img src="/view.png" alt="View" width="18" height="18"></button>
+                                <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit"><img src="edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                                <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete"><img src="delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
+                                <button class="icon-btn" onclick="viewInterview(${interview.id})" title="View"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
                             </td>
                         </tr>
                     `;
@@ -3825,152 +3779,6 @@
         ];
         const textOps = ['contains','equals','starts_with','ends_with','not_contains','not_equals'];
         const dateOps = ['=','≠','>','≥','<','≤','between','not_between'];
-        // Questions filters
-        const questionFilterFields = [
-            { value:'question', label:'Question' },
-            { value:'category', label:'Category' },
-            { value:'times_asked', label:'Times Asked' },
-            { value:'average_score', label:'Avg Score' },
-            { value:'success_rate', label:'Success %' }
-        ];
-        function addQuestionFilterRow(){ addGenericFilterRow('filters-container-questions', questionFilterFields, displayQuestions); }
-        function clearAdvancedFiltersQuestions(){ const c=document.getElementById('filters-container-questions'); if(c) c.innerHTML=''; displayQuestions(); }
-        function applyAdvancedFiltersQuestions(items){ return applyGenericFilters(items, 'filters-container-questions'); }
-
-        // Students filters
-        const studentFilterFields = [
-            { value:'name', label:'Name' },
-            { value:'email', label:'Email' },
-            { value:'zeta_id', label:'Zeta ID' },
-            { value:'phone', label:'Phone' },
-            { value:'school', label:'School' },
-            { value:'location', label:'Location' },
-            { value:'created_at', label:'Created At' }
-        ];
-        function addStudentFilterRow(){ addGenericFilterRow('filters-container-students', studentFilterFields, displayStudents); }
-        function clearAdvancedFiltersStudents(){ const c=document.getElementById('filters-container-students'); if(c) c.innerHTML=''; displayStudents(); }
-        function applyAdvancedFiltersStudents(items){ return applyGenericFilters(items, 'filters-container-students'); }
-
-        // My Interviews filters
-        const myIntFilterFields = [
-            { value:'student_name', label:'Student' },
-            { value:'zeta_id', label:'Zeta ID' },
-            { value:'session_name', label:'Session' },
-            { value:'status', label:'Status' },
-            { value:'verdict', label:'Verdict' },
-            { value:'created_at', label:'Date' }
-        ];
-        function addMyIntFilterRow(){ addGenericFilterRow('filters-container-myint', myIntFilterFields, displayMyInterviews); }
-        function clearAdvancedFiltersMyInt(){ const c=document.getElementById('filters-container-myint'); if(c) c.innerHTML=''; displayMyInterviews(); }
-        function applyAdvancedFiltersMyInt(items){ return applyGenericFilters(items, 'filters-container-myint'); }
-
-        // Users filters
-        const userFilterFields = [
-            { value:'name', label:'Name' },
-            { value:'email', label:'Email' },
-            { value:'role', label:'Role' },
-            { value:'status', label:'Status' },
-            { value:'created_at', label:'Created At' }
-        ];
-        function addUserFilterRow(){ addGenericFilterRow('filters-container-users', userFilterFields, displayUsers); }
-        function clearAdvancedFiltersUsers(){ const c=document.getElementById('filters-container-users'); if(c) c.innerHTML=''; displayUsers(); }
-        function applyAdvancedFiltersUsers(items){ return applyGenericFilters(items, 'filters-container-users'); }
-
-        // Sessions filters
-        const sessionFilterFields = [
-            { value:'name', label:'Name' },
-            { value:'description', label:'Description' },
-            { value:'status', label:'Status' },
-            { value:'created_by_name', label:'Created By' },
-            { value:'created_at', label:'Created At' }
-        ];
-        function addSessionFilterRow(){ addGenericFilterRow('filters-container-sessions', sessionFilterFields, displaySessions); }
-        function clearAdvancedFiltersSessions(){ const c=document.getElementById('filters-container-sessions'); if(c) c.innerHTML=''; displaySessions(); }
-        function applyAdvancedFiltersSessions(items){ return applyGenericFilters(items, 'filters-container-sessions'); }
-
-        // Generic helpers (reuses same UI pattern)
-        function addGenericFilterRow(containerId, fields, onChange){
-            const c = document.getElementById(containerId); if (!c) return;
-            const isFirst = c.querySelectorAll('.filter-row-adv').length === 0;
-            const row = document.createElement('div');
-            row.className = 'filter-row-adv';
-            row.style.cssText = 'display:flex;gap:8px;align-items:center;flex-wrap:wrap';
-            const connectorHtml = isFirst ? '' : `<select class="filter-connector form-select" style="min-width:90px"><option value="AND">AND</option><option value="OR">OR</option><option value="NOT">NOT</option></select>`;
-            row.innerHTML = `
-                ${connectorHtml}
-                <select class="filter-field form-select" style="min-width:140px">${fields.map(f=>`<option value="${f.value}">${f.label}</option>`).join('')}</select>
-                <select class="filter-op form-select" style="min-width:140px"></select>
-                <input type="text" class="filter-value form-input" placeholder="Value" style="min-width:180px">
-                <input type="date" class="filter-value2 form-input" style="display:none">
-                <button class="btn btn-secondary" onclick="removeFilterRow(this,'${containerId}');">Remove</button>`;
-            c.appendChild(row);
-            bindGenericFilterRow(row, fields, containerId, onChange);
-            updateAdvFieldOptions(containerId, fields);
-            onChange();
-        }
-        function bindGenericFilterRow(row, fields, containerId, onChange){
-            const fieldSel = row.querySelector('.filter-field');
-            const opSel = row.querySelector('.filter-op');
-            const v1 = row.querySelector('.filter-value');
-            const v2 = row.querySelector('.filter-value2');
-            function refreshOps(){
-                const f = fieldSel.value;
-                const isDate = (f.toLowerCase().includes('created_at') || f==='created_at' || f==='date');
-                const ops = isDate ? dateOps : textOps;
-                opSel.innerHTML = ops.map(o=>`<option value="${o}">${o}</option>`).join('');
-                v1.type = isDate ? 'date' : 'text';
-                v2.style.display = 'none'; v2.value = '';
-                opSel.onchange = ()=>{ const op = opSel.value; if (isDate && (op==='between' || op==='not_between')) { v2.style.display='block'; } else { v2.style.display='none'; v2.value=''; } onChange(); };
-            }
-            fieldSel.onchange = ()=>{ refreshOps(); updateAdvFieldOptions(containerId, fields); onChange(); };
-            v1.oninput = ()=> onChange();
-            v2.oninput = ()=> onChange();
-            const connEl = row.querySelector('.filter-connector'); if (connEl) connEl.onchange = ()=> onChange();
-            refreshOps();
-        }
-        function applyGenericFilters(items, containerId){
-            const c = document.getElementById(containerId); if (!c) return items;
-            const rows = Array.from(c.querySelectorAll('.filter-row-adv'));
-            if (rows.length===0) return items;
-            function matchRow(item, row){
-                const field = row.querySelector('.filter-field').value;
-                const op = row.querySelector('.filter-op').value;
-                const v1 = row.querySelector('.filter-value').value;
-                const v2 = row.querySelector('.filter-value2').value;
-                const raw = item[field];
-                if ((field.toLowerCase().includes('created_at') || field==='created_at' || field==='date') ){
-                    const ts = raw ? new Date(raw).getTime() : 0;
-                    if (!v1) return true;
-                    const d1 = new Date(v1); d1.setHours(0,0,0,0); const t1 = d1.getTime();
-                    const d2 = v2 ? new Date(v2) : null; const t2 = d2 ? (d2.setHours(23,59,59,999), d2.getTime()) : NaN;
-                    switch(op){
-                        case '=': return ts>=t1 && ts<= (new Date(v1)).setHours(23,59,59,999);
-                        case '≠': return ts < t1 || ts > (new Date(v1)).setHours(23,59,59,999);
-                        case '>': return ts>t1; case '≥': return ts>=t1; case '<': return ts<t1; case '≤': return ts<=t1;
-                        case 'between': return !isNaN(t1)&&!isNaN(t2) && ts>=Math.min(t1,t2) && ts<=Math.max(t1,t2);
-                        case 'not_between': return (isNaN(t1)||isNaN(t2)) ? true : (ts<Math.min(t1,t2) || ts>Math.max(t1,t2));
-                        default: return true;
-                    }
-                } else {
-                    if (!v1) return true;
-                    const val = (raw ?? '').toString().trim().toLowerCase();
-                    const q = (v1||'').trim().toLowerCase();
-                    switch(op){
-                        case 'contains': return val.includes(q);
-                        case 'equals': return val===q;
-                        case 'starts_with': return val.startsWith(q);
-                        case 'ends_with': return val.endsWith(q);
-                        case 'not_contains': return !val.includes(q);
-                        case 'not_equals': return val!==q;
-                        default: return true;
-                    }
-                }
-            }
-            return items.filter(item=>{
-                let res=true, first=true; for (const row of rows){ const connEl=row.querySelector('.filter-connector'); const conn = connEl ? connEl.value : 'AND'; const m = matchRow(item,row); if(first){res=m; first=false; continue;} if(conn==='AND') res=res&&m; else if(conn==='OR') res=res||m; else if(conn==='NOT') res=res&&!m; }
-                return res;
-            });
-        }
         function addFilterRow(){
             const c = document.getElementById('filters-container'); if (!c) return;
             const isFirst = c.querySelectorAll('.filter-row-adv').length === 0;
@@ -4195,9 +4003,9 @@
                     <td data-field="status"><span class="status-badge status-${interview.status}">${interview.status}</span></td>
                     <td data-field="verdict">${interview.verdict || 'N/A'}</td>
                     <td>
-                        <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit">✏️</button>
-                        <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete">🗑️</button>
-                        <button class="icon-btn" onclick="viewInterview(${interview.id})" title="View">👁️</button>
+                        <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit"><img src="edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete"><img src="delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn" onclick="viewInterview(${interview.id})" title="View"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
                     </td>
                 </tr>
             `).join('');
@@ -4432,10 +4240,9 @@
                 return;
             }
 
-            // Inline search + advanced filters + sort
+            // Inline search + sort
             const term = document.getElementById('questions-inline-search')?.value || '';
             let list = applyInlineSearch(questionsData, term, ['question','question_text','category']);
-            list = applyAdvancedFiltersQuestions(list);
             list = applyInlineSort(list, 'questions');
             
             // Update pagination
@@ -4486,9 +4293,9 @@
                         >${favoriteQuestionIds.has(question.id) ? '★' : '☆'}</button>
                     </td>
                     <td>
-                        <button class="icon-btn edit-btn" onclick="startEdit('${question.id}')" title="Edit"><img src="/edit.png" alt="Edit" width="18" height="18"></button>
-                        <button class="icon-btn delete-btn" onclick="deleteQuestion('${question.id}')" title="Delete"><img src="/delete.png" alt="Delete" width="18" height="18"></button>
-                        <button class="icon-btn" onclick="viewQuestion(${question.id})" title="View"><img src="/view.png" alt="View" width="18" height="18"></button>
+                        <button class="icon-btn edit-btn" onclick="startEdit('${question.id}')" title="Edit"><img src="edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn delete-btn" onclick="deleteQuestion('${question.id}')" title="Delete"><img src="delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn" onclick="viewQuestion(${question.id})" title="View"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
                     </td>
                 </tr>
             `;
@@ -4649,10 +4456,9 @@
                 return;
             }
 
-            // Inline search + advanced filters + sort
+            // Inline search + sort
             const term = document.getElementById('sessions-inline-search')?.value || '';
             let list = applyInlineSearch(sessionsData, term, ['name','description','status','created_by_name']);
-            list = applyAdvancedFiltersSessions(list);
             list = applyInlineSort(list, 'sessions');
 
             tbody.innerHTML = list.map(session => `
@@ -4665,9 +4471,9 @@
                     <td data-field="created_by_name">${session.created_by_name || 'N/A'}</td>
                     <td data-field="created_at">${formatDate(session.created_at)}</td>
                     <td>
-                        <button class="icon-btn edit-btn" onclick="startEdit('${session.id}')" title="Edit"><img src="/edit.png" alt="Edit" width="18" height="18"></button>
-                        <button class="icon-btn delete-btn" onclick="deleteSession('${session.id}')" title="Delete"><img src="/delete.png" alt="Delete" width="18" height="18"></button>
-                        <button class="icon-btn" onclick="viewSession(${session.id})" title="View"><img src="/view.png" alt="View" width="18" height="18"></button>
+                        <button class="icon-btn edit-btn" onclick="startEdit('${session.id}')" title="Edit"><img src="edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn delete-btn" onclick="deleteSession('${session.id}')" title="Delete"><img src="delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn" onclick="viewSession(${session.id})" title="View"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
                     </td>
                 </tr>
             `).join('');
@@ -4724,10 +4530,9 @@
                 return;
             }
 
-            // Inline search + advanced filters + sort
+            // Inline search + sort
             const term = document.getElementById('students-inline-search')?.value || '';
             let list = applyInlineSearch(studentsData, term, ['name','email','zeta_id','phone']);
-            list = applyAdvancedFiltersStudents(list);
             list = applyInlineSort(list, 'students');
 
             tbody.innerHTML = list.map(student => {
@@ -4763,9 +4568,9 @@
                         <td data-field="verdicts">${verdictsDisplay}</td>
                         <td data-field="created_at">${student.created_at ? formatDate(student.created_at) : '-'}</td>
                         <td>
-                            <button class="icon-btn edit-btn" onclick="startEdit('${student.id}')" title="Edit"><img src="/edit.png" alt="Edit" width="18" height="18"></button>
-                            <button class="icon-btn delete-btn" onclick="deleteRecord('${student.id}', 'student')" title="Delete"><img src="/delete.png" alt="Delete" width="18" height="18"></button>
-                            <button class="icon-btn" onclick="viewStudent(${student.id})" title="View"><img src="/view.png" alt="View" width="18" height="18"></button>
+                            <button class="icon-btn edit-btn" onclick="startEdit('${student.id}')" title="Edit"><img src="edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                            <button class="icon-btn delete-btn" onclick="deleteRecord('${student.id}', 'student')" title="Delete"><img src="delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
+                            <button class="icon-btn" onclick="viewStudent(${student.id})" title="View"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
                         </td>
                     </tr>
                 `;
@@ -6460,8 +6265,8 @@
                                 onclick="toggleFavorite('${question.id}')" title="Toggle Favorite">
                             ${favoriteQuestionIds.has(question.id) ? '⭐' : '☆'}
                         </button>
-                        <button class="icon-btn view-btn" onclick="viewQuestion('${question.id}')" title="View"><img src="/view.png" alt="View" width="18" height="18"></button>
-                        <button class="icon-btn delete-btn" onclick="deleteQuestion('${question.id}')" title="Delete">🗑️</button>
+                        <button class="icon-btn view-btn" onclick="viewQuestion('${question.id}')" title="View"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn delete-btn" onclick="deleteQuestion('${question.id}')" title="Delete"><img src="delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
                     </td>
                 </tr>
             `;
@@ -6476,9 +6281,9 @@
                     <td data-field="panelists">${session.panelist_names || '—'}</td>
                     <td data-field="created_at">${formatDate(session.created_at)}</td>
                     <td>
-                        <button class="icon-btn edit-btn" onclick="startEdit('${session.id}', 'sessions')" title="Edit">✏️</button>
-                        <button class="icon-btn view-btn" onclick="viewSession('${session.id}')" title="View"><img src="/view.png" alt="View" width="18" height="18"></button>
-                        <button class="icon-btn delete-btn" onclick="deleteSession('${session.id}')" title="Delete">🗑️</button>
+                        <button class="icon-btn edit-btn" onclick="startEdit('${session.id}', 'sessions')" title="Edit"><img src="edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn view-btn" onclick="viewSession('${session.id}')" title="View"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn delete-btn" onclick="deleteSession('${session.id}')" title="Delete"><img src="delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
                     </td>
                 </tr>
             `;
@@ -6495,9 +6300,9 @@
                     <td data-field="phone">${student.phone || 'N/A'}</td>
                     <td data-field="created_at">${formatDate(student.created_at)}</td>
                     <td>
-                        <button class="icon-btn edit-btn" onclick="startEdit('${student.id}', 'students')" title="Edit">✏️</button>
-                        <button class="icon-btn view-btn" onclick="viewStudent('${student.id}')" title="View"><img src="/view.png" alt="View" width="18" height="18"></button>
-                        <button class="icon-btn delete-btn" onclick="deleteStudent('${student.id}')" title="Delete">🗑️</button>
+                        <button class="icon-btn edit-btn" onclick="startEdit('${student.id}', 'students')" title="Edit"><img src="edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn view-btn" onclick="viewStudent('${student.id}')" title="View"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn delete-btn" onclick="deleteStudent('${student.id}')" title="Delete"><img src="delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
                     </td>
                 </tr>
             `;
@@ -7303,9 +7108,9 @@
                                 <button onclick="deactivateUser(${user.id})" class="menu-item">Deactivate User</button>
                             </div>
                         </div>
-                        <button class="icon-btn edit-btn" onclick="startEdit(${user.id})" title="Edit">✏️</button>
-                        <button class="icon-btn view-btn" onclick="viewUser(${user.id})" title="View Details">👁️</button>
-                        <button class="icon-btn delete-btn" onclick="deleteUser(${user.id})" title="Delete">🗑️</button>
+                        <button class="icon-btn edit-btn" onclick="startEdit(${user.id})" title="Edit"><img src="edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn view-btn" onclick="viewUser(${user.id})" title="View Details"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn delete-btn" onclick="deleteUser(${user.id})" title="Delete"><img src="delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
                     </td>
                 </tr>
             `;
@@ -8905,27 +8710,27 @@
             const actionCell = row.querySelector('td:last-child');
             if (section === 'students') {
                 actionCell.innerHTML = `
-                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}')" title="Edit">✏️</button>
-                    <button class="icon-btn delete-btn" onclick="deleteRecord('${originalData.id}', 'student')" title="Delete">🗑️</button>
-                    <button class="icon-btn" onclick="viewStudent(${originalData.id})" title="View"><img src="/view.png" alt="View" width="18" height="18"></button>
+                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}')" title="Edit"><img src="edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                    <button class="icon-btn delete-btn" onclick="deleteRecord('${originalData.id}', 'student')" title="Delete"><img src="delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
+                    <button class="icon-btn" onclick="viewStudent(${originalData.id})" title="View"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
                 `;
             } else if (section === 'sessions') {
                 actionCell.innerHTML = `
-                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}')" title="Edit">✏️</button>
-                    <button class="icon-btn delete-btn" onclick="deleteSession('${originalData.id}')" title="Delete">🗑️</button>
-                    <button class="icon-btn" onclick="viewSession(${originalData.id})" title="View"><img src="/view.png" alt="View" width="18" height="18"></button>
+                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}')" title="Edit"><img src="edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                    <button class="icon-btn delete-btn" onclick="deleteSession('${originalData.id}')" title="Delete"><img src="delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
+                    <button class="icon-btn" onclick="viewSession(${originalData.id})" title="View"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
                 `;
             } else if (section === 'interviews' || section === 'my-interviews') {
                 actionCell.innerHTML = `
-                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}')" title="Edit">✏️</button>
-                    <button class="icon-btn delete-btn" onclick="deleteInterview('${originalData.id}')" title="Delete">🗑️</button>
-                    <button class="icon-btn" onclick="viewInterview(${originalData.id})" title="View">👁️</button>
+                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}')" title="Edit"><img src="edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                    <button class="icon-btn delete-btn" onclick="deleteInterview('${originalData.id}')" title="Delete"><img src="delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
+                    <button class="icon-btn" onclick="viewInterview(${originalData.id})" title="View"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
                 `;
             } else if (section === 'questions') {
                 actionCell.innerHTML = `
-                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}')" title="Edit">✏️</button>
-                    <button class="icon-btn delete-btn" onclick="deleteQuestion('${originalData.id}')" title="Delete">🗑️</button>
-                    <button class="icon-btn" onclick="viewQuestion(${originalData.id})" title="View"><img src="/view.png" alt="View" width="18" height="18"></button>
+                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}')" title="Edit"><img src="edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                    <button class="icon-btn delete-btn" onclick="deleteQuestion('${originalData.id}')" title="Delete"><img src="delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
+                    <button class="icon-btn" onclick="viewQuestion(${originalData.id})" title="View"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
                 `;
             }
         }
