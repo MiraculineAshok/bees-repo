@@ -3844,11 +3844,15 @@
                 const valRaw = item[field];
                 if (field==='created_at'){
                     const ts = valRaw ? new Date(valRaw).getTime() : 0;
-                    const t1 = v1 ? new Date(v1).getTime() : NaN;
-                    const t2 = v2 ? new Date(v2).getTime() : NaN;
+                    const d1 = v1 ? new Date(v1) : null;
+                    const t1 = d1 ? (d1.setHours(0,0,0,0), d1.getTime()) : NaN;
+                    const d2 = v2 ? new Date(v2) : null;
+                    const t2 = d2 ? (d2.setHours(23,59,59,999), d2.getTime()) : NaN;
+                    const dayStart = d1 ? t1 : NaN;
+                    const dayEnd = d1 ? (new Date(v1)).setHours(23,59,59,999) : NaN;
                     switch(op){
-                        case '=': return ts===t1;
-                        case '≠': return ts!==t1;
+                        case '=': return !isNaN(dayStart) && ts>=dayStart && ts<=dayEnd;
+                        case '≠': return !isNaN(dayStart) && (ts<dayStart || ts>dayEnd);
                         case '>': return ts>t1;
                         case '≥': return ts>=t1;
                         case '<': return ts<t1;
@@ -3858,8 +3862,8 @@
                         default: return true;
                     }
                 } else {
-                    const val = (valRaw ?? '').toString().toLowerCase();
-                    const q = (v1||'').toLowerCase();
+                    const val = (valRaw ?? '').toString().trim().toLowerCase();
+                    const q = (v1||'').trim().toLowerCase();
                     switch(op){
                         case 'contains': return val.includes(q);
                         case 'equals': return val===q;
