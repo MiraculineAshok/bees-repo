@@ -2073,16 +2073,14 @@
                 <div id="results-summary" class="results-summary" style="display: none;">
                     <strong>0</strong> interviews found
                 </div>
-                <!-- Advanced Filters -->
-                <div id="advanced-filters" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:10px;margin:8px 0">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                        <div style="font-weight:600;color:#111827">Advanced Filters</div>
-                        <div>
-                            <button class="btn btn-secondary" onclick="addFilterRow()">+ Add Filter</button>
-                            <button class="btn" onclick="clearAllFilters()">Clear</button>
-                        </div>
+                <!-- Advanced Filters (compact) -->
+                <div id="advanced-filters" class="adv-filters">
+                    <span class="adv-label">where</span>
+                    <div id="filters-container" class="filters-container"></div>
+                    <div class="filters-actions">
+                        <button class="btn btn-secondary btn-compact" onclick="addFilterRow()">+ Add filter</button>
+                        <button class="link-btn" onclick="clearAllFilters()">Clear filters</button>
                     </div>
-                    <div id="filters-container" style="display:flex;flex-direction:column;gap:8px"></div>
                 </div>
                 
                 <div class="table-container">
@@ -2419,6 +2417,20 @@
             #consolidation .table-container { position: relative; overflow: visible; }
             #consolidation .action-menu-container { position: relative; overflow: visible; }
             #consolidation .user-action-menu { position: absolute; z-index: 3000; right: 0; top: 100%; }
+            /* Compact Advanced Filters */
+            .adv-filters{display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid #e5e7eb;border-radius:8px;background:#f9fafb;margin:8px 0}
+            .adv-label{color:#6b7280;font-size:12px;padding:6px 8px;border:1px solid #e5e7eb;border-radius:6px;background:#fff}
+            .filters-container{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+            .filter-row-adv{display:flex;align-items:center;gap:6px}
+            .filter-row-adv .form-select,.filter-row-adv .form-input{height:30px;padding:2px 8px;font-size:12px}
+            .filter-row-adv .form-input[type="date"]{padding:2px 6px}
+            .btn-compact{height:30px;padding:2px 10px;font-size:12px}
+            .link-btn{background:none;border:none;color:#111827;cursor:pointer;height:30px}
+            .filter-connector{width:70px}
+            .filter-field{width:120px}
+            .filter-op{width:120px}
+            .filter-value{width:160px}
+            .filter-value2{width:140px}
     </style>
 
     <!-- Create Session Modal -->
