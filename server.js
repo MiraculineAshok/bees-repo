@@ -2168,35 +2168,41 @@ Return STRICT JSON only with keys:
 Example:
 {"difficulty_label":"medium","difficulty_score":6,"answer_score":8,"rationale":"Clear approach and correct trade-offs.","strengths":"identified core data structures, discussed complexity","gaps":"no edge cases, limited testing","explanation":"Candidate outlined hashmap approach with O(1) access, correctly handled collisions. However, they omitted thread-safety concerns and persistence trade-offs, which slightly lowers the score."}`;
 
-    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: 'system', content: 'You are a structured evaluator. Always return valid JSON only and keep it concise but informative.' },
-          {
-            role: 'user',
-            content: (
-              answer_image_url
-                ? [
-                    { type: 'text', text: userPrompt },
-                    { type: 'image_url', image_url: { url: answer_image_url } }
-                  ]
-                : userPrompt
-            )
-          }
-        ],
-        temperature: 0.2,
-        max_tokens: 500
-      })
-    });
+    async function callOpenAI(withImage) {
+      return fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: withImage ? (process.env.OPENAI_VISION_MODEL || 'gpt-4o-mini') : (process.env.OPENAI_MODEL || 'gpt-3.5-turbo'),
+          messages: [
+            { role: 'system', content: 'You are a structured evaluator. Always return valid JSON only and keep it concise but informative.' },
+            withImage && answer_image_url ? {
+              role: 'user',
+              content: [
+                { type: 'text', text: userPrompt },
+                { type: 'image_url', image_url: { url: answer_image_url } }
+              ]
+            } : { role: 'user', content: userPrompt }
+          ],
+          temperature: 0.2,
+          max_tokens: 500
+        })
+      });
+    }
+
+    const isVisionInput = !!(answer_image_url && (String(answer_image_url).startsWith('http') || String(answer_image_url).startsWith('data:')));
+    let openaiResponse = await callOpenAI(isVisionInput);
+    if (!openaiResponse.ok && isVisionInput) {
+      const errText = await openaiResponse.text().catch(()=> '');
+      console.warn('OpenAI vision eval failed, retrying without image. Error:', errText);
+      openaiResponse = await callOpenAI(false);
+    }
 
     if (!openaiResponse.ok) {
-      const err = await openaiResponse.json().catch(() => ({}));
+      const err = await openaiResponse.text().catch(() => '');
       console.error('OpenAI evaluation error:', err);
       return res.status(500).json({ success: false, error: 'Failed to evaluate question' });
     }
