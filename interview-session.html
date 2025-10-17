@@ -2832,11 +2832,11 @@
                             <button class="ai-eval-btn" onclick="event.stopPropagation(); evaluateQuestionAI(${question.id})" title="AI Evaluate">
                                 🤖
                             </button>
-                            ${!isFromQuestionBank ? `
+                            ${(isFromQuestionBank || question.__fromBank) ? '' : `
                             <button class="add-to-bank-btn-small" onclick="event.stopPropagation(); addQuestionToBank('${question.question_text.replace(/'/g, "\\'")}')" title="Add to Question Bank">
                                 📚
                             </button>
-                            ` : ''}
+                            `}
                             <button class="delete-question-btn" onclick="event.stopPropagation(); deleteQuestion(${question.id})" title="Delete Question">
                                 🗑
                             </button>
@@ -4132,6 +4132,15 @@
                 if (questionsResult.success) {
                     questionBankData = questionsResult.data;
                     console.log('Question bank data loaded:', questionBankData.length, 'questions');
+                    // Mark interview questions as from bank if matches
+                    try{
+                        const bankSet = new Set((questionBankData||[]).map(b=> (b.question||'').trim().toLowerCase()));
+                        questions = (questions||[]).map(q=>{
+                            const key = (q.question_text||'').trim().toLowerCase();
+                            return { ...q, __fromBank: bankSet.has(key) };
+                        });
+                        await displayQuestions();
+                    }catch(e){ console.warn('Bank sync marking failed', e); }
                     displayQuestionBankList(questionBankData);
                 } else {
                     console.error('Failed to load questions:', questionsResult.error);
@@ -4597,6 +4606,15 @@
                     if (questionBankData.length > 0) {
                         await loadQuestionBankData();
                     }
+                    // Mark existing interview questions that match as From Bank to hide add button
+                    try{
+                        const bankSet = new Set((questionBankData||[]).map(b=> (b.question||'').trim().toLowerCase()));
+                        questions = questions.map(q=>{
+                            const key = (q.question_text||'').trim().toLowerCase();
+                            return { ...q, __fromBank: bankSet.has(key) ? true : q.__fromBank };
+                        });
+                        await displayQuestions();
+                    }catch(e){ console.warn('Post-add bank sync failed', e); }
                 } else {
                     showError('Error adding question to bank: ' + (result.error || 'Unknown error'));
                 }
