@@ -2850,6 +2850,7 @@
                             <textarea 
                                 class="form-textarea" 
                                 placeholder="Enter student's answer here..."
+                                oninput="debouncedAutoSaveAnswer(${question.id}, this.value)"
                                 onchange="updateAnswer(${question.id}, this.value)"
                                 style="background: white; border: 1px solid #d1d5db; color: #1f2937; resize: vertical; min-height: 80px;"
                             >${question.student_answer || ''}</textarea>
@@ -3074,6 +3075,15 @@
                 console.error('Error updating verdict:', error);
                 showError('Error updating verdict');
             }
+        }
+
+        // Debounced auto-save for answers to reduce server load while typing
+        let __autoSaveTimers = {};
+        function debouncedAutoSaveAnswer(questionId, val){
+            try { if (__autoSaveTimers[questionId]) clearTimeout(__autoSaveTimers[questionId]); } catch {}
+            __autoSaveTimers[questionId] = setTimeout(()=>{
+                updateAnswer(questionId, val);
+            }, 600);
         }
 
         async function loadPreviousInterviews() {
