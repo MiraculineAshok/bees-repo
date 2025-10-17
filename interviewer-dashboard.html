@@ -1753,6 +1753,9 @@
         ];
         function addIntFilterRow(){ addGenericFilterRowInt('filters-container-int', intFilterFields, ()=>displayInterviews()); }
         function clearAdvFiltersInt(){ const c=document.getElementById('filters-container-int'); if(c) c.innerHTML=''; displayInterviews(); }
+        // Expose to window for onclick handlers
+        window.addIntFilterRow = addIntFilterRow;
+        window.clearAdvFiltersInt = clearAdvFiltersInt;
 
         // Interviewer advanced filters (Questions)
         const qIntFilterFields = [
@@ -1764,6 +1767,9 @@
         ];
         function addQIntFilterRow(){ addGenericFilterRowInt('filters-container-q-int', qIntFilterFields, ()=>displayQuestionAnalytics()); }
         function clearAdvFiltersQInt(){ const c=document.getElementById('filters-container-q-int'); if(c) c.innerHTML=''; displayQuestionAnalytics(); }
+        // Expose to window for onclick handlers
+        window.addQIntFilterRow = addQIntFilterRow;
+        window.clearAdvFiltersQInt = clearAdvFiltersQInt;
 
         function addGenericFilterRowInt(containerId, fields, onChange){
             const c = document.getElementById(containerId); if (!c) return;

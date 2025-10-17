@@ -77,7 +77,7 @@ app.use(helmet({
         directives: {
             defaultSrc: ["'self'"],
             baseUri: ["'self'"],
-            connectSrc: ["'self'", "https://api.cloudinary.com"], // Allow Cloudinary API calls
+            connectSrc: ["'self'", "https://api.cloudinary.com", "https://cdn.quilljs.com"], // Allow Cloudinary API calls and Quill.js source maps
             fontSrc: ["'self'", "https:", "data:"],
             formAction: ["'self'"],
             frameAncestors: ["'self'"],
