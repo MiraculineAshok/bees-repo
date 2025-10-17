@@ -2868,7 +2868,7 @@
                                                 return photoUrls.map((url, index) => `
                                                     <div class="photo-item">
                                                         <img src="${url}" class="message-image" onclick="openImageModal('${url}')" title="Click to view full size" onerror="console.error('Image failed to load:', this.src)" onload="console.log('✅ Image loaded successfully:', this.src)">
-                                                        <button class="photo-delete" onclick="deletePhoto(${question.id}, ${index})" title="Delete image">🗑</button>
+                                                        <button class="photo-delete" onclick="deletePhoto(${question.id}, ${index})" title="Delete image"><img src="/close.png" class="icn" alt="Delete" style="width:16px;height:16px"></button>
                                                     </div>
                                                 `).join('');
                                             } else {
@@ -2876,7 +2876,7 @@
                                                 return `
                                                     <div class="photo-item">
                                                         <img src="${question.answer_photo_url}" class="message-image" onclick="openImageModal('${question.answer_photo_url}')" title="Click to view full size" onerror="console.error('Image failed to load:', this.src)" onload="console.log('✅ Image loaded successfully:', this.src)">
-                                                        <button class="photo-delete" onclick="deletePhoto(${question.id})" title="Delete image">🗑</button>
+                                                        <button class="photo-delete" onclick="deletePhoto(${question.id})" title="Delete image"><img src="/close.png" class="icn" alt="Delete" style="width:16px;height:16px"></button>
                                                     </div>
                                                 `;
                                             }
