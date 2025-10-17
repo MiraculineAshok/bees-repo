@@ -1440,6 +1440,15 @@
                             <input type="text" id="interviewer-inline-search" class="form-input" placeholder="Search..." oninput="displayInterviews()" style="max-width:220px">
                         </div>
                     </div>
+                    <!-- Advanced Filters (compact) for My Interviews -->
+                    <div id="adv-filters-int" class="adv-filters">
+                        <span class="adv-label">where</span>
+                        <div id="filters-container-int" class="filters-container"></div>
+                        <div class="filters-actions">
+                            <button class="btn btn-secondary btn-compact" onclick="addIntFilterRow()">+ Add filter</button>
+                            <button class="link-btn" onclick="clearAdvFiltersInt()">Clear filters</button>
+                        </div>
+                    </div>
                     
                     <!-- Results Summary -->
                     <div id="results-summary" class="results-summary" style="display: none;">
@@ -1477,6 +1486,15 @@
                             <button class="btn btn-success" onclick="openAddQuestionModal()">Add Question</button>
                             <button class="btn btn-info" onclick="openBulkImportModal()">Bulk Import</button>
                             <input type="text" id="interviewer-questions-inline-search" class="form-input" placeholder="Search questions..." oninput="displayQuestionAnalytics()" style="max-width:260px">
+                        </div>
+                    </div>
+                    <!-- Advanced Filters (compact) for Questions -->
+                    <div id="adv-filters-q-int" class="adv-filters">
+                        <span class="adv-label">where</span>
+                        <div id="filters-container-q-int" class="filters-container"></div>
+                        <div class="filters-actions">
+                            <button class="btn btn-secondary btn-compact" onclick="addQIntFilterRow()">+ Add filter</button>
+                            <button class="link-btn" onclick="clearAdvFiltersQInt()">Clear filters</button>
                         </div>
                     </div>
                     
@@ -1699,6 +1717,113 @@
     </style>
 
     <script>
+        // Shared ops
+        const textOps = ['contains','equals','starts_with','ends_with','not_contains','not_equals'];
+        const dateOps = ['=','≠','>','≥','<','≤','between','not_between'];
+        // Interviewer advanced filters (My Interviews)
+        const intFilterFields = [
+            { value:'student_name', label:'Student' },
+            { value:'zeta_id', label:'Zeta ID' },
+            { value:'session_name', label:'Session' },
+            { value:'status', label:'Status' },
+            { value:'verdict', label:'Verdict' },
+            { value:'created_at', label:'Date' }
+        ];
+        function addIntFilterRow(){ addGenericFilterRowInt('filters-container-int', intFilterFields, ()=>displayInterviews()); }
+        function clearAdvFiltersInt(){ const c=document.getElementById('filters-container-int'); if(c) c.innerHTML=''; displayInterviews(); }
+
+        // Interviewer advanced filters (Questions)
+        const qIntFilterFields = [
+            { value:'question', label:'Question' },
+            { value:'category', label:'Category' },
+            { value:'times_asked', label:'Times Asked' },
+            { value:'average_score', label:'Avg Score' },
+            { value:'success_rate', label:'Success %' }
+        ];
+        function addQIntFilterRow(){ addGenericFilterRowInt('filters-container-q-int', qIntFilterFields, ()=>displayQuestionAnalytics()); }
+        function clearAdvFiltersQInt(){ const c=document.getElementById('filters-container-q-int'); if(c) c.innerHTML=''; displayQuestionAnalytics(); }
+
+        function addGenericFilterRowInt(containerId, fields, onChange){
+            const c = document.getElementById(containerId); if (!c) return;
+            const isFirst = c.querySelectorAll('.filter-row-adv').length === 0;
+            const row = document.createElement('div');
+            row.className = 'filter-row-adv';
+            row.style.cssText = 'display:flex;gap:8px;align-items:center;flex-wrap:wrap';
+            const connectorHtml = isFirst ? '' : `<select class="filter-connector form-select" style="min-width:90px"><option value="AND">AND</option><option value="OR">OR</option><option value="NOT">NOT</option></select>`;
+            row.innerHTML = `
+                ${connectorHtml}
+                <select class=\"filter-field form-select\" style=\"min-width:140px\">${fields.map(f=>`<option value=\"${f.value}\">${f.label}</option>`).join('')}</select>
+                <select class=\"filter-op form-select\" style=\"min-width:140px\"></select>
+                <input type=\"text\" class=\"filter-value form-input\" placeholder=\"Value\" style=\"min-width:180px\">
+                <input type=\"date\" class=\"filter-value2 form-input\" style=\"display:none\">
+                <button class=\"btn btn-secondary\" onclick=\"(function(btn){ const row = btn.parentElement; row && row.remove(); onChange(); })(this)\">Remove</button>`;
+            c.appendChild(row);
+            bindGenericFilterRowInt(row, fields, containerId, onChange);
+            onChange();
+        }
+        function bindGenericFilterRowInt(row, fields, containerId, onChange){
+            const fieldSel = row.querySelector('.filter-field');
+            const opSel = row.querySelector('.filter-op');
+            const v1 = row.querySelector('.filter-value');
+            const v2 = row.querySelector('.filter-value2');
+            function refreshOps(){
+                const f = fieldSel.value;
+                const isDate = (f==='created_at' || f==='date');
+                const ops = isDate ? dateOps : textOps;
+                opSel.innerHTML = ops.map(o=>`<option value="${o}">${o}</option>`).join('');
+                v1.type = isDate ? 'date' : 'text';
+                v2.style.display = 'none'; v2.value = '';
+                opSel.onchange = ()=>{ const op = opSel.value; if (isDate && (op==='between' || op==='not_between')) { v2.style.display='block'; } else { v2.style.display='none'; v2.value=''; } onChange(); };
+            }
+            fieldSel.onchange = ()=>{ refreshOps(); onChange(); };
+            v1.oninput = ()=> onChange();
+            v2.oninput = ()=> onChange();
+            const connEl = row.querySelector('.filter-connector'); if (connEl) connEl.onchange = ()=> onChange();
+            refreshOps();
+        }
+        function applyGenericFiltersInt(items, containerId){
+            const c = document.getElementById(containerId); if (!c) return items;
+            const rows = Array.from(c.querySelectorAll('.filter-row-adv'));
+            if (rows.length===0) return items;
+            function matchRow(item, row){
+                const field = row.querySelector('.filter-field').value;
+                const op = row.querySelector('.filter-op').value;
+                const v1 = row.querySelector('.filter-value').value;
+                const v2 = row.querySelector('.filter-value2').value;
+                const raw = item[field];
+                if (field==='created_at' || field==='date'){
+                    if (!v1) return true;
+                    const ts = raw ? new Date(raw).getTime() : 0;
+                    const d1 = new Date(v1); d1.setHours(0,0,0,0); const t1 = d1.getTime();
+                    const d2 = v2 ? new Date(v2) : null; const t2 = d2 ? (d2.setHours(23,59,59,999), d2.getTime()) : NaN;
+                    switch(op){
+                        case '=': return ts>=t1 && ts<= (new Date(v1)).setHours(23,59,59,999);
+                        case '≠': return ts < t1 || ts > (new Date(v1)).setHours(23,59,59,999);
+                        case '>': return ts>t1; case '≥': return ts>=t1; case '<': return ts<t1; case '≤': return ts<=t1;
+                        case 'between': return !isNaN(t1)&&!isNaN(t2) && ts>=Math.min(t1,t2) && ts<=Math.max(t1,t2);
+                        case 'not_between': return (isNaN(t1)||isNaN(t2)) ? true : (ts<Math.min(t1,t2) || ts>Math.max(t1,t2));
+                        default: return true;
+                    }
+                } else {
+                    if (!v1) return true;
+                    const val = (raw ?? '').toString().trim().toLowerCase();
+                    const q = (v1||'').trim().toLowerCase();
+                    switch(op){
+                        case 'contains': return val.includes(q);
+                        case 'equals': return val===q;
+                        case 'starts_with': return val.startsWith(q);
+                        case 'ends_with': return val.endsWith(q);
+                        case 'not_contains': return !val.includes(q);
+                        case 'not_equals': return val!==q;
+                        default: return true;
+                    }
+                }
+            }
+            return items.filter(item=>{
+                let res=true, first=true; for (const row of rows){ const connEl=row.querySelector('.filter-connector'); const conn = connEl ? connEl.value : 'AND'; const m = matchRow(item,row); if(first){res=m; first=false; continue;} if(conn==='AND') res=res&&m; else if(conn==='OR') res=res||m; else if(conn==='NOT') res=res&&!m; }
+                return res;
+            });
+        }
         // Sorting state for Question Analysis
         window.questionSortState = { field: 'times_asked', dir: 'desc' };
         function sortByQuestion(field){
@@ -3125,8 +3250,9 @@
                 return;
             }
 
-            // Inline search + sort
-            const filtered = applyInterviewerInline(baseList);
+            // Inline search + advanced filters + sort
+            let filtered = applyInterviewerInline(baseList);
+            filtered = applyGenericFiltersInt(filtered, 'filters-container-int');
             
             // Update pagination
             updateTotalPages(filtered, 'interviews');
@@ -3680,7 +3806,7 @@
             // Fallback to global questions if no argument provided
             let data = Array.isArray(questionsToDisplay) ? questionsToDisplay : (window.questions || window.allQuestions || []);
 
-            // Inline search support
+            // Inline search + advanced filters support
             const searchBox = document.getElementById('interviewer-questions-inline-search');
             const term = (searchBox?.value || '').toLowerCase().trim();
             if (term) {
@@ -3691,6 +3817,8 @@
                     return text.includes(term) || category.includes(term) || tagsHit;
                 });
             }
+            // Apply advanced filters
+            data = applyGenericFiltersInt(data, 'filters-container-q-int');
 
             // Sort using questionSortState
             const state = window.questionSortState || { field: 'times_asked', dir: 'desc' };
