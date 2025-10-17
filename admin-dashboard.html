@@ -4122,19 +4122,6 @@
             });
             document.getElementById(section).classList.add('active');
 
-            // Update page title
-            const titles = {
-                'overview': 'Dashboard Overview',
-                'interviews': 'All Interviews',
-                'questions': 'Questions Analytics',
-                'sessions': 'Interview Sessions',
-                'students': 'Students',
-                'my-interviews': 'My Interviews',
-                'users': 'Users',
-                'consolidation': 'Consolidation'
-            };
-            document.getElementById('page-title').textContent = titles[section];
-
             // Update URL to persist tab state
             const url = new URL(window.location);
             url.searchParams.set('tab', section);

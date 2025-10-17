@@ -2232,13 +2232,6 @@
                 }
             }
             
-            // Update page title
-            const titles = {
-                'interviews': 'My Interviews',
-                'questions': 'Question Analysis'
-            };
-            document.getElementById('page-title').textContent = titles[sectionName];
-
             // Update URL to persist tab state
             const url = new URL(window.location);
             url.searchParams.set('tab', sectionName);
