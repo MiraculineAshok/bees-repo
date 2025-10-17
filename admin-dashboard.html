@@ -2073,6 +2073,17 @@
                 <div id="results-summary" class="results-summary" style="display: none;">
                     <strong>0</strong> interviews found
                 </div>
+                <!-- Advanced Filters -->
+                <div id="advanced-filters" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:10px;margin:8px 0">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                        <div style="font-weight:600;color:#111827">Advanced Filters</div>
+                        <div>
+                            <button class="btn btn-secondary" onclick="addFilterRow()">+ Add Filter</button>
+                            <button class="btn" onclick="clearAllFilters()">Clear</button>
+                        </div>
+                    </div>
+                    <div id="filters-container" style="display:flex;flex-direction:column;gap:8px"></div>
+                </div>
                 
                 <div class="table-container">
                     <!-- Bulk Edit Controls -->
@@ -3562,9 +3573,10 @@
                 return;
             }
 
-            // Inline search + sort
+            // Inline search + advanced filters + sort
             const term = document.getElementById('interviews-inline-search')?.value || '';
             let filteredInterviews = applyInlineSearch(interviews, term, ['student_name','student_email','zeta_id','interviewer_name','session_name','status','verdict']);
+            filteredInterviews = applyAdvancedFilters(filteredInterviews);
             filteredInterviews = applyInlineSort(filteredInterviews, 'interviews');
             
             // Update pagination
@@ -3602,6 +3614,120 @@
 
             // Update sort indicators
             updateSortIndicators('interviews');
+        }
+
+        // Advanced Filters logic
+        const filterFields = [
+            { value:'student_name', label:'Student' },
+            { value:'zeta_id', label:'Zeta ID' },
+            { value:'interviewer_name', label:'Interviewer' },
+            { value:'session_name', label:'Session' },
+            { value:'status', label:'Status' },
+            { value:'verdict', label:'Verdict' },
+            { value:'created_at', label:'Date' }
+        ];
+        const textOps = ['contains','equals','starts_with','ends_with','not_contains','not_equals'];
+        const dateOps = ['=','≠','>','≥','<','≤','between','not_between'];
+        function addFilterRow(){
+            const c = document.getElementById('filters-container'); if (!c) return;
+            const row = document.createElement('div');
+            row.className = 'filter-row-adv';
+            row.style.cssText = 'display:flex;gap:8px;align-items:center;flex-wrap:wrap';
+            row.innerHTML = `
+                <select class=\"filter-connector form-select\" style=\"min-width:90px\">
+                    <option value=\"AND\">AND</option>
+                    <option value=\"OR\">OR</option>
+                    <option value=\"NOT\">NOT</option>
+                </select>
+                <select class=\"filter-field form-select\" style=\"min-width:140px\">
+                    ${filterFields.map(f=>`<option value=\"${f.value}\">${f.label}</option>`).join('')}
+                </select>
+                <select class=\"filter-op form-select\" style=\"min-width:140px\"></select>
+                <input type=\"text\" class=\"filter-value form-input\" placeholder=\"Value\" style=\"min-width:180px\">
+                <input type=\"date\" class=\"filter-value2 form-input\" style=\"display:none\">
+                <button class=\"btn btn-secondary\" onclick=\"this.parentElement.remove(); displayInterviews();\">Remove</button>
+            `;
+            c.appendChild(row);
+            bindFilterRow(row);
+            displayInterviews();
+        }
+        function bindFilterRow(row){
+            const fieldSel = row.querySelector('.filter-field');
+            const opSel = row.querySelector('.filter-op');
+            const v1 = row.querySelector('.filter-value');
+            const v2 = row.querySelector('.filter-value2');
+            function refreshOps(){
+                const f = fieldSel.value;
+                const isDate = (f === 'created_at');
+                const ops = isDate ? dateOps : textOps;
+                opSel.innerHTML = ops.map(o=>`<option value=\"${o}\">${o}</option>`).join('');
+                v1.type = isDate ? 'date' : 'text';
+                v2.style.display = 'none'; v2.value = '';
+                opSel.onchange = ()=>{
+                    const op = opSel.value;
+                    if (isDate && (op==='between' || op==='not_between')) { v2.style.display='block'; } else { v2.style.display='none'; v2.value=''; }
+                    displayInterviews();
+                };
+            }
+            fieldSel.onchange = ()=>{ refreshOps(); displayInterviews(); };
+            v1.oninput = ()=> displayInterviews();
+            v2.oninput = ()=> displayInterviews();
+            row.querySelector('.filter-connector').onchange = ()=> displayInterviews();
+            refreshOps();
+        }
+        function clearAllFilters(){ const c=document.getElementById('filters-container'); if(c){ c.innerHTML=''; displayInterviews(); } }
+        function applyAdvancedFilters(items){
+            const c = document.getElementById('filters-container'); if (!c) return items;
+            const rows = Array.from(c.querySelectorAll('.filter-row-adv'));
+            if (rows.length===0) return items;
+            function matchRow(item, row){
+                const field = row.querySelector('.filter-field').value;
+                const op = row.querySelector('.filter-op').value;
+                const v1 = row.querySelector('.filter-value').value;
+                const v2 = row.querySelector('.filter-value2').value;
+                const valRaw = item[field];
+                if (field==='created_at'){
+                    const ts = valRaw ? new Date(valRaw).getTime() : 0;
+                    const t1 = v1 ? new Date(v1).getTime() : NaN;
+                    const t2 = v2 ? new Date(v2).getTime() : NaN;
+                    switch(op){
+                        case '=': return ts===t1;
+                        case '≠': return ts!==t1;
+                        case '>': return ts>t1;
+                        case '≥': return ts>=t1;
+                        case '<': return ts<t1;
+                        case '≤': return ts<=t1;
+                        case 'between': return !isNaN(t1)&&!isNaN(t2) && ts>=Math.min(t1,t2) && ts<=Math.max(t1,t2);
+                        case 'not_between': return !isNaN(t1)&&!isNaN(t2) && (ts<Math.min(t1,t2) || ts>Math.max(t1,t2));
+                        default: return true;
+                    }
+                } else {
+                    const val = (valRaw ?? '').toString().toLowerCase();
+                    const q = (v1||'').toLowerCase();
+                    switch(op){
+                        case 'contains': return val.includes(q);
+                        case 'equals': return val===q;
+                        case 'starts_with': return val.startsWith(q);
+                        case 'ends_with': return val.endsWith(q);
+                        case 'not_contains': return !val.includes(q);
+                        case 'not_equals': return val!==q;
+                        default: return true;
+                    }
+                }
+            }
+            return items.filter(item=>{
+                const rowsEls = Array.from(c.querySelectorAll('.filter-row-adv'));
+                let result = true; let first = true;
+                for (const row of rowsEls){
+                    const conn = row.querySelector('.filter-connector').value;
+                    const m = matchRow(item, row);
+                    if (first){ result = (conn==='NOT') ? !m : m; first=false; continue; }
+                    if (conn==='AND') result = result && m;
+                    else if (conn==='OR') result = result || m;
+                    else if (conn==='NOT') result = result && !m;
+                }
+                return result;
+            });
         }
 
         // REMOVED: Old conflicting applyFiltersToInterviews function
