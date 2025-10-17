@@ -2830,7 +2830,7 @@
                                        title="Rate answer quality (1-10)">
                             </div>
                             <button class="ai-eval-btn" onclick="event.stopPropagation(); evaluateQuestionAI(${question.id})" title="AI Evaluate">
-                                🤖
+                                <img src="/generative.png" alt="AI" style="width:18px;height:18px;vertical-align:middle">
                             </button>
                             ${(isFromQuestionBank || question.__fromBank) ? '' : `
                             <button class="add-to-bank-btn-small" onclick="event.stopPropagation(); addQuestionToBank('${question.question_text.replace(/'/g, "\\'")}')" title="Add to Question Bank">
@@ -2838,7 +2838,7 @@
                             </button>
                             `}
                             <button class="delete-question-btn" onclick="event.stopPropagation(); deleteQuestion(${question.id})" title="Delete Question">
-                                🗑
+                                <img src="/delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle">
                             </button>
                             <span class="expand-icon">▼</span>
                         </div>
