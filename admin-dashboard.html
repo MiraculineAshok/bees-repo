@@ -3065,7 +3065,7 @@
                                       <button onclick="updateConsolidationStatus(${r.id},'waitlisted')" class="menu-item">Waitlist</button>
                                   </div>
                                 </div>
-                                <button class="icon-btn" title="View" onclick="openConsDetail(${r.id})" aria-label="View details" style="border:1px solid #e5e7eb;background:#fff;border-radius:6px;padding:6px 8px;cursor:pointer"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
+                                <button class="icon-btn" title="View" onclick="openConsDetail(${r.id})" aria-label="View details" style="border:1px solid #e5e7eb;background:#fff;border-radius:6px;padding:6px 8px;cursor:pointer"><img src="/view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
                             </td>
                         </tr>
                     `;
@@ -3663,9 +3663,9 @@
                             <td data-field="verdict">${interview.verdict || 'N/A'}</td>
                             <td data-field="duration_seconds">${formatDuration(interview.duration_seconds)}</td>
                             <td>
-                                <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit"><img src="edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
-                                <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete"><img src="delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
-                                <button class="icon-btn" onclick="viewInterview(${interview.id})" title="View"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
+                                <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                                <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete"><img src="/delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
+                                <button class="icon-btn" onclick="viewInterview(${interview.id})" title="View"><img src="/view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
                             </td>
                         </tr>
                     `;
@@ -4003,9 +4003,9 @@
                     <td data-field="status"><span class="status-badge status-${interview.status}">${interview.status}</span></td>
                     <td data-field="verdict">${interview.verdict || 'N/A'}</td>
                     <td>
-                        <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit"><img src="edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
-                        <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete"><img src="delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
-                        <button class="icon-btn" onclick="viewInterview(${interview.id})" title="View"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete"><img src="/delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn" onclick="viewInterview(${interview.id})" title="View"><img src="/view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
                     </td>
                 </tr>
             `).join('');
@@ -4293,9 +4293,9 @@
                         >${favoriteQuestionIds.has(question.id) ? '★' : '☆'}</button>
                     </td>
                     <td>
-                        <button class="icon-btn edit-btn" onclick="startEdit('${question.id}')" title="Edit"><img src="edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
-                        <button class="icon-btn delete-btn" onclick="deleteQuestion('${question.id}')" title="Delete"><img src="delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
-                        <button class="icon-btn" onclick="viewQuestion(${question.id})" title="View"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn edit-btn" onclick="startEdit('${question.id}')" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn delete-btn" onclick="deleteQuestion('${question.id}')" title="Delete"><img src="/delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn" onclick="viewQuestion(${question.id})" title="View"><img src="/view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
                     </td>
                 </tr>
             `;
@@ -4471,9 +4471,9 @@
                     <td data-field="created_by_name">${session.created_by_name || 'N/A'}</td>
                     <td data-field="created_at">${formatDate(session.created_at)}</td>
                     <td>
-                        <button class="icon-btn edit-btn" onclick="startEdit('${session.id}')" title="Edit"><img src="edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
-                        <button class="icon-btn delete-btn" onclick="deleteSession('${session.id}')" title="Delete"><img src="delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
-                        <button class="icon-btn" onclick="viewSession(${session.id})" title="View"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn edit-btn" onclick="startEdit('${session.id}')" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn delete-btn" onclick="deleteSession('${session.id}')" title="Delete"><img src="/delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn" onclick="viewSession(${session.id})" title="View"><img src="/view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
                     </td>
                 </tr>
             `).join('');
@@ -4568,9 +4568,9 @@
                         <td data-field="verdicts">${verdictsDisplay}</td>
                         <td data-field="created_at">${student.created_at ? formatDate(student.created_at) : '-'}</td>
                         <td>
-                            <button class="icon-btn edit-btn" onclick="startEdit('${student.id}')" title="Edit"><img src="edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
-                            <button class="icon-btn delete-btn" onclick="deleteRecord('${student.id}', 'student')" title="Delete"><img src="delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
-                            <button class="icon-btn" onclick="viewStudent(${student.id})" title="View"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
+                            <button class="icon-btn edit-btn" onclick="startEdit('${student.id}')" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                            <button class="icon-btn delete-btn" onclick="deleteRecord('${student.id}', 'student')" title="Delete"><img src="/delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
+                            <button class="icon-btn" onclick="viewStudent(${student.id})" title="View"><img src="/view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
                         </td>
                     </tr>
                 `;
@@ -6265,8 +6265,8 @@
                                 onclick="toggleFavorite('${question.id}')" title="Toggle Favorite">
                             ${favoriteQuestionIds.has(question.id) ? '⭐' : '☆'}
                         </button>
-                        <button class="icon-btn view-btn" onclick="viewQuestion('${question.id}')" title="View"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
-                        <button class="icon-btn delete-btn" onclick="deleteQuestion('${question.id}')" title="Delete"><img src="delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn view-btn" onclick="viewQuestion('${question.id}')" title="View"><img src="/view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn delete-btn" onclick="deleteQuestion('${question.id}')" title="Delete"><img src="/delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
                     </td>
                 </tr>
             `;
@@ -6281,9 +6281,9 @@
                     <td data-field="panelists">${session.panelist_names || '—'}</td>
                     <td data-field="created_at">${formatDate(session.created_at)}</td>
                     <td>
-                        <button class="icon-btn edit-btn" onclick="startEdit('${session.id}', 'sessions')" title="Edit"><img src="edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
-                        <button class="icon-btn view-btn" onclick="viewSession('${session.id}')" title="View"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
-                        <button class="icon-btn delete-btn" onclick="deleteSession('${session.id}')" title="Delete"><img src="delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn edit-btn" onclick="startEdit('${session.id}', 'sessions')" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn view-btn" onclick="viewSession('${session.id}')" title="View"><img src="/view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn delete-btn" onclick="deleteSession('${session.id}')" title="Delete"><img src="/delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
                     </td>
                 </tr>
             `;
@@ -6300,9 +6300,9 @@
                     <td data-field="phone">${student.phone || 'N/A'}</td>
                     <td data-field="created_at">${formatDate(student.created_at)}</td>
                     <td>
-                        <button class="icon-btn edit-btn" onclick="startEdit('${student.id}', 'students')" title="Edit"><img src="edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
-                        <button class="icon-btn view-btn" onclick="viewStudent('${student.id}')" title="View"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
-                        <button class="icon-btn delete-btn" onclick="deleteStudent('${student.id}')" title="Delete"><img src="delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn edit-btn" onclick="startEdit('${student.id}', 'students')" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn view-btn" onclick="viewStudent('${student.id}')" title="View"><img src="/view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn delete-btn" onclick="deleteStudent('${student.id}')" title="Delete"><img src="/delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
                     </td>
                 </tr>
             `;
@@ -7108,9 +7108,9 @@
                                 <button onclick="deactivateUser(${user.id})" class="menu-item">Deactivate User</button>
                             </div>
                         </div>
-                        <button class="icon-btn edit-btn" onclick="startEdit(${user.id})" title="Edit"><img src="edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
-                        <button class="icon-btn view-btn" onclick="viewUser(${user.id})" title="View Details"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
-                        <button class="icon-btn delete-btn" onclick="deleteUser(${user.id})" title="Delete"><img src="delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn edit-btn" onclick="startEdit(${user.id})" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn view-btn" onclick="viewUser(${user.id})" title="View Details"><img src="/view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn delete-btn" onclick="deleteUser(${user.id})" title="Delete"><img src="/delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
                     </td>
                 </tr>
             `;
@@ -8710,27 +8710,27 @@
             const actionCell = row.querySelector('td:last-child');
             if (section === 'students') {
                 actionCell.innerHTML = `
-                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}')" title="Edit"><img src="edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
-                    <button class="icon-btn delete-btn" onclick="deleteRecord('${originalData.id}', 'student')" title="Delete"><img src="delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
-                    <button class="icon-btn" onclick="viewStudent(${originalData.id})" title="View"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
+                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}')" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                    <button class="icon-btn delete-btn" onclick="deleteRecord('${originalData.id}', 'student')" title="Delete"><img src="/delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
+                    <button class="icon-btn" onclick="viewStudent(${originalData.id})" title="View"><img src="/view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
                 `;
             } else if (section === 'sessions') {
                 actionCell.innerHTML = `
-                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}')" title="Edit"><img src="edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
-                    <button class="icon-btn delete-btn" onclick="deleteSession('${originalData.id}')" title="Delete"><img src="delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
-                    <button class="icon-btn" onclick="viewSession(${originalData.id})" title="View"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
+                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}')" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                    <button class="icon-btn delete-btn" onclick="deleteSession('${originalData.id}')" title="Delete"><img src="/delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
+                    <button class="icon-btn" onclick="viewSession(${originalData.id})" title="View"><img src="/view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
                 `;
             } else if (section === 'interviews' || section === 'my-interviews') {
                 actionCell.innerHTML = `
-                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}')" title="Edit"><img src="edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
-                    <button class="icon-btn delete-btn" onclick="deleteInterview('${originalData.id}')" title="Delete"><img src="delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
-                    <button class="icon-btn" onclick="viewInterview(${originalData.id})" title="View"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
+                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}')" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                    <button class="icon-btn delete-btn" onclick="deleteInterview('${originalData.id}')" title="Delete"><img src="/delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
+                    <button class="icon-btn" onclick="viewInterview(${originalData.id})" title="View"><img src="/view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
                 `;
             } else if (section === 'questions') {
                 actionCell.innerHTML = `
-                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}')" title="Edit"><img src="edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
-                    <button class="icon-btn delete-btn" onclick="deleteQuestion('${originalData.id}')" title="Delete"><img src="delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
-                    <button class="icon-btn" onclick="viewQuestion(${originalData.id})" title="View"><img src="view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
+                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}')" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                    <button class="icon-btn delete-btn" onclick="deleteQuestion('${originalData.id}')" title="Delete"><img src="/delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
+                    <button class="icon-btn" onclick="viewQuestion(${originalData.id})" title="View"><img src="/view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
                 `;
             }
         }

@@ -3956,11 +3956,11 @@
                                             `<span class="question-text-display">${q.question_text}</span>`
                                         }
                                     </p>
-                                    <button class="icon-btn edit-btn edit-question-btn" data-question-id="${q.id}" data-question-text="${(q.question_text || '').replace(/"/g, '&quot;')}" title="Edit Question"><img src="edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                                    <button class="icon-btn edit-btn edit-question-btn" data-question-id="${q.id}" data-question-text="${(q.question_text || '').replace(/"/g, '&quot;')}" title="Edit Question"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
                                 </div>
                                 <div class="answer-section">
                                     <p><strong>Answer:</strong> <span class="answer-text-display">${q.student_answer || 'No answer provided'}</span></p>
-                                    <button class="icon-btn edit-btn edit-answer-btn" data-question-id="${q.id}" data-answer-text="${(q.student_answer || '').replace(/"/g, '&quot;')}" title="Edit Answer"><img src="edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                                    <button class="icon-btn edit-btn edit-answer-btn" data-question-id="${q.id}" data-answer-text="${(q.student_answer || '').replace(/"/g, '&quot;')}" title="Edit Answer"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
                                 </div>
                                 ${q.answer_photo_url ? `
                                     <div class="photo-gallery">
