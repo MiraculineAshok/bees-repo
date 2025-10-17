@@ -3642,15 +3642,14 @@
         const dateOps = ['=','≠','>','≥','<','≤','between','not_between'];
         function addFilterRow(){
             const c = document.getElementById('filters-container'); if (!c) return;
+            const isFirst = c.querySelectorAll('.filter-row-adv').length === 0;
             const row = document.createElement('div');
             row.className = 'filter-row-adv';
             row.style.cssText = 'display:flex;gap:8px;align-items:center;flex-wrap:wrap';
+            const connectorHtml = isFirst ? '' : `
+                <select class=\"filter-connector form-select\" style=\"min-width:90px\">\n                    <option value=\"AND\">AND<\/option>\n                    <option value=\"OR\">OR<\/option>\n                    <option value=\"NOT\">NOT<\/option>\n                <\/select>`;
             row.innerHTML = `
-                <select class=\"filter-connector form-select\" style=\"min-width:90px\">
-                    <option value=\"AND\">AND</option>
-                    <option value=\"OR\">OR</option>
-                    <option value=\"NOT\">NOT</option>
-                </select>
+                ${connectorHtml}
                 <select class=\"filter-field form-select\" style=\"min-width:140px\">
                     ${filterFields.map(f=>`<option value=\"${f.value}\">${f.label}</option>`).join('')}
                 </select>
@@ -3684,7 +3683,8 @@
             fieldSel.onchange = ()=>{ refreshOps(); displayInterviews(); };
             v1.oninput = ()=> displayInterviews();
             v2.oninput = ()=> displayInterviews();
-            row.querySelector('.filter-connector').onchange = ()=> displayInterviews();
+            const connEl = row.querySelector('.filter-connector');
+            if (connEl) connEl.onchange = ()=> displayInterviews();
             refreshOps();
         }
         function clearAllFilters(){ const c=document.getElementById('filters-container'); if(c){ c.innerHTML=''; displayInterviews(); } }
@@ -3731,9 +3731,10 @@
                 const rowsEls = Array.from(c.querySelectorAll('.filter-row-adv'));
                 let result = true; let first = true;
                 for (const row of rowsEls){
-                    const conn = row.querySelector('.filter-connector').value;
+                    const connEl = row.querySelector('.filter-connector');
+                    const conn = connEl ? connEl.value : 'AND';
                     const m = matchRow(item, row);
-                    if (first){ result = (conn==='NOT') ? !m : m; first=false; continue; }
+                    if (first){ result = m; first=false; continue; }
                     if (conn==='AND') result = result && m;
                     else if (conn==='OR') result = result || m;
                     else if (conn==='NOT') result = result && !m;
