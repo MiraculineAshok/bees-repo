@@ -2142,12 +2142,13 @@
                                 <th data-field="times_asked" onclick="sortBy('questions','times_asked')">Times Asked <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th data-field="average_score" onclick="sortBy('questions','average_score')">Avg Score <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th data-field="success_rate" onclick="sortBy('questions','success_rate')">Success Rate <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                <th>Favorite</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="questions-table-body">
                             <tr>
-                                <td colspan="8" class="loading">Loading questions...</td>
+                                <td colspan="9" class="loading">Loading questions...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -3941,7 +3942,7 @@
             const container = document.querySelector('#questions .table-container');
             
             if (!questionsData || questionsData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No questions found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No questions found</td></tr>';
                 return;
             }
 
@@ -3985,15 +3986,7 @@
                 return `
                 <tr data-row-id="${question.id}">
                     <td><input type="checkbox" class="row-checkbox" data-row-id="${question.id}" onchange="toggleRowSelection('${question.id}')"></td>
-                    <td data-field="question">
-                        <span>${question.question || 'N/A'}</span>
-                        <button 
-                            class="favorite-btn ${favoriteQuestionIds.has(question.id) ? 'favorited' : ''}"
-                            onclick="toggleFavorite(${question.id})"
-                            title="${favoriteQuestionIds.has(question.id) ? 'Remove from favorites' : 'Add to favorites'}"
-                            style="margin-left:8px"
-                        >${favoriteQuestionIds.has(question.id) ? '★' : '☆'}</button>
-                    </td>
+                    <td data-field="question">${question.question || 'N/A'}</td>
                     <td data-field="tags">${tagsDisplay}</td>
                     <td data-field="times_asked">${question.times_asked || question.count_of_times_asked || 0}</td>
                     <td data-field="average_score">
@@ -4005,6 +3998,13 @@
                         ` : '-'}
                     </td>
                     <td data-field="success_rate">${Number(question.success_rate || 0)}%</td>
+                    <td>
+                        <button 
+                            class="favorite-btn ${favoriteQuestionIds.has(question.id) ? 'favorited' : ''}"
+                            onclick="toggleFavorite(${question.id})"
+                            title="${favoriteQuestionIds.has(question.id) ? 'Remove from favorites' : 'Add to favorites'}"
+                        >${favoriteQuestionIds.has(question.id) ? '★' : '☆'}</button>
+                    </td>
                     <td>
                         <button class="icon-btn edit-btn" onclick="startEdit('${question.id}')" title="Edit">✏️</button>
                         <button class="icon-btn delete-btn" onclick="deleteQuestion('${question.id}')" title="Delete">🗑️</button>

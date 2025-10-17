@@ -1493,11 +1493,12 @@
                                     <th data-field="times_asked" onclick="sortByQuestion('times_asked')">Times Asked <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                     <th data-field="average_score" onclick="sortByQuestion('average_score')">Avg Score <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                     <th data-field="success_rate" onclick="sortByQuestion('success_rate')">Success Rate <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                    <th>Favorite</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="question-bank-list">
-                                <tr><td colspan="7" class="loading">Loading questions...</td></tr>
+                                <tr><td colspan="8" class="loading">Loading questions...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -3745,14 +3746,7 @@
                 
                 return `
                     <tr>
-                        <td>
-                            <span class="question-text">${q.question || '-'}</span>
-                            <button class="favorite-btn ${isFavorited ? 'favorited' : ''}" 
-                                    onclick="toggleFavorite(${q.id})" 
-                                    title="${isFavorited ? 'Remove from favorites' : 'Add to favorites'}" style="margin-left:8px">
-                                ${isFavorited ? '★' : '☆'}
-                            </button>
-                        </td>
+                        <td><span class="question-text">${q.question || '-'}</span></td>
                         <td>${tagsDisplay}</td>
                         <td>${timesAsked}</td>
                         <td>
@@ -3764,6 +3758,13 @@
                             ` : '-'}
                         </td>
                         <td>${success}</td>
+                        <td>
+                            <button class="favorite-btn ${isFavorited ? 'favorited' : ''}" 
+                                    onclick="toggleFavorite(${q.id})" 
+                                    title="${isFavorited ? 'Remove from favorites' : 'Add to favorites'}">
+                                ${isFavorited ? '★' : '☆'}
+                            </button>
+                        </td>
                         <td>
                             <button class="btn btn-primary btn-sm" onclick="viewQuestionDetails(${q.id})">View</button>
                         </td>
