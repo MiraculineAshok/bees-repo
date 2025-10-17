@@ -2479,17 +2479,21 @@
             #consolidation .action-menu-container { position: relative; overflow: visible; }
             #consolidation .user-action-menu { position: absolute; z-index: 3000; right: 0; top: 100%; }
             /* Compact Advanced Filters */
-            .adv-filters{display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid #e5e7eb;border-radius:8px;background:#f9fafb;margin:8px 0}
-            .adv-label{color:#6b7280;font-size:12px;padding:6px 8px;border:1px solid #e5e7eb;border-radius:6px;background:#fff}
-            .filters-container{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-            .filter-row-adv{display:flex;align-items:center;gap:6px}
-            .filter-row-adv .form-select,.filter-row-adv .form-input{height:30px;padding:2px 8px;font-size:12px}
-            .filter-row-adv .form-input[type="date"]{padding:2px 6px}
-            .btn-compact{height:30px;padding:2px 10px;font-size:12px}
-            .link-btn{background:none;border:none;color:#111827;cursor:pointer;height:30px}
-            .filter-connector{width:70px}
-            .filter-field{width:120px}
-            .filter-op{width:120px}
+            .adv-filters{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;background:#f9fafb;margin:8px 0}
+            .adv-label{color:#6b7280;font-size:12px;padding:6px 8px;border:1px solid #e5e7eb;border-radius:6px;background:#fff;flex-shrink:0}
+            .filters-container{display:flex;flex-direction:column;gap:6px;flex:1}
+            .filter-row-adv{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
+            .filter-row-adv .form-select,.filter-row-adv .form-input{height:32px;padding:4px 8px;font-size:13px}
+            .filter-row-adv .form-input[type="date"]{padding:4px 6px}
+            .filter-row-adv .filter-connector{min-width:70px;max-width:70px}
+            .filter-row-adv .filter-field{min-width:140px;max-width:140px}
+            .filter-row-adv .filter-op{min-width:120px;max-width:120px}
+            .filter-row-adv .filter-value{min-width:160px;flex:1}
+            .filter-row-adv .filter-value2{min-width:120px}
+            .filter-row-adv .btn{white-space:nowrap}
+            .filters-actions{display:flex;gap:8px;margin-left:auto}
+            .btn-compact{height:32px;padding:4px 12px;font-size:13px}
+            .link-btn{background:none;border:none;color:#111827;cursor:pointer;height:32px;text-decoration:underline}
             .filter-value{width:160px}
             .filter-value2{width:140px}
     </style>
