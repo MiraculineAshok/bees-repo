@@ -3155,32 +3155,6 @@ app.post('/api/admin/audit-cleanup', async (req, res) => {
   }
 });
 
-// Add audit error middleware (must be after all routes)
-app.use(auditErrorMiddleware);
-
-// Global error handler
-app.use(async (error, req, res, next) => {
-  // Log the error to audit system
-  await AuditService.logError(error, {
-    userId: req.userId,
-    userEmail: req.query.email || req.headers['x-user-email'],
-    userRole: req.userRole,
-    actionName: 'UNHANDLED_ERROR',
-    endpoint: req.originalUrl,
-    method: req.method,
-    correlationId: req.correlationId
-  });
-
-  // Send error response
-  if (!res.headersSent) {
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error',
-      message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
-    });
-  }
-});
-
 // ============ AI Assistant Routes ============
 const aiService = require('./services/aiService');
 
@@ -3205,6 +3179,32 @@ app.post('/api/ai/query', auditMiddleware, async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to process AI query: ' + error.message
+    });
+  }
+});
+
+// Add audit error middleware (must be after all routes)
+app.use(auditErrorMiddleware);
+
+// Global error handler
+app.use(async (error, req, res, next) => {
+  // Log the error to audit system
+  await AuditService.logError(error, {
+    userId: req.userId,
+    userEmail: req.query.email || req.headers['x-user-email'],
+    userRole: req.userRole,
+    actionName: 'UNHANDLED_ERROR',
+    endpoint: req.originalUrl,
+    method: req.method,
+    correlationId: req.correlationId
+  });
+
+  // Send error response
+  if (!res.headersSent) {
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
     });
   }
 });
