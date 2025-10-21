@@ -122,11 +122,22 @@ async function initializeDatabase() {
         description TEXT,
         location VARCHAR(255),
         status VARCHAR(20) DEFAULT 'active',
+        is_panel BOOLEAN DEFAULT FALSE,
         created_by INTEGER REFERENCES authorized_users(id) ON DELETE SET NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+    
+    // Add is_panel column if it doesn't exist (for existing databases)
+    try {
+      await pool.query(`
+        ALTER TABLE interview_sessions 
+        ADD COLUMN IF NOT EXISTS is_panel BOOLEAN DEFAULT FALSE
+      `);
+    } catch (error) {
+      // Column might already exist, ignore error
+    }
     
     // Create session_panelists table
     await pool.query(`

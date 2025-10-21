@@ -2403,6 +2403,7 @@
                                 <th><input type="checkbox" onchange="toggleAllRows(this.checked)" title="Select All"></th>
                                 <th data-field="name" onclick="sortBy('sessions','name')">Name <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th>Description</th>
+                                <th data-field="is_panel" onclick="sortBy('sessions','is_panel')">Type <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th data-field="status" onclick="sortBy('sessions','status')">Status <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th>Panelists</th>
                                 <th data-field="created_by_name" onclick="sortBy('sessions','created_by_name')">Created By <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
@@ -2412,7 +2413,7 @@
                         </thead>
                         <tbody id="sessions-table-body">
                             <tr>
-                                <td colspan="8" class="loading">Loading sessions...</td>
+                                <td colspan="9" class="loading">Loading sessions...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -2737,7 +2738,20 @@
                     <input type="text" id="session-location" class="form-input" placeholder="e.g., Chennai Campus">
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="panelist-search">Panelists (Interviewers)</label>
+                    <label class="form-label" for="session-type">Interview Type</label>
+                    <select id="session-type" class="form-input" onchange="handleSessionTypeChange()" required>
+                        <option value="regular">Regular (Single Interviewer)</option>
+                        <option value="panel">Panel Interview (Multiple Interviewers)</option>
+                    </select>
+                    <small style="color: #6b7280; font-size: 0.875rem; display: block; margin-top: 0.25rem;">
+                        Panel interviews allow multiple interviewers to interview the same student simultaneously.
+                    </small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="panelist-search">
+                        <span id="panelist-label">Panelists (Interviewers)</span>
+                        <span id="panel-requirement" style="color: #dc2626; font-size: 0.875rem; display: none;"> - Select at least 2 for panel interviews</span>
+                    </label>
                     <div class="panelist-container">
                         <div class="panelist-search-container">
                             <input type="text" id="panelist-search" class="form-input" placeholder="Search for interviewers..." onkeyup="searchInterviewers()">
@@ -6229,6 +6243,19 @@
         async function createSession() {
             const name = document.getElementById('session-name').value;
             const description = document.getElementById('session-description').value;
+            const sessionType = document.getElementById('session-type').value;
+            const isPanel = sessionType === 'panel';
+
+            // Validate panel requirements
+            if (isPanel && selectedPanelists.length < 2) {
+                showError('Panel interviews require at least 2 interviewers');
+                return;
+            }
+            
+            if (!isPanel && selectedPanelists.length > 1) {
+                showError('Regular interviews can only have 1 interviewer. Please select "Panel Interview" type for multiple interviewers.');
+                return;
+            }
 
             try {
                 const response = await fetch('/api/admin/sessions', {
@@ -6241,6 +6268,7 @@
                         description: description,
                         location: document.getElementById('session-location').value || null,
                         created_by: currentUserId || undefined,
+                        is_panel: isPanel,
                         panelists: selectedPanelists
                     })
                 });
@@ -6250,13 +6278,29 @@
                 if (data.success) {
                     closeCreateSessionModal();
                     loadSessions();
-                    showSuccess('Session created successfully!');
+                    showSuccess(`${isPanel ? 'Panel' : 'Regular'} interview session created successfully!`);
                 } else {
                     showError('Error creating session: ' + data.error);
                 }
             } catch (error) {
                 console.error('Error creating session:', error);
                 showError('Error creating session');
+            }
+        }
+        
+        // Handle session type change
+        function handleSessionTypeChange() {
+            const sessionType = document.getElementById('session-type').value;
+            const panelRequirement = document.getElementById('panel-requirement');
+            
+            if (sessionType === 'panel') {
+                panelRequirement.style.display = 'inline';
+            } else {
+                panelRequirement.style.display = 'none';
+                // If switching to regular and more than 1 interviewer selected, show warning
+                if (selectedPanelists.length > 1) {
+                    showError('Regular interviews can only have 1 interviewer. Please remove extra interviewers or select Panel Interview type.');
+                }
             }
         }
 

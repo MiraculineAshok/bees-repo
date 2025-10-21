@@ -2318,15 +2318,30 @@ app.get('/api/admin/sessions', async (req, res) => {
 
 app.post('/api/admin/sessions', async (req, res) => {
   try {
-    const { name, description, location, panelists = [] } = req.body;
+    const { name, description, location, is_panel = false, panelists = [] } = req.body;
     if (!name) {
       return res.status(400).json({
         success: false,
         error: 'Session name is required'
       });
     }
+    
+    // Validate panel requirements
+    if (is_panel && panelists.length < 2) {
+      return res.status(400).json({
+        success: false,
+        error: 'Panel interviews require at least 2 interviewers'
+      });
+    }
+    
+    if (!is_panel && panelists.length > 1) {
+      return res.status(400).json({
+        success: false,
+        error: 'Regular interviews can only have 1 interviewer'
+      });
+    }
 
-    const session = await AdminService.createSession({ name, description, location, panelists });
+    const session = await AdminService.createSession({ name, description, location, is_panel, panelists });
     res.json({
       success: true,
       data: session
