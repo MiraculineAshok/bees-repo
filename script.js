@@ -88,6 +88,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Check user role and show appropriate dashboard button
+            // Ensure both buttons stay hidden until role is determined
+            if (adminDashboardBtn) adminDashboardBtn.classList.add('hidden');
+            if (interviewerDashboardBtn) interviewerDashboardBtn.classList.add('hidden');
+            
             try {
                 let userRole = 'interviewer'; // Default role
                 
@@ -105,32 +109,25 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log('Fetched role from API:', userRole);
                 }
                 
+                // Show only the appropriate dashboard button based on role
                 if (userRole === 'superadmin' || userRole === 'admin') {
-                    // Show only admin dashboard for admin/superadmin; hide interviewer dashboard
+                    // Admin users: show only admin dashboard button
                     if (adminDashboardBtn) {
                         adminDashboardBtn.classList.remove('hidden');
                     }
-                    if (interviewerDashboardBtn) {
-                        interviewerDashboardBtn.classList.add('hidden');
-                    }
+                    // Keep interviewer dashboard button hidden
                 } else {
-                    // Show only interviewer dashboard button for regular interviewers
+                    // Regular interviewers: show only interviewer dashboard button
                     if (interviewerDashboardBtn) {
                         interviewerDashboardBtn.classList.remove('hidden');
                     }
-                    // Hide admin dashboard button for interviewers
-                    if (adminDashboardBtn) {
-                        adminDashboardBtn.classList.add('hidden');
-                    }
+                    // Keep admin dashboard button hidden
                 }
             } catch (error) {
                 console.error('Error checking user role:', error);
-                // Default to showing interviewer dashboard
+                // Default to showing interviewer dashboard on error
                 if (interviewerDashboardBtn) {
                     interviewerDashboardBtn.classList.remove('hidden');
-                }
-                if (adminDashboardBtn) {
-                    adminDashboardBtn.classList.add('hidden');
                 }
             }
             
