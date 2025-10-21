@@ -2822,17 +2822,17 @@
                         <div class="question-preview">${getQuestionPreview(question.question_text)}</div>
                         <div class="question-actions">
                             <div class="correctness-slider-container">
-                                <label class="slider-label" onclick="event.stopPropagation()">Score: <span id="score-value-${question.id}">${question.correctness_score || '-'}</span>/10</label>
+                                <label class="slider-label" onclick="event.stopPropagation()">Score: <span id="score-value-${question.id}">${question.correctness_score !== null && question.correctness_score !== undefined ? question.correctness_score : '0'}</span>/10</label>
                                 <input type="range" 
-                                       min="1" 
+                                       min="0" 
                                        max="10" 
-                                       value="${question.correctness_score || 5}" 
-                                       class="correctness-slider ${question.correctness_score ? 'scored' : ''}"
+                                       value="${question.correctness_score !== null && question.correctness_score !== undefined ? question.correctness_score : 0}" 
+                                       class="correctness-slider ${question.correctness_score !== null && question.correctness_score !== undefined ? 'scored' : ''}"
                                        id="slider-${question.id}"
                                        oninput="event.stopPropagation(); updateScoreDisplay(${question.id}, this.value)"
                                        onchange="event.stopPropagation(); markQuestionScore(${question.id}, this.value)"
                                        onclick="event.stopPropagation()"
-                                       title="Rate answer quality (1-10)">
+                                       title="Rate answer quality (0-10)">
                             </div>
                             <button class="ai-eval-btn" onclick="event.stopPropagation(); evaluateQuestionAI(${question.id})" title="AI Evaluate">
                                 <img src="/generative.png" class="icn" alt="AI" style="width:25px;height:25px;vertical-align:middle">
