@@ -2926,7 +2926,7 @@
                 return `
                 <div class="question-item" data-question-id="${question.id}">
                     <div class="question-header" onclick="toggleQuestion(${question.id})">
-                        <span class="question-number">Q${index + 1}</span>
+                        <span class="question-number">Q${questions.length - index}</span>
                         <div class="question-preview">${getQuestionPreview(question.question_text)}</div>
                         <div class="question-actions">
                             <div class="correctness-slider-container">
