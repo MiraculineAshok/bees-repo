@@ -2428,7 +2428,6 @@
                         <thead>
                             <tr>
                                 <th class="sortable" onclick="setConsolidationSort('student_name')">Student <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
-                                <th class="sortable" onclick="setConsolidationSort('student_email')">Email <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th class="sortable" onclick="setConsolidationSort('zeta_id')">Zeta ID <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th class="sortable" onclick="setConsolidationSort('session_name')">Session <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th>Interviewers</th>
@@ -2441,7 +2440,7 @@
                             </tr>
                         </thead>
                         <tbody id="consolidation-table-body">
-                            <tr><td colspan="11" class="loading">Loading consolidation...</td></tr>
+                            <tr><td colspan="10" class="loading">Loading consolidation...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -3096,7 +3095,7 @@
                 rows = applyAdvancedFiltersCons(rows);
                 if (!tbody) return;
                 if (rows.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="11" class="empty-state">No consolidation data</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No consolidation data</td></tr>';
                     return;
                 }
                 const badge = (v)=>{
@@ -3120,7 +3119,6 @@
                     return `
                         <tr>
                             <td>${r.student_name || '-'}</td>
-                            <td>${r.student_email || '-'}</td>
                             <td>${r.zeta_id || '-'}</td>
                             <td>${r.session_name || '-'}</td>
                             <td>${interviewerNames}</td>
@@ -3152,7 +3150,7 @@
             } catch (e) {
                 console.error('Error loading consolidation:', e);
                 const tbody = document.getElementById('consolidation-table-body');
-                if (tbody) tbody.innerHTML = '<tr><td colspan="11" class="error">Error loading consolidation</td></tr>';
+                if (tbody) tbody.innerHTML = '<tr><td colspan="10" class="error">Error loading consolidation</td></tr>';
             }
         }
 
