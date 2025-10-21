@@ -83,7 +83,7 @@ app.use(helmet({
             frameAncestors: ["'self'"],
             imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
             objectSrc: ["'none'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.quilljs.com", "https://cdn.jsdelivr.net"], // Allow Quill.js and Chart.js CDN
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.quilljs.com", "https://cdn.jsdelivr.net"], // Allow Quill.js, Chart.js, and Marked.js CDN
             scriptSrcAttr: ["'unsafe-inline'"], // Allow inline event handlers
             styleSrc: ["'self'", "https:", "'unsafe-inline'", "https://cdn.quilljs.com"], // Allow Quill.js styles
             upgradeInsecureRequests: []
