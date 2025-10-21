@@ -1979,6 +1979,9 @@
     <!-- Quill.js for rich text editing -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -2051,24 +2054,77 @@
             <section id="overview" class="content-section active">
                 <div class="section-header">
                     <h2 class="section-title">Dashboard Overview</h2>
+                    <button class="btn btn-primary" onclick="refreshDashboardCharts()">Refresh Charts</button>
                 </div>
                 
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-value" id="total-interviews">-</div>
-                        <div class="stat-label">Total Interviews</div>
+                <!-- Quick Stats Cards -->
+                <div class="stats-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-bottom:2rem">
+                    <div class="stat-card" style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
+                        <div class="stat-value" id="total-interviews" style="font-size:2rem;font-weight:700;color:#1E4ED8">-</div>
+                        <div class="stat-label" style="color:#6b7280;font-size:0.875rem;margin-top:0.5rem">Total Interviews</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="active-sessions">-</div>
-                        <div class="stat-label">Active Sessions</div>
+                    <div class="stat-card" style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
+                        <div class="stat-value" id="active-sessions" style="font-size:2rem;font-weight:700;color:#10b981">-</div>
+                        <div class="stat-label" style="color:#6b7280;font-size:0.875rem;margin-top:0.5rem">Active Sessions</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="total-questions">-</div>
-                        <div class="stat-label">Total Questions</div>
+                    <div class="stat-card" style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
+                        <div class="stat-value" id="total-questions" style="font-size:2rem;font-weight:700;color:#f59e0b">-</div>
+                        <div class="stat-label" style="color:#6b7280;font-size:0.875rem;margin-top:0.5rem">Total Questions</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="total-students">-</div>
-                        <div class="stat-label">Total Students</div>
+                    <div class="stat-card" style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
+                        <div class="stat-value" id="total-students" style="font-size:2rem;font-weight:700;color:#8b5cf6">-</div>
+                        <div class="stat-label" style="color:#6b7280;font-size:0.875rem;margin-top:0.5rem">Total Students</div>
+                    </div>
+                </div>
+
+                <!-- Charts Grid -->
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(450px,1fr));gap:2rem;margin-top:2rem">
+                    <!-- Interview Status Distribution -->
+                    <div style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
+                        <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:1rem;color:#111827">Interview Status Distribution</h3>
+                        <canvas id="statusChart" style="max-height:300px"></canvas>
+                    </div>
+
+                    <!-- Interview Outcome Distribution -->
+                    <div style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
+                        <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:1rem;color:#111827">Interview Outcome Distribution</h3>
+                        <canvas id="verdictChart" style="max-height:300px"></canvas>
+                    </div>
+                </div>
+
+                <!-- Interview Trends -->
+                <div style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1);margin-top:2rem">
+                    <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:1rem;color:#111827">Interviews Conducted Over Time</h3>
+                    <canvas id="trendsChart" style="max-height:250px"></canvas>
+                </div>
+
+                <!-- Interviewer Performance & Question Analytics -->
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(450px,1fr));gap:2rem;margin-top:2rem">
+                    <!-- Top Interviewers -->
+                    <div style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
+                        <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:1rem;color:#111827">Top Interviewers by Count</h3>
+                        <canvas id="interviewersChart" style="max-height:300px"></canvas>
+                    </div>
+
+                    <!-- Most Asked Questions -->
+                    <div style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
+                        <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:1rem;color:#111827">Most Frequently Asked Questions</h3>
+                        <canvas id="questionsChart" style="max-height:300px"></canvas>
+                    </div>
+                </div>
+
+                <!-- Question Categories -->
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(450px,1fr));gap:2rem;margin-top:2rem">
+                    <!-- Category Distribution -->
+                    <div style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
+                        <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:1rem;color:#111827">Question Categories Distribution</h3>
+                        <canvas id="categoriesChart" style="max-height:300px"></canvas>
+                    </div>
+
+                    <!-- Average Scores by Category -->
+                    <div style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
+                        <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:1rem;color:#111827">Average Scores by Category</h3>
+                        <canvas id="scoresChart" style="max-height:300px"></canvas>
                     </div>
                 </div>
             </section>
@@ -4355,6 +4411,9 @@
             tbody.innerHTML = html;
         }
 
+        // Chart instances
+        let charts = {};
+
         // Overview functions
         async function loadOverviewStats() {
             try {
@@ -4374,9 +4433,374 @@
                 document.getElementById('active-sessions').textContent = sessionsData.data?.active || 0;
                 document.getElementById('total-questions').textContent = questionsData.data?.total_questions || 0;
                 document.getElementById('total-students').textContent = studentsData.data?.total || 0;
+                
+                // Initialize charts
+                await initializeDashboardCharts();
             } catch (error) {
                 console.error('Error loading overview stats:', error);
             }
+        }
+
+        // Initialize all dashboard charts
+        async function initializeDashboardCharts() {
+            try {
+                // Fetch all data
+                const [interviewsRes, usersRes, questionsRes] = await Promise.all([
+                    fetch('/api/admin/interviews'),
+                    fetch('/api/admin/users'),
+                    fetch('/api/question-bank')
+                ]);
+
+                const interviewsData = await interviewsRes.json();
+                const usersData = await usersRes.json();
+                const questionsData = await questionsRes.json();
+
+                const interviews = interviewsData.data || [];
+                const users = usersData.data || [];
+                const questions = questionsData.data || [];
+
+                // Create charts
+                createStatusChart(interviews);
+                createVerdictChart(interviews);
+                createTrendsChart(interviews);
+                createInterviewersChart(interviews, users);
+                createQuestionsChart(questions);
+                createCategoriesChart(questions);
+                createScoresChart(questions);
+            } catch (error) {
+                console.error('Error initializing charts:', error);
+            }
+        }
+
+        // Refresh all charts
+        async function refreshDashboardCharts() {
+            // Destroy existing charts
+            Object.values(charts).forEach(chart => {
+                if (chart) chart.destroy();
+            });
+            charts = {};
+            
+            // Reload charts
+            await initializeDashboardCharts();
+        }
+
+        // Interview Status Distribution (Donut Chart)
+        function createStatusChart(interviews) {
+            const statusCounts = {};
+            interviews.forEach(i => {
+                const status = i.status || 'pending';
+                statusCounts[status] = (statusCounts[status] || 0) + 1;
+            });
+
+            const ctx = document.getElementById('statusChart');
+            if (charts.status) charts.status.destroy();
+            
+            charts.status = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(statusCounts),
+                    datasets: [{
+                        data: Object.values(statusCounts),
+                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#6b7280'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { padding: 15, font: { size: 12 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Interview Outcome Distribution (Pie Chart)
+        function createVerdictChart(interviews) {
+            const verdictCounts = { 'Tiger': 0, 'Cow': 0, 'Sheep': 0, 'Pending': 0 };
+            interviews.forEach(i => {
+                const verdict = i.verdict || 'Pending';
+                if (verdict.toLowerCase().includes('tiger')) verdictCounts['Tiger']++;
+                else if (verdict.toLowerCase().includes('cow')) verdictCounts['Cow']++;
+                else if (verdict.toLowerCase().includes('sheep')) verdictCounts['Sheep']++;
+                else verdictCounts['Pending']++;
+            });
+
+            const ctx = document.getElementById('verdictChart');
+            if (charts.verdict) charts.verdict.destroy();
+            
+            charts.verdict = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(verdictCounts),
+                    datasets: [{
+                        data: Object.values(verdictCounts),
+                        backgroundColor: ['#10b981', '#f59e0b', '#6b7280', '#e5e7eb'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { padding: 15, font: { size: 12 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Interviews Over Time (Line Chart)
+        function createTrendsChart(interviews) {
+            const last30Days = {};
+            const today = new Date();
+            
+            // Initialize last 30 days
+            for (let i = 29; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                last30Days[dateStr] = 0;
+            }
+
+            // Count interviews per day
+            interviews.forEach(i => {
+                if (i.created_at) {
+                    const date = new Date(i.created_at);
+                    const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    if (last30Days.hasOwnProperty(dateStr)) {
+                        last30Days[dateStr]++;
+                    }
+                }
+            });
+
+            const ctx = document.getElementById('trendsChart');
+            if (charts.trends) charts.trends.destroy();
+            
+            charts.trends = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Object.keys(last30Days),
+                    datasets: [{
+                        label: 'Interviews',
+                        data: Object.values(last30Days),
+                        borderColor: '#1E4ED8',
+                        backgroundColor: 'rgba(30, 78, 216, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Top Interviewers (Horizontal Bar Chart)
+        function createInterviewersChart(interviews, users) {
+            const interviewerCounts = {};
+            const interviewerNames = {};
+
+            // Map user IDs to names
+            users.forEach(u => {
+                interviewerNames[u.id] = u.name || u.email;
+            });
+
+            // Count interviews per interviewer
+            interviews.forEach(i => {
+                if (i.interviewer_id) {
+                    interviewerCounts[i.interviewer_id] = (interviewerCounts[i.interviewer_id] || 0) + 1;
+                }
+            });
+
+            // Get top 10 interviewers
+            const sorted = Object.entries(interviewerCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+
+            const labels = sorted.map(([id]) => interviewerNames[id] || `User ${id}`);
+            const data = sorted.map(([, count]) => count);
+
+            const ctx = document.getElementById('interviewersChart');
+            if (charts.interviewers) charts.interviewers.destroy();
+            
+            charts.interviewers = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Interviews Conducted',
+                        data: data,
+                        backgroundColor: '#1E4ED8',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Most Asked Questions (Bar Chart)
+        function createQuestionsChart(questions) {
+            const sorted = questions
+                .filter(q => q.times_asked > 0)
+                .sort((a, b) => b.times_asked - a.times_asked)
+                .slice(0, 10);
+
+            const labels = sorted.map(q => {
+                const text = q.question_text || q.question || '';
+                return text.length > 40 ? text.substring(0, 40) + '...' : text;
+            });
+            const data = sorted.map(q => q.times_asked);
+
+            const ctx = document.getElementById('questionsChart');
+            if (charts.questions) charts.questions.destroy();
+            
+            charts.questions = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Times Asked',
+                        data: data,
+                        backgroundColor: '#f59e0b',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Question Categories Distribution (Donut Chart)
+        function createCategoriesChart(questions) {
+            const categoryCounts = {};
+            questions.forEach(q => {
+                const category = q.category || 'Uncategorized';
+                categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+            });
+
+            const colors = ['#1E4ED8', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
+
+            const ctx = document.getElementById('categoriesChart');
+            if (charts.categories) charts.categories.destroy();
+            
+            charts.categories = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(categoryCounts),
+                    datasets: [{
+                        data: Object.values(categoryCounts),
+                        backgroundColor: colors,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { padding: 15, font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Average Scores by Category (Bar Chart)
+        function createScoresChart(questions) {
+            const categoryScores = {};
+            const categoryCounts = {};
+
+            questions.forEach(q => {
+                const category = q.category || 'Uncategorized';
+                const score = parseFloat(q.average_score) || 0;
+                
+                if (!categoryScores[category]) {
+                    categoryScores[category] = 0;
+                    categoryCounts[category] = 0;
+                }
+                categoryScores[category] += score;
+                categoryCounts[category]++;
+            });
+
+            const averages = {};
+            Object.keys(categoryScores).forEach(cat => {
+                averages[cat] = categoryCounts[cat] > 0 ? (categoryScores[cat] / categoryCounts[cat]).toFixed(2) : 0;
+            });
+
+            const ctx = document.getElementById('scoresChart');
+            if (charts.scores) charts.scores.destroy();
+            
+            charts.scores = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(averages),
+                    datasets: [{
+                        label: 'Average Score (out of 10)',
+                        data: Object.values(averages),
+                        backgroundColor: '#10b981',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 10,
+                            ticks: { stepSize: 2 }
+                        }
+                    }
+                }
+            });
         }
 
         // Interviews functions
