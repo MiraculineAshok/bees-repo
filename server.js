@@ -2033,6 +2033,26 @@ app.get('/api/admin/consolidation/:id/interviews', async (req, res) => {
   }
 });
 
+// Trigger consolidation refresh manually
+app.post('/api/admin/consolidation/refresh', async (req, res) => {
+  try {
+    console.log('🔄 Manual consolidation refresh triggered');
+    const { refreshConsolidation } = require('./db/consolidate');
+    await refreshConsolidation();
+    
+    res.json({
+      success: true,
+      message: 'Consolidation refreshed successfully'
+    });
+  } catch (error) {
+    console.error('❌ Error refreshing consolidation:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // AI Question Generation API
 app.post('/api/generate-ai-question', async (req, res) => {
     try {
