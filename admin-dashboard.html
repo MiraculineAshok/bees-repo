@@ -4755,7 +4755,12 @@
             const categories = new Set();
             rawChartData.questions.forEach(q => {
                 if (q.tags) {
-                    q.tags.split(',').forEach(tag => categories.add(tag.trim()));
+                    // Handle both string and array formats
+                    if (typeof q.tags === 'string') {
+                        q.tags.split(',').forEach(tag => categories.add(tag.trim()));
+                    } else if (Array.isArray(q.tags)) {
+                        q.tags.forEach(tag => categories.add(tag.trim()));
+                    }
                 }
             });
             Array.from(categories).sort().forEach(cat => {
@@ -4850,8 +4855,15 @@
             let filtered = [...rawChartData.questions];
             if (category !== 'all') {
                 filtered = filtered.filter(q => {
-                    const tags = q.tags ? q.tags.toLowerCase() : '';
-                    return tags.includes(category.toLowerCase());
+                    if (!q.tags) return false;
+                    
+                    // Handle both string and array formats
+                    if (typeof q.tags === 'string') {
+                        return q.tags.toLowerCase().includes(category.toLowerCase());
+                    } else if (Array.isArray(q.tags)) {
+                        return q.tags.some(tag => tag.toLowerCase() === category.toLowerCase());
+                    }
+                    return false;
                 });
             }
             
