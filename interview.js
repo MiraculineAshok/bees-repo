@@ -341,12 +341,18 @@ class InterviewPage {
 
         sessionSelect.innerHTML = '<option value="">Select Interview Session</option>';
         
-        this.sessions.forEach(session => {
+        // Filter to show only active sessions
+        const activeSessions = this.sessions.filter(session => session.status === 'active');
+        
+        activeSessions.forEach(session => {
             const option = document.createElement('option');
             option.value = session.id;
             option.textContent = session.name;
             sessionSelect.appendChild(option);
         });
+        
+        // Log for debugging
+        console.log(`📋 Displaying ${activeSessions.length} active sessions out of ${this.sessions.length} total sessions`);
     }
 
     startInterviewSession(zetaId) {
