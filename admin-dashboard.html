@@ -4455,6 +4455,7 @@
             
             try {
                 // Send to AI endpoint
+                console.log('📤 Sending AI query:', message);
                 const response = await fetch('/api/ai/query', {
                     method: 'POST',
                     headers: {
@@ -4467,7 +4468,14 @@
                     })
                 });
                 
+                console.log('📥 Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const data = await response.json();
+                console.log('📊 AI Response:', data);
                 
                 // Remove thinking indicator
                 removeAIThinkingIndicator(thinkingId);
@@ -4486,8 +4494,8 @@
                 }
             } catch (error) {
                 removeAIThinkingIndicator(thinkingId);
-                addAIChatMessage('Sorry, I encountered an error connecting to the AI service. Please try again.', 'error');
-                console.error('AI Query Error:', error);
+                console.error('❌ AI Query Error:', error);
+                addAIChatMessage('Sorry, I encountered an error connecting to the AI service. Please try again. Check console for details.', 'error');
             } finally {
                 sendBtn.disabled = false;
                 sendBtn.textContent = 'Send';

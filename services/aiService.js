@@ -395,6 +395,8 @@ async function fallbackQueryProcessor(question) {
                 (SELECT COUNT(*) FROM interviews WHERE status = 'in_progress') as ongoing_interviews
         `);
 
+        console.log('📊 Stats query result:', stats.rows[0]);
+
         return {
             success: true,
             answer: `I'm not sure I understood your question exactly. Here's an overview of your system:\n\n` +
@@ -409,7 +411,9 @@ async function fallbackQueryProcessor(question) {
         };
 
     } catch (error) {
-        console.error('Fallback processor error:', error);
+        console.error('❌ Fallback processor error:', error);
+        console.error('Error details:', error.message);
+        console.error('Error stack:', error.stack);
         throw error;
     }
 }
