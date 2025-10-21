@@ -2054,6 +2054,61 @@
                     <button class="btn btn-primary" onclick="refreshDashboardCharts()">Refresh Charts</button>
                 </div>
                 
+                <!-- Chart Filters -->
+                <div style="background:#f9fafb;padding:1.5rem;border-radius:8px;margin-bottom:2rem;border:1px solid #e5e7eb">
+                    <div style="display:flex;gap:1.5rem;flex-wrap:wrap;align-items:center">
+                        <div style="display:flex;gap:0.5rem;align-items:center">
+                            <label style="font-size:0.875rem;font-weight:500;color:#374151">Date Range:</label>
+                            <select id="chart-date-range" class="form-input" style="width:150px" onchange="applyChartFilters()">
+                                <option value="all">All Time</option>
+                                <option value="today">Today</option>
+                                <option value="week">Last 7 Days</option>
+                                <option value="month" selected>Last 30 Days</option>
+                                <option value="quarter">Last 3 Months</option>
+                                <option value="year">Last Year</option>
+                                <option value="custom">Custom Range</option>
+                            </select>
+                        </div>
+                        
+                        <div id="custom-date-range" style="display:none;gap:0.5rem;align-items:center">
+                            <label style="font-size:0.875rem;color:#374151">From:</label>
+                            <input type="date" id="chart-date-from" class="form-input" style="width:150px" onchange="applyChartFilters()">
+                            <label style="font-size:0.875rem;color:#374151">To:</label>
+                            <input type="date" id="chart-date-to" class="form-input" style="width:150px" onchange="applyChartFilters()">
+                        </div>
+                        
+                        <div style="display:flex;gap:0.5rem;align-items:center">
+                            <label style="font-size:0.875rem;font-weight:500;color:#374151">Status:</label>
+                            <select id="chart-status-filter" class="form-input" style="width:150px" onchange="applyChartFilters()">
+                                <option value="all">All Statuses</option>
+                                <option value="completed">Completed</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        
+                        <div style="display:flex;gap:0.5rem;align-items:center">
+                            <label style="font-size:0.875rem;font-weight:500;color:#374151">Verdict:</label>
+                            <select id="chart-verdict-filter" class="form-input" style="width:150px" onchange="applyChartFilters()">
+                                <option value="all">All Verdicts</option>
+                                <option value="Tiger">Tiger</option>
+                                <option value="Cow">Cow</option>
+                                <option value="Sheep">Sheep</option>
+                                <option value="none">Not Yet Assigned</option>
+                            </select>
+                        </div>
+                        
+                        <div style="display:flex;gap:0.5rem;align-items:center">
+                            <label style="font-size:0.875rem;font-weight:500;color:#374151">Interviewer:</label>
+                            <select id="chart-interviewer-filter" class="form-input" style="width:180px" onchange="applyChartFilters()">
+                                <option value="all">All Interviewers</option>
+                            </select>
+                        </div>
+                        
+                        <button class="btn btn-secondary" onclick="clearChartFilters()" style="margin-left:auto">Clear Filters</button>
+                    </div>
+                </div>
+                
                 <!-- Quick Stats Cards -->
                 <div class="stats-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-bottom:2rem">
                     <div class="stat-card" style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
@@ -4464,6 +4519,135 @@
         }
 
         // Initialize all dashboard charts
+        // Store raw data for filtering
+        let rawChartData = {
+            interviews: [],
+            users: [],
+            questions: []
+        };
+
+        // Apply chart filters
+        function applyChartFilters() {
+            const dateRange = document.getElementById('chart-date-range').value;
+            const status = document.getElementById('chart-status-filter').value;
+            const verdict = document.getElementById('chart-verdict-filter').value;
+            const interviewer = document.getElementById('chart-interviewer-filter').value;
+            
+            // Show/hide custom date range
+            const customDateDiv = document.getElementById('custom-date-range');
+            if (dateRange === 'custom') {
+                customDateDiv.style.display = 'flex';
+            } else {
+                customDateDiv.style.display = 'none';
+            }
+            
+            // Filter interviews based on selected criteria
+            let filteredInterviews = [...rawChartData.interviews];
+            
+            // Date range filter
+            if (dateRange !== 'all') {
+                const now = new Date();
+                let startDate = new Date();
+                
+                switch(dateRange) {
+                    case 'today':
+                        startDate.setHours(0, 0, 0, 0);
+                        break;
+                    case 'week':
+                        startDate.setDate(now.getDate() - 7);
+                        break;
+                    case 'month':
+                        startDate.setDate(now.getDate() - 30);
+                        break;
+                    case 'quarter':
+                        startDate.setMonth(now.getMonth() - 3);
+                        break;
+                    case 'year':
+                        startDate.setFullYear(now.getFullYear() - 1);
+                        break;
+                    case 'custom':
+                        const dateFrom = document.getElementById('chart-date-from').value;
+                        const dateTo = document.getElementById('chart-date-to').value;
+                        if (dateFrom) startDate = new Date(dateFrom);
+                        if (dateTo) {
+                            const endDate = new Date(dateTo);
+                            endDate.setHours(23, 59, 59, 999);
+                            filteredInterviews = filteredInterviews.filter(i => {
+                                const iDate = new Date(i.created_at);
+                                return iDate >= startDate && iDate <= endDate;
+                            });
+                        } else {
+                            filteredInterviews = filteredInterviews.filter(i => new Date(i.created_at) >= startDate);
+                        }
+                        break;
+                }
+                
+                if (dateRange !== 'custom') {
+                    filteredInterviews = filteredInterviews.filter(i => new Date(i.created_at) >= startDate);
+                }
+            }
+            
+            // Status filter
+            if (status !== 'all') {
+                filteredInterviews = filteredInterviews.filter(i => i.status === status);
+            }
+            
+            // Verdict filter
+            if (verdict !== 'all') {
+                if (verdict === 'none') {
+                    filteredInterviews = filteredInterviews.filter(i => !i.verdict || i.verdict === '-');
+                } else {
+                    filteredInterviews = filteredInterviews.filter(i => i.verdict === verdict);
+                }
+            }
+            
+            // Interviewer filter
+            if (interviewer !== 'all') {
+                filteredInterviews = filteredInterviews.filter(i => i.interviewer_email === interviewer);
+            }
+            
+            // Update stats cards
+            document.getElementById('total-interviews').textContent = filteredInterviews.length;
+            const completedCount = filteredInterviews.filter(i => i.status === 'completed').length;
+            document.getElementById('active-sessions').textContent = filteredInterviews.filter(i => i.status === 'in_progress').length;
+            
+            // Recreate all charts with filtered data
+            createStatusChart(filteredInterviews);
+            createVerdictChart(filteredInterviews);
+            createTrendsChart(filteredInterviews);
+            createInterviewersChart(filteredInterviews, rawChartData.users);
+            
+            console.log(`📊 Charts updated with ${filteredInterviews.length} filtered interviews`);
+        }
+        
+        // Clear all chart filters
+        function clearChartFilters() {
+            document.getElementById('chart-date-range').value = 'month';
+            document.getElementById('chart-status-filter').value = 'all';
+            document.getElementById('chart-verdict-filter').value = 'all';
+            document.getElementById('chart-interviewer-filter').value = 'all';
+            document.getElementById('custom-date-range').style.display = 'none';
+            document.getElementById('chart-date-from').value = '';
+            document.getElementById('chart-date-to').value = '';
+            applyChartFilters();
+        }
+        
+        // Populate interviewer dropdown
+        function populateInterviewerFilter(users) {
+            const select = document.getElementById('chart-interviewer-filter');
+            // Clear existing options except "All"
+            select.innerHTML = '<option value="all">All Interviewers</option>';
+            
+            // Get unique interviewers from users
+            const interviewers = users.filter(u => u.role === 'interviewer' || u.role === 'admin' || u.role === 'superadmin');
+            interviewers.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.email;
+                option.textContent = user.name || user.email;
+                select.appendChild(option);
+            });
+        }
+
         async function initializeDashboardCharts() {
             try {
                 console.log('📊 Initializing dashboard charts...');
@@ -4504,18 +4688,23 @@
                 const users = usersData.data || [];
                 const questions = questionsData.data || [];
 
+                // Store raw data for filtering
+                rawChartData.interviews = interviews;
+                rawChartData.users = users;
+                rawChartData.questions = questions;
+
                 console.log('📊 Data fetched:', {
                     interviews: interviews.length,
                     users: users.length,
                     questions: questions.length
                 });
 
-                // Create charts
+                // Populate interviewer filter dropdown
+                populateInterviewerFilter(users);
+
+                // Create charts (will apply default filters)
                 console.log('🎨 Creating charts...');
-                createStatusChart(interviews);
-                createVerdictChart(interviews);
-                createTrendsChart(interviews);
-                createInterviewersChart(interviews, users);
+                applyChartFilters(); // This will create all charts with default filters
                 createQuestionsChart(questions);
                 createCategoriesChart(questions);
                 createScoresChart(questions);
