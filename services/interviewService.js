@@ -98,10 +98,12 @@ class InterviewService {
 
         try {
             const result = await pool.query(
-                `SELECT i.*, s.first_name, s.last_name, s.zeta_id, au.name as interviewer_name, au.email as interviewer_email
+                `SELECT i.*, s.first_name, s.last_name, s.zeta_id, au.name as interviewer_name, au.email as interviewer_email,
+                        iss.is_panel
                  FROM interviews i
                  JOIN students s ON i.student_id = s.id
                  JOIN authorized_users au ON i.interviewer_id = au.id
+                 LEFT JOIN interview_sessions iss ON i.session_id = iss.id
                  WHERE i.student_id = $1 AND i.status = 'in_progress'
                  ORDER BY i.created_at DESC
                  LIMIT 1`,
@@ -114,8 +116,15 @@ class InterviewService {
             if (interview && currentInterviewerId) {
                 // Check if the current interviewer is the one conducting this interview
                 if (interview.interviewer_id !== currentInterviewerId) {
-                    // Another interviewer is already conducting this interview
-                    throw new Error(`Student is already being interviewed by ${interview.interviewer_name} (${interview.interviewer_email}). Please choose a different student.`);
+                    // Check if this is a panel interview
+                    const isPanel = interview.is_panel === true;
+                    
+                    if (!isPanel) {
+                        // For regular interviews, prevent parallel interviews
+                        throw new Error(`Student is already being interviewed by ${interview.interviewer_name} (${interview.interviewer_email}). Please choose a different student.`);
+                    }
+                    // For panel interviews, allow multiple interviewers - return null to indicate new interview should be created
+                    return null;
                 }
             }
             
