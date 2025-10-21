@@ -888,6 +888,12 @@ app.post('/api/interviews', async (req, res) => {
     const { student_id, interviewer_id, session_id } = req.body;
     const interview = await InterviewService.createInterview(student_id, interviewer_id, session_id);
     
+    // Refresh consolidation data asynchronously (don't wait)
+    const { refreshConsolidation } = require('./db/consolidate');
+    refreshConsolidation().catch(err => {
+      console.error('⚠️ Failed to refresh consolidation after interview creation:', err);
+    });
+    
     // Log interview creation
     await AuditService.logUserAction(
       'CREATE_INTERVIEW',

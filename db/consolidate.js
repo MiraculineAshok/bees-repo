@@ -37,7 +37,7 @@ function computeStatus(verdicts) {
   return null;
 }
 
-async function main() {
+async function refreshConsolidation() {
   const client = await pool.connect();
   try {
     console.log('🔧 Creating interview_consolidation table if not exists...');
@@ -126,12 +126,26 @@ async function main() {
     console.log('✅ Consolidation complete.');
   } catch (err) {
     console.error('❌ Consolidation failed:', err);
-    process.exitCode = 1;
+    throw err;
   } finally {
     client.release();
   }
 }
 
-main();
+// Export the function for use in server
+module.exports = { refreshConsolidation };
+
+// Run if called directly
+if (require.main === module) {
+  refreshConsolidation()
+    .then(() => {
+      console.log('✅ Consolidation script completed successfully');
+      process.exit(0);
+    })
+    .catch((err) => {
+      console.error('❌ Consolidation script failed:', err);
+      process.exit(1);
+    });
+}
 
 
