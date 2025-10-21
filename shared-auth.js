@@ -122,23 +122,22 @@
                        console.log('Fetched role from API:', userRole);
                    }
             
+            // Ensure both buttons stay hidden until role is determined
+            if (adminDashboardBtn) adminDashboardBtn.classList.add('hidden');
+            if (interviewerDashboardBtn) interviewerDashboardBtn.classList.add('hidden');
+            
             if (userRole === 'superadmin' || userRole === 'admin') {
-                // Show both dashboard buttons for admin and superadmin
+                // Admin users: show only admin dashboard button
                 if (adminDashboardBtn) {
                     adminDashboardBtn.classList.remove('hidden');
                 }
-                if (interviewerDashboardBtn) {
-                    interviewerDashboardBtn.classList.remove('hidden');
-                }
+                // Keep interviewer dashboard button hidden for admins
             } else {
-                // Show only interviewer dashboard button for regular interviewers
+                // Regular interviewers: show only interviewer dashboard button
                 if (interviewerDashboardBtn) {
                     interviewerDashboardBtn.classList.remove('hidden');
                 }
-                // Hide admin dashboard button for interviewers
-                if (adminDashboardBtn) {
-                    adminDashboardBtn.classList.add('hidden');
-                }
+                // Keep admin dashboard button hidden for interviewers
             }
             
             return true;
