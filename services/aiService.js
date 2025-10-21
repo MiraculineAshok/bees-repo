@@ -128,17 +128,23 @@ async function processAIQuery(question, history = []) {
         console.log('📊 Processing AI query:', question);
         console.log('🔑 OpenAI available:', !!openai);
         
+        // ALWAYS use fallback for now until we debug OpenAI
         // If OpenAI is not configured, use fallback rule-based system
+        console.log('⚡ Using fallback rule-based system (OpenAI temporarily disabled for debugging)');
+        return await fallbackQueryProcessor(question);
+        
+        /* Temporarily disabled OpenAI to test fallback
         if (!openai) {
             console.log('⚡ Using fallback rule-based system');
             return await fallbackQueryProcessor(question);
         }
 
-        console.log('🤖 Using OpenAI GPT-4');
+        console.log('🤖 Using OpenAI');
         // Use OpenAI to understand the question and generate SQL
         const aiResponse = await analyzeQuestionWithAI(question, history);
         
         return aiResponse;
+        */
     } catch (error) {
         console.error('❌ Error processing AI query:', error);
         console.error('Error stack:', error.stack);
@@ -206,15 +212,16 @@ A: {
         ? `Previous context:\n${history.map(h => `Q: ${h.question}\nA: ${h.answer}`).join('\n\n')}\n\nNew question: ${question}`
         : question;
 
-    console.log('📡 Calling OpenAI API...');
+    console.log('📡 Calling OpenAI API with gpt-3.5-turbo...');
     const completion = await openai.chat.completions.create({
-        model: "gpt-4",
+        model: "gpt-3.5-turbo",
         messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt }
         ],
         temperature: 0.3,
-        response_format: { type: "json_object" }
+        response_format: { type: "json_object" },
+        timeout: 20000 // 20 second timeout
     });
 
     console.log('✅ OpenAI API response received');

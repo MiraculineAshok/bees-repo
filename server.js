@@ -3158,6 +3158,15 @@ app.post('/api/admin/audit-cleanup', async (req, res) => {
 // ============ AI Assistant Routes ============
 const aiService = require('./services/aiService');
 
+// Test endpoint to check if AI service is reachable
+app.get('/api/ai/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'AI service is reachable',
+    openaiAvailable: !!process.env.OPENAI_API_KEY
+  });
+});
+
 app.post('/api/ai/query', auditMiddleware, async (req, res) => {
   try {
     const { question, history } = req.body;
@@ -3169,13 +3178,23 @@ app.post('/api/ai/query', auditMiddleware, async (req, res) => {
       });
     }
 
-    console.log('📊 AI Query:', question);
+    console.log('📊 AI Query received:', question);
+    console.log('📊 Request body:', JSON.stringify({ question, historyLength: history?.length || 0 }));
 
-    const result = await aiService.processAIQuery(question, history || []);
+    // Set a reasonable timeout
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Query processing timeout')), 25000);
+    });
 
+    const resultPromise = aiService.processAIQuery(question, history || []);
+    
+    const result = await Promise.race([resultPromise, timeoutPromise]);
+
+    console.log('✅ AI Query completed successfully');
     res.json(result);
   } catch (error) {
-    console.error('Error processing AI query:', error);
+    console.error('❌ Error processing AI query:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({
       success: false,
       error: 'Failed to process AI query: ' + error.message
