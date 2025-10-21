@@ -1,33 +1,11 @@
 const pool = require('../db/pool');
 
-// Try to load OpenAI, but don't fail if not installed
-let OpenAI = null;
-let openai = null;
-
-try {
-    OpenAI = require('openai');
-    console.log('✅ OpenAI package loaded');
-} catch (error) {
-    console.log('⚠️ OpenAI package not installed, using fallback system only');
-    console.log('   To enable AI features: npm install openai');
-}
-
-// Initialize OpenAI if package is available and API key is set
-if (OpenAI) {
-    try {
-        if (process.env.OPENAI_API_KEY) {
-            console.log('✅ Initializing OpenAI with API key...');
-            openai = new OpenAI({
-                apiKey: process.env.OPENAI_API_KEY
-            });
-            console.log('✅ OpenAI initialized successfully');
-        } else {
-            console.log('⚠️ OPENAI_API_KEY not found, using fallback system');
-        }
-    } catch (error) {
-        console.error('❌ Error initializing OpenAI:', error.message);
-        console.log('⚠️ Falling back to rule-based system');
-    }
+// Check if OpenAI API key is available
+const openaiAvailable = !!process.env.OPENAI_API_KEY;
+if (openaiAvailable) {
+    console.log('✅ OpenAI API key found, AI features enabled');
+} else {
+    console.log('⚠️ OPENAI_API_KEY not found, using fallback system only');
 }
 
 // Database schema for AI context
@@ -126,25 +104,19 @@ const DATABASE_SCHEMA = {
 async function processAIQuery(question, history = []) {
     try {
         console.log('📊 Processing AI query:', question);
-        console.log('🔑 OpenAI available:', !!openai);
+        console.log('🔑 OpenAI available:', openaiAvailable);
         
-        // ALWAYS use fallback for now until we debug OpenAI
         // If OpenAI is not configured, use fallback rule-based system
-        console.log('⚡ Using fallback rule-based system (OpenAI temporarily disabled for debugging)');
-        return await fallbackQueryProcessor(question);
-        
-        /* Temporarily disabled OpenAI to test fallback
-        if (!openai) {
+        if (!openaiAvailable) {
             console.log('⚡ Using fallback rule-based system');
             return await fallbackQueryProcessor(question);
         }
 
-        console.log('🤖 Using OpenAI');
+        console.log('🤖 Using OpenAI GPT-3.5-turbo');
         // Use OpenAI to understand the question and generate SQL
         const aiResponse = await analyzeQuestionWithAI(question, history);
         
         return aiResponse;
-        */
     } catch (error) {
         console.error('❌ Error processing AI query:', error);
         console.error('Error stack:', error.stack);
@@ -212,20 +184,37 @@ A: {
         ? `Previous context:\n${history.map(h => `Q: ${h.question}\nA: ${h.answer}`).join('\n\n')}\n\nNew question: ${question}`
         : question;
 
-    console.log('📡 Calling OpenAI API with gpt-3.5-turbo...');
-    const completion = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
-        messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt }
-        ],
-        temperature: 0.3,
-        response_format: { type: "json_object" },
-        timeout: 20000 // 20 second timeout
+    console.log('📡 Calling OpenAI API with gpt-3.5-turbo (direct fetch)...');
+    
+    // Use direct fetch like the working AI question generation and evaluation
+    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            model: 'gpt-3.5-turbo',
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: userPrompt }
+            ],
+            temperature: 0.3,
+            response_format: { type: "json_object" },
+            max_tokens: 1000
+        })
     });
 
+    if (!openaiResponse.ok) {
+        const errorData = await openaiResponse.json();
+        console.error('OpenAI API error:', errorData);
+        throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
+    }
+
+    const openaiData = await openaiResponse.json();
     console.log('✅ OpenAI API response received');
-    const aiResult = JSON.parse(completion.choices[0].message.content);
+    
+    const aiResult = JSON.parse(openaiData.choices[0].message.content);
     console.log('📊 AI Result:', aiResult);
 
     // If query requires execution, execute it
