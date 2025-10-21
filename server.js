@@ -1966,6 +1966,7 @@ app.get('/api/admin/consolidation', async (req, res) => {
         c.interviewer_ids,
         c.interviewer_names,
         c.verdicts,
+        c.interview_statuses,
         c.status,
         -- concatenate latest notes from interviews for this student+session
         (

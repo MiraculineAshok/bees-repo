@@ -2433,6 +2433,7 @@
                                 <th class="sortable" onclick="setConsolidationSort('session_name')">Session <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th>Interviewers</th>
                                 <th>Verdicts</th>
+                                <th>Interview Status</th>
                                 <th class="sortable" onclick="setConsolidationSort('status')">Status <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th>Notes</th>
                                 <th class="sortable" onclick="setConsolidationSort('last_interview_at')">Last Interview <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
@@ -2440,7 +2441,7 @@
                             </tr>
                         </thead>
                         <tbody id="consolidation-table-body">
-                            <tr><td colspan="9" class="loading">Loading consolidation...</td></tr>
+                            <tr><td colspan="11" class="loading">Loading consolidation...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -3095,7 +3096,7 @@
                 rows = applyAdvancedFiltersCons(rows);
                 if (!tbody) return;
                 if (rows.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No consolidation data</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="11" class="empty-state">No consolidation data</td></tr>';
                     return;
                 }
                 const badge = (v)=>{
@@ -3104,9 +3105,15 @@
                     const color = tiger? '#10b981' : cow? '#f59e0b' : sheep? '#6b7280' : (t.includes('select')? '#10b981' : t.includes('reject')? '#ef4444' : (t.includes('wait')||t.includes('hold')||t.includes('maybe'))? '#f59e0b' : '#6b7280');
                     return `<span style="display:inline-block;background:${color};color:#fff;padding:3px 8px;border-radius:12px;font-size:11px;margin:2px;white-space:nowrap">${v||'-'}</span>`;
                 };
+                const statusBadge = (v)=>{
+                    const t=String(v||'').toLowerCase();
+                    const color = t.includes('completed')? '#10b981' : t.includes('progress')? '#f59e0b' : '#6b7280';
+                    return `<span style="display:inline-block;background:${color};color:#fff;padding:3px 8px;border-radius:12px;font-size:11px;margin:2px;white-space:nowrap">${v||'-'}</span>`;
+                };
                 const html = rows.map(r => {
                     const interviewerNames = Array.isArray(r.interviewer_names) ? r.interviewer_names.join(', ') : '-';
                     const verdicts = Array.isArray(r.verdicts) ? r.verdicts.map(badge).join(' ') : '-';
+                    const interviewStatuses = Array.isArray(r.interview_statuses) ? r.interview_statuses.map(statusBadge).join(' ') : '-';
                     const lastAt = r.last_interview_at ? formatDate(r.last_interview_at) : '-';
                     const status = r.status || '-';
                     const notes = r.notes ? r.notes.replace(/\n/g,'<br>') : '-';
@@ -3118,6 +3125,7 @@
                             <td>${r.session_name || '-'}</td>
                             <td>${interviewerNames}</td>
                             <td>${verdicts}</td>
+                            <td>${interviewStatuses}</td>
                             <td><span class="status-badge ${status}" style="display:inline-block;padding:3px 8px;border-radius:12px;color:#fff;background:${String(status).toLowerCase().includes('select')?'#10b981':String(status).toLowerCase().includes('reject')?'#ef4444':String(status).toLowerCase().includes('wait')?'#f59e0b':'#6b7280'}">${status}</span></td>
                             <td>
                                 <div style="max-height:64px;overflow:hidden;position:relative">
@@ -3144,7 +3152,7 @@
             } catch (e) {
                 console.error('Error loading consolidation:', e);
                 const tbody = document.getElementById('consolidation-table-body');
-                if (tbody) tbody.innerHTML = '<tr><td colspan="9" class="error">Error loading consolidation</td></tr>';
+                if (tbody) tbody.innerHTML = '<tr><td colspan="11" class="error">Error loading consolidation</td></tr>';
             }
         }
 

@@ -54,6 +54,7 @@ async function refreshConsolidation() {
         interviewer_ids INTEGER[],
         interviewer_names TEXT[],
         verdicts TEXT[],
+        interview_statuses TEXT[],
         status TEXT,
         last_interview_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -62,6 +63,16 @@ async function refreshConsolidation() {
       );
       CREATE INDEX IF NOT EXISTS idx_interview_consolidation_student ON interview_consolidation(student_id);
       CREATE INDEX IF NOT EXISTS idx_interview_consolidation_session ON interview_consolidation(session_id);
+      
+      -- Add interview_statuses column if it doesn't exist
+      DO $$ 
+      BEGIN 
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                      WHERE table_name='interview_consolidation' 
+                      AND column_name='interview_statuses') THEN
+          ALTER TABLE interview_consolidation ADD COLUMN interview_statuses TEXT[];
+        END IF;
+      END $$;
     `);
 
     console.log('📊 Aggregating interviews per (student, session)...');
@@ -77,7 +88,10 @@ async function refreshConsolidation() {
         ARRAY_AGG(i.interviewer_id ORDER BY i.created_at) AS interviewer_ids,
         ARRAY_AGG(au.name ORDER BY i.created_at) AS interviewer_names,
         ARRAY_REMOVE(ARRAY_AGG(i.verdict ORDER BY i.created_at), NULL) AS verdicts,
-        MAX(i.created_at) AS last_interview_at
+        ARRAY_AGG(COALESCE(i.status, 'in_progress') ORDER BY i.created_at) AS interview_statuses,
+        MAX(i.created_at) AS last_interview_at,
+        (SELECT ic.status FROM interview_consolidation ic 
+         WHERE ic.student_id = s.id AND ic.session_id = i.session_id LIMIT 1) AS existing_status
       FROM students s
       JOIN interviews i ON i.student_id = s.id
       LEFT JOIN authorized_users au ON au.id = i.interviewer_id
@@ -87,12 +101,15 @@ async function refreshConsolidation() {
 
     console.log(`🔄 Upserting ${rows.length} consolidation rows...`);
     for (const r of rows) {
-      const status = computeStatus(r.verdicts || []);
+      const newStatus = computeStatus(r.verdicts || []);
+      // Preserve existing status if it exists, otherwise use computed status
+      const finalStatus = r.existing_status || newStatus;
+      
       await client.query(
         `INSERT INTO interview_consolidation (
            student_id, session_id, student_name, student_email, zeta_id, session_name,
-           interview_ids, interviewer_ids, interviewer_names, verdicts, status, last_interview_at, updated_at
-         ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12, CURRENT_TIMESTAMP)
+           interview_ids, interviewer_ids, interviewer_names, verdicts, interview_statuses, status, last_interview_at, updated_at
+         ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13, CURRENT_TIMESTAMP)
          ON CONFLICT (student_id, session_id)
          DO UPDATE SET 
            student_name = EXCLUDED.student_name,
@@ -103,7 +120,8 @@ async function refreshConsolidation() {
            interviewer_ids = EXCLUDED.interviewer_ids,
            interviewer_names = EXCLUDED.interviewer_names,
            verdicts = EXCLUDED.verdicts,
-           status = EXCLUDED.status,
+           interview_statuses = EXCLUDED.interview_statuses,
+           status = COALESCE(interview_consolidation.status, EXCLUDED.status),
            last_interview_at = EXCLUDED.last_interview_at,
            updated_at = CURRENT_TIMESTAMP
         `,
@@ -118,7 +136,8 @@ async function refreshConsolidation() {
           r.interviewer_ids || [],
           (r.interviewer_names || []).map(normalizeString),
           (r.verdicts || []).map(normalizeString),
-          status,
+          r.interview_statuses || [],
+          finalStatus,
           r.last_interview_at
         ]
       );
