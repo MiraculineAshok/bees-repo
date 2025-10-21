@@ -2326,18 +2326,11 @@ app.post('/api/admin/sessions', async (req, res) => {
       });
     }
     
-    // Validate panel requirements
-    if (is_panel && panelists.length < 2) {
+    // Validate at least one interviewer
+    if (panelists.length === 0) {
       return res.status(400).json({
         success: false,
-        error: 'Panel interviews require at least 2 interviewers'
-      });
-    }
-    
-    if (!is_panel && panelists.length > 1) {
-      return res.status(400).json({
-        success: false,
-        error: 'Regular interviews can only have 1 interviewer'
+        error: 'At least one interviewer is required'
       });
     }
 

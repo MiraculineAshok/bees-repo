@@ -2740,17 +2740,18 @@
                 <div class="form-group">
                     <label class="form-label" for="session-type">Interview Type</label>
                     <select id="session-type" class="form-input" onchange="handleSessionTypeChange()" required>
-                        <option value="regular">Regular (Single Interviewer)</option>
-                        <option value="panel">Panel Interview (Multiple Interviewers)</option>
+                        <option value="regular">Regular (Sequential Interviews)</option>
+                        <option value="panel">Panel Interview (Simultaneous)</option>
                     </select>
                     <small style="color: #6b7280; font-size: 0.875rem; display: block; margin-top: 0.25rem;">
-                        Panel interviews allow multiple interviewers to interview the same student simultaneously.
+                        <strong>Regular:</strong> Interviewers interview students one-at-a-time (no parallel interviews of same student).<br>
+                        <strong>Panel:</strong> Multiple interviewers can interview the same student at the same time.
                     </small>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="panelist-search">
-                        <span id="panelist-label">Panelists (Interviewers)</span>
-                        <span id="panel-requirement" style="color: #dc2626; font-size: 0.875rem; display: none;"> - Select at least 2 for panel interviews</span>
+                        <span id="panelist-label">Interviewers</span>
+                        <span id="panel-requirement" style="color: #3b82f6; font-size: 0.875rem; display: none;"> - Multiple interviewers will interview students together</span>
                     </label>
                     <div class="panelist-container">
                         <div class="panelist-search-container">
@@ -6246,14 +6247,9 @@
             const sessionType = document.getElementById('session-type').value;
             const isPanel = sessionType === 'panel';
 
-            // Validate panel requirements
-            if (isPanel && selectedPanelists.length < 2) {
-                showError('Panel interviews require at least 2 interviewers');
-                return;
-            }
-            
-            if (!isPanel && selectedPanelists.length > 1) {
-                showError('Regular interviews can only have 1 interviewer. Please select "Panel Interview" type for multiple interviewers.');
+            // Validate at least one interviewer
+            if (selectedPanelists.length === 0) {
+                showError('Please select at least one interviewer');
                 return;
             }
 
@@ -6297,10 +6293,6 @@
                 panelRequirement.style.display = 'inline';
             } else {
                 panelRequirement.style.display = 'none';
-                // If switching to regular and more than 1 interviewer selected, show warning
-                if (selectedPanelists.length > 1) {
-                    showError('Regular interviews can only have 1 interviewer. Please remove extra interviewers or select Panel Interview type.');
-                }
             }
         }
 
