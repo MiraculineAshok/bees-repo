@@ -1577,6 +1577,13 @@ app.put('/api/interviews/:id/notes', async (req, res) => {
 app.put('/api/interviews/:id/complete', async (req, res) => {
   try {
     const interview = await InterviewService.completeInterview(req.params.id);
+    
+    // Refresh consolidation data asynchronously (don't wait)
+    const { refreshConsolidation } = require('./db/consolidate');
+    refreshConsolidation().catch(err => {
+      console.error('⚠️ Failed to refresh consolidation after interview completion:', err);
+    });
+    
     res.json({
       success: true,
       data: interview
@@ -1595,6 +1602,13 @@ app.put('/api/interviews/:id/verdict', async (req, res) => {
   try {
     const { verdict } = req.body;
     const interview = await InterviewService.updateVerdict(req.params.id, verdict);
+    
+    // Refresh consolidation data asynchronously (don't wait)
+    const { refreshConsolidation } = require('./db/consolidate');
+    refreshConsolidation().catch(err => {
+      console.error('⚠️ Failed to refresh consolidation after verdict update:', err);
+    });
+    
     res.json({
       success: true,
       data: interview
