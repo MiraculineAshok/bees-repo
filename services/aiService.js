@@ -138,47 +138,25 @@ async function processAIQuery(question, history = []) {
 async function analyzeQuestionWithAI(question, history) {
     console.log('🤖 Starting OpenAI analysis...');
     
-    const systemPrompt = `You are a SQL expert assistant helping analyze interview management system data.
+    // Add a timeout wrapper
+    const timeout = 15000; // 15 seconds max for OpenAI
+    const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('OpenAI API timeout')), timeout);
+    });
+    
+    // Simplified, concise system prompt
+    const systemPrompt = `You are a SQL expert for an interview management system. 
+Tables: interviews (student_id, interviewer_email, status, verdict, created_at), students (name, email, zeta_id), question_bank (question, tags, times_asked, average_score), interview_sessions (name, location).
 
-Database Schema:
-${JSON.stringify(DATABASE_SCHEMA, null, 2)}
-
-Your task is to:
-1. Understand the user's natural language question
-2. Generate appropriate PostgreSQL SQL queries to answer the question
-3. Execute the query mentally and provide a natural language answer
-4. Return the results in a structured format
-
-IMPORTANT:
-- Always use proper PostgreSQL syntax
-- Use table and column names exactly as shown in the schema
-- For date comparisons, use proper PostgreSQL date functions like NOW(), INTERVAL, etc.
-- Format dates using TO_CHAR when needed
-- Always limit results to reasonable numbers (e.g., LIMIT 10 for lists)
-- Use proper joins when querying across tables
-- Handle NULL values appropriately
-
-Response Format (JSON):
-{
-    "sql": "The SQL query to execute",
-    "answer": "Natural language answer explaining what the query will show",
-    "requiresExecution": true/false (whether the query needs to be executed)
-}
+Generate PostgreSQL queries. Return JSON only:
+{"sql": "SELECT ...", "answer": "Brief explanation", "requiresExecution": true}
 
 Examples:
-Q: "How many interviews were conducted last month?"
-A: {
-    "sql": "SELECT COUNT(*) as count FROM interviews WHERE created_at >= NOW() - INTERVAL '30 days'",
-    "answer": "Let me check the number of interviews conducted in the last 30 days.",
-    "requiresExecution": true
-}
+Q: "How many interviews last month?"
+A: {"sql": "SELECT COUNT(*) FROM interviews WHERE created_at >= NOW() - INTERVAL '30 days'", "answer": "Counting last 30 days interviews", "requiresExecution": true}
 
-Q: "Who are the top 5 interviewers?"
-A: {
-    "sql": "SELECT interviewer_email, COUNT(*) as interview_count FROM interviews WHERE interviewer_email IS NOT NULL GROUP BY interviewer_email ORDER BY interview_count DESC LIMIT 5",
-    "answer": "Here are the top 5 interviewers by number of interviews conducted:",
-    "requiresExecution": true
-}`;
+Q: "Top 5 interviewers?"
+A: {"sql": "SELECT interviewer_email, COUNT(*) as count FROM interviews GROUP BY interviewer_email ORDER BY count DESC LIMIT 5", "answer": "Top interviewers by count", "requiresExecution": true}`;
 
     const userPrompt = history.length > 0 
         ? `Previous context:\n${history.map(h => `Q: ${h.question}\nA: ${h.answer}`).join('\n\n')}\n\nNew question: ${question}`
@@ -186,32 +164,37 @@ A: {
 
     console.log('📡 Calling OpenAI API with gpt-3.5-turbo (direct fetch)...');
     
-    // Use direct fetch like the working AI question generation and evaluation
-    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            model: 'gpt-3.5-turbo',
-            messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: userPrompt }
-            ],
-            temperature: 0.3,
-            response_format: { type: "json_object" },
-            max_tokens: 1000
-        })
-    });
+    // Wrap the OpenAI call with timeout
+    const openaiCallPromise = (async () => {
+        const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: 'gpt-3.5-turbo',
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: userPrompt }
+                ],
+                temperature: 0.3,
+                response_format: { type: "json_object" },
+                max_tokens: 800
+            })
+        });
 
-    if (!openaiResponse.ok) {
-        const errorData = await openaiResponse.json();
-        console.error('OpenAI API error:', errorData);
-        throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
-    }
+        if (!openaiResponse.ok) {
+            const errorData = await openaiResponse.json();
+            console.error('OpenAI API error:', errorData);
+            throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
+        }
 
-    const openaiData = await openaiResponse.json();
+        return await openaiResponse.json();
+    })();
+
+    // Race between API call and timeout
+    const openaiData = await Promise.race([openaiCallPromise, timeoutPromise]);
     console.log('✅ OpenAI API response received');
     
     const aiResult = JSON.parse(openaiData.choices[0].message.content);
