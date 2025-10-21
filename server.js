@@ -3181,6 +3181,34 @@ app.use(async (error, req, res, next) => {
   }
 });
 
+// ============ AI Assistant Routes ============
+const aiService = require('./services/aiService');
+
+app.post('/api/ai/query', auditMiddleware, async (req, res) => {
+  try {
+    const { question, history } = req.body;
+
+    if (!question) {
+      return res.status(400).json({
+        success: false,
+        error: 'Question is required'
+      });
+    }
+
+    console.log('📊 AI Query:', question);
+
+    const result = await aiService.processAIQuery(question, history || []);
+
+    res.json(result);
+  } catch (error) {
+    console.error('Error processing AI query:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to process AI query: ' + error.message
+    });
+  }
+});
+
 // Debug middleware to log all requests (for troubleshooting)
 app.use((req, res, next) => {
   if (req.url.includes('/api/admin/audit')) {
