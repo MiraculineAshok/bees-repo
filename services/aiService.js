@@ -104,31 +104,16 @@ const DATABASE_SCHEMA = {
 async function processAIQuery(question, history = []) {
     try {
         console.log('📊 Processing AI query:', question);
-        console.log('🔑 OpenAI available:', openaiAvailable);
         
-        // If OpenAI is not configured, use fallback rule-based system
-        if (!openaiAvailable) {
-            console.log('⚡ Using fallback rule-based system');
-            return await fallbackQueryProcessor(question);
-        }
-
-        console.log('🤖 Using OpenAI GPT-3.5-turbo');
-        // Use OpenAI to understand the question and generate SQL
-        const aiResponse = await analyzeQuestionWithAI(question, history);
+        // Use fast fallback rule-based system
+        // OpenAI integration has been disabled due to timeout issues
+        console.log('⚡ Using fallback rule-based system');
+        return await fallbackQueryProcessor(question);
         
-        return aiResponse;
     } catch (error) {
         console.error('❌ Error processing AI query:', error);
         console.error('Error stack:', error.stack);
-        
-        // Try fallback system if OpenAI fails
-        console.log('⚡ Attempting fallback system after error');
-        try {
-            return await fallbackQueryProcessor(question);
-        } catch (fallbackError) {
-            console.error('❌ Fallback also failed:', fallbackError);
-            throw error;
-        }
+        throw error;
     }
 }
 
