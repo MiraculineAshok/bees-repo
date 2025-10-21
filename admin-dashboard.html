@@ -1978,6 +1978,10 @@
     
     <!-- Quill.js for rich text editing -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    
+    <!-- Load Chart.js in head with defer to ensure it's available -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js" defer></script>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js" defer></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -3012,13 +3016,26 @@
             checkUserLoginStatus();
             
             // Wait for Chart.js to load before initializing
-            if (typeof Chart === 'undefined') {
-                console.warn('⚠️ Chart.js not loaded yet, waiting...');
-                setTimeout(() => initializeDashboard(), 500);
-            } else {
-                initializeDashboard();
+            let chartCheckAttempts = 0;
+            const maxAttempts = 10;
+            
+            function tryInitialize() {
+                if (typeof Chart !== 'undefined') {
+                    console.log('✅ Chart.js loaded successfully');
+                    initializeDashboard();
+                } else {
+                    chartCheckAttempts++;
+                    if (chartCheckAttempts < maxAttempts) {
+                        console.warn(`⚠️ Chart.js not loaded yet, retry ${chartCheckAttempts}/${maxAttempts}...`);
+                        setTimeout(tryInitialize, 300);
+                    } else {
+                        console.error('❌ Chart.js failed to load after multiple attempts');
+                        initializeDashboard(); // Try anyway
+                    }
+                }
             }
             
+            tryInitialize();
             setupEventListeners();
             // Activate tab from URL param, e.g., ?tab=my-interviews
             const params = new URLSearchParams(window.location.search);
@@ -4457,7 +4474,19 @@
                 
                 // Check if Chart.js is loaded
                 if (typeof Chart === 'undefined') {
-                    console.error('❌ Chart.js is not loaded!');
+                    console.error('❌ Chart.js is not loaded! Skipping chart initialization.');
+                    // Show a message to the user
+                    const chartContainers = document.querySelectorAll('.chart-container');
+                    chartContainers.forEach(container => {
+                        const canvas = container.querySelector('canvas');
+                        if (canvas) {
+                            const ctx = canvas.getContext('2d');
+                            ctx.font = '14px Arial';
+                            ctx.fillStyle = '#666';
+                            ctx.textAlign = 'center';
+                            ctx.fillText('Chart library failed to load. Please refresh the page.', canvas.width / 2, canvas.height / 2);
+                        }
+                    });
                     return;
                 }
                 
@@ -10702,9 +10731,5 @@
             </div>
         </div>
     </div>
-    
-    <!-- Load external libraries before dashboard code -->
-    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
 </body>
 </html>
