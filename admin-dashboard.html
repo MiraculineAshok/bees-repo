@@ -2054,61 +2054,6 @@
                     <button class="btn btn-primary" onclick="refreshDashboardCharts()">Refresh Charts</button>
                 </div>
                 
-                <!-- Chart Filters -->
-                <div style="background:#f9fafb;padding:1.5rem;border-radius:8px;margin-bottom:2rem;border:1px solid #e5e7eb">
-                    <div style="display:flex;gap:1.5rem;flex-wrap:wrap;align-items:center">
-                        <div style="display:flex;gap:0.5rem;align-items:center">
-                            <label style="font-size:0.875rem;font-weight:500;color:#374151">Date Range:</label>
-                            <select id="chart-date-range" class="form-input" style="width:150px" onchange="applyChartFilters()">
-                                <option value="all">All Time</option>
-                                <option value="today">Today</option>
-                                <option value="week">Last 7 Days</option>
-                                <option value="month" selected>Last 30 Days</option>
-                                <option value="quarter">Last 3 Months</option>
-                                <option value="year">Last Year</option>
-                                <option value="custom">Custom Range</option>
-                            </select>
-                        </div>
-                        
-                        <div id="custom-date-range" style="display:none;gap:0.5rem;align-items:center">
-                            <label style="font-size:0.875rem;color:#374151">From:</label>
-                            <input type="date" id="chart-date-from" class="form-input" style="width:150px" onchange="applyChartFilters()">
-                            <label style="font-size:0.875rem;color:#374151">To:</label>
-                            <input type="date" id="chart-date-to" class="form-input" style="width:150px" onchange="applyChartFilters()">
-                        </div>
-                        
-                        <div style="display:flex;gap:0.5rem;align-items:center">
-                            <label style="font-size:0.875rem;font-weight:500;color:#374151">Status:</label>
-                            <select id="chart-status-filter" class="form-input" style="width:150px" onchange="applyChartFilters()">
-                                <option value="all">All Statuses</option>
-                                <option value="completed">Completed</option>
-                                <option value="in_progress">In Progress</option>
-                                <option value="cancelled">Cancelled</option>
-                            </select>
-                        </div>
-                        
-                        <div style="display:flex;gap:0.5rem;align-items:center">
-                            <label style="font-size:0.875rem;font-weight:500;color:#374151">Verdict:</label>
-                            <select id="chart-verdict-filter" class="form-input" style="width:150px" onchange="applyChartFilters()">
-                                <option value="all">All Verdicts</option>
-                                <option value="Tiger">Tiger</option>
-                                <option value="Cow">Cow</option>
-                                <option value="Sheep">Sheep</option>
-                                <option value="none">Not Yet Assigned</option>
-                            </select>
-                        </div>
-                        
-                        <div style="display:flex;gap:0.5rem;align-items:center">
-                            <label style="font-size:0.875rem;font-weight:500;color:#374151">Interviewer:</label>
-                            <select id="chart-interviewer-filter" class="form-input" style="width:180px" onchange="applyChartFilters()">
-                                <option value="all">All Interviewers</option>
-                            </select>
-                        </div>
-                        
-                        <button class="btn btn-secondary" onclick="clearChartFilters()" style="margin-left:auto">Clear Filters</button>
-                    </div>
-                </div>
-                
                 <!-- Quick Stats Cards -->
                 <div class="stats-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-bottom:2rem">
                     <div class="stat-card" style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
@@ -2133,20 +2078,55 @@
                 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(450px,1fr));gap:2rem;margin-top:2rem">
                     <!-- Interview Status Distribution -->
                     <div style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
-                        <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:1rem;color:#111827">Interview Status Distribution</h3>
+                        <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:0.75rem;color:#111827">Interview Status Distribution</h3>
+                        <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap">
+                            <select id="status-chart-date" class="form-input" style="font-size:0.8rem;padding:0.4rem 0.6rem;width:auto" onchange="updateStatusChart()">
+                                <option value="all">All Time</option>
+                                <option value="week">Last 7 Days</option>
+                                <option value="month" selected>Last 30 Days</option>
+                                <option value="quarter">Last 3 Months</option>
+                            </select>
+                            <select id="status-chart-interviewer" class="form-input" style="font-size:0.8rem;padding:0.4rem 0.6rem;width:auto" onchange="updateStatusChart()">
+                                <option value="all">All Interviewers</option>
+                            </select>
+                        </div>
                         <canvas id="statusChart" style="max-height:300px"></canvas>
                     </div>
 
                     <!-- Interview Outcome Distribution -->
                     <div style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
-                        <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:1rem;color:#111827">Interview Outcome Distribution</h3>
+                        <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:0.75rem;color:#111827">Interview Outcome Distribution</h3>
+                        <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap">
+                            <select id="verdict-chart-session" class="form-input" style="font-size:0.8rem;padding:0.4rem 0.6rem;width:auto" onchange="updateVerdictChart()">
+                                <option value="all">All Sessions</option>
+                            </select>
+                            <select id="verdict-chart-status" class="form-input" style="font-size:0.8rem;padding:0.4rem 0.6rem;width:auto" onchange="updateVerdictChart()">
+                                <option value="all">All Statuses</option>
+                                <option value="completed">Completed Only</option>
+                                <option value="in_progress">In Progress</option>
+                            </select>
+                        </div>
                         <canvas id="verdictChart" style="max-height:300px"></canvas>
                     </div>
                 </div>
 
                 <!-- Interview Trends -->
                 <div style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1);margin-top:2rem">
-                    <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:1rem;color:#111827">Interviews Conducted Over Time</h3>
+                    <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:0.75rem;color:#111827">Interviews Conducted Over Time</h3>
+                    <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap">
+                        <select id="trends-chart-range" class="form-input" style="font-size:0.8rem;padding:0.4rem 0.6rem;width:auto" onchange="updateTrendsChart()">
+                            <option value="week">Last 7 Days</option>
+                            <option value="month" selected>Last 30 Days</option>
+                            <option value="quarter">Last 3 Months</option>
+                            <option value="year">Last Year</option>
+                        </select>
+                        <select id="trends-chart-verdict" class="form-input" style="font-size:0.8rem;padding:0.4rem 0.6rem;width:auto" onchange="updateTrendsChart()">
+                            <option value="all">All Verdicts</option>
+                            <option value="Tiger">Tiger</option>
+                            <option value="Cow">Cow</option>
+                            <option value="Sheep">Sheep</option>
+                        </select>
+                    </div>
                     <canvas id="trendsChart" style="max-height:250px"></canvas>
                 </div>
 
@@ -2154,13 +2134,35 @@
                 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(450px,1fr));gap:2rem;margin-top:2rem">
                     <!-- Top Interviewers -->
                     <div style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
-                        <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:1rem;color:#111827">Top Interviewers by Count</h3>
+                        <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:0.75rem;color:#111827">Top Interviewers by Count</h3>
+                        <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap">
+                            <select id="interviewers-chart-date" class="form-input" style="font-size:0.8rem;padding:0.4rem 0.6rem;width:auto" onchange="updateInterviewersChart()">
+                                <option value="all">All Time</option>
+                                <option value="month" selected>Last 30 Days</option>
+                                <option value="quarter">Last 3 Months</option>
+                                <option value="year">Last Year</option>
+                            </select>
+                            <select id="interviewers-chart-session" class="form-input" style="font-size:0.8rem;padding:0.4rem 0.6rem;width:auto" onchange="updateInterviewersChart()">
+                                <option value="all">All Sessions</option>
+                            </select>
+                        </div>
                         <canvas id="interviewersChart" style="max-height:300px"></canvas>
                     </div>
 
                     <!-- Most Asked Questions -->
                     <div style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
-                        <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:1rem;color:#111827">Most Frequently Asked Questions</h3>
+                        <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:0.75rem;color:#111827">Most Frequently Asked Questions</h3>
+                        <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap">
+                            <select id="questions-chart-category" class="form-input" style="font-size:0.8rem;padding:0.4rem 0.6rem;width:auto" onchange="updateQuestionsChart()">
+                                <option value="all">All Categories</option>
+                            </select>
+                            <select id="questions-chart-limit" class="form-input" style="font-size:0.8rem;padding:0.4rem 0.6rem;width:auto" onchange="updateQuestionsChart()">
+                                <option value="5">Top 5</option>
+                                <option value="10" selected>Top 10</option>
+                                <option value="15">Top 15</option>
+                                <option value="20">Top 20</option>
+                            </select>
+                        </div>
                         <canvas id="questionsChart" style="max-height:300px"></canvas>
                     </div>
                 </div>
@@ -2169,13 +2171,26 @@
                 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(450px,1fr));gap:2rem;margin-top:2rem">
                     <!-- Category Distribution -->
                     <div style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
-                        <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:1rem;color:#111827">Question Categories Distribution</h3>
+                        <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:0.75rem;color:#111827">Question Categories Distribution</h3>
+                        <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap">
+                            <select id="categories-chart-filter" class="form-input" style="font-size:0.8rem;padding:0.4rem 0.6rem;width:auto" onchange="updateCategoriesChart()">
+                                <option value="all">Show All</option>
+                                <option value="used">Used in Interviews</option>
+                                <option value="unused">Not Yet Used</option>
+                            </select>
+                        </div>
                         <canvas id="categoriesChart" style="max-height:300px"></canvas>
                     </div>
 
                     <!-- Average Scores by Category -->
                     <div style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
-                        <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:1rem;color:#111827">Average Scores by Category</h3>
+                        <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:0.75rem;color:#111827">Average Scores by Category</h3>
+                        <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap">
+                            <select id="scores-chart-filter" class="form-input" style="font-size:0.8rem;padding:0.4rem 0.6rem;width:auto" onchange="updateScoresChart()">
+                                <option value="avg">Average Score</option>
+                                <option value="success">Success Rate %</option>
+                            </select>
+                        </div>
                         <canvas id="scoresChart" style="max-height:300px"></canvas>
                     </div>
                 </div>
@@ -4523,128 +4538,191 @@
         let rawChartData = {
             interviews: [],
             users: [],
-            questions: []
+            questions: [],
+            sessions: []
         };
 
-        // Apply chart filters
-        function applyChartFilters() {
-            const dateRange = document.getElementById('chart-date-range').value;
-            const status = document.getElementById('chart-status-filter').value;
-            const verdict = document.getElementById('chart-verdict-filter').value;
-            const interviewer = document.getElementById('chart-interviewer-filter').value;
+        // Helper function to filter by date range
+        function filterByDateRange(data, range) {
+            if (range === 'all') return data;
             
-            // Show/hide custom date range
-            const customDateDiv = document.getElementById('custom-date-range');
-            if (dateRange === 'custom') {
-                customDateDiv.style.display = 'flex';
-            } else {
-                customDateDiv.style.display = 'none';
+            const now = new Date();
+            let startDate = new Date();
+            
+            switch(range) {
+                case 'week':
+                    startDate.setDate(now.getDate() - 7);
+                    break;
+                case 'month':
+                    startDate.setDate(now.getDate() - 30);
+                    break;
+                case 'quarter':
+                    startDate.setMonth(now.getMonth() - 3);
+                    break;
+                case 'year':
+                    startDate.setFullYear(now.getFullYear() - 1);
+                    break;
             }
             
-            // Filter interviews based on selected criteria
-            let filteredInterviews = [...rawChartData.interviews];
+            return data.filter(item => new Date(item.created_at) >= startDate);
+        }
+
+        // Update Status Chart
+        function updateStatusChart() {
+            const dateRange = document.getElementById('status-chart-date').value;
+            const interviewer = document.getElementById('status-chart-interviewer').value;
             
-            // Date range filter
-            if (dateRange !== 'all') {
-                const now = new Date();
-                let startDate = new Date();
-                
-                switch(dateRange) {
-                    case 'today':
-                        startDate.setHours(0, 0, 0, 0);
-                        break;
-                    case 'week':
-                        startDate.setDate(now.getDate() - 7);
-                        break;
-                    case 'month':
-                        startDate.setDate(now.getDate() - 30);
-                        break;
-                    case 'quarter':
-                        startDate.setMonth(now.getMonth() - 3);
-                        break;
-                    case 'year':
-                        startDate.setFullYear(now.getFullYear() - 1);
-                        break;
-                    case 'custom':
-                        const dateFrom = document.getElementById('chart-date-from').value;
-                        const dateTo = document.getElementById('chart-date-to').value;
-                        if (dateFrom) startDate = new Date(dateFrom);
-                        if (dateTo) {
-                            const endDate = new Date(dateTo);
-                            endDate.setHours(23, 59, 59, 999);
-                            filteredInterviews = filteredInterviews.filter(i => {
-                                const iDate = new Date(i.created_at);
-                                return iDate >= startDate && iDate <= endDate;
-                            });
-                        } else {
-                            filteredInterviews = filteredInterviews.filter(i => new Date(i.created_at) >= startDate);
-                        }
-                        break;
-                }
-                
-                if (dateRange !== 'custom') {
-                    filteredInterviews = filteredInterviews.filter(i => new Date(i.created_at) >= startDate);
-                }
-            }
-            
-            // Status filter
-            if (status !== 'all') {
-                filteredInterviews = filteredInterviews.filter(i => i.status === status);
-            }
-            
-            // Verdict filter
-            if (verdict !== 'all') {
-                if (verdict === 'none') {
-                    filteredInterviews = filteredInterviews.filter(i => !i.verdict || i.verdict === '-');
-                } else {
-                    filteredInterviews = filteredInterviews.filter(i => i.verdict === verdict);
-                }
-            }
-            
-            // Interviewer filter
+            let filtered = filterByDateRange(rawChartData.interviews, dateRange);
             if (interviewer !== 'all') {
-                filteredInterviews = filteredInterviews.filter(i => i.interviewer_email === interviewer);
+                filtered = filtered.filter(i => i.interviewer_email === interviewer);
             }
             
-            // Update stats cards
-            document.getElementById('total-interviews').textContent = filteredInterviews.length;
-            const completedCount = filteredInterviews.filter(i => i.status === 'completed').length;
-            document.getElementById('active-sessions').textContent = filteredInterviews.filter(i => i.status === 'in_progress').length;
-            
-            // Recreate all charts with filtered data
-            createStatusChart(filteredInterviews);
-            createVerdictChart(filteredInterviews);
-            createTrendsChart(filteredInterviews);
-            createInterviewersChart(filteredInterviews, rawChartData.users);
-            
-            console.log(`📊 Charts updated with ${filteredInterviews.length} filtered interviews`);
+            createStatusChart(filtered);
         }
         
-        // Clear all chart filters
-        function clearChartFilters() {
-            document.getElementById('chart-date-range').value = 'month';
-            document.getElementById('chart-status-filter').value = 'all';
-            document.getElementById('chart-verdict-filter').value = 'all';
-            document.getElementById('chart-interviewer-filter').value = 'all';
-            document.getElementById('custom-date-range').style.display = 'none';
-            document.getElementById('chart-date-from').value = '';
-            document.getElementById('chart-date-to').value = '';
-            applyChartFilters();
+        // Update Verdict Chart
+        function updateVerdictChart() {
+            const session = document.getElementById('verdict-chart-session').value;
+            const status = document.getElementById('verdict-chart-status').value;
+            
+            let filtered = [...rawChartData.interviews];
+            if (session !== 'all') {
+                filtered = filtered.filter(i => i.session_id == session);
+            }
+            if (status !== 'all') {
+                filtered = filtered.filter(i => i.status === status);
+            }
+            
+            createVerdictChart(filtered);
         }
         
-        // Populate interviewer dropdown
-        function populateInterviewerFilter(users) {
-            const select = document.getElementById('chart-interviewer-filter');
-            // Clear existing options except "All"
-            select.innerHTML = '<option value="all">All Interviewers</option>';
+        // Update Trends Chart
+        function updateTrendsChart() {
+            const range = document.getElementById('trends-chart-range').value;
+            const verdict = document.getElementById('trends-chart-verdict').value;
             
-            // Get unique interviewers from users
-            const interviewers = users.filter(u => u.role === 'interviewer' || u.role === 'admin' || u.role === 'superadmin');
-            interviewers.forEach(user => {
+            let filtered = filterByDateRange(rawChartData.interviews, range);
+            if (verdict !== 'all') {
+                filtered = filtered.filter(i => i.verdict === verdict);
+            }
+            
+            createTrendsChart(filtered);
+        }
+        
+        // Update Interviewers Chart
+        function updateInterviewersChart() {
+            const dateRange = document.getElementById('interviewers-chart-date').value;
+            const session = document.getElementById('interviewers-chart-session').value;
+            
+            let filtered = filterByDateRange(rawChartData.interviews, dateRange);
+            if (session !== 'all') {
+                filtered = filtered.filter(i => i.session_id == session);
+            }
+            
+            createInterviewersChart(filtered, rawChartData.users);
+        }
+        
+        // Update Questions Chart
+        function updateQuestionsChart() {
+            const category = document.getElementById('questions-chart-category').value;
+            const limit = parseInt(document.getElementById('questions-chart-limit').value);
+            
+            let filtered = [...rawChartData.questions];
+            if (category !== 'all') {
+                filtered = filtered.filter(q => {
+                    const tags = q.tags ? q.tags.toLowerCase() : '';
+                    return tags.includes(category.toLowerCase());
+                });
+            }
+            
+            // Sort by times_asked and limit
+            filtered = filtered.sort((a, b) => (b.times_asked || 0) - (a.times_asked || 0)).slice(0, limit);
+            
+            createQuestionsChart(filtered);
+        }
+        
+        // Update Categories Chart
+        function updateCategoriesChart() {
+            const filter = document.getElementById('categories-chart-filter').value;
+            
+            let filtered = [...rawChartData.questions];
+            if (filter === 'used') {
+                filtered = filtered.filter(q => (q.times_asked || 0) > 0);
+            } else if (filter === 'unused') {
+                filtered = filtered.filter(q => (q.times_asked || 0) === 0);
+            }
+            
+            createCategoriesChart(filtered);
+        }
+        
+        // Update Scores Chart
+        function updateScoresChart() {
+            const metric = document.getElementById('scores-chart-filter').value;
+            createScoresChart(rawChartData.questions, metric);
+        }
+        
+        // Populate filter dropdowns
+        function populateFilterDropdowns() {
+            // Populate interviewers for status chart
+            const statusInterviewerSelect = document.getElementById('status-chart-interviewer');
+            statusInterviewerSelect.innerHTML = '<option value="all">All Interviewers</option>';
+            
+            const uniqueInterviewers = new Set();
+            rawChartData.interviews.forEach(i => {
+                if (i.interviewer_email) uniqueInterviewers.add(i.interviewer_email);
+            });
+            
+            Array.from(uniqueInterviewers).sort().forEach(email => {
+                const user = rawChartData.users.find(u => u.email === email);
                 const option = document.createElement('option');
-                option.value = user.email;
-                option.textContent = user.name || user.email;
-                select.appendChild(option);
+                option.value = email;
+                option.textContent = user ? (user.name || email) : email;
+                statusInterviewerSelect.appendChild(option);
+            });
+            
+            // Populate sessions for verdict chart
+            const verdictSessionSelect = document.getElementById('verdict-chart-session');
+            verdictSessionSelect.innerHTML = '<option value="all">All Sessions</option>';
+            
+            if (rawChartData.sessions && rawChartData.sessions.length > 0) {
+                rawChartData.sessions.forEach(session => {
+                    const option = document.createElement('option');
+                    option.value = session.id;
+                    option.textContent = session.name || `Session ${session.id}`;
+                    verdictSessionSelect.appendChild(option);
+                });
+            }
+            
+            // Populate sessions for interviewers chart
+            const interviewersSessionSelect = document.getElementById('interviewers-chart-session');
+            interviewersSessionSelect.innerHTML = '<option value="all">All Sessions</option>';
+            
+            if (rawChartData.sessions && rawChartData.sessions.length > 0) {
+                rawChartData.sessions.forEach(session => {
+                    const option = document.createElement('option');
+                    option.value = session.id;
+                    option.textContent = session.name || `Session ${session.id}`;
+                    interviewersSessionSelect.appendChild(option);
+                });
+            }
+            
+            // Populate categories for questions chart
+            const categorySelect = document.getElementById('questions-chart-category');
+            categorySelect.innerHTML = '<option value="all">All Categories</option>';
+            
+            const uniqueCategories = new Set();
+            rawChartData.questions.forEach(q => {
+                if (q.tags) {
+                    const tags = q.tags.split(',').map(t => t.trim());
+                    tags.forEach(tag => uniqueCategories.add(tag));
+                }
+            });
+            
+            Array.from(uniqueCategories).sort().forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                categorySelect.appendChild(option);
             });
         }
 
@@ -4674,40 +4752,48 @@
                 
                 // Fetch all data
                 console.log('📡 Fetching data for charts...');
-                const [interviewsRes, usersRes, questionsRes] = await Promise.all([
+                const [interviewsRes, usersRes, questionsRes, sessionsRes] = await Promise.all([
                     fetch('/api/admin/interviews'),
                     fetch('/api/users'),
-                    fetch('/api/question-bank')
+                    fetch('/api/question-bank'),
+                    fetch('/api/admin/sessions')
                 ]);
 
                 const interviewsData = await interviewsRes.json();
                 const usersData = await usersRes.json();
                 const questionsData = await questionsRes.json();
+                const sessionsData = await sessionsRes.json();
 
                 const interviews = interviewsData.data || [];
                 const users = usersData.data || [];
                 const questions = questionsData.data || [];
+                const sessions = sessionsData.data || [];
 
                 // Store raw data for filtering
                 rawChartData.interviews = interviews;
                 rawChartData.users = users;
                 rawChartData.questions = questions;
+                rawChartData.sessions = sessions;
 
                 console.log('📊 Data fetched:', {
                     interviews: interviews.length,
                     users: users.length,
-                    questions: questions.length
+                    questions: questions.length,
+                    sessions: sessions.length
                 });
 
-                // Populate interviewer filter dropdown
-                populateInterviewerFilter(users);
+                // Populate all filter dropdowns
+                populateFilterDropdowns();
 
-                // Create charts (will apply default filters)
+                // Create all charts with initial data (default filters applied)
                 console.log('🎨 Creating charts...');
-                applyChartFilters(); // This will create all charts with default filters
-                createQuestionsChart(questions);
-                createCategoriesChart(questions);
-                createScoresChart(questions);
+                updateStatusChart();
+                updateVerdictChart();
+                updateTrendsChart();
+                updateInterviewersChart();
+                updateQuestionsChart();
+                updateCategoriesChart();
+                updateScoresChart();
                 
                 console.log('✅ All charts created successfully!');
             } catch (error) {
@@ -4994,26 +5080,40 @@
         }
 
         // Average Scores by Category (Bar Chart)
-        function createScoresChart(questions) {
+        function createScoresChart(questions, metric = 'avg') {
             const categoryScores = {};
             const categoryCounts = {};
+            const categorySuccessRates = {};
 
             questions.forEach(q => {
                 const category = q.category || 'Uncategorized';
                 const score = parseFloat(q.average_score) || 0;
+                const successRate = parseFloat(q.success_rate) || 0;
                 
                 if (!categoryScores[category]) {
                     categoryScores[category] = 0;
                     categoryCounts[category] = 0;
+                    categorySuccessRates[category] = 0;
                 }
                 categoryScores[category] += score;
+                categorySuccessRates[category] += successRate;
                 categoryCounts[category]++;
             });
 
-            const averages = {};
-            Object.keys(categoryScores).forEach(cat => {
-                averages[cat] = categoryCounts[cat] > 0 ? (categoryScores[cat] / categoryCounts[cat]).toFixed(2) : 0;
-            });
+            let chartData, chartLabel;
+            if (metric === 'success') {
+                chartData = {};
+                Object.keys(categorySuccessRates).forEach(cat => {
+                    chartData[cat] = categoryCounts[cat] > 0 ? (categorySuccessRates[cat] / categoryCounts[cat]).toFixed(2) : 0;
+                });
+                chartLabel = 'Success Rate (%)';
+            } else {
+                chartData = {};
+                Object.keys(categoryScores).forEach(cat => {
+                    chartData[cat] = categoryCounts[cat] > 0 ? (categoryScores[cat] / categoryCounts[cat]).toFixed(2) : 0;
+                });
+                chartLabel = 'Average Score (out of 10)';
+            }
 
             const ctx = document.getElementById('scoresChart');
             if (charts.scores) charts.scores.destroy();
@@ -5021,10 +5121,10 @@
             charts.scores = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: Object.keys(averages),
+                    labels: Object.keys(chartData),
                     datasets: [{
-                        label: 'Average Score (out of 10)',
-                        data: Object.values(averages),
+                        label: chartLabel,
+                        data: Object.values(chartData),
                         backgroundColor: '#10b981',
                         borderRadius: 4
                     }]
