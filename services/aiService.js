@@ -1,12 +1,33 @@
 const pool = require('../db/pool');
-const OpenAI = require('openai');
 
-// Initialize OpenAI if API key is available
+// Try to load OpenAI, but don't fail if not installed
+let OpenAI = null;
 let openai = null;
-if (process.env.OPENAI_API_KEY) {
-    openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY
-    });
+
+try {
+    OpenAI = require('openai');
+    console.log('✅ OpenAI package loaded');
+} catch (error) {
+    console.log('⚠️ OpenAI package not installed, using fallback system only');
+    console.log('   To enable AI features: npm install openai');
+}
+
+// Initialize OpenAI if package is available and API key is set
+if (OpenAI) {
+    try {
+        if (process.env.OPENAI_API_KEY) {
+            console.log('✅ Initializing OpenAI with API key...');
+            openai = new OpenAI({
+                apiKey: process.env.OPENAI_API_KEY
+            });
+            console.log('✅ OpenAI initialized successfully');
+        } else {
+            console.log('⚠️ OPENAI_API_KEY not found, using fallback system');
+        }
+    } catch (error) {
+        console.error('❌ Error initializing OpenAI:', error.message);
+        console.log('⚠️ Falling back to rule-based system');
+    }
 }
 
 // Database schema for AI context
@@ -104,18 +125,32 @@ const DATABASE_SCHEMA = {
  */
 async function processAIQuery(question, history = []) {
     try {
+        console.log('📊 Processing AI query:', question);
+        console.log('🔑 OpenAI available:', !!openai);
+        
         // If OpenAI is not configured, use fallback rule-based system
         if (!openai) {
+            console.log('⚡ Using fallback rule-based system');
             return await fallbackQueryProcessor(question);
         }
 
+        console.log('🤖 Using OpenAI GPT-4');
         // Use OpenAI to understand the question and generate SQL
         const aiResponse = await analyzeQuestionWithAI(question, history);
         
         return aiResponse;
     } catch (error) {
-        console.error('Error processing AI query:', error);
-        throw error;
+        console.error('❌ Error processing AI query:', error);
+        console.error('Error stack:', error.stack);
+        
+        // Try fallback system if OpenAI fails
+        console.log('⚡ Attempting fallback system after error');
+        try {
+            return await fallbackQueryProcessor(question);
+        } catch (fallbackError) {
+            console.error('❌ Fallback also failed:', fallbackError);
+            throw error;
+        }
     }
 }
 
