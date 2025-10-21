@@ -158,6 +158,8 @@ async function processAIQuery(question, history = []) {
  * Use OpenAI to analyze the question and generate appropriate SQL queries
  */
 async function analyzeQuestionWithAI(question, history) {
+    console.log('🤖 Starting OpenAI analysis...');
+    
     const systemPrompt = `You are a SQL expert assistant helping analyze interview management system data.
 
 Database Schema:
@@ -204,6 +206,7 @@ A: {
         ? `Previous context:\n${history.map(h => `Q: ${h.question}\nA: ${h.answer}`).join('\n\n')}\n\nNew question: ${question}`
         : question;
 
+    console.log('📡 Calling OpenAI API...');
     const completion = await openai.chat.completions.create({
         model: "gpt-4",
         messages: [
@@ -214,7 +217,9 @@ A: {
         response_format: { type: "json_object" }
     });
 
+    console.log('✅ OpenAI API response received');
     const aiResult = JSON.parse(completion.choices[0].message.content);
+    console.log('📊 AI Result:', aiResult);
 
     // If query requires execution, execute it
     if (aiResult.requiresExecution && aiResult.sql) {

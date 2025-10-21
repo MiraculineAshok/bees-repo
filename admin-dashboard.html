@@ -4454,8 +4454,12 @@
             const thinkingId = addAIThinkingIndicator();
             
             try {
-                // Send to AI endpoint
+                // Send to AI endpoint with timeout
                 console.log('📤 Sending AI query:', message);
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+                
                 const response = await fetch('/api/ai/query', {
                     method: 'POST',
                     headers: {
@@ -4465,9 +4469,11 @@
                     body: JSON.stringify({
                         question: message,
                         history: aiChatHistory.slice(-5) // Send last 5 messages for context
-                    })
+                    }),
+                    signal: controller.signal
                 });
                 
+                clearTimeout(timeoutId);
                 console.log('📥 Response status:', response.status);
                 
                 if (!response.ok) {
@@ -4495,7 +4501,17 @@
             } catch (error) {
                 removeAIThinkingIndicator(thinkingId);
                 console.error('❌ AI Query Error:', error);
-                addAIChatMessage('Sorry, I encountered an error connecting to the AI service. Please try again. Check console for details.', 'error');
+                
+                let errorMessage = 'Sorry, I encountered an error. ';
+                if (error.name === 'AbortError') {
+                    errorMessage += 'The request timed out after 30 seconds. The server might be processing a complex query or experiencing issues.';
+                } else if (error.message.includes('HTTP error')) {
+                    errorMessage += error.message;
+                } else {
+                    errorMessage += 'Please try again or try a simpler question.';
+                }
+                
+                addAIChatMessage(errorMessage, 'error');
             } finally {
                 sendBtn.disabled = false;
                 sendBtn.textContent = 'Send';
