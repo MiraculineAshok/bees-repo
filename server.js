@@ -888,9 +888,9 @@ app.post('/api/interviews', async (req, res) => {
     const { student_id, interviewer_id, session_id } = req.body;
     const interview = await InterviewService.createInterview(student_id, interviewer_id, session_id);
     
-    // Refresh consolidation data asynchronously (don't wait)
-    const { refreshConsolidation } = require('./db/consolidate');
-    refreshConsolidation().catch(err => {
+    // Refresh consolidation data incrementally (don't wait)
+    const { refreshConsolidationForStudentSession } = require('./db/consolidate');
+    refreshConsolidationForStudentSession(student_id, session_id).catch(err => {
       console.error('⚠️ Failed to refresh consolidation after interview creation:', err);
     });
     
@@ -1578,9 +1578,9 @@ app.put('/api/interviews/:id/complete', async (req, res) => {
   try {
     const interview = await InterviewService.completeInterview(req.params.id);
     
-    // Refresh consolidation data asynchronously (don't wait)
-    const { refreshConsolidation } = require('./db/consolidate');
-    refreshConsolidation().catch(err => {
+    // Refresh consolidation data incrementally (don't wait)
+    const { refreshConsolidationForStudentSession } = require('./db/consolidate');
+    refreshConsolidationForStudentSession(interview.student_id, interview.session_id).catch(err => {
       console.error('⚠️ Failed to refresh consolidation after interview completion:', err);
     });
     
@@ -1603,9 +1603,9 @@ app.put('/api/interviews/:id/verdict', async (req, res) => {
     const { verdict } = req.body;
     const interview = await InterviewService.updateVerdict(req.params.id, verdict);
     
-    // Refresh consolidation data asynchronously (don't wait)
-    const { refreshConsolidation } = require('./db/consolidate');
-    refreshConsolidation().catch(err => {
+    // Refresh consolidation data incrementally (don't wait)
+    const { refreshConsolidationForStudentSession } = require('./db/consolidate');
+    refreshConsolidationForStudentSession(interview.student_id, interview.session_id).catch(err => {
       console.error('⚠️ Failed to refresh consolidation after verdict update:', err);
     });
     

@@ -151,8 +151,98 @@ async function refreshConsolidation() {
   }
 }
 
-// Export the function for use in server
-module.exports = { refreshConsolidation };
+// Incremental refresh for a specific student/session combination
+async function refreshConsolidationForStudentSession(studentId, sessionId) {
+  const client = await pool.connect();
+  try {
+    console.log(`🔄 Refreshing consolidation for student ${studentId}, session ${sessionId}`);
+    
+    // Get aggregated data for this specific student/session
+    const { rows } = await client.query(`
+      SELECT 
+        s.id AS student_id,
+        CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+        s.email AS student_email,
+        s.zeta_id AS zeta_id,
+        i.session_id AS session_id,
+        iss.name AS session_name,
+        ARRAY_AGG(i.id ORDER BY i.created_at) AS interview_ids,
+        ARRAY_AGG(i.interviewer_id ORDER BY i.created_at) AS interviewer_ids,
+        ARRAY_AGG(au.name ORDER BY i.created_at) AS interviewer_names,
+        ARRAY_REMOVE(ARRAY_AGG(i.verdict ORDER BY i.created_at), NULL) AS verdicts,
+        ARRAY_AGG(COALESCE(i.status, 'in_progress') ORDER BY i.created_at) AS interview_statuses,
+        MAX(i.created_at) AS last_interview_at,
+        (SELECT ic.status FROM interview_consolidation ic 
+         WHERE ic.student_id = s.id AND ic.session_id = i.session_id LIMIT 1) AS existing_status
+      FROM students s
+      JOIN interviews i ON i.student_id = s.id
+      LEFT JOIN authorized_users au ON au.id = i.interviewer_id
+      LEFT JOIN interview_sessions iss ON iss.id = i.session_id
+      WHERE s.id = $1 AND (i.session_id = $2 OR ($2 IS NULL AND i.session_id IS NULL))
+      GROUP BY s.id, s.first_name, s.last_name, s.email, s.zeta_id, i.session_id, iss.name
+    `, [studentId, sessionId]);
+
+    if (rows.length === 0) {
+      // No interviews found, delete consolidation record if exists
+      await client.query(
+        'DELETE FROM interview_consolidation WHERE student_id = $1 AND (session_id = $2 OR ($2 IS NULL AND session_id IS NULL))',
+        [studentId, sessionId]
+      );
+      console.log('✅ Consolidation record deleted (no interviews)');
+      return;
+    }
+
+    const r = rows[0];
+    const newStatus = computeStatus(r.verdicts || []);
+    const finalStatus = r.existing_status || newStatus;
+    
+    await client.query(
+      `INSERT INTO interview_consolidation (
+         student_id, session_id, student_name, student_email, zeta_id, session_name,
+         interview_ids, interviewer_ids, interviewer_names, verdicts, interview_statuses, status, last_interview_at, updated_at
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13, CURRENT_TIMESTAMP)
+       ON CONFLICT (student_id, session_id)
+       DO UPDATE SET 
+         student_name = EXCLUDED.student_name,
+         student_email = EXCLUDED.student_email,
+         zeta_id = EXCLUDED.zeta_id,
+         session_name = EXCLUDED.session_name,
+         interview_ids = EXCLUDED.interview_ids,
+         interviewer_ids = EXCLUDED.interviewer_ids,
+         interviewer_names = EXCLUDED.interviewer_names,
+         verdicts = EXCLUDED.verdicts,
+         interview_statuses = EXCLUDED.interview_statuses,
+         status = COALESCE(interview_consolidation.status, EXCLUDED.status),
+         last_interview_at = EXCLUDED.last_interview_at,
+         updated_at = CURRENT_TIMESTAMP
+      `,
+      [
+        r.student_id,
+        r.session_id,
+        normalizeString(r.student_name),
+        normalizeString(r.student_email),
+        normalizeString(r.zeta_id),
+        normalizeString(r.session_name),
+        r.interview_ids || [],
+        r.interviewer_ids || [],
+        (r.interviewer_names || []).map(normalizeString),
+        (r.verdicts || []).map(normalizeString),
+        r.interview_statuses || [],
+        finalStatus,
+        r.last_interview_at
+      ]
+    );
+    console.log('✅ Consolidation refreshed for student/session');
+  } catch (err) {
+    console.error('❌ Incremental consolidation failed:', err);
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+// Export the functions for use in server
+module.exports = { refreshConsolidation, refreshConsolidationForStudentSession };
 
 // Run if called directly
 if (require.main === module) {

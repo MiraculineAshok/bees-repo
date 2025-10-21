@@ -1,5 +1,6 @@
 const pool = require('../db/pool');
 const mockDataService = require('./mockDataService');
+const cache = require('../utils/cache');
 
 class QuestionBankService {
     // Check if database is available
@@ -20,6 +21,14 @@ class QuestionBankService {
     // Get all questions from the question bank
     static async getAllQuestions() {
         try {
+            // Check cache first
+            const cacheKey = 'questions:all';
+            const cached = cache.get(cacheKey);
+            if (cached) {
+                console.log('📦 Returning cached questions');
+                return cached;
+            }
+            
             if (!(await this.isDatabaseAvailable())) {
                 const questions = await mockDataService.getQuestionsAnalytics();
                 return { success: true, data: questions };
@@ -61,7 +70,10 @@ class QuestionBankService {
                     return row;
                 });
                 
-                return { success: true, data: formattedData };
+                const response = { success: true, data: formattedData };
+                // Cache for 5 minutes
+                cache.set(cacheKey, response, 300);
+                return response;
             } catch (tagsError) {
                 // If tags column doesn't exist (error code 42703), fall back to query without tags
                 if (tagsError.code === '42703') {
@@ -230,6 +242,10 @@ class QuestionBankService {
                 RETURNING id, question, category, tags, times_asked, created_at, updated_at
             `;
             const result = await pool.query(query, [question, category, tagsArray]);
+            
+            // Invalidate cache
+            cache.invalidatePattern('^questions:');
+            
             return { success: true, data: result.rows[0] };
         } catch (error) {
             console.error('Error adding question:', error);
