@@ -2828,7 +2828,8 @@
                 if (response.ok && result.success) {
                     console.log('📋 Loaded questions from server:', result.data.length, 'questions');
                     console.log('📋 Questions data:', result.data);
-                    questions = result.data;
+                    // Reverse the order to show newest questions first
+                    questions = result.data.reverse();
                     await displayQuestions();
                 } else {
                     console.error('❌ Error loading questions:', result);
@@ -5035,7 +5036,7 @@
                         type: 'custom'
                     };
 
-                    questions.push(newQuestion);
+                    questions.unshift(newQuestion); // Add to beginning for newest-first order
                     await displayQuestions();
                     showSuccess('Question added successfully!');
                 } else {
