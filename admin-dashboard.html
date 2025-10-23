@@ -4464,9 +4464,9 @@
                     <td data-field="duration_seconds">${formatDuration(interview.duration_seconds)}</td>
                     <td>
                         ${interview.status === 'in_progress' ? `<button class="icon-btn" onclick="resumeInterviewAdmin(${interview.id})" title="Resume">⏵</button>` : ''}
-                        <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit">✏️</button>
-                        <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete">🗑️</button>
-                        <button class="icon-btn" onclick="viewInterview(${interview.id})" title="View">👁️</button>
+                        <button class="icon-btn" onclick="viewInterview(${interview.id})" title="View"><img src="/view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete"><img src="/delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
                     </td>
                 </tr>
             `).join('');
