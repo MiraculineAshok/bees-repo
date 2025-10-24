@@ -3327,8 +3327,8 @@
                 };
                 const html = rows.map(r => {
                     const interviewerNames = Array.isArray(r.interviewer_names) ? r.interviewer_names.join(', ') : '-';
-                    const verdicts = Array.isArray(r.verdicts) ? r.verdicts.map(badge).join(' ') : '-';
-                    const interviewStatuses = Array.isArray(r.interview_statuses) ? r.interview_statuses.map(statusBadge).join(' ') : '-';
+                    const verdicts = Array.isArray(r.verdicts) ? r.verdicts.map(badge).join('<br>') : '-';
+                    const interviewStatuses = Array.isArray(r.interview_statuses) ? r.interview_statuses.map(statusBadge).join('<br>') : '-';
                     const lastAt = r.last_interview_at ? formatDate(r.last_interview_at) : '-';
                     const status = r.status || '-';
                     const notes = r.notes ? r.notes.replace(/\n/g,'<br>') : '-';
@@ -3337,9 +3337,9 @@
                             <td>${r.student_name || '-'}</td>
                             <td>${r.zeta_id || '-'}</td>
                             <td>${r.session_name || '-'}</td>
-                            <td>${interviewerNames}</td>
-                            <td>${verdicts}</td>
-                            <td>${interviewStatuses}</td>
+                            <td style="line-height:1.8">${interviewerNames}</td>
+                            <td style="line-height:1.8">${verdicts}</td>
+                            <td style="line-height:1.8">${interviewStatuses}</td>
                             <td><span class="status-badge ${status}" style="display:inline-block;padding:3px 8px;border-radius:12px;color:#fff;background:${String(status).toLowerCase().includes('select')?'#10b981':String(status).toLowerCase().includes('reject')?'#ef4444':String(status).toLowerCase().includes('wait')?'#f59e0b':'#6b7280'}">${status}</span></td>
                             <td>
                                 <div style="max-height:64px;overflow:hidden;position:relative">
