@@ -10210,9 +10210,35 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
         function updateBulkEditFields() {
             const fieldSelect = document.getElementById('bulk-edit-field');
             const valueGroup = document.getElementById('bulk-edit-value-group');
+            const valueInput = document.getElementById('bulk-edit-value');
             
             if (fieldSelect.value) {
                 valueGroup.style.display = 'block';
+                
+                // If verdict field is selected, replace input with dropdown
+                if (fieldSelect.value === 'verdict') {
+                    const currentValue = valueInput.value;
+                    const select = document.createElement('select');
+                    select.id = 'bulk-edit-value';
+                    select.className = valueInput.className || 'form-input';
+                    select.innerHTML = `
+                        <option value="">Select Verdict...</option>
+                        <option value="Tiger" ${currentValue === 'Tiger' ? 'selected' : ''}>Tiger</option>
+                        <option value="Cow" ${currentValue === 'Cow' ? 'selected' : ''}>Cow</option>
+                        <option value="Sheep" ${currentValue === 'Sheep' ? 'selected' : ''}>Sheep</option>
+                    `;
+                    valueInput.replaceWith(select);
+                } else {
+                    // If it's not verdict but current element is a select, replace with input
+                    if (valueInput && valueInput.tagName === 'SELECT') {
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.id = 'bulk-edit-value';
+                        input.className = valueInput.className || 'form-input';
+                        input.placeholder = 'Enter value...';
+                        valueInput.replaceWith(input);
+                    }
+                }
             } else {
                 valueGroup.style.display = 'none';
             }
