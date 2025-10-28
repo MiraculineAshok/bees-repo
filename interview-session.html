@@ -1421,6 +1421,48 @@
             text-align: center;
         }
         
+        .total-score-section {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: #f0f9ff;
+            border-radius: 6px;
+            border: 2px solid #3b82f6;
+        }
+        
+        .total-score-title {
+            font-size: 0.9rem;
+            color: #1e3a8a;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .total-score-display {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+        
+        .total-score-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e40af;
+        }
+        
+        .total-score-max {
+            font-size: 1.2rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+        
+        .total-score-breakdown {
+            font-size: 0.8rem;
+            color: #475569;
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+        
         .verdict-section {
             margin-bottom: 1rem;
             padding: 0.75rem;
@@ -2183,6 +2225,17 @@
         
         <div class="right-panel">
             <h3 class="panel-title">Interview Management</h3>
+            
+            <div class="total-score-section" id="total-score-section">
+                <h4 class="total-score-title">Total Score</h4>
+                <div class="total-score-display">
+                    <span class="total-score-value" id="total-score-value">0</span>
+                    <span class="total-score-max">/ <span id="max-score-value">0</span></span>
+                </div>
+                <div class="total-score-breakdown" id="score-breakdown">
+                    0 questions scored
+                </div>
+            </div>
             
             <div class="verdict-section" id="verdict-section">
                 <h4 class="verdict-title">Interview Verdict</h4>
@@ -3088,6 +3141,9 @@
                     console.warn('⚠️ Some question elements are not ready for interaction');
                 }
             }, 100);
+            
+            // Update total score after displaying questions
+            updateTotalScore();
         }
 
         async function evaluateQuestionAI(questionId) {
@@ -3214,6 +3270,9 @@
                             if (questionIndex !== -1) {
                                 questions[questionIndex].correctness_score = scoreValue;
                             }
+                            
+                            // Update total score
+                            updateTotalScore();
                             
                             showSuccess('Score updated from AI');
                             modal.remove();
@@ -4725,6 +4784,10 @@
                     
                     // Refresh the display
                     await displayQuestions();
+                    
+                    // Update total score
+                    updateTotalScore();
+                    
                     showSuccess(`Question scored: ${score}/10`);
                 } else {
                     showError('Error updating question score');
@@ -4733,6 +4796,36 @@
                 console.error('Error updating question score:', error);
                 showError('Error updating question correctness');
             }
+        }
+
+        function updateTotalScore() {
+            // Calculate total score from all questions
+            let totalScore = 0;
+            let maxScore = 0;
+            let scoredCount = 0;
+            
+            questions.forEach(question => {
+                maxScore += 10; // Each question is out of 10
+                if (question.correctness_score !== null && question.correctness_score !== undefined) {
+                    totalScore += parseInt(question.correctness_score) || 0;
+                    scoredCount++;
+                }
+            });
+            
+            // Update the display
+            document.getElementById('total-score-value').textContent = totalScore;
+            document.getElementById('max-score-value').textContent = maxScore;
+            
+            // Update breakdown text
+            const totalQuestions = questions.length;
+            let breakdownText = `${scoredCount} of ${totalQuestions} question${totalQuestions !== 1 ? 's' : ''} scored`;
+            
+            if (scoredCount > 0 && totalQuestions > 0) {
+                const percentage = ((totalScore / maxScore) * 100).toFixed(1);
+                breakdownText += ` • ${percentage}% overall`;
+            }
+            
+            document.getElementById('score-breakdown').textContent = breakdownText;
         }
 
         // Add to Question Bank Functions
