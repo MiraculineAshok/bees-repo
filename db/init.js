@@ -216,6 +216,34 @@ async function initializeDatabase() {
     // Note: Sample interview session creation removed to prevent automatic duplicates
     // Sessions should be created manually through the admin interface
     
+    // Fix correctness_score constraint to allow 0-10 (not just 1-10)
+    try {
+      // Drop old constraint if it exists
+      await pool.query(`
+        ALTER TABLE interview_questions 
+        DROP CONSTRAINT IF EXISTS interview_questions_correctness_score_check;
+      `);
+      console.log('✅ Dropped old correctness_score constraint');
+    } catch (error) {
+      console.log('⚠️ Old constraint might not exist:', error.message);
+    }
+    
+    try {
+      // Add new constraint allowing 0-10
+      await pool.query(`
+        ALTER TABLE interview_questions 
+        ADD CONSTRAINT interview_questions_correctness_score_check 
+        CHECK (correctness_score IS NULL OR (correctness_score >= 0 AND correctness_score <= 10));
+      `);
+      console.log('✅ Added new correctness_score constraint (0-10)');
+    } catch (error) {
+      if (error.message.includes('already exists')) {
+        console.log('✅ Correctness_score constraint already exists');
+      } else {
+        console.log('⚠️ Error adding constraint:', error.message);
+      }
+    }
+    
     // Create index on email for faster lookups
     await pool.query(`
       CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)
