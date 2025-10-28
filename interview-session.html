@@ -2897,9 +2897,12 @@
 
             chatMessages.innerHTML = questions.map((question, index) => {
                 // Check if this question already exists in question bank
+                // Check both question_text and question_rich_content for comparison
                 const questionText = question.question_text || '';
+                const questionRichContent = question.question_rich_content || '';
                 console.log('🔍 Checking question for bank status:', {
                     questionText: questionText.substring(0, 50) + '...',
+                    questionRichContent: questionRichContent.substring(0, 50) + '...',
                     questionBankDataLength: questionBankData?.length || 0
                 });
                 
@@ -2907,11 +2910,17 @@
                     questionBankData.some(bankQuestion => {
                         const bankText = (bankQuestion.question || bankQuestion.question_text || '').trim().toLowerCase();
                         const interviewText = questionText.trim().toLowerCase();
-                        const isMatch = bankText === interviewText;
+                        const interviewRichText = questionRichContent.trim().toLowerCase();
+                        
+                        // Match if either question_text or question_rich_content matches
+                        const isMatch = (interviewText && bankText === interviewText) || 
+                                       (interviewRichText && bankText === interviewRichText);
+                        
                         if (isMatch) {
                             console.log('✅ Found match in question bank:', {
                                 bankText: bankText.substring(0, 50) + '...',
-                                interviewText: interviewText.substring(0, 50) + '...'
+                                interviewText: interviewText.substring(0, 50) + '...',
+                                interviewRichText: interviewRichText.substring(0, 50) + '...'
                             });
                         }
                         return isMatch;
@@ -4762,8 +4771,8 @@
         }
 
         async function saveToQuestionBank() {
-            const questionText = document.getElementById('modal-question-text').value.trim();
-            const tagsInput = document.getElementById('modal-tags').value.trim();
+            const questionText = document.getElementById('modal-question-text')?.value?.trim();
+            const tagsInput = document.getElementById('modal-tags')?.value?.trim();
             
             if (!questionText) {
                 showError('Question text is required');
@@ -4788,32 +4797,30 @@
                 
                 const result = await response.json();
                 
-                if (result.success) {
-                    showSuccess('Question added to question bank successfully');
-                    closeCategoryModal();
-                    
-                    // Clear the question textarea
-                    document.getElementById('new-question').value = '';
-                    
-                    // Refresh question bank data if it's loaded
-                    if (questionBankData.length > 0) {
-                        await loadQuestionBankData();
-                    }
-                    // Mark existing interview questions that match as From Bank to hide add button
-                    try{
-                        const bankSet = new Set((questionBankData||[]).map(b=> (b.question||'').trim().toLowerCase()));
-                        questions = questions.map(q=>{
-                            const key = (q.question_text||'').trim().toLowerCase();
-                            return { ...q, __fromBank: bankSet.has(key) ? true : q.__fromBank };
-                        });
-                        await displayQuestions();
-                    }catch(e){ console.warn('Post-add bank sync failed', e); }
-                } else {
-                    showError('Error adding question to bank: ' + (result.error || 'Unknown error'));
+                if (!response.ok || !result.success) {
+                    throw new Error(result.error || 'Failed to add question to bank');
                 }
+                
+                // Success - show message
+                showSuccess('Question added to question bank successfully');
+                
+                // Close modal if it exists
+                const modal = document.getElementById('category-modal');
+                if (modal) modal.style.display = 'none';
+                
+                // Clear the question textarea if it exists
+                const newQuestionField = document.getElementById('new-question');
+                if (newQuestionField) newQuestionField.value = '';
+                
+                // Refresh question bank data
+                await loadQuestionBankData();
+                
+                // Re-display questions to update button visibility
+                await displayQuestions();
+                
             } catch (error) {
                 console.error('Error adding question to bank:', error);
-                showError('Error adding question to bank');
+                showError(error.message || 'Error adding question to bank');
             }
         }
 
