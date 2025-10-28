@@ -366,6 +366,8 @@ class AdminService {
                     ins.name,
                     ins.description,
                     ins.status,
+                    ins.is_panel,
+                    ins.location,
                     ins.created_at,
                     au.name as created_by_name,
                     au.email as created_by_email,
@@ -374,7 +376,7 @@ class AdminService {
                 FROM interview_sessions ins
                 LEFT JOIN authorized_users au ON ins.created_by = au.id
                 LEFT JOIN interviews i ON ins.id = i.session_id
-                GROUP BY ins.id, ins.name, ins.description, ins.status, ins.created_at, au.name, au.email
+                GROUP BY ins.id, ins.name, ins.description, ins.status, ins.is_panel, ins.location, ins.created_at, au.name, au.email
                 ORDER BY ins.created_at DESC`;
 
             const result = await pool.query(query);

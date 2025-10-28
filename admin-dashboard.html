@@ -6091,11 +6091,16 @@
             list = applyAdvancedFiltersSessions(list);
             list = applyInlineSort(list, 'sessions');
 
-            tbody.innerHTML = list.map(session => `
+            tbody.innerHTML = list.map(session => {
+                // Determine the type display based on is_panel value
+                const typeDisplay = session.is_panel ? 'Panel' : 'Regular';
+                
+                return `
                 <tr data-row-id="${session.id}">
                     <td><input type="checkbox" class="row-checkbox" data-row-id="${session.id}" onchange="toggleRowSelection('${session.id}')"></td>
                     <td data-field="name">${session.name}</td>
                     <td data-field="description">${session.description || 'N/A'}</td>
+                    <td data-field="is_panel">${typeDisplay}</td>
                     <td data-field="status"><span class="status-badge status-${session.status}">${session.status}</span></td>
                     <td data-field="panelists">${session.panelist_names || '—'}</td>
                     <td data-field="created_by_name">${session.created_by_name || 'N/A'}</td>
@@ -6106,7 +6111,8 @@
                         <button class="icon-btn" onclick="viewSession(${session.id})" title="View"><img src="/view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
                     </td>
                 </tr>
-            `).join('');
+                `;
+            }).join('');
 
             // Attach reliable click handlers for all edit buttons (avoid inline parsing edge cases)
             tbody.addEventListener('click', (e) => {
