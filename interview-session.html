@@ -3900,6 +3900,28 @@
         async function endInterview() {
             if (!currentInterview) return;
 
+            // Always show confirmation popup first
+            const confirmProceed = await (async () => {
+                return new Promise((resolve) => {
+                    const overlay = document.createElement('div');
+                    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
+                    overlay.innerHTML = `
+                      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;min-width:320px;max-width:90%;padding:20px;box-shadow:0 10px 20px rgba(0,0,0,0.15)">
+                        <div style="font-weight:600;margin-bottom:8px;color:#111827;font-size:1.1rem">End Interview?</div>
+                        <div style="font-size:14px;color:#374151;margin-bottom:16px">Are you sure you want to end this interview? This will mark the interview as completed.</div>
+                        <div style="display:flex;gap:8px;justify-content:flex-end">
+                          <button id="end-cancel" style="border:1px solid #e5e7eb;background:#fff;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:14px">Cancel</button>
+                          <button id="end-confirm" style="background:#dc2626;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:14px">End Interview</button>
+                        </div>
+                      </div>`;
+                    document.body.appendChild(overlay);
+                    overlay.querySelector('#end-cancel').onclick = ()=> { overlay.remove(); resolve(false); };
+                    overlay.querySelector('#end-confirm').onclick = ()=> { overlay.remove(); resolve(true); };
+                });
+            })();
+            
+            if (!confirmProceed) return;
+
             // Require verdict before ending in all cases
             const verdictSelect = document.getElementById('verdict-select');
             if (!verdictSelect || !verdictSelect.value) {
@@ -3973,27 +3995,6 @@
             stopDurationTracking();
 
             try {
-                // Confirm if they want to exit without explicitly saving
-                const proceed = await (async () => {
-                    return new Promise((resolve) => {
-                        const overlay = document.createElement('div');
-                        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
-                        overlay.innerHTML = `
-                          <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;min-width:280px;max-width:90%;padding:16px;box-shadow:0 10px 20px rgba(0,0,0,0.15)">
-                            <div style="font-weight:600;margin-bottom:8px;color:#111827">End Interview?</div>
-                            <div style="font-size:14px;color:#374151;margin-bottom:12px">Have you saved your notes and scores? You can still continue and mark interview completed.</div>
-                            <div style="display:flex;gap:8px;justify-content:flex-end">
-                              <button id="exit-cancel" style="border:1px solid #e5e7eb;background:#fff;padding:6px 10px;border-radius:6px;cursor:pointer">Cancel</button>
-                              <button id="exit-continue" style="background:#dc2626;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer">Continue</button>
-                            </div>
-                          </div>`;
-                        document.body.appendChild(overlay);
-                        overlay.querySelector('#exit-cancel').onclick = ()=> { overlay.remove(); resolve(false); };
-                        overlay.querySelector('#exit-continue').onclick = ()=> { overlay.remove(); resolve(true); };
-                    });
-                })();
-                if (!proceed) return;
-
                 // Save verdict if not already saved
                 const verdict = document.getElementById('verdict-select').value;
                 if (verdict && verdict !== currentInterview.verdict) {
