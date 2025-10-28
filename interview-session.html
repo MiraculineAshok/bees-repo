@@ -3167,17 +3167,35 @@
                 if (setBtn && data.answer_score != null) {
                     setBtn.onclick = async ()=>{
                         try{
+                            const scoreValue = Number(data.answer_score);
+                            // Validate score is a valid number between 0-10
+                            if (isNaN(scoreValue) || scoreValue < 0 || scoreValue > 10) {
+                                showError('Invalid score value. Must be between 0 and 10.');
+                                return;
+                            }
+                            
                             // Update backend score
                             const resp = await fetch(`/api/interview-questions/${questionId}/score`,{
-                                method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ correctness_score: parseInt(data.answer_score) })
+                                method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ correctness_score: scoreValue })
                             });
                             const js = await resp.json();
                             if (!resp.ok || js.success===false){ showError(js.error||'Failed to set score'); return; }
-                            // Update local slider and label
-                            const slider = document.getElementById(`score-slider-${questionId}`);
+                            
+                            // Update local slider and label (correct IDs)
+                            const slider = document.getElementById(`slider-${questionId}`);
                             const label = document.getElementById(`score-value-${questionId}`);
-                            if (slider){ slider.value = parseInt(data.answer_score); slider.classList.add('scored'); }
-                            if (label){ label.textContent = parseInt(data.answer_score); }
+                            if (slider){ 
+                                slider.value = scoreValue; 
+                                slider.classList.add('scored'); 
+                            }
+                            if (label){ label.textContent = scoreValue; }
+                            
+                            // Update local questions array
+                            const questionIndex = questions.findIndex(q => q.id === questionId);
+                            if (questionIndex !== -1) {
+                                questions[questionIndex].correctness_score = scoreValue;
+                            }
+                            
                             showSuccess('Score updated from AI');
                             modal.remove();
                         }catch(err){ console.error(err); showError('Failed to set score'); }
