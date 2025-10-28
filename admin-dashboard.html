@@ -2790,9 +2790,12 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                                 <div style="font-size:12px;color:#6b7280">CSV, XLS, XLSX up to 5MB</div>
                             </div>
                             <input id="bulk-students-file" type="file" accept=".csv,.xls,.xlsx" style="display:none" onchange="handleFileSelected('students', this)" />
-                            <div id="file-name-display-students" style="margin-top:12px;padding:8px;background:#f0fdf4;border:1px solid #86efac;border-radius:4px;display:none">
-                                <span style="color:#166534;font-size:13px">✓ Selected: </span>
-                                <span id="file-name-students" style="color:#166534;font-weight:500;font-size:13px"></span>
+                            <div id="file-name-display-students" style="margin-top:12px;padding:8px;background:#f0fdf4;border:1px solid #86efac;border-radius:4px;display:none;align-items:center;justify-content:space-between">
+                                <div>
+                                    <span style="color:#166534;font-size:13px">✓ Selected: </span>
+                                    <span id="file-name-students" style="color:#166534;font-weight:500;font-size:13px"></span>
+                                </div>
+                                <button onclick="removeSelectedFile('students')" style="background:#dc2626;color:#fff;border:none;border-radius:4px;padding:4px 8px;cursor:pointer;font-size:12px" title="Remove file">✕ Remove</button>
                             </div>
                         </div>
                     </div>
@@ -2968,10 +2971,20 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             if (input.files && input.files[0]) {
                 const file = input.files[0];
                 if (fileName) fileName.textContent = file.name;
-                if (fileDisplay) fileDisplay.style.display = 'block';
+                if (fileDisplay) fileDisplay.style.display = 'flex';
             } else {
                 if (fileDisplay) fileDisplay.style.display = 'none';
             }
+        }
+        
+        function removeSelectedFile(type) {
+            const fileInput = document.getElementById(`bulk-${type}-file`);
+            const fileDisplay = document.getElementById(`file-name-display-${type}`);
+            const fileName = document.getElementById(`file-name-${type}`);
+            
+            if (fileInput) fileInput.value = '';
+            if (fileName) fileName.textContent = '';
+            if (fileDisplay) fileDisplay.style.display = 'none';
         }
         async function submitBulkImportStudents(){
             try{
@@ -3052,16 +3065,28 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                         return;
                     }
                     
+                    console.log('Uploading file:', file.name, 'Size:', file.size);
+                    
                     const fd = new FormData();
                     fd.append('file', file);
+                    
                     const res = await fetch('/api/admin/students/bulk-import/file', { 
                         method: 'POST', 
                         body: fd 
                     });
+                    
+                    console.log('Upload response status:', res.status);
+                    
                     const json = await res.json();
+                    console.log('Upload response:', json);
                     
                     if (!res.ok || !json.success) {
                         throw new Error(json.error || 'Import failed');
+                    }
+                    
+                    if (json.count === 0 && json.errors === 0 && json.skipped === 0) {
+                        showError('No valid data found in file. Please check the file format and content.');
+                        return;
                     }
                     
                     // Show detailed results
