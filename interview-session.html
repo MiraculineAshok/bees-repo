@@ -4885,45 +4885,91 @@
             // Convert tags string to array
             const tags = tagsInput ? tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
             
-            try {
-                const response = await fetch('/api/question-bank', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        question: questionText,
-                        tags: tags,
-                        category: null // Using tags instead of category
-                    })
-                });
+            // Show loading state
+            const saveBtn = document.querySelector('#category-modal button[onclick="saveToQuestionBank()"]');
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                const originalText = saveBtn.innerHTML;
+                saveBtn.innerHTML = '<span class="loading-spinner" style="display: inline-block; width: 12px; height: 12px; border: 2px solid #ffffff; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 0.5rem;"></span> Saving...';
                 
-                const result = await response.json();
-                
-                if (!response.ok || !result.success) {
-                    throw new Error(result.error || 'Failed to add question to bank');
+                try {
+                    const response = await fetch('/api/question-bank', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            question: questionText,
+                            tags: tags,
+                            category: null // Using tags instead of category
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (!response.ok || !result.success) {
+                        throw new Error(result.error || 'Failed to add question to bank');
+                    }
+                    
+                    // Success - show message
+                    showSuccess('Question added to question bank successfully');
+                    
+                    // Close modal if it exists
+                    const modal = document.getElementById('category-modal');
+                    if (modal) modal.style.display = 'none';
+                    
+                    // Clear the question textarea if it exists
+                    const newQuestionField = document.getElementById('new-question');
+                    if (newQuestionField) newQuestionField.value = '';
+                    
+                    // Refresh question bank data
+                    await loadQuestionBankData();
+                    
+                    // Re-display questions to update button visibility
+                    await displayQuestions();
+                    
+                } catch (error) {
+                    console.error('Error adding question to bank:', error);
+                    showError(error.message || 'Error adding question to bank');
+                } finally {
+                    // Restore button state
+                    if (saveBtn) {
+                        saveBtn.disabled = false;
+                        saveBtn.innerHTML = originalText;
+                    }
                 }
-                
-                // Success - show message
-                showSuccess('Question added to question bank successfully');
-                
-                // Close modal if it exists
-                const modal = document.getElementById('category-modal');
-                if (modal) modal.style.display = 'none';
-                
-                // Clear the question textarea if it exists
-                const newQuestionField = document.getElementById('new-question');
-                if (newQuestionField) newQuestionField.value = '';
-                
-                // Refresh question bank data
-                await loadQuestionBankData();
-                
-                // Re-display questions to update button visibility
-                await displayQuestions();
-                
-            } catch (error) {
-                console.error('Error adding question to bank:', error);
-                showError(error.message || 'Error adding question to bank');
+            } else {
+                // Fallback if button not found
+                try {
+                    const response = await fetch('/api/question-bank', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            question: questionText,
+                            tags: tags,
+                            category: null
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (!response.ok || !result.success) {
+                        throw new Error(result.error || 'Failed to add question to bank');
+                    }
+                    
+                    showSuccess('Question added to question bank successfully');
+                    const modal = document.getElementById('category-modal');
+                    if (modal) modal.style.display = 'none';
+                    const newQuestionField = document.getElementById('new-question');
+                    if (newQuestionField) newQuestionField.value = '';
+                    await loadQuestionBankData();
+                    await displayQuestions();
+                } catch (error) {
+                    console.error('Error adding question to bank:', error);
+                    showError(error.message || 'Error adding question to bank');
+                }
             }
         }
 
@@ -5032,14 +5078,33 @@
                 return;
             }
 
-            // Add question to current interview
-            await addQuestionToInterview(questionHtml, []);
-            
-            // Clear the form
-            customQuestionEditor.setText('');
-            
-            // Close panel
-            closeSidePanel('custom-question-panel');
+            // Show loading state
+            const addBtn = document.getElementById('add-custom-question-btn');
+            if (addBtn) {
+                addBtn.disabled = true;
+                const originalText = addBtn.innerHTML;
+                addBtn.innerHTML = '<span class="loading-spinner" style="display: inline-block; width: 12px; height: 12px; border: 2px solid #ffffff; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 0.5rem;"></span> Adding...';
+                
+                try {
+                    // Add question to current interview
+                    await addQuestionToInterview(questionHtml, []);
+                    
+                    // Clear the form
+                    customQuestionEditor.setText('');
+                    
+                    // Close panel
+                    closeSidePanel('custom-question-panel');
+                } finally {
+                    // Restore button state
+                    addBtn.disabled = false;
+                    addBtn.innerHTML = originalText;
+                }
+            } else {
+                // Fallback if button not found
+                await addQuestionToInterview(questionHtml, []);
+                customQuestionEditor.setText('');
+                closeSidePanel('custom-question-panel');
+            }
         }
 
         // AI Question Generation Functions
@@ -5134,22 +5199,45 @@
                 return;
             }
 
-            // Add question to current interview
-            await addQuestionToInterview(questionHtml, tags ? tags.split(',').map(t => t.trim()) : []);
-            
-            // Refresh question bank data to ensure proper "Add to Bank" button state
-            await loadQuestionBankData();
-            
-            // Re-display questions to update button visibility
-            await displayQuestions();
-            
-            // Clear the form
-            document.getElementById('ai-question-tags').value = '';
-            document.getElementById('ai-generated-question').style.display = 'none';
-            if (aiQuestionEditor) aiQuestionEditor.setText('');
-            
-            // Close panel
-            closeSidePanel('ai-question-panel');
+            // Show loading state
+            const addBtn = document.getElementById('add-ai-question-btn');
+            if (addBtn) {
+                addBtn.disabled = true;
+                const originalText = addBtn.innerHTML;
+                addBtn.innerHTML = '<span class="loading-spinner" style="display: inline-block; width: 12px; height: 12px; border: 2px solid #ffffff; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 0.5rem;"></span> Adding...';
+                
+                try {
+                    // Add question to current interview
+                    await addQuestionToInterview(questionHtml, tags ? tags.split(',').map(t => t.trim()) : []);
+                    
+                    // Refresh question bank data to ensure proper "Add to Bank" button state
+                    await loadQuestionBankData();
+                    
+                    // Re-display questions to update button visibility
+                    await displayQuestions();
+                    
+                    // Clear the form
+                    document.getElementById('ai-question-tags').value = '';
+                    document.getElementById('ai-generated-question').style.display = 'none';
+                    if (aiQuestionEditor) aiQuestionEditor.setText('');
+                    
+                    // Close panel
+                    closeSidePanel('ai-question-panel');
+                } finally {
+                    // Restore button state
+                    addBtn.disabled = false;
+                    addBtn.innerHTML = originalText;
+                }
+            } else {
+                // Fallback if button not found
+                await addQuestionToInterview(questionHtml, tags ? tags.split(',').map(t => t.trim()) : []);
+                await loadQuestionBankData();
+                await displayQuestions();
+                document.getElementById('ai-question-tags').value = '';
+                document.getElementById('ai-generated-question').style.display = 'none';
+                if (aiQuestionEditor) aiQuestionEditor.setText('');
+                closeSidePanel('ai-question-panel');
+            }
         }
 
         // Helper function to add question to interview
@@ -5217,7 +5305,7 @@
             addToQuestionBankAPI(questionHtml, []);
         }
 
-        function addAIToQuestionBank() {
+        async function addAIToQuestionBank() {
             if (!aiQuestionEditor) {
                 showError('No question generated');
                 return;
@@ -5232,7 +5320,23 @@
                 return;
             }
 
-            addToQuestionBankAPI(questionHtml, tags ? tags.split(',').map(t => t.trim()) : []);
+            // Show loading state
+            const addToBankBtn = document.getElementById('add-ai-to-bank-btn');
+            if (addToBankBtn) {
+                addToBankBtn.disabled = true;
+                const originalText = addToBankBtn.innerHTML;
+                addToBankBtn.innerHTML = '<span class="loading-spinner" style="display: inline-block; width: 12px; height: 12px; border: 2px solid #ffffff; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 0.5rem;"></span> Adding...';
+                
+                try {
+                    await addToQuestionBankAPI(questionHtml, tags ? tags.split(',').map(t => t.trim()) : []);
+                } finally {
+                    // Restore button state
+                    addToBankBtn.disabled = false;
+                    addToBankBtn.innerHTML = originalText;
+                }
+            } else {
+                await addToQuestionBankAPI(questionHtml, tags ? tags.split(',').map(t => t.trim()) : []);
+            }
         }
 
         async function addToQuestionBankAPI(questionHtml, tags = []) {

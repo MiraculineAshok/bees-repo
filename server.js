@@ -1051,7 +1051,23 @@ app.put('/api/interview-questions/:questionId/score', async (req, res) => {
       correctness_score
     });
 
-    const question = await InterviewService.updateScore(req.params.questionId, correctness_score);
+    // Validate score (must be a number between 0-10, 0 is valid!)
+    if (correctness_score === null || correctness_score === undefined) {
+      return res.status(400).json({
+        success: false,
+        error: 'Score is required'
+      });
+    }
+
+    const scoreNum = Number(correctness_score);
+    if (isNaN(scoreNum) || scoreNum < 0 || scoreNum > 10) {
+      return res.status(400).json({
+        success: false,
+        error: 'Score must be a number between 0 and 10'
+      });
+    }
+
+    const question = await InterviewService.updateScore(req.params.questionId, scoreNum);
     console.log('✅ Server: updateScore successful, returning:', question);
 
     res.json({
