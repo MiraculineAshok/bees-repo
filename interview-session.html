@@ -4828,26 +4828,40 @@
             }
         }
 
-        // Mark question with score (1-10)
+        // Mark question with score (0-10)
         async function markQuestionScore(questionId, score) {
             try {
+                // Parse score and validate
+                const parsedScore = parseInt(score);
+                console.log('📊 Marking question score:', { questionId, originalScore: score, parsedScore, type: typeof parsedScore });
+                
                 const response = await fetch(`/api/interview-questions/${questionId}/score`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        correctness_score: parseInt(score)
+                        correctness_score: parsedScore
                     })
                 });
                 
-                const result = await response.json();
+                console.log('📥 Response status:', response.status, 'OK:', response.ok);
                 
-                if (result.success) {
+                let result;
+                try {
+                    result = await response.json();
+                    console.log('📥 Response data:', result);
+                } catch (jsonError) {
+                    console.error('❌ Failed to parse JSON response:', jsonError);
+                    throw new Error('Invalid response from server');
+                }
+                
+                // Check both response.ok and result.success
+                if (response.ok && result.success) {
                     // Update local questions array
                     const questionIndex = questions.findIndex(q => q.id === questionId);
                     if (questionIndex !== -1) {
-                        questions[questionIndex].correctness_score = parseInt(score);
+                        questions[questionIndex].correctness_score = parsedScore;
                     }
                     
                     // Refresh the display
@@ -4856,13 +4870,20 @@
                     // Update total score
                     updateTotalScore();
                     
-                    showSuccess(`Question scored: ${score}/10`);
+                    showSuccess(`Question scored: ${parsedScore}/10`);
                 } else {
-                    showError('Error updating question score');
+                    console.error('❌ Server returned error:', {
+                        status: response.status,
+                        ok: response.ok,
+                        success: result.success,
+                        error: result.error
+                    });
+                    showError(`Error: ${result.error || 'Error updating question score'}`);
                 }
             } catch (error) {
-                console.error('Error updating question score:', error);
-                showError('Error updating question correctness');
+                console.error('❌ Error updating question score:', error);
+                console.error('❌ Error details:', { message: error.message, stack: error.stack });
+                showError('Error updating question score: ' + error.message);
             }
         }
 
