@@ -2946,7 +2946,7 @@
                                 <img src="/generative.png" class="icn" alt="AI" style="width:25px;height:25px;vertical-align:middle">
                             </button>
                             ${(isFromQuestionBank || question.__fromBank) ? '' : `
-                            <button class="add-to-bank-btn-small" onclick="event.stopPropagation(); addQuestionToBank('${question.question_text.replace(/'/g, "\\'")}')" title="Add to Question Bank">
+                            <button class="add-to-bank-btn-small" onclick="event.stopPropagation(); addQuestionToBankById(${question.id})" title="Add to Question Bank">
                                 📚
                             </button>
                             `}
@@ -4740,6 +4740,22 @@
             document.getElementById('category-modal').style.display = 'flex';
         }
 
+        function addQuestionToBankById(questionId) {
+            // Find the question by ID
+            const question = questions.find(q => q.id === questionId);
+            if (!question) {
+                showError('Question not found');
+                return;
+            }
+            
+            // Use the rich content if available, otherwise use question_text
+            const questionContent = question.question_rich_content || question.question_text || '';
+            
+            // Show the modal with the question content
+            document.getElementById('modal-question-text').value = questionContent;
+            document.getElementById('modal-tags').value = question.tags ? (Array.isArray(question.tags) ? question.tags.join(', ') : question.tags) : '';
+            document.getElementById('category-modal').style.display = 'flex';
+        }
 
         function closeCategoryModal() {
             document.getElementById('category-modal').style.display = 'none';
