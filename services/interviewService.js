@@ -275,7 +275,13 @@ class InterviewService {
         }
 
         try {
-            console.log('🔄 Updating question score:', { questionId, correctnessScore });
+            // Validate score - ensure it's a valid number (0 is valid!)
+            const score = Number(correctnessScore);
+            if (isNaN(score)) {
+                throw new Error('Invalid score value: must be a number');
+            }
+            
+            console.log('🔄 Updating question score:', { questionId, score, originalValue: correctnessScore });
             
             // Try with new column first, fallback if it doesn't exist
             try {
@@ -284,7 +290,7 @@ class InterviewService {
                      SET correctness_score = $1, updated_at = CURRENT_TIMESTAMP
                      WHERE id = $2 
                      RETURNING *`,
-                    [correctnessScore, questionId]
+                    [score, questionId]
                 );
                 
                 if (result.rows.length === 0) {
@@ -294,15 +300,15 @@ class InterviewService {
                 console.log('✅ Database score update successful, rows affected:', result.rowCount);
                 console.log('📊 Updated question data:', result.rows[0]);
                 
-                // Update question bank statistics with new score
-                await this.updateQuestionBankScore(questionId, correctnessScore);
+                // Update question bank statistics with new score (pass the validated number)
+                await this.updateQuestionBankScore(questionId, score);
                 
                 return result.rows[0];
             } catch (columnError) {
                 // If correctness_score column doesn't exist, fall back to is_correct (legacy)
                 if (columnError.code === '42703') {
                     console.warn('⚠️  correctness_score column not found, falling back to is_correct (legacy)');
-                    const isCorrect = correctnessScore >= 6; // 6+ is considered correct
+                    const isCorrect = score >= 6; // 6+ is considered correct
                     const result = await pool.query(
                         `UPDATE interview_questions 
                          SET is_correct = $1, updated_at = CURRENT_TIMESTAMP
@@ -415,7 +421,14 @@ class InterviewService {
         }
 
         try {
-            console.log('🔄 Updating question bank score:', { questionId, score });
+            // Validate score is a number (including 0)
+            const validScore = Number(score);
+            if (isNaN(validScore)) {
+                console.warn('⚠️ Invalid score for question bank update:', score);
+                return;
+            }
+            
+            console.log('🔄 Updating question bank score:', { questionId, score: validScore, originalScore: score });
             
             // Get the question text to find the corresponding question bank entry
             const questionResult = await pool.query(
@@ -442,10 +455,11 @@ class InterviewService {
                 if (checkResult.rows.length > 0) {
                     const currentData = checkResult.rows[0];
                     console.log('📊 Current question_bank data:', currentData);
+                    console.log('📊 Adding score to total:', validScore);
                     
                     // Update the question bank with the new score
                     // Calculate average_score properly: (total_score + new_score) / times_asked
-                    await pool.query(
+                    const updateResult = await pool.query(
                         `UPDATE question_bank 
                          SET total_score = total_score + $1,
                              average_score = CASE 
@@ -455,20 +469,21 @@ class InterviewService {
                              updated_at = CURRENT_TIMESTAMP
                          WHERE question = $2
                          RETURNING id, question, times_asked, total_score, average_score`,
-                        [score, questionText]
+                        [validScore, questionText]
                     );
                     
-                    console.log('✅ Question bank score updated successfully');
+                    console.log('✅ Question bank score updated successfully:', updateResult.rows[0]);
                 } else {
                     console.warn('⚠️  Question not found in question_bank:', questionText.substring(0, 50));
                 }
                 
                 console.log('✅ Question bank score update completed');
             } catch (columnError) {
+                console.error('❌ Column error in question bank update:', columnError);
                 // If new columns don't exist, fall back to old method
                 if (columnError.code === '42703') {
                     console.warn('⚠️  Score columns not found, falling back to correct/incorrect counters');
-                    const isCorrect = score >= 6;
+                    const isCorrect = validScore >= 6;
                     await this.updateQuestionBankStatistics(questionId, isCorrect);
                 } else {
                     throw columnError;
@@ -476,7 +491,8 @@ class InterviewService {
             }
         } catch (error) {
             console.error('❌ Error updating question bank score:', error);
-            // Don't throw error as this is not critical
+            console.error('❌ Error details:', { message: error.message, stack: error.stack });
+            // Don't throw error as this is not critical - but log extensively for debugging
         }
     }
 
