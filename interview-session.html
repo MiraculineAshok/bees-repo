@@ -5011,6 +5011,12 @@
             // Add question to current interview
             await addQuestionToInterview(questionHtml, tags ? tags.split(',').map(t => t.trim()) : []);
             
+            // Refresh question bank data to ensure proper "Add to Bank" button state
+            await loadQuestionBankForComparison();
+            
+            // Re-display questions to update button visibility
+            await displayQuestions();
+            
             // Clear the form
             document.getElementById('ai-question-tags').value = '';
             document.getElementById('ai-generated-question').style.display = 'none';
@@ -5120,6 +5126,8 @@
                 const result = await response.json();
                 if (result.success) {
                     showSuccess('Question added to Question Bank!');
+                    // Refresh question bank data to include the newly added question
+                    await loadQuestionBankForComparison();
                 } else {
                     showError('Failed to add question to bank: ' + (result.error || 'Unknown error'));
                 }
