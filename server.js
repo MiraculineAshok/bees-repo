@@ -2400,27 +2400,60 @@ app.post('/api/admin/students/bulk-import/text', async (req, res) => {
     if (!Array.isArray(students) || students.length === 0) {
       return res.status(400).json({ success: false, error: 'No students provided' });
     }
+    
     let inserted = 0;
+    let skipped = 0;
+    let errors = 0;
+    
     for (const s of students) {
-      const name = (s.name||'').trim();
-      const email = (s.email||'').trim();
-      const zeta = (s.zeta_id||'').trim();
-      const phone = (s.phone||'').trim();
-      const school = (s.school||'').trim();
-      const location = (s.location||'').trim();
-      if (!email) continue;
-      await pool.query(
-        `INSERT INTO students (first_name, last_name, email, zeta_id, phone, school, location)
-         VALUES ($1,$2,$3,$4,$5,$6,$7)
-         ON CONFLICT (email) DO UPDATE SET zeta_id = EXCLUDED.zeta_id, phone = EXCLUDED.phone, school = EXCLUDED.school, location = EXCLUDED.location, updated_at = CURRENT_TIMESTAMP`,
-        [name.split(' ')[0]||name, name.split(' ').slice(1).join(' ')||'', email, zeta||null, phone||null, school||null, location||null]
-      );
-      inserted++;
+      try {
+        const name = (s.name||'').trim();
+        const email = (s.email||'').trim().toLowerCase();
+        const zeta = (s.zeta_id||'').trim();
+        const phone = (s.phone||'').trim();
+        const school = (s.school||'').trim();
+        const location = (s.location||'').trim();
+        
+        if (!email || !phone) {
+          errors++;
+          continue;
+        }
+        
+        // Check for existing email or phone
+        const existing = await pool.query(
+          `SELECT id FROM students WHERE email = $1 OR phone = $2 LIMIT 1`,
+          [email, phone]
+        );
+        
+        if (existing.rows.length > 0) {
+          skipped++;
+          console.log(`Skipped duplicate: ${email} or ${phone}`);
+          continue;
+        }
+        
+        // Insert new student
+        await pool.query(
+          `INSERT INTO students (first_name, last_name, email, zeta_id, phone, school, location)
+           VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+          [name.split(' ')[0]||name, name.split(' ').slice(1).join(' ')||'', email, zeta||null, phone, school||null, location||null]
+        );
+        inserted++;
+      } catch (err) {
+        console.error(`Error inserting student:`, err);
+        errors++;
+      }
     }
-    res.json({ success: true, count: inserted });
+    
+    res.json({ 
+      success: true, 
+      count: inserted,
+      skipped: skipped,
+      errors: errors,
+      message: `Imported ${inserted} student(s), skipped ${skipped} duplicate(s), ${errors} error(s)`
+    });
   } catch (e) {
     console.error('Bulk import (text) failed:', e);
-    res.status(500).json({ success: false, error: 'Bulk import failed' });
+    res.status(500).json({ success: false, error: 'Bulk import failed: ' + e.message });
   }
 });
 
@@ -2428,9 +2461,11 @@ app.post('/api/admin/students/bulk-import/text', async (req, res) => {
 app.post('/api/admin/students/bulk-import/file', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ success: false, error: 'File is required' });
+    
     const buf = req.file.buffer;
     const name = (req.file.originalname||'').toLowerCase();
     let rows = [];
+    
     if (name.endsWith('.csv')) {
       // Minimal CSV parsing (utf-8, comma separated)
       const text = buf.toString('utf8');
@@ -2446,22 +2481,72 @@ app.post('/api/admin/students/bulk-import/file', upload.single('file'), async (r
     } else {
       return res.status(400).json({ success: false, error: 'Unsupported file type' });
     }
+    
     let inserted = 0;
+    let skipped = 0;
+    let errors = 0;
+    let isFirstRow = true; // Skip header row
+    
     for (const r of rows) {
-      const [name, email, zeta_id, phone, school, location] = r;
-      if (!email) continue;
-      await pool.query(
-        `INSERT INTO students (first_name, last_name, email, zeta_id, phone, school, location)
-         VALUES ($1,$2,$3,$4,$5,$6,$7)
-         ON CONFLICT (email) DO UPDATE SET zeta_id = EXCLUDED.zeta_id, phone = EXCLUDED.phone, school = EXCLUDED.school, location = EXCLUDED.location, updated_at = CURRENT_TIMESTAMP`,
-        [String(name||'').split(' ')[0]||'', String(name||'').split(' ').slice(1).join(' ')||'', String(email||'').trim(), (zeta_id||null), (phone||null), (school||null), (location||null)]
-      );
-      inserted++;
+      try {
+        // Skip header row
+        if (isFirstRow) {
+          isFirstRow = false;
+          continue;
+        }
+        
+        const [name, email, zeta_id, phone, school, location] = r;
+        const cleanEmail = String(email||'').trim().toLowerCase();
+        const cleanPhone = String(phone||'').trim();
+        
+        if (!cleanEmail || !cleanPhone) {
+          errors++;
+          continue;
+        }
+        
+        // Check for existing email or phone
+        const existing = await pool.query(
+          `SELECT id FROM students WHERE email = $1 OR phone = $2 LIMIT 1`,
+          [cleanEmail, cleanPhone]
+        );
+        
+        if (existing.rows.length > 0) {
+          skipped++;
+          console.log(`Skipped duplicate: ${cleanEmail} or ${cleanPhone}`);
+          continue;
+        }
+        
+        // Insert new student
+        await pool.query(
+          `INSERT INTO students (first_name, last_name, email, zeta_id, phone, school, location)
+           VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+          [
+            String(name||'').split(' ')[0]||'', 
+            String(name||'').split(' ').slice(1).join(' ')||'', 
+            cleanEmail, 
+            String(zeta_id||'').trim()||null, 
+            cleanPhone, 
+            String(school||'').trim()||null, 
+            String(location||'').trim()||null
+          ]
+        );
+        inserted++;
+      } catch (err) {
+        console.error(`Error inserting student from file:`, err);
+        errors++;
+      }
     }
-    res.json({ success: true, count: inserted });
+    
+    res.json({ 
+      success: true, 
+      count: inserted,
+      skipped: skipped,
+      errors: errors,
+      message: `Imported ${inserted} student(s), skipped ${skipped} duplicate(s), ${errors} error(s)`
+    });
   } catch (e) {
     console.error('Bulk import (file) failed:', e);
-    res.status(500).json({ success: false, error: 'Bulk import failed' });
+    res.status(500).json({ success: false, error: 'Bulk import failed: ' + e.message });
   }
 });
 
