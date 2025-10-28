@@ -2553,18 +2553,28 @@
                 return; // Already started
             }
             
-            // Check if this is a resume scenario
-            const urlParams = new URLSearchParams(window.location.search);
-            const isResume = urlParams.get('resume') === '1';
-            
-            if (isResume && currentInterview && currentInterview.duration_seconds) {
-                // For resume, set start time to account for existing duration
+            // Check if we have an existing interview with created_at timestamp
+            if (currentInterview && currentInterview.created_at) {
+                // Calculate elapsed time since interview was created
+                const createdAt = new Date(currentInterview.created_at);
+                const now = new Date();
+                const elapsedMs = now - createdAt;
+                
+                // Set start time to account for elapsed time
+                interviewStartTime = new Date(now - elapsedMs);
+                console.log('⏱️ Loading existing interview:');
+                console.log('   - Created at:', createdAt);
+                console.log('   - Current time:', now);
+                console.log('   - Elapsed time:', Math.floor(elapsedMs / 1000), 'seconds');
+                console.log('   - Adjusted start time:', interviewStartTime);
+            } else if (currentInterview && currentInterview.duration_seconds) {
+                // Fallback: use duration_seconds if available (for old interviews)
                 const existingDurationMs = currentInterview.duration_seconds * 1000;
                 interviewStartTime = new Date(Date.now() - existingDurationMs);
-                console.log('⏱️ Resuming interview with existing duration:', currentInterview.duration_seconds, 'seconds');
+                console.log('⏱️ Resuming interview with stored duration:', currentInterview.duration_seconds, 'seconds');
                 console.log('⏱️ Adjusted start time:', interviewStartTime);
-                } else {
-                // For new interviews, start from current time
+            } else {
+                // For brand new interviews, start from current time
                 interviewStartTime = new Date();
                 console.log('⏱️ New interview started at:', interviewStartTime);
             }
