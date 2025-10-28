@@ -20,6 +20,48 @@
             box-sizing: border-box;
         }
         
+        /* Page Loader */
+        #page-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease-out, visibility 0.3s ease-out;
+        }
+        
+        #page-loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .loader-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #2563eb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        .loader-text {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
         @font-face {
             font-family: 'Zoho Puvi';
             src: url('/Zoho Puvi/OpenType-TT/Zoho Puvi Regular.ttf') format('truetype');
@@ -2068,6 +2110,12 @@
     </style>
 </head>
 <body>
+    <!-- Page Loader -->
+    <div id="page-loader">
+        <div class="loader-spinner"></div>
+        <div class="loader-text">Loading Interview Session...</div>
+    </div>
+    
     <header class="header">
         <div class="header-content">
             <a href="/" class="logo">
@@ -2279,6 +2327,18 @@
         let userRole = 'interviewer'; // Default role
         let questionEditor = null; // Quill editor instance
 
+        // Hide page loader
+        function hidePageLoader() {
+            const loader = document.getElementById('page-loader');
+            if (loader) {
+                loader.classList.add('hidden');
+                // Remove from DOM after animation completes
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                }, 300);
+            }
+        }
+
         // Helper function to get current interviewer ID
         async function getCurrentInterviewerId() {
             let interviewerId = null;
@@ -2360,10 +2420,12 @@
                 } else {
                     console.error('No zeta_id found in URL');
                     showError('No student information found');
+                    hidePageLoader();
                 }
                 } catch (error) {
                     console.error('Error loading student data:', error);
                     showError('Error loading student data');
+                    hidePageLoader();
                 }
         }
 
@@ -2515,9 +2577,15 @@
                 
                 // Load previous interviews
                 await loadPreviousInterviews();
+                
+                // Hide page loader after everything is initialized
+                hidePageLoader();
             } catch (error) {
                 console.error('Error initializing interview:', error);
                 showError('Error initializing interview');
+                
+                // Hide loader even on error
+                hidePageLoader();
                 
                 // Check if it's a conflict error and redirect
                 if (error.message && error.message.includes('already being interviewed')) {
