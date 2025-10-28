@@ -5012,7 +5012,7 @@
             await addQuestionToInterview(questionHtml, tags ? tags.split(',').map(t => t.trim()) : []);
             
             // Refresh question bank data to ensure proper "Add to Bank" button state
-            await loadQuestionBankForComparison();
+            await loadQuestionBankData();
             
             // Re-display questions to update button visibility
             await displayQuestions();
@@ -5127,7 +5127,7 @@
                 if (result.success) {
                     showSuccess('Question added to Question Bank!');
                     // Refresh question bank data to include the newly added question
-                    await loadQuestionBankForComparison();
+                    await loadQuestionBankData();
                 } else {
                     showError('Failed to add question to bank: ' + (result.error || 'Unknown error'));
                 }
