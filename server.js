@@ -1617,7 +1617,15 @@ app.put('/api/interviews/:id/complete', async (req, res) => {
 app.put('/api/interviews/:id/verdict', async (req, res) => {
   try {
     const { verdict } = req.body;
+    console.log('📝 Server: updateVerdict API called with:', {
+      interviewId: req.params.id,
+      verdict,
+      isNull: verdict === null,
+      isEmpty: verdict === ''
+    });
+    
     const interview = await InterviewService.updateVerdict(req.params.id, verdict);
+    console.log('✅ Server: updateVerdict successful, returning:', interview);
     
     // Refresh consolidation data incrementally (don't wait)
     const { refreshConsolidationForStudentSession } = require('./db/consolidate');
@@ -1630,7 +1638,8 @@ app.put('/api/interviews/:id/verdict', async (req, res) => {
       data: interview
     });
   } catch (error) {
-    console.error('Error updating verdict:', error);
+    console.error('❌ Server: Error updating verdict:', error);
+    console.error('❌ Error details:', { message: error.message, stack: error.stack });
     res.status(400).json({
       success: false,
       error: error.message

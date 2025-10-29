@@ -3363,6 +3363,10 @@
             if (!currentInterview) return;
 
             const verdict = document.getElementById('verdict-select').value;
+            console.log('📝 Updating verdict:', { interviewId: currentInterview.id, verdict, isEmpty: verdict === '' });
+            
+            // Allow empty verdict (clearing selection)
+            const verdictValue = verdict === '' ? null : verdict;
             
             try {
                 const response = await fetch(`/api/interviews/${currentInterview.id}/verdict`, {
@@ -3371,21 +3375,29 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        verdict: verdict
+                        verdict: verdictValue
                     })
                 });
                 
+                console.log('📥 Verdict response status:', response.status, 'OK:', response.ok);
                 const result = await response.json();
+                console.log('📥 Verdict response data:', result);
                 
                 if (response.ok && result.success) {
-                    currentInterview.verdict = verdict;
-                    showSuccess('Verdict updated successfully!');
+                    currentInterview.verdict = verdictValue;
+                    if (verdictValue === null) {
+                        showSuccess('Verdict cleared successfully!');
+                    } else {
+                        showSuccess('Verdict updated successfully!');
+                    }
                 } else {
-                    showError('Error updating verdict');
+                    console.error('❌ Server returned error:', result.error);
+                    showError(`Error: ${result.error || 'Error updating verdict'}`);
                 }
             } catch (error) {
-                console.error('Error updating verdict:', error);
-                showError('Error updating verdict');
+                console.error('❌ Error updating verdict:', error);
+                console.error('❌ Error details:', { message: error.message, stack: error.stack });
+                showError('Error updating verdict: ' + error.message);
             }
         }
 
