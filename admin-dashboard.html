@@ -3550,7 +3550,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                     return `<span style="display:inline-block;background:${color};color:#fff;padding:3px 8px;border-radius:12px;font-size:11px;margin:2px;white-space:nowrap">${v||'-'}</span>`;
                 };
                 const html = rows.map(r => {
-                    const interviewerNames = Array.isArray(r.interviewer_names) ? r.interviewer_names.join(', ') : '-';
+                    const interviewerNames = Array.isArray(r.interviewer_names) ? r.interviewer_names.join('<br>') : '-';
                     const verdicts = Array.isArray(r.verdicts) ? r.verdicts.map(badge).join('<br>') : '-';
                     const interviewStatuses = Array.isArray(r.interview_statuses) ? r.interview_statuses.map(statusBadge).join('<br>') : '-';
                     const lastAt = r.last_interview_at ? formatDate(r.last_interview_at) : '-';
