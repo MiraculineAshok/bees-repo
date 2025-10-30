@@ -4465,9 +4465,9 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                         container.innerHTML = qas.map(q=>`
                           <div style=\"border:1px solid #e5e7eb;border-radius:6px;padding:8px;margin-bottom:8px\">
                             <div style=\"font-weight:600;color:#111827;margin-bottom:4px\">Q: ${q.question_text||'-'}</div>
-                            ${q.question_rich_content? `<div style=\"color:#374151;margin-bottom:6px\">${q.question_rich_content.replace(/<img(.*?)>/g, '<img$1 style=\\"width:200px;height:200px;object-fit:contain;border:1px solid #e5e7eb;border-radius:4px\\" >')}</div>` : ''}
+                            ${q.question_rich_content? `<div style=\"color:#374151;margin-bottom:6px\">${q.question_rich_content.replace(/<img(.*?)>/g, '<img$1 style=\\"width:300px;height:300px;object-fit:contain;border:1px solid #e5e7eb;border-radius:4px\\" >')}</div>` : ''}
                             <div style=\"color:#374151\"><strong>Answer:</strong> ${(q.student_answer||'-').toString().replace(/\\n/g,'<br>')}</div>
-                            ${q.answer_photo_url? `<div style=\"margin-top:6px\"><img src=\"${q.answer_photo_url}\" alt=\"answer photo\" style=\"width:200px;height:200px;object-fit:contain;border:1px solid #e5e7eb;border-radius:4px\"></div>` : ''}
+                            ${q.answer_photo_url? `<div style=\"margin-top:6px\"><img src=\"${q.answer_photo_url}\" alt=\"answer photo\" style=\"width:300px;height:300px;object-fit:contain;border:1px solid #e5e7eb;border-radius:4px\"></div>` : ''}
                           </div>
                         `).join('');
                     }catch(err){
