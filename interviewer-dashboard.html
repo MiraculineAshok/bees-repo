@@ -4307,7 +4307,7 @@
                                 </div>
                                 <div class="answer-section">
                                     <p><strong>Answer:</strong> <span class="answer-text-display">${q.student_answer || 'No answer provided'}</span></p>
-                                    <button class="icon-btn edit-btn edit-answer-btn" data-question-id="${q.id}" data-answer-text="${(q.student_answer || '').replace(/"/g, '&quot;')}" data-answer-photo-url="${q.answer_photo_url || ''}" title="Edit Answer"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                                    <button class="icon-btn edit-btn edit-answer-btn" data-question-id="${q.id}" data-answer-text="${(q.student_answer || '').replace(/"/g, '&quot;')}" data-answer-photo-url="${(q.answer_photo_url || '').replace(/"/g, '&quot;')}" title="Edit Answer"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
                                 </div>
                                 ${q.answer_photo_url ? `
                                     <div class="photo-gallery">
@@ -5519,6 +5519,7 @@
         
         // Edit question answer in interview details
         async function editQuestionAnswer(questionId, currentAnswer, answerPhotoUrl) {
+            console.log('📝 Editing answer with photo URL:', answerPhotoUrl);
             const questionElement = document.getElementById(`question-${questionId}`);
             const answerDisplay = questionElement.querySelector('.answer-text-display');
             const editButton = questionElement.querySelector('.answer-section .edit-btn');
@@ -5530,6 +5531,7 @@
             input.rows = 3;
             // Store the photo URL as a data attribute to preserve it
             input.setAttribute('data-answer-photo-url', answerPhotoUrl || '');
+            console.log('📝 Stored photo URL in textarea:', input.getAttribute('data-answer-photo-url'));
             
             // Create action buttons
             const actions = document.createElement('div');
@@ -5556,7 +5558,11 @@
             const input = questionElement.querySelector('.answer-edit-input');
             const newAnswer = input.value.trim();
             // Get the preserved photo URL from the input's data attribute
-            const answerPhotoUrl = input.getAttribute('data-answer-photo-url') || null;
+            let answerPhotoUrl = input.getAttribute('data-answer-photo-url') || null;
+            
+            // If answerPhotoUrl is a non-empty string, keep it as is (it could be JSON string or plain string)
+            // The backend will handle parsing if needed
+            console.log('💾 Saving answer with photo URL:', answerPhotoUrl);
             
             try {
                 const response = await fetch(`/api/interview-questions/${questionId}/answer`, {
