@@ -5599,6 +5599,11 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
 
         // Interviews functions
         async function loadInterviews() {
+            const tbody = document.getElementById('interviews-table-body');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="10" class="loading">Loading interviews...</td></tr>';
+            }
+            
             try {
                 const response = await fetch('/api/admin/interviews');
                 const data = await response.json();
@@ -5608,9 +5613,16 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                     displayInterviews();
                     populateInterviewerFilter();
                     populateSessionFilter(); // Add this to populate session filter
+                } else {
+                    if (tbody) {
+                        tbody.innerHTML = '<tr><td colspan="10" class="error">Failed to load interviews</td></tr>';
+                    }
                 }
             } catch (error) {
                 console.error('Error loading interviews:', error);
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="10" class="error">Error loading interviews</td></tr>';
+                }
             }
         }
         function displayInterviews() {
@@ -6080,6 +6092,11 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
 
         // Questions functions
         async function loadQuestions() {
+            const tbody = document.getElementById('questions-table-body');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="8" class="loading">Loading questions...</td></tr>';
+            }
+            
             try {
                 // Resolve current user email (from URL first, then localStorage)
                 const urlParams = new URLSearchParams(window.location.search);
@@ -6118,7 +6135,9 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             } catch (error) {
                 console.error('Error loading questions:', error);
                 questions = [];
-                displayQuestions();
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="error">Error loading questions</td></tr>';
+                }
             }
         }
 
@@ -6292,6 +6311,11 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
 
         // Sessions functions
         async function loadSessions() {
+            const tbody = document.getElementById('sessions-table-body');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="9" class="loading">Loading sessions...</td></tr>';
+            }
+            
             try {
                 const response = await fetch('/api/admin/sessions');
                 const data = await response.json();
@@ -6300,9 +6324,16 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                     sessions = data.data;
                     displaySessions();
                     populateSessionFilter();
+                } else {
+                    if (tbody) {
+                        tbody.innerHTML = '<tr><td colspan="9" class="error">Failed to load sessions</td></tr>';
+                    }
                 }
             } catch (error) {
                 console.error('Error loading sessions:', error);
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="9" class="error">Error loading sessions</td></tr>';
+                }
             }
         }
 
@@ -6408,6 +6439,11 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
 
         // Students functions
         async function loadStudents() {
+            const tbody = document.getElementById('students-table-body');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="10" class="loading">Loading students...</td></tr>';
+            }
+            
             try {
                 const response = await fetch('/api/admin/students');
                 const data = await response.json();
@@ -6415,9 +6451,16 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                 if (data.success) {
                     students = data.data;
                     displayStudents();
+                } else {
+                    if (tbody) {
+                        tbody.innerHTML = '<tr><td colspan="10" class="error">Failed to load students</td></tr>';
+                    }
                 }
             } catch (error) {
                 console.error('Error loading students:', error);
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="10" class="error">Error loading students</td></tr>';
+                }
             }
         }
 
@@ -8952,6 +8995,11 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
         let users = []; // Global users array
 
         async function loadUsers() {
+            const tbody = document.getElementById('users-table-body');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="7" class="loading">Loading users...</td></tr>';
+            }
+            
             try {
                 console.log('📋 Loading authorized users from /api/authorized-users');
                 const response = await fetch('/api/authorized-users');
@@ -8963,10 +9011,16 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                     displayUsers(users);
                 } else {
                     console.error('Error loading authorized users:', result.error);
+                    if (tbody) {
+                        tbody.innerHTML = '<tr><td colspan="7" class="error">Failed to load users</td></tr>';
+                    }
                     showError('Failed to load authorized users: ' + result.error);
                 }
             } catch (error) {
                 console.error('Error loading authorized users:', error);
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="error">Error loading users</td></tr>';
+                }
                 showError('Failed to load authorized users');
             }
         }
