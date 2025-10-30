@@ -3563,11 +3563,39 @@
                 z-index: 1000;
             `;
             
+            // Helper function to parse image URLs
+            const parseImageUrls = (photoUrl) => {
+                if (!photoUrl) return null;
+                
+                // If it's a string that looks like JSON array, parse it
+                if (typeof photoUrl === 'string' && photoUrl.startsWith('[')) {
+                    try {
+                        const parsed = JSON.parse(photoUrl);
+                        return Array.isArray(parsed) ? parsed : [photoUrl];
+                    } catch (e) {
+                        console.warn('Failed to parse photo URL as JSON:', photoUrl);
+                        return [photoUrl];
+                    }
+                }
+                
+                // If it's already an array, return it
+                if (Array.isArray(photoUrl)) {
+                    return photoUrl;
+                }
+                
+                // Otherwise, it's a single URL string
+                return [photoUrl];
+            };
+            
             modal.innerHTML = `
                 <div style="background: white; padding: 2rem; border-radius: 8px; max-width: 800px; max-height: 80vh; overflow-y: auto; margin: 1rem;">
                     <h3 style="margin-bottom: 1rem; color: #2d3748;">Previous Interview #${interviewId}</h3>
                     <div style="margin-bottom: 1rem;">
-                        ${questions.map((q, index) => `
+                        ${questions.map((q, index) => {
+                            const imageUrls = parseImageUrls(q.answer_photo_url);
+                            const hasImages = imageUrls && imageUrls.length > 0;
+                            
+                            return `
                             <div style="margin-bottom: 1rem; padding: 1rem; background: #f7fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
                                 <div style="font-weight: 600; color: #2d3748; margin-bottom: 0.5rem;">
                                     Q${index + 1}: ${q.question_text}
@@ -3575,27 +3603,22 @@
                                 <div style="color: #4a5568; margin-bottom: 0.5rem;">
                                     <strong>Answer:</strong> ${q.student_answer || 'No answer provided'}
                                 </div>
-                                ${q.answer_photo_url ? `
+                                ${hasImages ? `
                                     <div style="margin-top: 0.5rem; padding: 0.5rem; background: #e8f5e8; border-radius: 6px; border: 1px solid #c3e6c3;">
                                         <div style="font-weight: 600; color: #28a745; margin-bottom: 0.5rem; font-size: 0.9rem;">
-                                            📷 Answer Sheet${Array.isArray(q.answer_photo_url) && q.answer_photo_url.length > 1 ? 's' : ''}
+                                            📷 Answer Sheet${imageUrls.length > 1 ? 's' : ''}
                                         </div>
                                         <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                                            ${Array.isArray(q.answer_photo_url) 
-                                                ? q.answer_photo_url.map(url => `
-                                                    <img src="${url}" style="max-width: 200px; max-height: 200px; border-radius: 6px; border: 2px solid #dee2e6; object-fit: cover; cursor: pointer;" 
-                                                         onclick="openImageModal('${url}')" 
-                                                         title="Click to view full size">
-                                                `).join('')
-                                                : `<img src="${q.answer_photo_url}" style="max-width: 300px; max-height: 300px; border-radius: 6px; border: 2px solid #dee2e6; object-fit: cover; cursor: pointer;" 
-                                                       onclick="openImageModal('${q.answer_photo_url}')" 
-                                                       title="Click to view full size">`
-                                            }
+                                            ${imageUrls.map(url => `
+                                                <img src="${url}" style="max-width: 200px; max-height: 200px; border-radius: 6px; border: 2px solid #dee2e6; object-fit: cover; cursor: pointer;" 
+                                                     onclick="openImageModal('${url}')" 
+                                                     title="Click to view full size">
+                                            `).join('')}
                                         </div>
                                     </div>
                                 ` : ''}
                             </div>
-                        `).join('')}
+                        `}).join('')}
                     </div>
                     <button onclick="this.closest('div').parentElement.remove()" 
                             style="background: #2d3748; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer;">
