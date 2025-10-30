@@ -3595,10 +3595,23 @@
                             const imageUrls = parseImageUrls(q.answer_photo_url);
                             const hasImages = imageUrls && imageUrls.length > 0;
                             
+                            // Process question content - use rich content if available, otherwise use plain text
+                            let questionContent = '';
+                            if (q.question_rich_content) {
+                                // Apply 300x300 sizing to any images in rich content
+                                questionContent = q.question_rich_content.replace(
+                                    /<img([^>]*)>/gi,
+                                    '<img$1 style="width: 300px; height: 300px; object-fit: contain; border: 1px solid #e2e8f0; border-radius: 4px; display: block; margin: 10px 0;">'
+                                );
+                            } else {
+                                questionContent = q.question_text;
+                            }
+                            
                             return `
                             <div style="margin-bottom: 1rem; padding: 1rem; background: #f7fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
                                 <div style="font-weight: 600; color: #2d3748; margin-bottom: 0.5rem;">
-                                    Q${index + 1}: ${q.question_text}
+                                    <div>Q${index + 1}:</div>
+                                    <div style="font-weight: 500; margin-top: 0.5rem;">${questionContent}</div>
                                 </div>
                                 <div style="color: #4a5568; margin-bottom: 0.5rem;">
                                     <strong>Answer:</strong> ${q.student_answer || 'No answer provided'}
