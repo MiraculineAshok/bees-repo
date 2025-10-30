@@ -7220,7 +7220,8 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             const button = event.currentTarget;
             const questionId = button.getAttribute('data-question-id');
             const answerText = button.getAttribute('data-answer-text');
-            const answerPhotoUrl = button.getAttribute('data-answer-photo-url');
+            const answerPhotoUrl = decodeURIComponent(button.getAttribute('data-answer-photo-url') || ''); // Decode URL-encoded value
+            console.log('🔘 Edit button clicked, photo URL:', answerPhotoUrl);
             editQuestionAnswer(questionId, answerText, answerPhotoUrl);
         }
 
@@ -9517,7 +9518,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                                 </div>
                                 <div class="answer-section">
                                     <p><strong>Answer:</strong> <span class="answer-text-display">${q.student_answer || 'No answer provided'}</span></p>
-                                    <button class="icon-btn edit-btn edit-answer-btn" data-question-id="${q.id}" data-answer-text="${(q.student_answer || '').replace(/"/g, '&quot;')}" data-answer-photo-url="${(q.answer_photo_url || '').replace(/"/g, '&quot;')}" title="Edit Answer"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                                    <button class="icon-btn edit-btn edit-answer-btn" data-question-id="${q.id}" data-answer-text="${(q.student_answer || '').replace(/"/g, '&quot;')}" data-answer-photo-url="${encodeURIComponent(q.answer_photo_url || '')}" title="Edit Answer"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
                                 </div>
                                 ${q.answer_photo_url ? `
                                     <div class="photo-gallery">
