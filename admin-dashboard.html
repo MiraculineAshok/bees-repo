@@ -4479,38 +4479,75 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
         }
 
         // User authentication functions
-        function checkUserLoginStatus() {
+        async function checkUserLoginStatus() {
             // Check URL parameters for user data (from OAuth callback)
             const urlParams = new URLSearchParams(window.location.search);
             const userEmail = urlParams.get('email');
             const userName = urlParams.get('name');
             
             if (userEmail || userName) {
-                // User just logged in, display their info
-                const userData = {
-                    email: userEmail,
-                    name: userName || userEmail?.split('@')[0] || 'Admin'
-                };
-                displayUserInfo(userData);
-                
-                // Store user data in localStorage for future visits
-                localStorage.setItem('bees_user_data', JSON.stringify(userData));
-                
-                // Clean up URL parameters
-                window.history.replaceState({}, document.title, window.location.pathname);
+                // User just logged in, verify they are authorized
+                try {
+                    const response = await fetch(`/api/user/role?email=${encodeURIComponent(userEmail)}`);
+                    const data = await response.json();
+                    
+                    if (!response.ok || !data.success) {
+                        console.log('❌ User not authorized');
+                        redirectToHome();
+                        return;
+                    }
+                    
+                    // User is authorized, display their info
+                    const userData = {
+                        email: userEmail,
+                        name: userName || userEmail?.split('@')[0] || 'Admin',
+                        role: data.role
+                    };
+                    displayUserInfo(userData);
+                    
+                    // Store user data in localStorage for future visits
+                    localStorage.setItem('bees_user_data', JSON.stringify(userData));
+                    
+                    // Clean up URL parameters
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                } catch (error) {
+                    console.error('Error verifying user authorization:', error);
+                    redirectToHome();
+                }
             } else {
                 // Check localStorage for existing user data
                 const storedUserData = localStorage.getItem('bees_user_data');
                 if (storedUserData) {
                     try {
                         const userData = JSON.parse(storedUserData);
+                        
+                        // Verify the stored user is still authorized
+                        const response = await fetch(`/api/user/role?email=${encodeURIComponent(userData.email)}`);
+                        const data = await response.json();
+                        
+                        if (!response.ok || !data.success) {
+                            console.log('❌ Stored user not authorized');
+                            localStorage.removeItem('bees_user_data');
+                            redirectToHome();
+                            return;
+                        }
+                        
                         displayUserInfo(userData);
                     } catch (e) {
                         console.error('Error parsing stored user data:', e);
                         localStorage.removeItem('bees_user_data');
+                        redirectToHome();
                     }
+                } else {
+                    // No user data found, redirect to home
+                    console.log('❌ No user data found, redirecting to home');
+                    redirectToHome();
                 }
             }
+        }
+        
+        function redirectToHome() {
+            window.location.href = '/';
         }
 
         async function displayUserInfo(userData) {

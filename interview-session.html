@@ -6031,16 +6031,48 @@
             }
         }
 
+        // Check authentication before initializing
+        async function checkAuthenticationAndInit() {
+            // Check if user is logged in
+            const storedUserData = localStorage.getItem('bees_user_data');
+            
+            if (!storedUserData) {
+                console.log('❌ No user data found, redirecting to home');
+                window.location.href = '/';
+                return;
+            }
+            
+            try {
+                const userData = JSON.parse(storedUserData);
+                
+                // Verify the user is still authorized
+                const response = await fetch(`/api/user/role?email=${encodeURIComponent(userData.email)}`);
+                const data = await response.json();
+                
+                if (!response.ok || !data.success) {
+                    console.log('❌ User not authorized');
+                    localStorage.removeItem('bees_user_data');
+                    window.location.href = '/';
+                    return;
+                }
+                
+                // User is authorized, proceed with initialization
+                initializeQuillEditor();
+                loadStudentData();
+                // Initialize question bank tab as inactive
+                document.getElementById('question-bank-tab').classList.remove('active');
+                // Initialize avatar
+                initializeAvatar();
+            } catch (error) {
+                console.error('Error verifying user authorization:', error);
+                localStorage.removeItem('bees_user_data');
+                window.location.href = '/';
+            }
+        }
+        
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Quill editor
-            initializeQuillEditor();
-            
-            loadStudentData();
-            // Initialize question bank tab as inactive
-            document.getElementById('question-bank-tab').classList.remove('active');
-            // Initialize avatar
-            initializeAvatar();
+            checkAuthenticationAndInit();
         });
     </script>
 

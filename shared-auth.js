@@ -153,10 +153,36 @@
     }
     
     // Function to initialize authentication on page load
-    async function initAuth() {
+    async function initAuth(requireAuth = false) {
         const userData = getUserData();
         if (userData) {
-            await displayUserInfo(userData);
+            // Verify the user is still authorized
+            try {
+                const response = await fetch(`/api/user/role?email=${encodeURIComponent(userData.email)}`);
+                const data = await response.json();
+                
+                if (!response.ok || !data.success) {
+                    console.log('❌ User not authorized');
+                    localStorage.removeItem('bees_user_data');
+                    if (requireAuth) {
+                        window.location.href = '/';
+                        return;
+                    }
+                } else {
+                    await displayUserInfo(userData);
+                }
+            } catch (error) {
+                console.error('Error verifying user authorization:', error);
+                localStorage.removeItem('bees_user_data');
+                if (requireAuth) {
+                    window.location.href = '/';
+                    return;
+                }
+            }
+        } else if (requireAuth) {
+            // No user data found and authentication is required
+            console.log('❌ No user data found, redirecting to home');
+            window.location.href = '/';
         }
     }
     
@@ -189,11 +215,15 @@
     // Initialize when DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
-            initAuth();
+            // Check if page requires authentication (can be set by individual pages)
+            const requireAuth = window.BEES_REQUIRE_AUTH || false;
+            initAuth(requireAuth);
             attachLoginListeners();
         });
     } else {
-        initAuth();
+        // Check if page requires authentication (can be set by individual pages)
+        const requireAuth = window.BEES_REQUIRE_AUTH || false;
+        initAuth(requireAuth);
         attachLoginListeners();
     }
     
@@ -202,6 +232,7 @@
         getUserData: getUserData,
         displayUserInfo: displayUserInfo,
         logoutUser: logoutUser,
-        loginWithZoho: loginWithZoho
+        loginWithZoho: loginWithZoho,
+        initAuth: initAuth
     };
 })();

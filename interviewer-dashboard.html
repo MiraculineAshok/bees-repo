@@ -2124,14 +2124,30 @@
             const urlName = params.get('name');
             const urlRole = params.get('role');
             if (urlEmail || urlName) {
-                const userData = {
-                    email: urlEmail || '',
-                    name: urlName || (urlEmail ? urlEmail.split('@')[0] : 'User'),
-                    role: urlRole || 'interviewer'
-                };
-                try { localStorage.setItem('bees_user_data', JSON.stringify(userData)); } catch {}
-                // Clean URL
-                window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+                // Verify the user is authorized
+                try {
+                    const response = await fetch(`/api/user/role?email=${encodeURIComponent(urlEmail)}`);
+                    const data = await response.json();
+                    
+                    if (!response.ok || !data.success) {
+                        console.log('❌ User not authorized');
+                        window.location.href = '/';
+                        return;
+                    }
+                    
+                    const userData = {
+                        email: urlEmail || '',
+                        name: urlName || (urlEmail ? urlEmail.split('@')[0] : 'User'),
+                        role: data.role || 'interviewer'
+                    };
+                    try { localStorage.setItem('bees_user_data', JSON.stringify(userData)); } catch {}
+                    // Clean URL
+                    window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+                } catch (error) {
+                    console.error('Error verifying user authorization:', error);
+                    window.location.href = '/';
+                    return;
+                }
             }
 
             // 2) Load from storage
@@ -2140,6 +2156,24 @@
                 try {
                     const userData = JSON.parse(storedUserData);
                     if (userData && (userData.email || userData.name)) {
+                        // Verify the stored user is still authorized
+                        try {
+                            const response = await fetch(`/api/user/role?email=${encodeURIComponent(userData.email)}`);
+                            const data = await response.json();
+                            
+                            if (!response.ok || !data.success) {
+                                console.log('❌ Stored user not authorized');
+                                localStorage.removeItem('bees_user_data');
+                                window.location.href = '/';
+                                return;
+                            }
+                        } catch (authError) {
+                            console.error('Error verifying stored user authorization:', authError);
+                            localStorage.removeItem('bees_user_data');
+                            window.location.href = '/';
+                            return;
+                        }
+                        
                         // Avatar initial
                         try {
                             const userIdResponse = await fetch('/api/user/id');
