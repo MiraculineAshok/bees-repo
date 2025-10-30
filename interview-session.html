@@ -3578,11 +3578,20 @@
                                 ${q.answer_photo_url ? `
                                     <div style="margin-top: 0.5rem; padding: 0.5rem; background: #e8f5e8; border-radius: 6px; border: 1px solid #c3e6c3;">
                                         <div style="font-weight: 600; color: #28a745; margin-bottom: 0.5rem; font-size: 0.9rem;">
-                                            📷 Answer Sheet
+                                            📷 Answer Sheet${Array.isArray(q.answer_photo_url) && q.answer_photo_url.length > 1 ? 's' : ''}
                                         </div>
-                                        <img src="${q.answer_photo_url}" style="max-width: 300px; max-height: 300px; border-radius: 6px; border: 2px solid #dee2e6; object-fit: cover; cursor: pointer;" 
-                                             onclick="openImageModal('${q.answer_photo_url}')" 
-                                             title="Click to view full size">
+                                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                            ${Array.isArray(q.answer_photo_url) 
+                                                ? q.answer_photo_url.map(url => `
+                                                    <img src="${url}" style="max-width: 200px; max-height: 200px; border-radius: 6px; border: 2px solid #dee2e6; object-fit: cover; cursor: pointer;" 
+                                                         onclick="openImageModal('${url}')" 
+                                                         title="Click to view full size">
+                                                `).join('')
+                                                : `<img src="${q.answer_photo_url}" style="max-width: 300px; max-height: 300px; border-radius: 6px; border: 2px solid #dee2e6; object-fit: cover; cursor: pointer;" 
+                                                       onclick="openImageModal('${q.answer_photo_url}')" 
+                                                       title="Click to view full size">`
+                                            }
+                                        </div>
                                     </div>
                                 ` : ''}
                             </div>
