@@ -4307,7 +4307,7 @@
                                 </div>
                                 <div class="answer-section">
                                     <p><strong>Answer:</strong> <span class="answer-text-display">${q.student_answer || 'No answer provided'}</span></p>
-                                    <button class="icon-btn edit-btn edit-answer-btn" data-question-id="${q.id}" data-answer-text="${(q.student_answer || '').replace(/"/g, '&quot;')}" title="Edit Answer"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                                    <button class="icon-btn edit-btn edit-answer-btn" data-question-id="${q.id}" data-answer-text="${(q.student_answer || '').replace(/"/g, '&quot;')}" data-answer-photo-url="${q.answer_photo_url || ''}" title="Edit Answer"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
                                 </div>
                                 ${q.answer_photo_url ? `
                                     <div class="photo-gallery">
@@ -4546,7 +4546,8 @@
             const button = event.currentTarget;
             const questionId = button.getAttribute('data-question-id');
             const answerText = button.getAttribute('data-answer-text');
-            editQuestionAnswer(questionId, answerText);
+            const answerPhotoUrl = button.getAttribute('data-answer-photo-url');
+            editQuestionAnswer(questionId, answerText, answerPhotoUrl);
         }
 
         function closeDetailPanel() {
@@ -5517,7 +5518,7 @@
         }
         
         // Edit question answer in interview details
-        async function editQuestionAnswer(questionId, currentAnswer) {
+        async function editQuestionAnswer(questionId, currentAnswer, answerPhotoUrl) {
             const questionElement = document.getElementById(`question-${questionId}`);
             const answerDisplay = questionElement.querySelector('.answer-text-display');
             const editButton = questionElement.querySelector('.answer-section .edit-btn');
@@ -5527,6 +5528,8 @@
             input.className = 'answer-edit-input';
             input.value = currentAnswer;
             input.rows = 3;
+            // Store the photo URL as a data attribute to preserve it
+            input.setAttribute('data-answer-photo-url', answerPhotoUrl || '');
             
             // Create action buttons
             const actions = document.createElement('div');
@@ -5552,6 +5555,8 @@
             const questionElement = document.getElementById(`question-${questionId}`);
             const input = questionElement.querySelector('.answer-edit-input');
             const newAnswer = input.value.trim();
+            // Get the preserved photo URL from the input's data attribute
+            const answerPhotoUrl = input.getAttribute('data-answer-photo-url') || null;
             
             try {
                 const response = await fetch(`/api/interview-questions/${questionId}/answer`, {
@@ -5560,7 +5565,8 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        student_answer: newAnswer
+                        student_answer: newAnswer,
+                        answer_photo_url: answerPhotoUrl // Include the photo URL to preserve it
                     })
                 });
                 
@@ -5572,8 +5578,9 @@
                     answerDisplay.textContent = newAnswer || 'No answer provided';
                     answerDisplay.style.display = 'inline';
                     
-                    // Show edit button
+                    // Show edit button and update its data attribute with the photo URL
                     const editButton = questionElement.querySelector('.answer-section .edit-btn');
+                    editButton.setAttribute('data-answer-photo-url', answerPhotoUrl || '');
                     editButton.style.display = 'inline-block';
                     
                     // Remove input and actions
