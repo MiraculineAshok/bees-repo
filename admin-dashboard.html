@@ -2898,10 +2898,10 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                 <div class="form-group">
                     <label class="form-label" for="question-tags">Tags (Hashtags)</label>
                     <div id="tags-container" style="display:flex;flex-wrap:wrap;gap:8px;padding:8px;border:1px solid #d1d5db;border-radius:6px;min-height:42px;background:#fff;cursor:text">
-                        <input type="text" id="question-tags-input" placeholder="Type tag and press Enter..." style="border:none;outline:none;flex:1;min-width:150px;font-size:14px">
+                        <input type="text" id="question-tags-input" placeholder="Type custom tag and press Enter, or click suggestions below..." style="border:none;outline:none;flex:1;min-width:150px;font-size:14px">
                     </div>
                     <div style="margin-top:4px;font-size:12px;color:#6b7280">
-                        💡 Suggested tags: <span id="suggested-tags" style="color:#3b82f6;cursor:pointer"></span>
+                        💡 <strong>Type your own tags</strong> (press <kbd style="background:#f3f4f6;padding:2px 6px;border-radius:3px;border:1px solid #d1d5db">Enter</kbd> or <kbd style="background:#f3f4f6;padding:2px 6px;border-radius:3px;border:1px solid #d1d5db">,</kbd>) or click suggested tags: <span id="suggested-tags" style="color:#3b82f6;cursor:pointer"></span>
                     </div>
                 </div>
                 <div class="form-group">
@@ -6821,17 +6821,27 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             const newInput = input.cloneNode(true);
             input.replaceWith(newInput);
             
-            // Add Enter key listener
-            newInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const tag = newInput.value.trim();
-                    if (tag && !currentQuestionTags.includes(tag)) {
-                        currentQuestionTags.push(tag);
-                        addTagChip(tag);
-                        newInput.value = '';
-                    }
+            // Function to add tag from input
+            const addTagFromInput = () => {
+                const tag = newInput.value.trim();
+                if (tag && !currentQuestionTags.includes(tag)) {
+                    currentQuestionTags.push(tag);
+                    addTagChip(tag);
+                    newInput.value = '';
                 }
+            };
+            
+            // Add Enter, comma, or space key listener
+            newInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault();
+                    addTagFromInput();
+                }
+            });
+            
+            // Add tag on blur (when user clicks away)
+            newInput.addEventListener('blur', () => {
+                addTagFromInput();
             });
             
             // Focus input when clicking container
