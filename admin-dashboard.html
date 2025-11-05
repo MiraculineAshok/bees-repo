@@ -4730,7 +4730,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                     <td data-field="zeta_id">${interview.zeta_id || 'N/A'}</td>
                     <td data-field="session_name">${interview.session_name || 'N/A'}</td>
                     <td data-field="status"><span class="status-badge status-${interview.status}">${interview.status}</span></td>
-                    <td data-field="verdict">${interview.verdict || 'N/A'}</td>
+                    <td data-field="verdict">${interview.verdict || ''}</td>
                     <td data-field="duration_seconds">${formatDuration(interview.duration_seconds)}</td>
                     <td>
                         ${interview.status === 'in_progress' ? `<button class="icon-btn" onclick="resumeInterviewAdmin(${interview.id})" title="Resume">⏵</button>` : ''}
@@ -4827,7 +4827,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                             <td data-field="zeta_id">${interview.zeta_id || 'N/A'}</td>
                             <td data-field="session_name">${interview.session_name || 'N/A'}</td>
                             <td data-field="status"><span class="status-badge status-${interview.status}">${interview.status}</span></td>
-                            <td data-field="verdict">${interview.verdict || 'N/A'}</td>
+                            <td data-field="verdict">${interview.verdict || ''}</td>
                             <td data-field="duration_seconds">${formatDuration(interview.duration_seconds)}</td>
                             <td>
                                 <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
@@ -5911,7 +5911,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                     <td data-field="interview_date">${formatDate(interview.interview_date)}</td>
                     <td data-field="duration_seconds">${formatDuration(interview.duration_seconds)}</td>
                     <td data-field="status"><span class="status-badge status-${interview.status}">${interview.status}</span></td>
-                    <td data-field="verdict">${interview.verdict || 'N/A'}</td>
+                    <td data-field="verdict">${interview.verdict || ''}</td>
                     <td>
                         <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
                         <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete"><img src="/delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
@@ -5972,7 +5972,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                                         <td>${formatDate(interview.interview_date)}</td>
                                         <td>${formatDuration(interview.duration_seconds)}</td>
                                         <td><span class="status-badge status-${interview.status}">${interview.status}</span></td>
-                                        <td>${interview.verdict || 'N/A'}</td>
+                                        <td>${interview.verdict || ''}</td>
                                         <td>
                                             <button class="btn btn-primary" onclick="viewInterview(${interview.id})">View</button>
                                         </td>
@@ -8805,7 +8805,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                 i.zeta_id,
                 i.session_name || 'N/A',
                 i.status,
-                i.verdict || 'N/A',
+                i.verdict || '',
                 Math.round(i.duration_seconds / 60)
             ]);
             return [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
