@@ -3544,7 +3544,9 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                 rows = applyAdvancedFiltersCons(rows);
                 if (!tbody) return;
                 if (rows.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No consolidation data</td></tr>';
+                    // Check if no data at all or just no matches after filtering
+                    const hasFilters = window.__consolidationSearch || document.getElementById('filters-container-cons')?.querySelectorAll('.filter-row-adv').length > 0;
+                    tbody.innerHTML = `<tr><td colspan="10" class="empty-state">${hasFilters ? 'No matches found for your search or filter criteria' : 'No consolidation data'}</td></tr>`;
                     return;
                 }
                 const badge = (v)=>{
@@ -4718,6 +4720,19 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             list = applyAdvancedFiltersMyInterviews(list);
             list = applyInlineSort(list, 'my-interviews');
             
+            // Check if no results after filtering
+            if (list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No matches found for your search or filter criteria</td></tr>';
+                // Remove pagination controls and info
+                if (container) {
+                    const existingPagination = container.querySelector('.pagination-controls');
+                    if (existingPagination) existingPagination.remove();
+                    const existingInfo = container.querySelector('.pagination-info');
+                    if (existingInfo) existingInfo.remove();
+                }
+                return;
+            }
+            
             // Update pagination
             updateTotalPages(list, 'my-interviews');
             const paginatedData = getPaginatedData(list, 'my-interviews');
@@ -5640,6 +5655,17 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             filteredInterviews = applyAdvancedFilters(filteredInterviews);
             filteredInterviews = applyInlineSort(filteredInterviews, 'interviews');
             
+            // Check if no results after filtering
+            if (filteredInterviews.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No matches found for your search or filter criteria</td></tr>';
+                // Remove pagination controls and info
+                const existingPagination = container.querySelector('.pagination-controls');
+                if (existingPagination) existingPagination.remove();
+                const existingInfo = container.querySelector('.pagination-info');
+                if (existingInfo) existingInfo.remove();
+                return;
+            }
+            
             // Update pagination
             updateTotalPages(filteredInterviews, 'interviews');
             const paginatedData = getPaginatedData(filteredInterviews, 'interviews');
@@ -6163,6 +6189,19 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             list = applyAdvancedFiltersQuestions(list);
             list = applyInlineSort(list, 'questions');
             
+            // Check if no results after filtering
+            if (list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No matches found for your search or filter criteria</td></tr>';
+                // Remove pagination controls and info
+                if (container) {
+                    const existingPagination = container.querySelector('.pagination-controls');
+                    if (existingPagination) existingPagination.remove();
+                    const existingInfo = container.querySelector('.pagination-info');
+                    if (existingInfo) existingInfo.remove();
+                }
+                return;
+            }
+            
             // Update pagination
             updateTotalPages(list, 'questions');
             const paginatedData = getPaginatedData(list, 'questions');
@@ -6392,6 +6431,12 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             list = applyAdvancedFiltersSessions(list);
             list = applyInlineSort(list, 'sessions');
 
+            // Check if no results after filtering
+            if (list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No matches found for your search or filter criteria</td></tr>';
+                return;
+            }
+
             tbody.innerHTML = list.map(session => {
                 // Determine the type display based on is_panel value
                 const typeDisplay = session.is_panel ? 'Panel' : 'Regular';
@@ -6484,6 +6529,12 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             let list = applyInlineSearch(studentsData, term, ['name','email','zeta_id','phone']);
             list = applyAdvancedFiltersStudents(list);
             list = applyInlineSort(list, 'students');
+
+            // Check if no results after filtering
+            if (list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No matches found for your search or filter criteria</td></tr>';
+                return;
+            }
 
             tbody.innerHTML = list.map(student => {
                 // Format verdicts
@@ -9050,6 +9101,12 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             let list = applyInlineSearch(usersData, term, ['name','email','role','status']);
             list = applyAdvancedFiltersUsers(list);
             list = applyInlineSort(list, 'users');
+
+            // Check if no results after filtering
+            if (list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No matches found for your search or filter criteria</td></tr>';
+                return;
+            }
 
             let html = '';
             

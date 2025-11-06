@@ -3472,6 +3472,19 @@
             let filtered = applyInterviewerInline(baseList);
             filtered = applyAdvancedFiltersInterviews(filtered);
             
+            // Check if no results after filtering
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No matches found for your search or filter criteria</td></tr>';
+                // Remove pagination controls and info
+                if (container) {
+                    const existingPagination = container.querySelector('.pagination-controls');
+                    if (existingPagination) existingPagination.remove();
+                    const existingInfo = container.querySelector('.pagination-info');
+                    if (existingInfo) existingInfo.remove();
+                }
+                return;
+            }
+            
             // Update pagination
             updateTotalPages(filtered, 'interviews');
             const paginatedData = getPaginatedData(filtered, 'interviews');
@@ -4053,8 +4066,16 @@
             };
             data.sort((a,b)=>{ const av=getVal(a,field), bv=getVal(b,field); if(av<bv) return asc?-1:1; if(av>bv) return asc?1:-1; return 0; });
 
+            // Check if no results after filtering
             if (!data || data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No questions found.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No matches found for your search or filter criteria</td></tr>';
+                // Remove pagination controls and info
+                if (container) {
+                    const existingPagination = container.querySelector('.pagination-controls');
+                    if (existingPagination) existingPagination.remove();
+                    const existingInfo = container.querySelector('.pagination-info');
+                    if (existingInfo) existingInfo.remove();
+                }
                 return;
             }
 
