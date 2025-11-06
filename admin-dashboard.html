@@ -4783,6 +4783,9 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
 
                 // Update sort indicators
                 updateSortIndicators('my-interviews');
+                
+                // Update the Select All checkbox state after pagination
+                updateSelectAllCheckbox();
             }
         }
 
@@ -5698,6 +5701,9 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
 
             // Update sort indicators
             updateSortIndicators('interviews');
+            
+            // Update the Select All checkbox state after pagination
+            updateSelectAllCheckbox();
         }
 
         // Advanced Filters logic
@@ -6285,6 +6291,9 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
 
             // Update sort indicators
             updateSortIndicators('questions');
+            
+            // Update the Select All checkbox state after pagination
+            updateSelectAllCheckbox();
             }
             
             // Attach reliable click handlers for all edit buttons (avoid inline parsing edge cases)
@@ -6477,6 +6486,9 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
 
             // Update sort indicators
             updateSortIndicators('sessions');
+            
+            // Update the Select All checkbox state
+            updateSelectAllCheckbox();
         }
 
         // Students functions
@@ -6594,6 +6606,9 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
 
             // Update sort indicators
             updateSortIndicators('students');
+            
+            // Update the Select All checkbox state
+            updateSelectAllCheckbox();
         }
 
         // Modal functions
@@ -10265,7 +10280,25 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             checkboxes.forEach(checkbox => {
                 checkbox.checked = false;
             });
+            // Also uncheck the "Select All" checkbox
+            const selectAllCheckbox = scope.querySelector('th input[type="checkbox"]');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = false;
+            }
             updateBulkEditControls();
+        }
+
+        function updateSelectAllCheckbox() {
+            const section = (typeof currentSection !== 'undefined' && currentSection) ? currentSection : (document.querySelector('.nav-link.active') ? document.querySelector('.nav-link.active').dataset.section : '');
+            const scope = section ? document.getElementById(section) : document;
+            const selectAllCheckbox = scope.querySelector('th input[type="checkbox"]');
+            const visibleCheckboxes = scope.querySelectorAll('.row-checkbox');
+            
+            if (selectAllCheckbox && visibleCheckboxes.length > 0) {
+                // Check if all visible checkboxes are checked
+                const allChecked = Array.from(visibleCheckboxes).every(cb => cb.checked);
+                selectAllCheckbox.checked = allChecked;
+            }
         }
 
         function updateBulkEditControls() {
@@ -10275,6 +10308,9 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                 const count = ctrl.querySelector('#bulk-edit-selected-count');
                 if (count) count.textContent = label;
             });
+
+            // Update the Select All checkbox state
+            updateSelectAllCheckbox();
 
             // Toggle per-section bars
             const perBars = document.querySelectorAll('.bulk-edit-controls');
