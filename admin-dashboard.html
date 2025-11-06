@@ -9140,6 +9140,9 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
 
             // Update sort indicators
             updateSortIndicators('users');
+            
+            // Update the Select All checkbox state
+            updateSelectAllCheckbox();
         }
 
         function generateUserRow(user) {
@@ -9159,7 +9162,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
 
             return `
                 <tr data-row-id="${user.id}">
-                    <td><input type="checkbox" class="row-checkbox" onchange="toggleRowSelection(${user.id})"></td>
+                    <td><input type="checkbox" class="row-checkbox" data-row-id="${user.id}" onchange="toggleRowSelection(${user.id})"></td>
                     <td class="editable" data-field="name">${user.name || 'N/A'}</td>
                     <td class="editable" data-field="email">${user.email}</td>
                     <td><span class="role-badge ${roleClass}">${status}</span></td>
