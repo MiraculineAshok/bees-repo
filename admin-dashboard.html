@@ -9212,6 +9212,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
         }
 
         async function refreshUsers() {
+            clearSelection();
             await loadUsers();
         }
 
@@ -10059,14 +10060,17 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
 
         // Refresh functions
         function refreshInterviews() {
+            clearSelection();
             loadInterviews();
         }
 
         function refreshQuestions() {
+            clearSelection();
             loadQuestions();
         }
 
         function refreshStudents() {
+            clearSelection();
             loadStudents();
         }
 
