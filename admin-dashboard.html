@@ -10419,6 +10419,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             const fieldSelect = document.getElementById('bulk-edit-field');
             const valueGroup = document.getElementById('bulk-edit-value-group');
             const valueInput = document.getElementById('bulk-edit-value');
+            const section = (typeof currentSection !== 'undefined' && currentSection) ? currentSection : (document.querySelector('.nav-link.active') ? document.querySelector('.nav-link.active').dataset.section : '');
             
             if (fieldSelect.value) {
                 valueGroup.style.display = 'block';
@@ -10436,8 +10437,20 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                         <option value="Sheep" ${currentValue === 'Sheep' ? 'selected' : ''}>Sheep</option>
                     `;
                     valueInput.replaceWith(select);
+                } else if (fieldSelect.value === 'status' && section === 'sessions') {
+                    // If status field is selected in sessions, replace input with Active/Inactive dropdown
+                    const currentValue = valueInput.value;
+                    const select = document.createElement('select');
+                    select.id = 'bulk-edit-value';
+                    select.className = valueInput.className || 'form-input';
+                    select.innerHTML = `
+                        <option value="">Select Status...</option>
+                        <option value="active" ${currentValue === 'active' ? 'selected' : ''}>Active</option>
+                        <option value="inactive" ${currentValue === 'inactive' ? 'selected' : ''}>Inactive</option>
+                    `;
+                    valueInput.replaceWith(select);
                 } else {
-                    // If it's not verdict but current element is a select, replace with input
+                    // If it's not verdict or session status but current element is a select, replace with input
                     if (valueInput && valueInput.tagName === 'SELECT') {
                         const input = document.createElement('input');
                         input.type = 'text';
