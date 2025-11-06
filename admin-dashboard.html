@@ -10314,7 +10314,8 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                 fields = [
                     { value: 'name', text: 'Name' },
                     { value: 'description', text: 'Description' },
-                    { value: 'status', text: 'Status' }
+                    { value: 'status', text: 'Status' },
+                    { value: 'is_panel', text: 'Type' }
                 ];
             } else if (section === 'interviews' || section === 'my-interviews') {
                 fields = [
@@ -10447,6 +10448,18 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                         <option value="">Select Status...</option>
                         <option value="active" ${currentValue === 'active' ? 'selected' : ''}>Active</option>
                         <option value="inactive" ${currentValue === 'inactive' ? 'selected' : ''}>Inactive</option>
+                    `;
+                    valueInput.replaceWith(select);
+                } else if (fieldSelect.value === 'is_panel' && section === 'sessions') {
+                    // If type field is selected in sessions, replace input with Panel/Regular dropdown
+                    const currentValue = valueInput.value;
+                    const select = document.createElement('select');
+                    select.id = 'bulk-edit-value';
+                    select.className = valueInput.className || 'form-input';
+                    select.innerHTML = `
+                        <option value="">Select Type...</option>
+                        <option value="true" ${currentValue === 'true' || currentValue === true ? 'selected' : ''}>Panel</option>
+                        <option value="false" ${currentValue === 'false' || currentValue === false ? 'selected' : ''}>Regular</option>
                     `;
                     valueInput.replaceWith(select);
                 } else {
