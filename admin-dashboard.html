@@ -478,6 +478,16 @@
         .data-table tr.editing {
             background: #fef3c7;
         }
+        
+        /* Reduce width of question column in questions table */
+        #questions .data-table th[data-field="question"],
+        #questions .data-table td[data-field="question"] {
+            max-width: 250px;
+            width: 250px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
 
         /* Icon buttons */
         .icon-btn {
