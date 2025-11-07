@@ -1495,8 +1495,14 @@
             text-align: center;
         }
         
-        .total-score-section {
+        .score-verdict-container {
+            display: flex;
+            gap: 0.75rem;
             margin-bottom: 1rem;
+        }
+        
+        .total-score-section {
+            flex: 1;
             padding: 0.75rem;
             background: #f0f9ff;
             border-radius: 6px;
@@ -1538,7 +1544,7 @@
         }
         
         .verdict-section {
-            margin-bottom: 1rem;
+            flex: 1;
             padding: 0.75rem;
             background: #f7fafc;
             border-radius: 6px;
@@ -1568,6 +1574,10 @@
         
         .notes-section {
             margin-bottom: 1.5rem;
+            width: 100%;
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
         }
         
         .notes-title {
@@ -1579,12 +1589,12 @@
         
         .notes-textarea {
             width: 100%;
-            min-height: 120px;
+            flex: 1;
             padding: 0.5rem;
             border: 2px solid #e9ecef;
             border-radius: 8px;
             font-size: 0.9rem;
-            resize: vertical;
+            resize: none;
             transition: border-color 0.3s ease;
         }
         
@@ -2306,25 +2316,27 @@
         <div class="right-panel">
             <h3 class="panel-title">Interview Management</h3>
             
-            <div class="total-score-section" id="total-score-section">
-                <h4 class="total-score-title">Total Score</h4>
-                <div class="total-score-display">
-                    <span class="total-score-value" id="total-score-value">0</span>
-                    <span class="total-score-max">/ <span id="max-score-value">0</span></span>
+            <div class="score-verdict-container">
+                <div class="total-score-section" id="total-score-section">
+                    <h4 class="total-score-title">Total Score</h4>
+                    <div class="total-score-display">
+                        <span class="total-score-value" id="total-score-value">0</span>
+                        <span class="total-score-max">/ <span id="max-score-value">0</span></span>
+                    </div>
+                    <div class="total-score-breakdown" id="score-breakdown">
+                        0 questions scored
+                    </div>
                 </div>
-                <div class="total-score-breakdown" id="score-breakdown">
-                    0 questions scored
+                
+                <div class="verdict-section" id="verdict-section">
+                    <h4 class="verdict-title">Interview Verdict</h4>
+                    <select id="verdict-select" class="verdict-select" onchange="updateVerdict()" required>
+                        <option value="">Select Verdict *</option>
+                        <option value="Tiger">Tiger</option>
+                        <option value="Cow">Cow</option>
+                        <option value="Sheep">Sheep</option>
+                    </select>
                 </div>
-            </div>
-            
-            <div class="verdict-section" id="verdict-section">
-                <h4 class="verdict-title">Interview Verdict</h4>
-                <select id="verdict-select" class="verdict-select" onchange="updateVerdict()" required>
-                    <option value="">Select Verdict *</option>
-                    <option value="Tiger">Tiger</option>
-                    <option value="Cow">Cow</option>
-                    <option value="Sheep">Sheep</option>
-                </select>
             </div>
             
             <div class="notes-section">
