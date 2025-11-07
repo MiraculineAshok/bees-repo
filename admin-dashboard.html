@@ -3351,12 +3351,12 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             return controls;
         }
         
-        function changePage(section, page) {
+        async function changePage(section, page) {
             currentPage[section] = page;
-            refreshCurrentSection();
+            await refreshCurrentSection();
         }
         
-        function refreshCurrentSection() {
+        async function refreshCurrentSection() {
             switch(currentSection) {
                 case 'interviews':
                     displayInterviews();
@@ -3375,6 +3375,9 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                     break;
                 case 'my-interviews':
                     displayMyInterviews();
+                    break;
+                case 'consolidation':
+                    await loadConsolidation();
                     break;
             }
         }
