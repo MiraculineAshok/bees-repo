@@ -558,6 +558,19 @@
             display: block;
         }
         
+        .question-text-section {
+            position: relative;
+            padding: 0.75rem;
+            background: #f7fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .question-text-display {
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #1f2937;
+        }
+        
         .question-text {
             font-size: 1rem;
             line-height: 1.5;
@@ -565,6 +578,25 @@
             padding: 0.75rem;
             background: #f7fafc;
             border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .edit-question-btn {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        
+        .edit-question-btn:hover {
+            opacity: 1;
         }
         
         /* Fixed images in question display */
@@ -3097,7 +3129,12 @@
                         </div>
                     </div>
                     <div class="question-content" id="content-${question.id}">
-                        <div class="question-text">${question.question_rich_content || question.question_text}</div>
+                        <div class="question-text-section">
+                            <div class="question-text-display" id="question-text-display-${question.id}">${question.question_rich_content || question.question_text}</div>
+                            <button class="edit-question-btn" onclick="event.stopPropagation(); editQuestionText(${question.id})" title="Edit Question">
+                                <img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle">
+                            </button>
+                        </div>
                         <div class="answer-section">
                             <label class="answer-label">Student Answer</label>
                             <textarea 
@@ -4871,6 +4908,133 @@
                 console.error('Error deleting question:', error);
                 showError('Error deleting question');
             }
+        }
+
+        // Edit question text
+        const questionEditEditors = {}; // Store editors per question ID
+        async function editQuestionText(questionId) {
+            const question = questions.find(q => q.id === questionId);
+            if (!question) {
+                showError('Question not found');
+                return;
+            }
+
+            const displayDiv = document.getElementById(`question-text-display-${questionId}`);
+            if (!displayDiv) {
+                showError('Question display element not found');
+                return;
+            }
+
+            // Get current question content
+            const currentContent = question.question_rich_content || question.question_text || '';
+
+            // Create editor container
+            const editorContainer = document.createElement('div');
+            editorContainer.id = `question-editor-${questionId}`;
+            editorContainer.style.cssText = 'margin-bottom: 0.5rem;';
+            
+            // Create Quill editor
+            const editorDiv = document.createElement('div');
+            editorDiv.id = `question-quill-editor-${questionId}`;
+            editorDiv.style.cssText = 'background: white; border: 1px solid #d1d5db; border-radius: 4px; min-height: 150px;';
+            
+            editorContainer.appendChild(editorDiv);
+            
+            // Create action buttons
+            const actionsDiv = document.createElement('div');
+            actionsDiv.style.cssText = 'display: flex; gap: 0.5rem; margin-top: 0.5rem;';
+            actionsDiv.innerHTML = `
+                <button class="btn btn-primary" onclick="saveQuestionText(${questionId})" style="padding: 0.5rem 1rem; font-size: 0.875rem;">Save</button>
+                <button class="btn btn-secondary" onclick="cancelQuestionTextEdit(${questionId})" style="padding: 0.5rem 1rem; font-size: 0.875rem;">Cancel</button>
+            `;
+            editorContainer.appendChild(actionsDiv);
+
+            // Replace display with editor
+            displayDiv.style.display = 'none';
+            displayDiv.parentElement.appendChild(editorContainer);
+
+            // Initialize Quill editor
+            const editor = new Quill(`#question-quill-editor-${questionId}`, {
+                theme: 'snow',
+                modules: {
+                    toolbar: [
+                        [{ 'header': [1, 2, 3, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        ['link', 'image'],
+                        ['clean']
+                    ]
+                }
+            });
+
+            // Store editor per question ID
+            questionEditEditors[questionId] = editor;
+
+            // Set initial content
+            editor.root.innerHTML = currentContent;
+            editor.focus();
+        }
+
+        // Save question text
+        async function saveQuestionText(questionId) {
+            const editor = questionEditEditors[questionId];
+            if (!editor) {
+                showError('Editor not found');
+                return;
+            }
+
+            const newContent = editor.root.innerHTML;
+            
+            try {
+                const response = await fetch(`/api/interview-questions/${questionId}/text`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        question_text: newContent
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Update local question data
+                    const question = questions.find(q => q.id === questionId);
+                    if (question) {
+                        question.question_text = newContent;
+                        question.question_rich_content = newContent;
+                    }
+
+                    // Refresh display
+                    await displayQuestions();
+                    showSuccess('Question updated successfully');
+                } else {
+                    showError(result.error || 'Error updating question');
+                }
+            } catch (error) {
+                console.error('Error updating question:', error);
+                showError('Error updating question');
+            } finally {
+                // Clean up editor
+                delete questionEditEditors[questionId];
+            }
+        }
+
+        // Cancel question text edit
+        function cancelQuestionTextEdit(questionId) {
+            const editorContainer = document.getElementById(`question-editor-${questionId}`);
+            if (editorContainer) {
+                editorContainer.remove();
+            }
+            
+            const displayDiv = document.getElementById(`question-text-display-${questionId}`);
+            if (displayDiv) {
+                displayDiv.style.display = 'block';
+            }
+            
+            // Clean up editor
+            delete questionEditEditors[questionId];
         }
 
         // Update score display as user moves slider
