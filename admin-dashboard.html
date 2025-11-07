@@ -6440,10 +6440,22 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             // Check if no results after filtering
             if (list.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No matches found for your search or filter criteria</td></tr>';
+                // Remove pagination controls and info
+                const container = document.querySelector('#sessions .table-container');
+                if (container) {
+                    const existingPagination = container.querySelector('.pagination-controls');
+                    if (existingPagination) existingPagination.remove();
+                    const existingInfo = container.querySelector('.pagination-info');
+                    if (existingInfo) existingInfo.remove();
+                }
                 return;
             }
 
-            tbody.innerHTML = list.map(session => {
+            // Update pagination
+            updateTotalPages(list, 'sessions');
+            const paginatedData = getPaginatedData(list, 'sessions');
+
+            tbody.innerHTML = paginatedData.map(session => {
                 // Determine the type display based on is_panel value
                 const typeDisplay = session.is_panel ? 'Panel' : 'Regular';
                 
@@ -6489,6 +6501,36 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             
             // Update the Select All checkbox state
             updateSelectAllCheckbox();
+            
+            // Add pagination controls
+            const container = document.querySelector('#sessions .table-container');
+            if (container) {
+                const existingPagination = container.querySelector('.pagination-controls');
+                if (existingPagination) {
+                    existingPagination.remove();
+                }
+                
+                const paginationHTML = createPaginationControls('sessions');
+                if (paginationHTML) {
+                    container.insertAdjacentHTML('beforeend', paginationHTML);
+                }
+                
+                // Add pagination info
+                const existingInfo = container.querySelector('.pagination-info');
+                if (existingInfo) {
+                    existingInfo.remove();
+                }
+                
+                const startIndex = (currentPage['sessions'] - 1) * ITEMS_PER_PAGE + 1;
+                const endIndex = Math.min(currentPage['sessions'] * ITEMS_PER_PAGE, list.length);
+                const infoHTML = `
+                    <div class="pagination-info">
+                        <span>Showing ${startIndex}-${endIndex} of ${list.length} sessions</span>
+                        <span>Page ${currentPage['sessions']} of ${totalPages['sessions']}</span>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', infoHTML);
+            }
         }
 
         // Students functions
@@ -6542,10 +6584,22 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             // Check if no results after filtering
             if (list.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No matches found for your search or filter criteria</td></tr>';
+                // Remove pagination controls and info
+                const container = document.querySelector('#students .table-container');
+                if (container) {
+                    const existingPagination = container.querySelector('.pagination-controls');
+                    if (existingPagination) existingPagination.remove();
+                    const existingInfo = container.querySelector('.pagination-info');
+                    if (existingInfo) existingInfo.remove();
+                }
                 return;
             }
 
-            tbody.innerHTML = list.map(student => {
+            // Update pagination
+            updateTotalPages(list, 'students');
+            const paginatedData = getPaginatedData(list, 'students');
+
+            tbody.innerHTML = paginatedData.map(student => {
                 // Format verdicts
                 let verdictsDisplay = '-';
                 if (student.recent_verdicts && student.recent_verdicts.length > 0) {
@@ -6609,6 +6663,36 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             
             // Update the Select All checkbox state
             updateSelectAllCheckbox();
+            
+            // Add pagination controls
+            const container = document.querySelector('#students .table-container');
+            if (container) {
+                const existingPagination = container.querySelector('.pagination-controls');
+                if (existingPagination) {
+                    existingPagination.remove();
+                }
+                
+                const paginationHTML = createPaginationControls('students');
+                if (paginationHTML) {
+                    container.insertAdjacentHTML('beforeend', paginationHTML);
+                }
+                
+                // Add pagination info
+                const existingInfo = container.querySelector('.pagination-info');
+                if (existingInfo) {
+                    existingInfo.remove();
+                }
+                
+                const startIndex = (currentPage['students'] - 1) * ITEMS_PER_PAGE + 1;
+                const endIndex = Math.min(currentPage['students'] * ITEMS_PER_PAGE, list.length);
+                const infoHTML = `
+                    <div class="pagination-info">
+                        <span>Showing ${startIndex}-${endIndex} of ${list.length} students</span>
+                        <span>Page ${currentPage['students']} of ${totalPages['students']}</span>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', infoHTML);
+            }
         }
 
         // Modal functions
@@ -9117,8 +9201,20 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             // Check if no results after filtering
             if (list.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No matches found for your search or filter criteria</td></tr>';
+                // Remove pagination controls and info
+                const container = document.querySelector('#users .table-container');
+                if (container) {
+                    const existingPagination = container.querySelector('.pagination-controls');
+                    if (existingPagination) existingPagination.remove();
+                    const existingInfo = container.querySelector('.pagination-info');
+                    if (existingInfo) existingInfo.remove();
+                }
                 return;
             }
+
+            // Update pagination
+            updateTotalPages(list, 'users');
+            const paginatedData = getPaginatedData(list, 'users');
 
             let html = '';
             
@@ -9127,13 +9223,11 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                 const grouped = groupUsers(usersData, groupBy);
                 Object.keys(grouped).forEach(groupKey => {
                     html += `<tr class="group-header"><td colspan="9"><strong>${groupKey}</strong></td></tr>`;
-                    grouped[groupKey].forEach(user => {
-                        html += generateUserRow(user);
-                    });
+                    grouped[groupKey].forEach(user => { html += generateUserRow(user); });
                 });
             } else {
-                // Display users without grouping
-                list.forEach(user => { html += generateUserRow(user); });
+                // Display users without grouping (use paginated data)
+                paginatedData.forEach(user => { html += generateUserRow(user); });
             }
 
             tbody.innerHTML = html;
@@ -9143,6 +9237,36 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             
             // Update the Select All checkbox state
             updateSelectAllCheckbox();
+            
+            // Add pagination controls
+            const container = document.querySelector('#users .table-container');
+            if (container) {
+                const existingPagination = container.querySelector('.pagination-controls');
+                if (existingPagination) {
+                    existingPagination.remove();
+                }
+                
+                const paginationHTML = createPaginationControls('users');
+                if (paginationHTML) {
+                    container.insertAdjacentHTML('beforeend', paginationHTML);
+                }
+                
+                // Add pagination info
+                const existingInfo = container.querySelector('.pagination-info');
+                if (existingInfo) {
+                    existingInfo.remove();
+                }
+                
+                const startIndex = (currentPage['users'] - 1) * ITEMS_PER_PAGE + 1;
+                const endIndex = Math.min(currentPage['users'] * ITEMS_PER_PAGE, list.length);
+                const infoHTML = `
+                    <div class="pagination-info">
+                        <span>Showing ${startIndex}-${endIndex} of ${list.length} users</span>
+                        <span>Page ${currentPage['users']} of ${totalPages['users']}</span>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', infoHTML);
+            }
         }
 
         function generateUserRow(user) {
