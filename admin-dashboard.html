@@ -4563,47 +4563,105 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                             let answerImagesHtml = '';
                             if (q.answer_photo_url) {
                                 try {
-                                    // Try to parse as JSON array
                                     let imageUrls = [];
-                                    if (typeof q.answer_photo_url === 'string') {
-                                        // Check if it looks like a JSON array
-                                        const trimmed = q.answer_photo_url.trim();
+                                    const rawValue = q.answer_photo_url;
+                                    
+                                    // Handle different data formats
+                                    if (Array.isArray(rawValue)) {
+                                        // Already an array
+                                        imageUrls = rawValue;
+                                    } else if (typeof rawValue === 'string') {
+                                        const trimmed = rawValue.trim();
+                                        // Check if it's a JSON array string
                                         if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-                                            imageUrls = JSON.parse(trimmed);
+                                            try {
+                                                imageUrls = JSON.parse(trimmed);
+                                                // Ensure it's an array after parsing
+                                                if (!Array.isArray(imageUrls)) {
+                                                    imageUrls = [imageUrls];
+                                                }
+                                            } catch (parseError) {
+                                                // If JSON parse fails, try to extract URLs from the string
+                                                // Handle cases like: ["url1", "url2"] or ['url1', 'url2']
+                                                const urlMatches = trimmed.match(/https?:\/\/[^\s"']+/g);
+                                                if (urlMatches && urlMatches.length > 0) {
+                                                    imageUrls = urlMatches;
+                                                } else {
+                                                    // Fallback: treat as single URL
+                                                    imageUrls = [trimmed];
+                                                }
+                                            }
+                                        } else if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+                                            // Remove surrounding quotes
+                                            const unquoted = trimmed.slice(1, -1);
+                                            if (unquoted.startsWith('[') && unquoted.endsWith(']')) {
+                                                try {
+                                                    imageUrls = JSON.parse(unquoted);
+                                                    if (!Array.isArray(imageUrls)) {
+                                                        imageUrls = [imageUrls];
+                                                    }
+                                                } catch (e) {
+                                                    imageUrls = [trimmed];
+                                                }
+                                            } else {
+                                                imageUrls = [unquoted];
+                                            }
                                         } else {
                                             // Single URL string
                                             imageUrls = [trimmed];
                                         }
-                                    } else if (Array.isArray(q.answer_photo_url)) {
-                                        imageUrls = q.answer_photo_url;
                                     } else {
-                                        imageUrls = [q.answer_photo_url];
+                                        // Convert to string and treat as single URL
+                                        imageUrls = [String(rawValue)];
                                     }
                                     
                                     // Filter out empty strings and create image HTML
-                                    const validUrls = imageUrls.filter(url => url && url.trim()).map(url => url.trim());
+                                    const validUrls = imageUrls.filter(url => {
+                                        if (!url) return false;
+                                        const urlStr = String(url).trim();
+                                        return urlStr.length > 0 && (urlStr.startsWith('http://') || urlStr.startsWith('https://'));
+                                    }).map(url => String(url).trim());
+                                    
                                     if (validUrls.length > 0) {
-                                        answerImagesHtml = '<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:8px">' +
-                                            validUrls.map(url => {
-                                                const escapedUrl = url.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                                                return `<img src="${escapedUrl}" alt="answer photo" style="width:300px;height:300px;object-fit:contain;border:1px solid #e5e7eb;border-radius:4px;cursor:pointer" onclick="openImageModal('${escapedUrl}')">`;
-                                            }).join('') +
-                                            '</div>';
+                                        const images = validUrls.map(url => {
+                                            // Escape for HTML attributes
+                                            const escapedUrl = url.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                                            // Escape for JavaScript string
+                                            const jsEscapedUrl = url.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+                                            return `<img src="${escapedUrl}" alt="answer photo" style="width:300px;height:300px;object-fit:contain;border:1px solid #e5e7eb;border-radius:4px;cursor:pointer" onclick="openImageModal('${jsEscapedUrl}')">`;
+                                        }).join('');
+                                        answerImagesHtml = `<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:8px">${images}</div>`;
                                     }
                                 } catch (e) {
-                                    // If parsing fails, treat as single URL
-                                    const url = typeof q.answer_photo_url === 'string' ? q.answer_photo_url.trim() : String(q.answer_photo_url);
-                                    if (url) {
-                                        const escapedUrl = url.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                                        answerImagesHtml = `<div style="margin-top:6px"><img src="${escapedUrl}" alt="answer photo" style="width:300px;height:300px;object-fit:contain;border:1px solid #e5e7eb;border-radius:4px;cursor:pointer" onclick="openImageModal('${escapedUrl}')"></div>`;
+                                    console.error('Error parsing answer_photo_url:', e, q.answer_photo_url);
+                                    // If all parsing fails, try to extract URL from the raw value
+                                    const rawStr = String(q.answer_photo_url);
+                                    const urlMatch = rawStr.match(/https?:\/\/[^\s"']+/);
+                                    if (urlMatch) {
+                                        const url = urlMatch[0];
+                                        const escapedUrl = url.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                                        const jsEscapedUrl = url.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+                                        answerImagesHtml = `<div style="margin-top:6px"><img src="${escapedUrl}" alt="answer photo" style="width:300px;height:300px;object-fit:contain;border:1px solid #e5e7eb;border-radius:4px;cursor:pointer" onclick="openImageModal('${jsEscapedUrl}')"></div>`;
                                     }
                                 }
+                            }
+                            
+                            // Handle question images in rich content - ensure fixed size
+                            let questionContentHtml = '';
+                            if (q.question_rich_content) {
+                                // Replace all img tags with fixed size styling
+                                questionContentHtml = q.question_rich_content.replace(/<img([^>]*)>/gi, (match, attrs) => {
+                                    // Remove existing width/height/style attributes
+                                    let cleanAttrs = attrs.replace(/\s*(width|height|style)=["'][^"']*["']/gi, '');
+                                    // Add fixed size styling
+                                    return `<img${cleanAttrs} style="max-width:300px;max-height:300px;width:auto;height:auto;object-fit:contain;border:1px solid #e5e7eb;border-radius:4px;display:block;margin:4px 0;">`;
+                                });
                             }
                             
                             return `
                           <div style=\"border:1px solid #e5e7eb;border-radius:6px;padding:8px;margin-bottom:8px\">
                             <div style=\"font-weight:600;color:#111827;margin-bottom:4px\">Q: ${q.question_text||'-'}</div>
-                            ${q.question_rich_content? `<div style=\"color:#374151;margin-bottom:6px\">${q.question_rich_content.replace(/<img(.*?)>/g, '<img$1 style=\\"width:300px;height:300px;object-fit:contain;border:1px solid #e5e7eb;border-radius:4px\\" >')}</div>` : ''}
+                            ${questionContentHtml ? `<div style=\"color:#374151;margin-bottom:6px\">${questionContentHtml}</div>` : ''}
                             <div style=\"color:#374151\"><strong>Answer:</strong> ${(q.student_answer||'-').toString().replace(/\\n/g,'<br>')}</div>
                             ${answerImagesHtml}
                           </div>
