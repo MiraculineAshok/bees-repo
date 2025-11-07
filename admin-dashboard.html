@@ -4558,14 +4558,57 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                         if (!qRes.ok || !qJson.success){ container.textContent = 'Failed to load questions'; continue; }
                         const qas = (qJson.data||[]);
                         if (!qas.length){ container.textContent = 'No questions recorded'; continue; }
-                        container.innerHTML = qas.map(q=>`
+                        container.innerHTML = qas.map(q=>{
+                            // Handle answer_photo_url - could be a string, JSON array string, or array
+                            let answerImagesHtml = '';
+                            if (q.answer_photo_url) {
+                                try {
+                                    // Try to parse as JSON array
+                                    let imageUrls = [];
+                                    if (typeof q.answer_photo_url === 'string') {
+                                        // Check if it looks like a JSON array
+                                        const trimmed = q.answer_photo_url.trim();
+                                        if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+                                            imageUrls = JSON.parse(trimmed);
+                                        } else {
+                                            // Single URL string
+                                            imageUrls = [trimmed];
+                                        }
+                                    } else if (Array.isArray(q.answer_photo_url)) {
+                                        imageUrls = q.answer_photo_url;
+                                    } else {
+                                        imageUrls = [q.answer_photo_url];
+                                    }
+                                    
+                                    // Filter out empty strings and create image HTML
+                                    const validUrls = imageUrls.filter(url => url && url.trim()).map(url => url.trim());
+                                    if (validUrls.length > 0) {
+                                        answerImagesHtml = '<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:8px">' +
+                                            validUrls.map(url => {
+                                                const escapedUrl = url.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                                                return `<img src="${escapedUrl}" alt="answer photo" style="width:300px;height:300px;object-fit:contain;border:1px solid #e5e7eb;border-radius:4px;cursor:pointer" onclick="openImageModal('${escapedUrl}')">`;
+                                            }).join('') +
+                                            '</div>';
+                                    }
+                                } catch (e) {
+                                    // If parsing fails, treat as single URL
+                                    const url = typeof q.answer_photo_url === 'string' ? q.answer_photo_url.trim() : String(q.answer_photo_url);
+                                    if (url) {
+                                        const escapedUrl = url.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                                        answerImagesHtml = `<div style="margin-top:6px"><img src="${escapedUrl}" alt="answer photo" style="width:300px;height:300px;object-fit:contain;border:1px solid #e5e7eb;border-radius:4px;cursor:pointer" onclick="openImageModal('${escapedUrl}')"></div>`;
+                                    }
+                                }
+                            }
+                            
+                            return `
                           <div style=\"border:1px solid #e5e7eb;border-radius:6px;padding:8px;margin-bottom:8px\">
                             <div style=\"font-weight:600;color:#111827;margin-bottom:4px\">Q: ${q.question_text||'-'}</div>
                             ${q.question_rich_content? `<div style=\"color:#374151;margin-bottom:6px\">${q.question_rich_content.replace(/<img(.*?)>/g, '<img$1 style=\\"width:300px;height:300px;object-fit:contain;border:1px solid #e5e7eb;border-radius:4px\\" >')}</div>` : ''}
                             <div style=\"color:#374151\"><strong>Answer:</strong> ${(q.student_answer||'-').toString().replace(/\\n/g,'<br>')}</div>
-                            ${q.answer_photo_url? `<div style=\"margin-top:6px\"><img src=\"${q.answer_photo_url}\" alt=\"answer photo\" style=\"width:300px;height:300px;object-fit:contain;border:1px solid #e5e7eb;border-radius:4px\"></div>` : ''}
+                            ${answerImagesHtml}
                           </div>
-                        `).join('');
+                        `;
+                        }).join('');
                     }catch(err){
                         const container = document.getElementById(`iq-${interview.id}`);
                         if (container) container.textContent = 'Failed to load questions';
