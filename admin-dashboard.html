@@ -3182,7 +3182,8 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             sessions: 1,
             students: 1,
             users: 1,
-            'my-interviews': 1
+            'my-interviews': 1,
+            consolidation: 1
         };
         let totalPages = {
             interviews: 1,
@@ -3190,7 +3191,8 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             sessions: 1,
             students: 1,
             users: 1,
-            'my-interviews': 1
+            'my-interviews': 1,
+            consolidation: 1
         };
 
         // Inline sorting state per tab
@@ -3544,8 +3546,21 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                     // Check if no data at all or just no matches after filtering
                     const hasFilters = window.__consolidationSearch || document.getElementById('filters-container-cons')?.querySelectorAll('.filter-row-adv').length > 0;
                     tbody.innerHTML = `<tr><td colspan="10" class="empty-state">${hasFilters ? 'No matches found for your search or filter criteria' : 'No consolidation data'}</td></tr>`;
+                    // Remove pagination controls and info
+                    const container = document.querySelector('#consolidation .table-container');
+                    if (container) {
+                        const existingPagination = container.querySelector('.pagination-controls');
+                        if (existingPagination) existingPagination.remove();
+                        const existingInfo = container.querySelector('.pagination-info');
+                        if (existingInfo) existingInfo.remove();
+                    }
                     return;
                 }
+                
+                // Update pagination
+                updateTotalPages(rows, 'consolidation');
+                const paginatedData = getPaginatedData(rows, 'consolidation');
+                
                 const badge = (v)=>{
                     const t=String(v||'').toLowerCase();
                     const tiger=t.includes('tiger'), cow=t.includes('cow'), sheep=t.includes('sheep');
@@ -3557,7 +3572,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                     const color = t.includes('completed')? '#10b981' : t.includes('progress')? '#f59e0b' : '#6b7280';
                     return `<span style="display:inline-block;background:${color};color:#fff;padding:3px 8px;border-radius:12px;font-size:11px;margin:2px;white-space:nowrap">${v||'-'}</span>`;
                 };
-                const html = rows.map(r => {
+                const html = paginatedData.map(r => {
                     const interviewerNames = Array.isArray(r.interviewer_names) ? r.interviewer_names.join('<br>') : '-';
                     const verdicts = Array.isArray(r.verdicts) ? r.verdicts.map(badge).join('<br>') : '-';
                     const interviewStatuses = Array.isArray(r.interview_statuses) ? r.interview_statuses.map(statusBadge).join('<br>') : '-';
@@ -3595,6 +3610,36 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                     `;
                 }).join('');
                 tbody.innerHTML = html;
+                
+                // Add pagination controls
+                const container = document.querySelector('#consolidation .table-container');
+                if (container) {
+                    const existingPagination = container.querySelector('.pagination-controls');
+                    if (existingPagination) {
+                        existingPagination.remove();
+                    }
+                    
+                    const paginationHTML = createPaginationControls('consolidation');
+                    if (paginationHTML) {
+                        container.insertAdjacentHTML('beforeend', paginationHTML);
+                    }
+                    
+                    // Add pagination info
+                    const existingInfo = container.querySelector('.pagination-info');
+                    if (existingInfo) {
+                        existingInfo.remove();
+                    }
+                    
+                    const startIndex = (currentPage['consolidation'] - 1) * ITEMS_PER_PAGE + 1;
+                    const endIndex = Math.min(currentPage['consolidation'] * ITEMS_PER_PAGE, rows.length);
+                    const infoHTML = `
+                        <div class="pagination-info">
+                            <span>Showing ${startIndex}-${endIndex} of ${rows.length} records</span>
+                            <span>Page ${currentPage['consolidation']} of ${totalPages['consolidation']}</span>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', infoHTML);
+                }
             } catch (e) {
                 console.error('Error loading consolidation:', e);
                 const tbody = document.getElementById('consolidation-table-body');
@@ -4736,7 +4781,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
 
             tbody.innerHTML = paginatedData.map(interview => `
                 <tr data-row-id="${interview.id}">
-                    <td><input type="checkbox" class="row-checkbox" data-row-id="${interview.id}" onchange="toggleRowSelection('${interview.id}')"></td>
+                    <td><input type="checkbox" class="row-checkbox" data-row-id="${interview.id}" ${selectedRows.has(String(interview.id)) ? 'checked' : ''} onchange="toggleRowSelection('${interview.id}')"></td>
                     <td data-field="created_at">${formatDate(interview.created_at || interview.interview_date)}</td>
                     <td data-field="student_name">${interview.student_name || 'N/A'}</td>
                     <td data-field="zeta_id">${interview.zeta_id || 'N/A'}</td>
@@ -5933,7 +5978,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
 
             tbody.innerHTML = interviewList.map(interview => `
                 <tr data-row-id="${interview.id}">
-                    <td><input type="checkbox" class="row-checkbox" data-row-id="${interview.id}" onchange="toggleRowSelection('${interview.id}')"></td>
+                    <td><input type="checkbox" class="row-checkbox" data-row-id="${interview.id}" ${selectedRows.has(String(interview.id)) ? 'checked' : ''} onchange="toggleRowSelection('${interview.id}')"></td>
                     <td data-field="student_name">${interview.student_name || 'N/A'}</td>
                     <td data-field="interviewer_name">${interview.interviewer_name || 'N/A'}</td>
                     <td data-field="session_name">${interview.session_name || 'N/A'}</td>
@@ -6232,7 +6277,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                 
                 return `
                 <tr data-row-id="${question.id}">
-                    <td><input type="checkbox" class="row-checkbox" data-row-id="${question.id}" onchange="toggleRowSelection('${question.id}')"></td>
+                    <td><input type="checkbox" class="row-checkbox" data-row-id="${question.id}" ${selectedRows.has(String(question.id)) ? 'checked' : ''} onchange="toggleRowSelection('${question.id}')"></td>
                     <td data-field="question">${question.question || 'N/A'}</td>
                     <td data-field="tags">${tagsDisplay}</td>
                     <td data-field="times_asked">${question.times_asked || question.count_of_times_asked || 0}</td>
@@ -6461,7 +6506,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                 
                 return `
                 <tr data-row-id="${session.id}">
-                    <td><input type="checkbox" class="row-checkbox" data-row-id="${session.id}" onchange="toggleRowSelection('${session.id}')"></td>
+                    <td><input type="checkbox" class="row-checkbox" data-row-id="${session.id}" ${selectedRows.has(String(session.id)) ? 'checked' : ''} onchange="toggleRowSelection('${session.id}')"></td>
                     <td data-field="name">${session.name}</td>
                     <td data-field="description">${session.description || 'N/A'}</td>
                     <td data-field="is_panel">${typeDisplay}</td>
@@ -6622,7 +6667,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                 
                 return `
                     <tr data-row-id="${student.id}">
-                        <td><input type="checkbox" class="row-checkbox" data-row-id="${student.id}" onchange="toggleRowSelection('${student.id}')"></td>
+                        <td><input type="checkbox" class="row-checkbox" data-row-id="${student.id}" ${selectedRows.has(String(student.id)) ? 'checked' : ''} onchange="toggleRowSelection('${student.id}')"></td>
                         <td data-field="name">${student.name}</td>
                         <td data-field="email">${student.email}</td>
                         <td data-field="zeta_id">${student.zeta_id}</td>
@@ -9286,7 +9331,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
 
             return `
                 <tr data-row-id="${user.id}">
-                    <td><input type="checkbox" class="row-checkbox" data-row-id="${user.id}" onchange="toggleRowSelection(${user.id})"></td>
+                    <td><input type="checkbox" class="row-checkbox" data-row-id="${user.id}" ${selectedRows.has(String(user.id)) ? 'checked' : ''} onchange="toggleRowSelection(${user.id})"></td>
                     <td class="editable" data-field="name">${user.name || 'N/A'}</td>
                     <td class="editable" data-field="email">${user.email}</td>
                     <td><span class="role-badge ${roleClass}">${status}</span></td>
@@ -10372,10 +10417,11 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
         let currentEditData = null;
 
         function toggleRowSelection(rowId) {
-            if (selectedRows.has(rowId)) {
-                selectedRows.delete(rowId);
+            const id = String(rowId);
+            if (selectedRows.has(id)) {
+                selectedRows.delete(id);
             } else {
-                selectedRows.add(rowId);
+                selectedRows.add(id);
             }
             updateBulkEditControls();
         }
@@ -10386,7 +10432,10 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             const checkboxes = scope.querySelectorAll('.row-checkbox');
             checkboxes.forEach(checkbox => {
                 checkbox.checked = true;
-                selectedRows.add(checkbox.dataset.rowId);
+                const rowId = checkbox.dataset.rowId;
+                if (rowId) {
+                    selectedRows.add(String(rowId));
+                }
             });
             updateBulkEditControls();
         }
@@ -10396,9 +10445,21 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             const scope = section ? document.getElementById(section) : document;
             const checkboxes = scope.querySelectorAll('.row-checkbox');
             if (checked) {
-                checkboxes.forEach(cb => { cb.checked = true; selectedRows.add(cb.dataset.rowId); });
+                checkboxes.forEach(cb => { 
+                    cb.checked = true; 
+                    const rowId = cb.dataset.rowId;
+                    if (rowId) {
+                        selectedRows.add(String(rowId));
+                    }
+                });
             } else {
-                checkboxes.forEach(cb => { cb.checked = false; selectedRows.delete(cb.dataset.rowId); });
+                checkboxes.forEach(cb => { 
+                    cb.checked = false; 
+                    const rowId = cb.dataset.rowId;
+                    if (rowId) {
+                        selectedRows.delete(String(rowId));
+                    }
+                });
             }
             updateBulkEditControls();
         }
@@ -10426,8 +10487,11 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             const visibleCheckboxes = scope.querySelectorAll('.row-checkbox');
             
             if (selectAllCheckbox && visibleCheckboxes.length > 0) {
-                // Check if all visible checkboxes are checked
-                const allChecked = Array.from(visibleCheckboxes).every(cb => cb.checked);
+                // Check if all visible row IDs are in selectedRows
+                const allChecked = Array.from(visibleCheckboxes).every(cb => {
+                    const rowId = cb.dataset.rowId;
+                    return rowId && selectedRows.has(rowId);
+                });
                 selectAllCheckbox.checked = allChecked;
             }
         }
