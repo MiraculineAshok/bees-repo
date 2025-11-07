@@ -10813,29 +10813,38 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                 return;
             }
             
+            // Get the current section
+            const section = (typeof currentSection !== 'undefined' && currentSection) ? currentSection : (document.querySelector('.nav-link.active') ? document.querySelector('.nav-link.active').dataset.section : '');
+            
+            // Map display field names to actual database field names
+            const fieldMapping = {
+                'first_name': 'first_name',
+                'last_name': 'last_name',
+                'email': 'email',
+                'phone': 'phone',
+                'address': 'address',
+                'zeta_id': 'zeta_id',
+                'name': 'name',
+                'description': 'description',
+                'verdict': 'verdict',
+                'status': 'status',
+                'overall_notes': 'overall_notes',
+                'question': 'question',
+                'category': 'category'
+            };
+            
+            // Validate that the field exists in the mapping
+            if (!fieldMapping[field]) {
+                showError(`Field "${field}" is not editable`);
+                return;
+            }
+            
+            // Show spinner
+            if (section) {
+                showLoadingSpinner(section);
+            }
+            
             try {
-                // Map display field names to actual database field names
-                const fieldMapping = {
-                    'first_name': 'first_name',
-                    'last_name': 'last_name',
-                    'email': 'email',
-                    'phone': 'phone',
-                    'address': 'address',
-                    'zeta_id': 'zeta_id',
-                    'name': 'name',
-                    'description': 'description',
-                    'verdict': 'verdict',
-                    'status': 'status',
-                    'overall_notes': 'overall_notes',
-                    'question': 'question',
-                    'category': 'category'
-                };
-                
-                // Validate that the field exists in the mapping
-                if (!fieldMapping[field]) {
-                    showError(`Field "${field}" is not editable`);
-                    return;
-                }
                 
                 const dbField = fieldMapping[field] || field;
                 const updates = Array.from(selectedRows).map(rowId => ({
@@ -10843,7 +10852,6 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                     data: { [dbField]: value }
                 }));
                 
-                const section = (typeof currentSection !== 'undefined' && currentSection) ? currentSection : (document.querySelector('.nav-link.active') ? document.querySelector('.nav-link.active').dataset.section : '');
                 let endpoint = '';
                 if (section === 'students') {
                     endpoint = '/api/students/bulk';
@@ -10927,6 +10935,11 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             } catch (error) {
                 console.error('Error applying bulk edit:', error);
                 showError('Error applying bulk edit');
+            } finally {
+                // Hide spinner
+                if (section) {
+                    hideLoadingSpinner(section);
+                }
             }
         }
         async function startEdit(rowId, data) {

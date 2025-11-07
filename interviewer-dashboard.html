@@ -442,6 +442,36 @@
             gap: 0.5rem;
         }
 
+        /* Loading Spinner Overlay */
+        .loading-overlay {
+            position: relative;
+            min-height: 200px;
+        }
+        
+        .loading-spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #2563eb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            z-index: 10;
+        }
+        
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        
+        .loading-overlay .table-container {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
         /* Checkbox styling */
         .row-checkbox {
             width: 16px;
@@ -5215,6 +5245,32 @@
             }
         }
 
+        // Loading spinner functions
+        function showLoadingSpinner(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                const tableContainer = section.querySelector('.table-container');
+                if (tableContainer) {
+                    section.classList.add('loading-overlay');
+                    const spinner = document.createElement('div');
+                    spinner.className = 'loading-spinner';
+                    spinner.id = `${sectionId}-spinner`;
+                    section.appendChild(spinner);
+                }
+            }
+        }
+        
+        function hideLoadingSpinner(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.classList.remove('loading-overlay');
+                const spinner = document.getElementById(`${sectionId}-spinner`);
+                if (spinner) {
+                    spinner.remove();
+                }
+            }
+        }
+
         async function applyBulkEdit() {
             const field = document.getElementById('bulk-edit-field').value;
             const value = document.getElementById('bulk-edit-value').value;
@@ -5222,6 +5278,23 @@
             if (!field || !value) {
                 showError('Please select a field and enter a value');
                 return;
+            }
+            
+            // Determine section ID based on current tab
+            const currentTab = document.querySelector('.nav-link.active');
+            let sectionId = '';
+            if (currentTab) {
+                const tabText = currentTab.textContent.trim();
+                if (tabText.includes('My Interviews')) {
+                    sectionId = 'interviews-section';
+                } else if (tabText.includes('Question Analysis')) {
+                    sectionId = 'questions-section';
+                }
+            }
+            
+            // Show spinner
+            if (sectionId) {
+                showLoadingSpinner(sectionId);
             }
             
             try {
@@ -5240,12 +5313,11 @@
                     data: { [dbField]: value }
                 }));
                 
-                const currentTab = document.querySelector('.nav-link.active').textContent.trim();
                 let endpoint = '';
                 
-                if (currentTab.includes('My Interviews')) {
+                if (currentTab && currentTab.textContent.trim().includes('My Interviews')) {
                     endpoint = '/api/interviews/bulk';
-                } else if (currentTab.includes('Question Analysis')) {
+                } else if (currentTab && currentTab.textContent.trim().includes('Question Analysis')) {
                     endpoint = '/api/question-bank/bulk';
                 }
                 
@@ -5267,9 +5339,8 @@
                     closeBulkEditModal();
                     clearSelection();
                     // Refresh current tab data
-                    const activeTab = document.querySelector('.nav-link.active');
-                    if (activeTab) {
-                        activeTab.click();
+                    if (currentTab) {
+                        currentTab.click();
                     }
                 } else {
                     showError('Error updating records: ' + result.error);
@@ -5277,6 +5348,11 @@
             } catch (error) {
                 console.error('Error applying bulk edit:', error);
                 showError('Error applying bulk edit');
+            } finally {
+                // Hide spinner
+                if (sectionId) {
+                    hideLoadingSpinner(sectionId);
+                }
             }
         }
 
