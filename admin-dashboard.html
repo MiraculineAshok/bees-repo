@@ -1268,6 +1268,29 @@
             transform: rotate(180deg);
         }
 
+        /* Consolidation detail panel - details/summary arrow rotation */
+        #cons-detail-panel details summary {
+            list-style: none;
+        }
+        
+        #cons-detail-panel details summary::-webkit-details-marker {
+            display: none;
+        }
+        
+        #cons-detail-panel details summary::marker {
+            display: none;
+        }
+        
+        #cons-detail-panel details summary .arrow {
+            display: inline-block;
+            transition: transform 0.2s ease;
+            transform: rotate(0deg);
+        }
+        
+        #cons-detail-panel details[open] summary .arrow {
+            transform: rotate(90deg);
+        }
+
         .interview-details {
             padding: 1rem;
             border-top: 1px solid #cccccc;
@@ -4536,7 +4559,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                            </div>
                            <div style=\"font-size:12px;color:#6b7280;margin-top:4px\">${i.created_at? formatDate(i.created_at) : '-'} </div>
                          </div>
-                         <span style=\"opacity:0.7\">▶</span>
+                         <span class=\"arrow\" style=\"opacity:0.7\">▶</span>
                        </summary>
                        <div style=\"margin-top:6px;color:#374151\"><strong>Notes:</strong><br>${(i.overall_notes||'').replace(/\\n/g,'<br>') || '-'}</div>
                        <div style=\"margin-top:10px\"><strong>Questions & Answers</strong></div>
