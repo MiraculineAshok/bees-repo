@@ -2125,13 +2125,15 @@ app.post('/api/generate-ai-question', async (req, res) => {
         );
 
         // Set appropriate system message and interview type based on tags
-        let systemMessage, interviewType;
+        let systemMessage, interviewType, questionGuidelines;
         if (isTechnical) {
-            systemMessage = 'You are an expert technical interviewer who creates high-quality interview questions. Generate questions that are clear, relevant, and appropriate for the specified difficulty level.';
+            systemMessage = 'You are an expert technical interviewer who creates high-quality interview questions for software development and programming roles.';
             interviewType = 'technical interview';
+            questionGuidelines = 'Generate programming or technical implementation questions that require coding solutions.';
         } else {
-            systemMessage = 'You are an expert interviewer who creates high-quality interview questions for various subjects including mathematics, general knowledge, and other academic topics. Generate questions that are clear, relevant, and appropriate for the specified difficulty level.';
-            interviewType = 'interview';
+            systemMessage = 'You are an expert academic interviewer who creates high-quality interview questions for mathematics, general knowledge, and other academic subjects. Focus on theoretical understanding and problem-solving without requiring programming code.';
+            interviewType = 'academic interview';
+            questionGuidelines = 'Generate theoretical questions, mathematical problems, or conceptual questions that can be solved with reasoning, calculations, or explanations. Do NOT ask for code implementation or programming solutions.';
         }
 
         // Create prompt for OpenAI
@@ -2139,6 +2141,8 @@ app.post('/api/generate-ai-question', async (req, res) => {
 
 Tags: ${tags.join(', ')}
 Difficulty: ${difficulty || 'intermediate'}
+
+${questionGuidelines}
 
 Please create a well-structured interview question that:
 1. Is relevant to the specified tags
