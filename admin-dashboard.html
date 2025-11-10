@@ -2507,23 +2507,11 @@
                         <button class="link-btn" onclick="clearAdvancedFiltersStudents()">Clear filters</button>
                     </div>
                 </div>
-                
+
                 <div class="table-container">
-                    <!-- Bulk Edit Controls -->
-                    <div class="bulk-edit-controls">
-                        <div class="bulk-edit-info" id="bulk-edit-selected-count">0 records selected</div>
-                        <div class="bulk-edit-actions">
-                            <button class="btn btn-secondary" onclick="selectAllRows()">Select All</button>
-                            <button class="btn btn-secondary" onclick="clearSelection()">Clear</button>
-                            <button class="btn btn-danger" onclick="bulkDelete()">Bulk Delete</button>
-                            <button class="btn btn-primary" onclick="openBulkEditModal()">Bulk Edit</button>
-                        </div>
-                    </div>
-                    
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th><input type="checkbox" onchange="toggleAllRows(this.checked)" title="Select All"></th>
                                 <th data-field="name" onclick="sortBy('students','name')">Name <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th data-field="email" onclick="sortBy('students','email')">Email <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th data-field="zeta_id" onclick="sortBy('students','zeta_id')">Zeta ID <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
@@ -8634,7 +8622,6 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
         function generateStudentRow(student) {
             return `
                 <tr data-row-id="${student.id}">
-                    <td><input type="checkbox" class="row-checkbox" data-row-id="${student.id}" onchange="toggleRowSelection('${student.id}')"></td>
                     <td data-field="id">${student.id}</td>
                     <td data-field="name">${student.name}</td>
                     <td data-field="email">${student.email}</td>
