@@ -11128,7 +11128,11 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                 // Skip non-editable/computed fields
                 const nonEditable = ['id', 'interview_count', 'created_by_name', 'created_at', 'student_name', 'zeta_id', 'session_name', 'duration_seconds', 'interviewer_name', 'interview_date'];
                 // For interviews sections, also make status non-editable
-                if (nonEditable.includes(field) || ((activeSection === 'interviews' || activeSection === 'my-interviews') && field === 'status')) continue;
+                // For questions section, make times_asked, average_score, and success_rate non-editable
+                const questionsNonEditable = ['times_asked', 'average_score', 'success_rate'];
+                if (nonEditable.includes(field) ||
+                    ((activeSection === 'interviews' || activeSection === 'my-interviews') && field === 'status') ||
+                    (activeSection === 'questions' && questionsNonEditable.includes(field))) continue;
 
                 // Special handling for Students: split name into first_name and last_name
                 if ((typeof currentSection !== 'undefined' && currentSection === 'students') && field === 'name') {
