@@ -10909,6 +10909,31 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                         <option value="inactive" ${currentValue === 'inactive' ? 'selected' : ''}>Inactive</option>
                     `;
                     valueInput.replaceWith(select);
+                } else if (fieldSelect.value === 'role' && section === 'users') {
+                    // If role field is selected in users, replace input with role dropdown
+                    const currentValue = valueInput.value;
+                    const select = document.createElement('select');
+                    select.id = 'bulk-edit-value';
+                    select.className = valueInput.className || 'form-input';
+                    select.innerHTML = `
+                        <option value="">Select Role...</option>
+                        <option value="interviewer" ${currentValue === 'interviewer' ? 'selected' : ''}>Interviewer</option>
+                        <option value="admin" ${currentValue === 'admin' ? 'selected' : ''}>Admin</option>
+                        <option value="superadmin" ${currentValue === 'superadmin' ? 'selected' : ''}>Super Admin</option>
+                    `;
+                    valueInput.replaceWith(select);
+                } else if (fieldSelect.value === 'status' && section === 'users') {
+                    // If status field is selected in users, replace input with Active/Inactive dropdown
+                    const currentValue = valueInput.value;
+                    const select = document.createElement('select');
+                    select.id = 'bulk-edit-value';
+                    select.className = valueInput.className || 'form-input';
+                    select.innerHTML = `
+                        <option value="">Select Status...</option>
+                        <option value="active" ${currentValue === 'active' ? 'selected' : ''}>Active</option>
+                        <option value="inactive" ${currentValue === 'inactive' ? 'selected' : ''}>Inactive</option>
+                    `;
+                    valueInput.replaceWith(select);
                 } else {
                     // If it's not verdict or session status but current element is a select, replace with input
                     if (valueInput && valueInput.tagName === 'SELECT') {
@@ -11317,6 +11342,26 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                     <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}')" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
                     <button class="icon-btn delete-btn" onclick="deleteQuestion('${originalData.id}')" title="Delete"><img src="/delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
                     <button class="icon-btn" onclick="viewQuestion(${originalData.id})" title="View"><img src="/view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
+                `;
+            } else if (section === 'users') {
+                // For users section, restore the original action buttons with menu
+                const user = originalData;
+                const status = user.is_superadmin ? 'superadmin' : (user.role || 'interviewer');
+                const isInterviewer = user.role && (user.role.toLowerCase() === 'interviewer' || user.role === 'interviewer');
+                const isAdmin = user.role && (user.role.toLowerCase() === 'admin' || user.role === 'admin');
+
+                actionCell.innerHTML = `
+                    <div class="action-menu-container">
+                        <button class="icon-btn menu-btn" onclick="toggleUserMenu(${user.id})" title="More Actions">⋮</button>
+                        <div id="user-menu-${user.id}" class="user-action-menu hidden">
+                            ${isInterviewer ? `<button onclick="promoteToAdmin(${user.id})" class="menu-item">Make as Admin</button>` : ''}
+                            ${isAdmin ? `<button onclick="promoteToSuperAdmin(${user.id})" class="menu-item">Make as Super Admin</button>` : ''}
+                            <button onclick="deactivateUser(${user.id})" class="menu-item">Deactivate User</button>
+                        </div>
+                    </div>
+                    <button class="icon-btn edit-btn" onclick="startEdit(${user.id})" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
+                    <button class="icon-btn view-btn" onclick="viewUser(${user.id})" title="View Details"><img src="/view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
+                    <button class="icon-btn delete-btn" onclick="deleteUser(${user.id})" title="Delete"><img src="/delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
                 `;
             }
         }
