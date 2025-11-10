@@ -11240,6 +11240,26 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                     }
                 }
 
+                // Special handling for Questions: use textarea for question field and input for tags
+                if ((typeof currentSection !== 'undefined' && currentSection === 'questions')) {
+                    if (field === 'question') {
+                        const currentValue = currentEditData ? currentEditData.question_text || currentEditData.question : cell.textContent.trim();
+                        cell.innerHTML = `
+                            <textarea id="edit-${rowId}-question" name="question" class="edit-input" data-field="question"
+                                      rows="4" style="width: 100%; resize: vertical; min-height: 80px;">${currentValue}</textarea>
+                        `;
+                        continue;
+                    } else if (field === 'tags') {
+                        const currentTags = currentEditData && currentEditData.tags && Array.isArray(currentEditData.tags) ?
+                            currentEditData.tags.join(', ') : '';
+                        cell.innerHTML = `
+                            <input type="text" id="edit-${rowId}-tags" name="tags" class="edit-input" data-field="tags"
+                                   value="${currentTags}" placeholder="tag1, tag2, tag3" style="width: 100%;">
+                        `;
+                        continue;
+                    }
+                }
+
                 // Default text input for other editable fields
                 const currentValue = cell.textContent.trim();
                 const inputId = `edit-${rowId}-${field}`;
@@ -11404,7 +11424,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                     'sessions': ['name', 'description', 'status'],
                     'interviews': ['verdict', 'status', 'overall_notes'],
                     'my-interviews': ['verdict', 'status', 'overall_notes'],
-                    'questions': ['question', 'category'],
+                    'questions': ['question', 'category', 'tags'],
                     'users': ['name', 'email', 'role', 'is_superadmin']
                 };
 
@@ -11422,6 +11442,13 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                         }
                     }
                 });
+
+                // Special handling for tags field in questions - convert comma-separated string to array
+                if (section === 'questions' && updateData.tags) {
+                    updateData.tags = updateData.tags.split(',')
+                        .map(tag => tag.trim())
+                        .filter(tag => tag.length > 0);
+                }
 
                 // Always capture panelists selection for sessions, even if not in allowedFields
                 if (section === 'sessions') {
