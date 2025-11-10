@@ -11142,7 +11142,8 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
 
                 // Skip non-editable/computed fields
                 const nonEditable = ['id', 'interview_count', 'created_by_name', 'created_at', 'student_name', 'zeta_id', 'session_name', 'duration_seconds', 'interviewer_name', 'interview_date'];
-                if (nonEditable.includes(field)) continue;
+                // For interviews sections, also make status non-editable
+                if (nonEditable.includes(field) || ((activeSection === 'interviews' || activeSection === 'my-interviews') && field === 'status')) continue;
 
                 // Special handling for Students: split name into first_name and last_name
                 if ((typeof currentSection !== 'undefined' && currentSection === 'students') && field === 'name') {
@@ -11212,6 +11213,28 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                                 <option value="true" ${currentSuperAdmin ? 'selected' : ''}>Super Admin</option>
                             </select>
                         `;
+                        continue;
+                    }
+                }
+
+                // Special handling for Interviews: only allow editing verdict with dropdown
+                if ((typeof currentSection !== 'undefined' && (currentSection === 'interviews' || currentSection === 'my-interviews'))) {
+                    // Skip status field entirely - don't allow editing
+                    if (field === 'status') {
+                        continue;
+                    } else if (field === 'verdict') {
+                        const currentVerdict = currentEditData ? currentEditData.verdict : '';
+                        cell.innerHTML = `
+                            <select class="edit-input" data-field="verdict">
+                                <option value="" ${!currentVerdict ? 'selected' : ''}>Select Verdict...</option>
+                                <option value="Tiger" ${currentVerdict === 'Tiger' ? 'selected' : ''}>Tiger</option>
+                                <option value="Cow" ${currentVerdict === 'Cow' ? 'selected' : ''}>Cow</option>
+                                <option value="Sheep" ${currentVerdict === 'Sheep' ? 'selected' : ''}>Sheep</option>
+                            </select>
+                        `;
+                        continue;
+                    } else {
+                        // Skip other fields for interviews - only verdict is editable
                         continue;
                     }
                 }
