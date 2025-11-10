@@ -2588,10 +2588,11 @@
                                 <th data-field="verdict" onclick="sortBy('my-interviews','verdict')">Verdict <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th data-field="duration_seconds" onclick="sortBy('my-interviews','duration_seconds')">Duration <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th>Actions</th>
+                                <th>Resume</th>
                             </tr>
                         </thead>
                         <tbody id="my-interviews-table-body">
-                            <tr><td colspan="9" class="loading">Loading interviews...</td></tr>
+                            <tr><td colspan="10" class="loading">Loading interviews...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -4909,7 +4910,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             if (!tbody) return;
 
             if (!interviewsData || interviewsData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No interviews found.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No interviews found.</td></tr>';
                 return;
             }
 
@@ -4925,10 +4926,10 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             let list = applyInlineSearch(interviewsData, term, ['student_name','student_email','zeta_id','session_name','status','verdict']);
             list = applyAdvancedFiltersMyInterviews(list);
             list = applyInlineSort(list, 'my-interviews');
-            
+
             // Check if no results after filtering
             if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No matches found for your search or filter criteria</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No matches found for your search or filter criteria</td></tr>';
                 // Remove pagination controls and info
                 if (container) {
                     const existingPagination = container.querySelector('.pagination-controls');
@@ -4954,10 +4955,12 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                     <td data-field="verdict">${interview.verdict || ''}</td>
                     <td data-field="duration_seconds">${formatDuration(interview.duration_seconds)}</td>
                     <td>
-                        ${interview.status === 'in_progress' ? `<button class="icon-btn" onclick="resumeInterviewAdmin(${interview.id})" title="Resume">⏵</button>` : ''}
                         <button class="icon-btn" onclick="viewInterview(${interview.id})" title="View"><img src="/view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
                         <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
                         <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete"><img src="/delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
+                    </td>
+                    <td>
+                        ${interview.status === 'in_progress' ? `<button class="icon-btn" onclick="resumeInterviewAdmin(${interview.id})" title="Resume">⏵</button>` : ''}
                     </td>
                 </tr>
             `).join('');
@@ -5036,7 +5039,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                 const groupInterviews = groups[groupKey];
                 html += `
                     <tr class="group-header">
-                        <td colspan="9" style="background: #2d3748; color: white; font-weight: 600; padding: 12px;">
+                        <td colspan="10" style="background: #2d3748; color: white; font-weight: 600; padding: 12px;">
                             ${groupKey} (${groupInterviews.length} interviews)
                         </td>
                     </tr>
@@ -5057,6 +5060,9 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                                 <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
                                 <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete"><img src="/delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
                                 <button class="icon-btn" onclick="viewInterview(${interview.id})" title="View"><img src="/view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
+                            </td>
+                            <td>
+                                ${interview.status === 'in_progress' ? `<button class="icon-btn" onclick="resumeInterviewAdmin(${interview.id})" title="Resume">⏵</button>` : ''}
                             </td>
                         </tr>
                     `;
