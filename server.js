@@ -2113,16 +2113,37 @@ app.post('/api/generate-ai-question', async (req, res) => {
             });
         }
 
+        // Determine if tags are technical/programming-related or general
+        const technicalTags = ['javascript', 'python', 'java', 'c++', 'c#', 'php', 'ruby', 'go', 'rust', 'swift', 'kotlin',
+                              'react', 'angular', 'vue', 'node', 'express', 'django', 'spring', 'laravel', 'rails',
+                              'html', 'css', 'sql', 'mongodb', 'postgresql', 'mysql', 'redis', 'docker', 'kubernetes',
+                              'aws', 'azure', 'gcp', 'git', 'linux', 'algorithm', 'data structure', 'system design',
+                              'api', 'rest', 'graphql', 'microservices', 'devops', 'testing', 'security'];
+
+        const isTechnical = tags.some(tag =>
+            technicalTags.some(techTag => tag.toLowerCase().includes(techTag.toLowerCase()))
+        );
+
+        // Set appropriate system message and interview type based on tags
+        let systemMessage, interviewType;
+        if (isTechnical) {
+            systemMessage = 'You are an expert technical interviewer who creates high-quality interview questions. Generate questions that are clear, relevant, and appropriate for the specified difficulty level.';
+            interviewType = 'technical interview';
+        } else {
+            systemMessage = 'You are an expert interviewer who creates high-quality interview questions for various subjects including mathematics, general knowledge, and other academic topics. Generate questions that are clear, relevant, and appropriate for the specified difficulty level.';
+            interviewType = 'interview';
+        }
+
         // Create prompt for OpenAI
-        const prompt = `Generate a technical interview question based on the following requirements:
-        
+        const prompt = `Generate an ${interviewType} question based on the following requirements:
+
 Tags: ${tags.join(', ')}
 Difficulty: ${difficulty || 'intermediate'}
 
 Please create a well-structured interview question that:
 1. Is relevant to the specified tags
 2. Matches the difficulty level
-3. Is suitable for a technical interview
+3. Is suitable for an ${interviewType}
 4. Includes clear context and expectations
 5. Can be answered in a reasonable interview timeframe
 
@@ -2140,7 +2161,7 @@ Format the response as a clear, professional interview question. Do not include 
                 messages: [
                     {
                         role: 'system',
-                        content: 'You are an expert technical interviewer who creates high-quality interview questions. Generate questions that are clear, relevant, and appropriate for the specified difficulty level.'
+                        content: systemMessage
                     },
                     {
                         role: 'user',
