@@ -6894,14 +6894,15 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                         'Hold': '#f59e0b',
                         'Rejected': '#ef4444',
                         'Maybe': '#8b5cf6',
-                        'Tiger': '#059669',
-                        'Cow': '#f97316',
+                        'Tiger': '#73CE85',
+                        'Cow': '#E5A92A',
+                        'Sheep': '#B3B3B3',
                         'Elephant': '#10b981'
                     };
                     // recent_verdicts is an array of verdict strings, not objects
                     verdictsDisplay = student.recent_verdicts.map(verdict => {
                         const color = verdictColors[verdict] || '#6b7280';
-                        return `<span style="display:inline-block;background:${color};color:#fff;padding:3px 8px;border-radius:12px;font-size:10px;margin:2px;white-space:nowrap">${verdict}</span>`;
+                        return `<span style="display:inline-block;background:${color};color:#000000;padding:3px 8px;border-radius:12px;font-size:10px;margin:2px;white-space:nowrap">${verdict}</span>`;
                     }).join(' ');
                 }
                 
