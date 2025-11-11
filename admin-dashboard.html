@@ -3722,8 +3722,9 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                     const verdicts = Array.isArray(r.verdicts) ? r.verdicts.map(badge).join('<br>') : '-';
                     const interviewStatuses = Array.isArray(r.interview_statuses) ? r.interview_statuses.map(statusBadge).join('<br>') : '-';
                     const lastAt = r.last_interview_at ? formatDate(r.last_interview_at) : '-';
-                    const status = r.status || '-';
+                    const status = r.status || '';
                     const notes = r.notes ? r.notes.replace(/\n/g,'<br>') : '-';
+                    const statusBadgeHtml = status ? `<span class="status-badge ${status}" style="display:inline-block;padding:3px 8px;border-radius:12px;color:#000000;background:${String(status).toLowerCase().includes('select')?'#73CE85':String(status).toLowerCase().includes('reject')?'#B3B3B3':String(status).toLowerCase().includes('wait')?'#E5A92A':'#6b7280'}">${status}</span>` : '';
                     return `
                         <tr>
                             <td>${r.student_name || '-'}</td>
@@ -3732,7 +3733,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                             <td style="line-height:1.8">${interviewerNames}</td>
                             <td style="line-height:1.8">${verdicts}</td>
                             <td style="line-height:1.8">${interviewStatuses}</td>
-                            <td><span class="status-badge ${status}" style="display:inline-block;padding:3px 8px;border-radius:12px;color:#000000;background:${String(status).toLowerCase().includes('select')?'#73CE85':String(status).toLowerCase().includes('reject')?'#B3B3B3':String(status).toLowerCase().includes('wait')?'#E5A92A':'#6b7280'}">${status}</span></td>
+                            <td>${statusBadgeHtml}</td>
                             <td>
                                 <div style="max-height:64px;overflow:hidden;position:relative">
                                     <div>${notes}</div>
