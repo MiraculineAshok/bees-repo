@@ -487,6 +487,48 @@
             white-space: wrap;
         }
 
+        /* Screen reader only content */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Focus indicators for accessibility */
+        .btn:focus,
+        .form-input:focus,
+        .form-select:focus,
+        .icon-btn:focus,
+        .nav-link:focus,
+        button:focus {
+            outline: 2px solid #2563eb;
+            outline-offset: 2px;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        /* Skip link for keyboard users */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 6px;
+            background: #000;
+            color: #fff;
+            padding: 8px;
+            text-decoration: none;
+            z-index: 100;
+            border-radius: 0 0 4px 4px;
+        }
+
+        .skip-link:focus {
+            top: 0;
+        }
+
         /* Loading Spinner Overlay */
         .loading-overlay {
             position: relative;
@@ -2051,6 +2093,8 @@
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
     <div class="dashboard-container">
         <!-- Unified Header with Navigation -->
         <nav class="sidebar">
@@ -2115,7 +2159,7 @@
         </nav>
 
         <!-- Main Content -->
-        <main class="main-content">
+        <main id="main-content" class="main-content">
 
             <!-- Overview Section -->
             <section id="overview" class="content-section active">
@@ -10754,9 +10798,30 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                 showError('Please select records to edit');
                 return;
             }
-            
+
             const modal = document.getElementById('bulk-edit-modal');
             const fieldSelect = document.getElementById('bulk-edit-field');
+
+            // Focus management: store current focus and move to modal
+            previouslyFocusedElement = document.activeElement;
+            modal.classList.add('active');
+
+            // Focus first focusable element in modal
+            setTimeout(() => {
+                const firstFocusable = modal.querySelector('select, input, button[onclick*="closeBulkEditModal"]:not(.close-modal)');
+                if (firstFocusable) firstFocusable.focus();
+            }, 100);
+
+            // Add keyboard navigation support
+            const handleKeyDown = (e) => {
+                if (e.key === 'Escape') {
+                    closeBulkEditModal();
+                }
+            };
+            modal.addEventListener('keydown', handleKeyDown);
+
+            // Store the event listener for cleanup
+            modal._keyDownHandler = handleKeyDown;
             
             // Populate field options based on current tab
             fieldSelect.innerHTML = '<option value="">Select field...</option>';
@@ -10867,6 +10932,11 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             const modal = document.getElementById('bulk-edit-modal');
             if (modal) {
                 modal.classList.remove('active');
+                // Remove keyboard event listener
+                if (modal._keyDownHandler) {
+                    modal.removeEventListener('keydown', modal._keyDownHandler);
+                    delete modal._keyDownHandler;
+                }
             }
             const valueInput = document.getElementById('bulk-edit-value');
             if (valueInput) {
@@ -10875,6 +10945,11 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             const valueGroup = document.getElementById('bulk-edit-value-group');
             if (valueGroup) {
                 valueGroup.style.display = 'none';
+            }
+
+            // Restore focus to previously focused element
+            if (previouslyFocusedElement && previouslyFocusedElement.focus) {
+                setTimeout(() => previouslyFocusedElement.focus(), 100);
             }
         }
 
@@ -12138,26 +12213,29 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
     </script>
 
     <!-- Bulk Edit Modal -->
-    <div id="bulk-edit-modal" class="bulk-edit-modal" onclick="closeBulkEditModal()">
+    <div id="bulk-edit-modal" class="bulk-edit-modal" onclick="closeBulkEditModal()" role="dialog" aria-modal="true" aria-labelledby="bulk-edit-title" aria-describedby="bulk-edit-description">
         <div class="bulk-edit-content" onclick="event.stopPropagation()">
             <div class="bulk-edit-header">
-                <h3 class="bulk-edit-title">Bulk Edit Records</h3>
-                <button class="close-modal" onclick="closeBulkEditModal()">&times;</button>
+                <h3 id="bulk-edit-title" class="bulk-edit-title">Bulk Edit Records</h3>
+                <button class="close-modal" onclick="closeBulkEditModal()" aria-label="Close bulk edit modal">&times;</button>
             </div>
             <form id="bulk-edit-form" class="bulk-edit-form">
+                <div id="bulk-edit-description" class="sr-only">Use this form to bulk edit multiple records. Select a field to update and enter the new value.</div>
                 <div class="form-group">
-                    <label class="form-label">Field to Update:</label>
-                    <select id="bulk-edit-field" class="form-select" onchange="updateBulkEditFields()">
+                    <label for="bulk-edit-field" class="form-label">Field to Update:</label>
+                    <select id="bulk-edit-field" class="form-select" onchange="updateBulkEditFields()" aria-describedby="field-help">
                         <option value="">Select field...</option>
                     </select>
+                    <div id="field-help" class="sr-only">Choose which field you want to update for all selected records</div>
                 </div>
                 <div id="bulk-edit-value-group" class="form-group" style="display: none;">
-                    <label class="form-label">New Value:</label>
-                    <input type="text" id="bulk-edit-value" class="form-input" placeholder="Enter new value...">
+                    <label for="bulk-edit-value" class="form-label">New Value:</label>
+                    <input type="text" id="bulk-edit-value" class="form-input" placeholder="Enter new value..." aria-describedby="value-help">
+                    <div id="value-help" class="sr-only">Enter the new value that will be applied to the selected field for all chosen records</div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Selected Records:</label>
-                    <div id="bulk-edit-selected-count" class="bulk-edit-info">0 records selected</div>
+                    <div id="bulk-edit-selected-count" class="bulk-edit-info" aria-live="polite">0 records selected</div>
                 </div>
             </form>
             <div class="bulk-edit-footer">

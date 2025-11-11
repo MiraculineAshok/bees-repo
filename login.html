@@ -273,33 +273,33 @@
     </style>
 </head>
 <body>
-    <header class="header">
+    <header class="header" role="banner">
         <div class="header-content">
-            <a href="/" class="logo">
-                <img src="/logo3.png" alt="BEES Logo" style="height: 40px; width: auto;">
+            <a href="/" class="logo" aria-label="BEES Interview Platform Home">
+                <img src="/logo3.png" alt="BEES Logo - Interview Platform" style="height: 40px; width: auto;">
             </a>
-            <div class="user-info" style="position:relative">
-                <a href="/admin-dashboard.html" id="admin-dashboard-btn" class="admin-dashboard-btn hidden">Admin Dashboard</a>
-                <a href="/interviewer-dashboard.html" id="interviewer-dashboard-btn" class="interviewer-dashboard-btn hidden">Interviewer Dashboard</a>
-                <div id="avatar" class="avatar hidden">U</div>
-                <div id="avatar-menu" class="avatar-menu">
-                    <button id="logout-btn-dropdown">Logout</button>
+            <nav class="user-info" style="position:relative" aria-label="User navigation">
+                <a href="/admin-dashboard.html" id="admin-dashboard-btn" class="admin-dashboard-btn hidden" aria-label="Go to Admin Dashboard">Admin Dashboard</a>
+                <a href="/interviewer-dashboard.html" id="interviewer-dashboard-btn" class="interviewer-dashboard-btn hidden" aria-label="Go to Interviewer Dashboard">Interviewer Dashboard</a>
+                <div id="avatar" class="avatar hidden" aria-label="User menu" tabindex="0" role="button">U</div>
+                <div id="avatar-menu" class="avatar-menu" role="menu" aria-label="User options">
+                    <button id="logout-btn-dropdown" role="menuitem">Logout</button>
                 </div>
-                <button id="login-btn" class="login-btn">Sign in with Zoho</button>
-            </div>
+                <button id="login-btn" class="login-btn" aria-label="Sign in with Zoho authentication">Sign in with Zoho</button>
+            </nav>
         </div>
     </header>
 
     <main class="main-container">
-        <section class="hero-section">
-            <h1 class="hero-title">"And, the art of great conversation starts when the interviewers never ask the same question more than once!"</h1>
+        <section class="hero-section" aria-labelledby="hero-title">
+            <h1 id="hero-title" class="hero-title">"And, the art of great conversation starts when the interviewers never ask the same question more than once!"</h1>
             <p class="hero-description">
                 From pre-populated banks to live question tracking, make every interview smarter and sharper.
             </p>
             <div class="action-buttons">
-                <button id="start-interview-main-btn" class="cta-button hidden">Start Interview</button>
+                <button id="start-interview-main-btn" class="cta-button hidden" aria-label="Start a new interview session">Start Interview</button>
             </div>
-            <div id="status" class="status"></div>
+            <div id="status" class="status" role="status" aria-live="polite"></div>
         </section>
 
     </main>
