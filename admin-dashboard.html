@@ -609,7 +609,7 @@
         }
 
         .cancel-btn {
-            color: #6b7280;
+            color: #374151;
         }
 
         .cancel-btn:hover {
@@ -674,7 +674,7 @@
         .bulk-edit-controls.active { display: flex; }
 
         .bulk-edit-info {
-            color: #6b7280;
+            color: #374151;
             font-size: 0.875rem;
         }
 
@@ -713,7 +713,7 @@
         /* Bulk Import Styles */
         .form-help {
             font-size: 0.85rem;
-            color: #6b7280;
+            color: #374151;
             margin-top: 0.25rem;
         }
 
@@ -845,7 +845,7 @@
             border: none;
             font-size: 1.5rem;
             cursor: pointer;
-            color: #6b7280;
+            color: #374151;
         }
 
         .bulk-edit-form {
@@ -1477,7 +1477,7 @@
 
         .status-inactive {
             background-color: #f3f4f6;
-            color: #6b7280;
+            color: #374151;
         }
 
         .status-suspended {
@@ -2071,7 +2071,7 @@
         
         .pagination-ellipsis {
             padding: 8px 4px;
-            color: #6b7280;
+            color: #374151;
             font-size: 14px;
         }
         
@@ -2157,6 +2157,9 @@
                 </div>
             </div>
         </nav>
+
+        <!-- Status Messages (Screen Reader) -->
+        <div id="status-region" aria-live="polite" aria-atomic="true" class="sr-only"></div>
 
         <!-- Main Content -->
         <main id="main-content" class="main-content">
@@ -2369,6 +2372,7 @@
                 <div class="section-header">
                     <h2 class="section-title">All Interviews</h2>
                     <div class="header-actions">
+                        <label for="interviews-inline-search" class="sr-only">Search interviews</label>
                         <input type="text" id="interviews-inline-search" class="form-input" placeholder="Search..." oninput="displayInterviews()" style="max-width:220px">
                         <button class="btn btn-primary" onclick="refreshInterviews()">Refresh</button>
                     </div>
@@ -2427,6 +2431,7 @@
                 <div class="section-header">
                     <h2 class="section-title">Questions Analytics</h2>
                     <div class="header-actions">
+                        <label for="questions-inline-search" class="sr-only">Search questions</label>
                         <input type="text" id="questions-inline-search" class="form-input" placeholder="Search questions..." oninput="displayQuestions()" style="max-width:260px">
                         <button class="btn btn-success" onclick="openAddQuestionModal()">Add Question</button>
                         <button class="btn btn-info" onclick="openBulkImportModal()">Bulk Import</button>
@@ -2482,6 +2487,7 @@
                 <div class="section-header">
                     <h2 class="section-title">Interview Sessions</h2>
                     <div class="header-actions">
+                        <label for="sessions-inline-search" class="sr-only">Search sessions</label>
                         <input type="text" id="sessions-inline-search" class="form-input" placeholder="Search sessions..." oninput="displaySessions()" style="max-width:240px">
                         <button class="btn btn-primary" onclick="openCreateSessionModal()">Create Session</button>
                     </div>
@@ -2536,6 +2542,7 @@
                 <div class="section-header">
                     <h2 class="section-title">Students</h2>
                     <div class="header-actions">
+                        <label for="students-inline-search" class="sr-only">Search students</label>
                         <input type="text" id="students-inline-search" class="form-input" placeholder="Search students..." oninput="displayStudents()" style="max-width:240px">
                         <button class="btn btn-info" onclick="openBulkImportStudents()">Bulk Import</button>
                         <button class="btn btn-primary" onclick="refreshStudents()">Refresh</button>
@@ -2593,6 +2600,7 @@
                 <div class="section-header">
                     <h2 class="section-title">My Interviews</h2>
                     <div class="header-actions">
+                        <label for="my-interviews-inline-search" class="sr-only">Search my interviews</label>
                         <input type="text" id="my-interviews-inline-search" class="form-input" placeholder="Search..." oninput="loadMyInterviewsForAdmin()" style="max-width:220px">
                         <button class="btn btn-primary" onclick="loadMyInterviewsForAdmin()">Refresh</button>
                     </div>
@@ -2647,6 +2655,7 @@
                 <div class="section-header">
                     <h2 class="section-title">Users</h2>
                     <div class="header-actions">
+                        <label for="users-inline-search" class="sr-only">Search users</label>
                         <input type="text" id="users-inline-search" class="form-input" placeholder="Search users..." oninput="displayUsers()" style="max-width:220px">
                         <button class="btn btn-primary" onclick="refreshUsers()">Refresh</button>
                     </div>
@@ -2701,6 +2710,7 @@
                 <div class="section-header">
                     <h2 class="section-title">Consolidation</h2>
                     <div class="header-actions" style="display:flex;gap:8px;align-items:center">
+                        <label for="consolidation-search" class="sr-only">Search consolidation</label>
                         <input id="consolidation-search" type="text" class="form-input" placeholder="Search..." oninput="onConsolidationSearch(this.value)" style="max-width:220px">
                         <button class="btn btn-primary" onclick="refreshConsolidation()">Refresh</button>
                     </div>
@@ -2926,7 +2936,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             </div>
             <form id="create-session-form">
                 <div class="form-group">
-                    <label class="form-label" for="session-name">Session Name</label>
+                    <label for="session-name" class="form-label">Session Name</label>
                     <input type="text" id="session-name" class="form-input" placeholder="e.g., Face to Face for St Mary's School" required>
                 </div>
                 <div class="form-group">
@@ -2934,7 +2944,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                     <textarea id="session-description" class="form-textarea" placeholder="Brief description of the interview session"></textarea>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="session-location">Location</label>
+                    <label for="session-location" class="form-label">Location</label>
                     <input type="text" id="session-location" class="form-input" placeholder="e.g., Chennai Campus">
                 </div>
                 <div class="form-group">
@@ -2955,6 +2965,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                     </label>
                     <div class="panelist-container">
                         <div class="panelist-search-container">
+                            <label for="panelist-search" class="sr-only">Search interviewers</label>
                             <input type="text" id="panelist-search" class="form-input" placeholder="Search for interviewers..." onkeyup="searchInterviewers()">
                             <div id="panelist-search-results" class="search-results"></div>
                         </div>
@@ -2994,12 +3005,13 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
             </div>
             <form id="add-question-form">
                 <div class="form-group">
-                    <label class="form-label" for="question-text">Question Text</label>
+                    <label for="question-text" class="form-label">Question Text</label>
                     <textarea id="question-text" class="form-textarea" placeholder="Enter the question text..." required rows="4"></textarea>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="question-tags">Tags (Hashtags)</label>
                     <div id="tags-container" style="display:flex;flex-wrap:wrap;gap:8px;padding:8px;border:1px solid #d1d5db;border-radius:6px;min-height:42px;background:#fff;cursor:text">
+                        <label for="question-tags-input" class="sr-only">Add question tags</label>
                         <input type="text" id="question-tags-input" placeholder="Type custom tag and press Enter, or click suggestions below..." style="border:none;outline:none;flex:1;min-width:150px;font-size:14px">
                     </div>
                     <div style="margin-top:4px;font-size:12px;color:#6b7280">
@@ -7293,11 +7305,11 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                         return `<span onclick="addSuggestedTag('${tagName.replace(/'/g, "\\'")}' )" style="margin-right:12px;text-decoration:underline;cursor:pointer">#${tagName}</span>`;
                     }).join('');
                 } else {
-                    suggestedTagsSpan.innerHTML = '<span style="color:#9ca3af">No tags yet</span>';
+                    suggestedTagsSpan.innerHTML = '<span style="color:#6b7280">No tags yet</span>';
                 }
             } catch (error) {
                 console.error('Error loading suggested tags:', error);
-                document.getElementById('suggested-tags').innerHTML = '<span style="color:#9ca3af">Unable to load</span>';
+                document.getElementById('suggested-tags').innerHTML = '<span style="color:#6b7280">Unable to load</span>';
             }
         }
 
@@ -7563,6 +7575,12 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
         }
 
         function showSuccess(message) {
+            // Update ARIA live region for screen readers
+            const statusRegion = document.getElementById('status-region');
+            if (statusRegion) {
+                statusRegion.textContent = `Success: ${message}`;
+            }
+
             const overlay = document.createElement('div');
             overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;z-index:2000;';
             overlay.innerHTML = `
@@ -7578,6 +7596,12 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
         }
 
         function showError(message) {
+            // Update ARIA live region for screen readers
+            const statusRegion = document.getElementById('status-region');
+            if (statusRegion) {
+                statusRegion.textContent = `Error: ${message}`;
+            }
+
             const overlay = document.createElement('div');
             overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:2000;';
             overlay.innerHTML = `
