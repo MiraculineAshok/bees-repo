@@ -2167,7 +2167,7 @@
             <!-- Overview Section -->
             <section id="overview" class="content-section active">
                 <div class="section-header">
-                    <h2 class="section-title">Dashboard Overview</h2>
+                    <h1 class="section-title">Dashboard Overview</h1>
                     <button class="btn btn-primary" onclick="refreshDashboardCharts()">Refresh Charts</button>
                 </div>
                 
@@ -2175,7 +2175,7 @@
                 <div style="background:#f9fafb;padding:1.5rem;border-radius:8px;margin-bottom:2rem;border:1px solid #e5e7eb">
                     <div style="display:flex;gap:1.5rem;flex-wrap:wrap;align-items:center">
                         <div style="display:flex;gap:0.5rem;align-items:center">
-                            <label style="font-size:0.875rem;font-weight:500;color:#374151">Date Range:</label>
+                            <label for="chart-date-range" style="font-size:0.875rem;font-weight:500;color:#374151">Date Range:</label>
                             <select id="chart-date-range" class="form-input" style="width:150px" onchange="applyChartFilters()">
                                 <option value="all">All Time</option>
                                 <option value="today">Today</option>
@@ -2188,14 +2188,14 @@
                         </div>
                         
                         <div id="custom-date-range" style="display:none;gap:0.5rem;align-items:center">
-                            <label style="font-size:0.875rem;color:#374151">From:</label>
+                            <label for="chart-date-from" style="font-size:0.875rem;color:#374151">From:</label>
                             <input type="date" id="chart-date-from" class="form-input" style="width:150px" onchange="applyChartFilters()">
-                            <label style="font-size:0.875rem;color:#374151">To:</label>
+                            <label for="chart-date-to" style="font-size:0.875rem;color:#374151">To:</label>
                             <input type="date" id="chart-date-to" class="form-input" style="width:150px" onchange="applyChartFilters()">
                         </div>
                         
                         <div style="display:flex;gap:0.5rem;align-items:center">
-                            <label style="font-size:0.875rem;font-weight:500;color:#374151">Status:</label>
+                            <label for="chart-status-filter" style="font-size:0.875rem;font-weight:500;color:#374151">Status:</label>
                             <select id="chart-status-filter" class="form-input" style="width:150px" onchange="applyChartFilters()">
                                 <option value="all">All Statuses</option>
                                 <option value="completed">Completed</option>
@@ -2205,7 +2205,7 @@
                         </div>
                         
                         <div style="display:flex;gap:0.5rem;align-items:center">
-                            <label style="font-size:0.875rem;font-weight:500;color:#374151">Verdict:</label>
+                            <label for="chart-verdict-filter" style="font-size:0.875rem;font-weight:500;color:#374151">Verdict:</label>
                             <select id="chart-verdict-filter" class="form-input" style="width:150px" onchange="applyChartFilters()">
                                 <option value="all">All Verdicts</option>
                                 <option value="Tiger">Tiger</option>
@@ -2216,7 +2216,7 @@
                         </div>
                         
                         <div style="display:flex;gap:0.5rem;align-items:center">
-                            <label style="font-size:0.875rem;font-weight:500;color:#374151">Interviewer:</label>
+                            <label for="chart-interviewer-filter" style="font-size:0.875rem;font-weight:500;color:#374151">Interviewer:</label>
                             <select id="chart-interviewer-filter" class="form-input" style="width:180px" onchange="applyChartFilters()">
                                 <option value="all">All Interviewers</option>
                             </select>
@@ -2252,12 +2252,14 @@
                     <div style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
                         <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:0.75rem;color:#111827">Interview Status Distribution</h3>
                         <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap">
+                            <label for="status-date-filter" class="sr-only">Status chart date filter</label>
                             <select id="status-date-filter" class="form-input" style="font-size:0.85rem;padding:0.4rem 0.6rem;width:auto" onchange="updateStatusChart()">
                                 <option value="all">All Time</option>
                                 <option value="week">Last 7 Days</option>
                                 <option value="month" selected>Last 30 Days</option>
                                 <option value="quarter">Last 3 Months</option>
                             </select>
+                            <label for="status-interviewer-filter" class="sr-only">Status chart interviewer filter</label>
                             <select id="status-interviewer-filter" class="form-input" style="font-size:0.85rem;padding:0.4rem 0.6rem;width:auto" onchange="updateStatusChart()">
                                 <option value="all">All Interviewers</option>
                             </select>
@@ -2269,9 +2271,11 @@
                     <div style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
                         <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:0.75rem;color:#111827">Interview Outcome Distribution</h3>
                         <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap">
+                            <label for="verdict-session-filter" class="sr-only">Verdict chart session filter</label>
                             <select id="verdict-session-filter" class="form-input" style="font-size:0.85rem;padding:0.4rem 0.6rem;width:auto" onchange="updateVerdictChart()">
                                 <option value="all">All Sessions</option>
                             </select>
+                            <label for="verdict-status-filter" class="sr-only">Verdict chart status filter</label>
                             <select id="verdict-status-filter" class="form-input" style="font-size:0.85rem;padding:0.4rem 0.6rem;width:auto" onchange="updateVerdictChart()">
                                 <option value="all">All Statuses</option>
                                 <option value="completed">Completed</option>
@@ -2285,14 +2289,16 @@
                 <!-- Interview Trends -->
                 <div style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1);margin-top:2rem">
                     <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:0.75rem;color:#111827">Interviews Conducted Over Time</h3>
-                    <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap">
-                        <select id="trends-range-filter" class="form-input" style="font-size:0.85rem;padding:0.4rem 0.6rem;width:auto" onchange="updateTrendsChart()">
+                        <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap">
+                            <label for="trends-range-filter" class="sr-only">Trends chart date range filter</label>
+                            <select id="trends-range-filter" class="form-input" style="font-size:0.85rem;padding:0.4rem 0.6rem;width:auto" onchange="updateTrendsChart()">
                             <option value="week">Last 7 Days</option>
                             <option value="month" selected>Last 30 Days</option>
                             <option value="quarter">Last 3 Months</option>
                             <option value="year">Last Year</option>
                         </select>
-                        <select id="trends-verdict-filter" class="form-input" style="font-size:0.85rem;padding:0.4rem 0.6rem;width:auto" onchange="updateTrendsChart()">
+                            <label for="trends-verdict-filter" class="sr-only">Trends chart verdict filter</label>
+                            <select id="trends-verdict-filter" class="form-input" style="font-size:0.85rem;padding:0.4rem 0.6rem;width:auto" onchange="updateTrendsChart()">
                             <option value="all">All Verdicts</option>
                             <option value="Tiger">Tiger</option>
                             <option value="Cow">Cow</option>
@@ -2308,12 +2314,14 @@
                     <div style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
                         <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:0.75rem;color:#111827">Top Interviewers by Count</h3>
                         <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap">
+                            <label for="interviewers-date-filter" class="sr-only">Interviewers chart date filter</label>
                             <select id="interviewers-date-filter" class="form-input" style="font-size:0.85rem;padding:0.4rem 0.6rem;width:auto" onchange="updateInterviewersChart()">
                                 <option value="all">All Time</option>
                                 <option value="month" selected>Last 30 Days</option>
                                 <option value="quarter">Last 3 Months</option>
                                 <option value="year">Last Year</option>
                             </select>
+                            <label for="interviewers-session-filter" class="sr-only">Interviewers chart session filter</label>
                             <select id="interviewers-session-filter" class="form-input" style="font-size:0.85rem;padding:0.4rem 0.6rem;width:auto" onchange="updateInterviewersChart()">
                                 <option value="all">All Sessions</option>
                             </select>
@@ -2325,9 +2333,11 @@
                     <div style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
                         <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:0.75rem;color:#111827">Most Frequently Asked Questions</h3>
                         <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap">
+                            <label for="questions-category-filter" class="sr-only">Questions chart category filter</label>
                             <select id="questions-category-filter" class="form-input" style="font-size:0.85rem;padding:0.4rem 0.6rem;width:auto" onchange="updateQuestionsChart()">
                                 <option value="all">All Categories</option>
                             </select>
+                            <label for="questions-limit-filter" class="sr-only">Questions chart limit filter</label>
                             <select id="questions-limit-filter" class="form-input" style="font-size:0.85rem;padding:0.4rem 0.6rem;width:auto" onchange="updateQuestionsChart()">
                                 <option value="5">Top 5</option>
                                 <option value="10" selected>Top 10</option>
@@ -2344,6 +2354,7 @@
                     <div style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
                         <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:0.75rem;color:#111827">Question Categories Distribution</h3>
                         <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap">
+                            <label for="categories-usage-filter" class="sr-only">Categories chart usage filter</label>
                             <select id="categories-usage-filter" class="form-input" style="font-size:0.85rem;padding:0.4rem 0.6rem;width:auto" onchange="updateCategoriesChart()">
                                 <option value="all">All Questions</option>
                                 <option value="used">Used in Interviews</option>
@@ -2357,6 +2368,7 @@
                     <div style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
                         <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:0.75rem;color:#111827">Average Scores by Category</h3>
                         <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap">
+                            <label for="scores-metric-filter" class="sr-only">Scores chart metric filter</label>
                             <select id="scores-metric-filter" class="form-input" style="font-size:0.85rem;padding:0.4rem 0.6rem;width:auto" onchange="updateScoresChart()">
                                 <option value="avg">Average Score</option>
                                 <option value="success">Success Rate %</option>
@@ -2573,17 +2585,17 @@
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th><input type="checkbox" onchange="toggleAllRows(this.checked)" title="Select All"></th>
-                                <th data-field="name" onclick="sortBy('students','name')">Name <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
-                                <th data-field="email" onclick="sortBy('students','email')">Email <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
-                                <th data-field="zeta_id" onclick="sortBy('students','zeta_id')">Zeta ID <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
-                                <th data-field="phone" onclick="sortBy('students','phone')">Phone <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
-                                <th>School</th>
-                                <th>Location</th>
-                                
-                                <th>Verdicts</th>
-                                <th data-field="created_at" onclick="sortBy('students','created_at')">Created At <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
-                                <th>Actions</th>
+                                <th scope="col"><input type="checkbox" onchange="toggleAllRows(this.checked)" title="Select All"></th>
+                                <th scope="col" data-field="name" onclick="sortBy('students','name')">Name <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                <th scope="col" data-field="email" onclick="sortBy('students','email')">Email <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                <th scope="col" data-field="zeta_id" onclick="sortBy('students','zeta_id')">Zeta ID <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                <th scope="col" data-field="phone" onclick="sortBy('students','phone')">Phone <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                <th scope="col">School</th>
+                                <th scope="col">Location</th>
+
+                                <th scope="col">Verdicts</th>
+                                <th scope="col" data-field="created_at" onclick="sortBy('students','created_at')">Created At <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                <th scope="col">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="students-table-body">
@@ -4728,10 +4740,12 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                             if (q.question_rich_content) {
                                 // Replace all img tags with fixed size styling
                                 questionContentHtml = q.question_rich_content.replace(/<img([^>]*)>/gi, (match, attrs) => {
+                                    const hasAlt = attrs.includes('alt=');
+                                    const altAttr = hasAlt ? '' : ' alt="Question content image"';
                                     // Remove existing width/height/style attributes
                                     let cleanAttrs = attrs.replace(/\s*(width|height|style)=["'][^"']*["']/gi, '');
                                     // Add fixed size styling
-                                    return `<img${cleanAttrs} style="max-width:300px;max-height:300px;width:auto;height:auto;object-fit:contain;border:1px solid #e5e7eb;border-radius:4px;display:block;margin:4px 0;">`;
+                                    return `<img${cleanAttrs}${altAttr} style="max-width:300px;max-height:300px;width:auto;height:auto;object-fit:contain;border:1px solid #e5e7eb;border-radius:4px;display:block;margin:4px 0;">`;
                                 });
                             }
                             
@@ -8021,40 +8035,46 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
         function generateGroupByOptions(tab) {
             const groupConfigs = {
                 'interviews': `
-                    <div class="group-by-option">
-                        <input type="radio" id="group-none" name="group-by" value="" checked onchange="applyFilters('interviews')">
-                        <label for="group-none">No Grouping</label>
-                    </div>
-                    <div class="group-by-option">
-                        <input type="radio" id="group-status" name="group-by" value="status" onchange="applyFilters('interviews')">
-                        <label for="group-status">By Status</label>
-                    </div>
-                    <div class="group-by-option">
-                        <input type="radio" id="group-verdict" name="group-by" value="verdict" onchange="applyFilters('interviews')">
-                        <label for="group-verdict">By Verdict</label>
-                    </div>
-                    <div class="group-by-option">
-                        <input type="radio" id="group-interviewer" name="group-by" value="interviewer" onchange="applyFilters('interviews')">
-                        <label for="group-interviewer">By Interviewer</label>
-                    </div>
-                    <div class="group-by-option">
-                        <input type="radio" id="group-date" name="group-by" value="date" onchange="applyFilters('interviews')">
-                        <label for="group-date">By Date</label>
-                    </div>
+                    <fieldset class="group-by-fieldset">
+                        <legend class="sr-only">Group interviews by</legend>
+                        <div class="group-by-option">
+                            <input type="radio" id="group-none" name="group-by" value="" checked onchange="applyFilters('interviews')">
+                            <label for="group-none">No Grouping</label>
+                        </div>
+                        <div class="group-by-option">
+                            <input type="radio" id="group-status" name="group-by" value="status" onchange="applyFilters('interviews')">
+                            <label for="group-status">By Status</label>
+                        </div>
+                        <div class="group-by-option">
+                            <input type="radio" id="group-verdict" name="group-by" value="verdict" onchange="applyFilters('interviews')">
+                            <label for="group-verdict">By Verdict</label>
+                        </div>
+                        <div class="group-by-option">
+                            <input type="radio" id="group-interviewer" name="group-by" value="interviewer" onchange="applyFilters('interviews')">
+                            <label for="group-interviewer">By Interviewer</label>
+                        </div>
+                        <div class="group-by-option">
+                            <input type="radio" id="group-date" name="group-by" value="date" onchange="applyFilters('interviews')">
+                            <label for="group-date">By Date</label>
+                        </div>
+                    </fieldset>
                 `,
                 'questions': `
-                    <div class="group-by-option">
-                        <input type="radio" id="group-none" name="group-by" value="" checked onchange="applyFilters('questions')">
-                        <label for="group-none">No Grouping</label>
-                    </div>
-                    <div class="group-by-option">
-                        <input type="radio" id="group-category" name="group-by" value="category" onchange="applyFilters('questions')">
-                        <label for="group-category">By Category</label>
-                    </div>
-                    <div class="group-by-option">
-                        <input type="radio" id="group-times-asked" name="group-by" value="times_asked" onchange="applyFilters('questions')">
-                        <label for="group-times-asked">By Times Asked</label>
-                    </div>
+                    <fieldset class="group-by-fieldset">
+                        <legend class="sr-only">Group questions by</legend>
+                        <div class="group-by-option">
+                            <input type="radio" id="group-none" name="group-by" value="" checked onchange="applyFilters('questions')">
+                            <label for="group-none">No Grouping</label>
+                        </div>
+                        <div class="group-by-option">
+                            <input type="radio" id="group-category" name="group-by" value="category" onchange="applyFilters('questions')">
+                            <label for="group-category">By Category</label>
+                        </div>
+                        <div class="group-by-option">
+                            <input type="radio" id="group-times-asked" name="group-by" value="times_asked" onchange="applyFilters('questions')">
+                            <label for="group-times-asked">By Times Asked</label>
+                        </div>
+                    </fieldset>
                 `,
                 'sessions': `
                     <div class="group-by-option">
