@@ -3709,7 +3709,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                     const t=String(v||'').toLowerCase();
                     const tiger=t.includes('tiger'), cow=t.includes('cow'), sheep=t.includes('sheep');
                     const color = tiger? '#73CE85' : cow? '#E5A92A' : sheep? '#B3B3B3' : (t.includes('select')? '#73CE85' : t.includes('reject')? '#B3B3B3' : (t.includes('wait')||t.includes('hold')||t.includes('maybe'))? '#E5A92A' : '#6b7280');
-                    return `<span style="display:inline-block;background:${color};color:#000000;padding:3px 8px;border-radius:12px;font-size:11px;margin:2px;white-space:nowrap">${v||'-'}</span>`;
+                    return `<span style="display:inline-block;background:${color};color:#000000;padding:3px 8px;border-radius:12px;font-size:14px;margin:2px;white-space:nowrap">${v||'-'}</span>`;
                 };
                 const statusBadge = (v)=>{
                     const t=String(v||'').toLowerCase();
