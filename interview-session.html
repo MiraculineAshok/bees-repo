@@ -4942,6 +4942,13 @@
                 return;
             }
 
+            // Check if editor already exists - if so, remove it first to prevent duplication
+            const existingEditor = document.getElementById(`question-editor-${questionId}`);
+            if (existingEditor) {
+                existingEditor.remove();
+                delete questionEditEditors[questionId];
+            }
+
             // Get current question content
             const currentContent = question.question_rich_content || question.question_text || '';
 
