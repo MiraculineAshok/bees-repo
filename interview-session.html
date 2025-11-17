@@ -4942,11 +4942,21 @@
                 return;
             }
 
-            // Check if editor already exists - if so, remove it first to prevent duplication
+            // Check if editor already exists - if so, just return (prevent duplicate and preserve formatting)
             const existingEditor = document.getElementById(`question-editor-${questionId}`);
             if (existingEditor) {
-                existingEditor.remove();
-                delete questionEditEditors[questionId];
+                // Editor already exists, just focus it instead of recreating
+                const editor = questionEditEditors[questionId];
+                if (editor) {
+                    editor.focus();
+                }
+                return;
+            }
+
+            // Hide/disable edit button
+            const editButton = displayDiv.parentElement.querySelector('.edit-question-btn');
+            if (editButton) {
+                editButton.style.display = 'none';
             }
 
             // Get current question content
@@ -5055,6 +5065,12 @@
             const displayDiv = document.getElementById(`question-text-display-${questionId}`);
             if (displayDiv) {
                 displayDiv.style.display = 'block';
+            }
+            
+            // Show edit button again
+            const editButton = displayDiv?.parentElement?.querySelector('.edit-question-btn');
+            if (editButton) {
+                editButton.style.display = '';
             }
             
             // Clean up editor
