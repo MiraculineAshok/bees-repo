@@ -44,16 +44,48 @@ async function initializeDatabase() {
         id SERIAL PRIMARY KEY,
         first_name VARCHAR(255) NOT NULL,
         last_name VARCHAR(255) NOT NULL,
-        email VARCHAR(255) UNIQUE NOT NULL,
-        phone VARCHAR(20),
+        email VARCHAR(255) UNIQUE,
+        phone VARCHAR(20) NOT NULL,
         address TEXT,
-        zeta_id VARCHAR(255) UNIQUE NOT NULL,
+        zeta_id VARCHAR(255) UNIQUE,
         school VARCHAR(255),
         location VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+    
+    // Migrate existing students table: make email and zeta_id nullable (optional)
+    try {
+      await pool.query(`
+        ALTER TABLE students 
+        ALTER COLUMN email DROP NOT NULL
+      `);
+    } catch (error) {
+      // Column might already be nullable, ignore error
+      console.log('Email column migration:', error.message);
+    }
+    
+    try {
+      await pool.query(`
+        ALTER TABLE students 
+        ALTER COLUMN zeta_id DROP NOT NULL
+      `);
+    } catch (error) {
+      // Column might already be nullable, ignore error
+      console.log('Zeta ID column migration:', error.message);
+    }
+    
+    // Ensure phone is NOT NULL (required)
+    try {
+      await pool.query(`
+        ALTER TABLE students 
+        ALTER COLUMN phone SET NOT NULL
+      `);
+    } catch (error) {
+      // Column might already be NOT NULL, ignore error
+      console.log('Phone column migration:', error.message);
+    }
     
     // Create authorized_users table for access control
     await pool.query(`
