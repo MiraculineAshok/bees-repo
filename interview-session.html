@@ -834,6 +834,7 @@
             overflow-y: auto;
             max-height: none;
             min-height: 0;
+            font-size: 16px;
         }
 
         .panel-actions {
@@ -882,6 +883,7 @@
         /* Ensure all ql-editor instances have overflow scroll */
         .ql-editor {
             overflow-y: auto !important;
+            font-size: 16px !important;
         }
 
         .form-label-with-action {
@@ -956,11 +958,17 @@
             max-height: none;
             padding: 12px 15px;
             overflow-y: auto;
+            font-size: 16px;
         }
         
         #question-editor-container .ql-editor.ql-blank::before {
             color: #a0aec0;
             font-style: normal;
+        }
+        
+        /* Font size for dynamically created question editors */
+        [id^="question-quill-editor-"] .ql-editor {
+            font-size: 16px !important;
         }
         
         /* Fixed image sizes in the editor - 200x200 with aspect ratio preserved */
