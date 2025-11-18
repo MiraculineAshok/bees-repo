@@ -2475,16 +2475,25 @@ app.post('/api/admin/students/bulk-import/text', async (req, res) => {
         const school = (s.school||'').trim();
         const location = (s.location||'').trim();
         
-        if (!email || !phone) {
+        // Only name and phone are required
+        if (!name || !phone) {
           errors++;
           continue;
         }
         
-        // Check for existing email or phone
-        const existing = await pool.query(
-          `SELECT id FROM students WHERE email = $1 OR phone = $2 LIMIT 1`,
-          [email, phone]
-        );
+        // Check for existing email (if provided) or phone
+        let existing;
+        if (email) {
+          existing = await pool.query(
+            `SELECT id FROM students WHERE email = $1 OR phone = $2 LIMIT 1`,
+            [email, phone]
+          );
+        } else {
+          existing = await pool.query(
+            `SELECT id FROM students WHERE phone = $1 LIMIT 1`,
+            [phone]
+          );
+        }
         
         if (existing.rows.length > 0) {
           skipped++;
@@ -2496,7 +2505,7 @@ app.post('/api/admin/students/bulk-import/text', async (req, res) => {
         await pool.query(
           `INSERT INTO students (first_name, last_name, email, zeta_id, phone, school, location)
            VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-          [name.split(' ')[0]||name, name.split(' ').slice(1).join(' ')||'', email, zeta||null, phone, school||null, location||null]
+          [name.split(' ')[0]||name, name.split(' ').slice(1).join(' ')||'', email||null, zeta||null, phone, school||null, location||null]
         );
         inserted++;
       } catch (err) {
@@ -2556,20 +2565,33 @@ app.post('/api/admin/students/bulk-import/file', upload.single('file'), async (r
           continue;
         }
         
-        const [name, email, zeta_id, phone, school, location] = r;
+        const [name, phone, school, location, email, zeta_id] = r;
+        const cleanName = String(name||'').trim();
         const cleanEmail = String(email||'').trim().toLowerCase();
         const cleanPhone = String(phone||'').trim();
+        const cleanSchool = String(school||'').trim();
+        const cleanLocation = String(location||'').trim();
+        const cleanZeta = String(zeta_id||'').trim();
         
-        if (!cleanEmail || !cleanPhone) {
+        // Only name and phone are required
+        if (!cleanName || !cleanPhone) {
           errors++;
           continue;
         }
         
-        // Check for existing email or phone
-        const existing = await pool.query(
-          `SELECT id FROM students WHERE email = $1 OR phone = $2 LIMIT 1`,
-          [cleanEmail, cleanPhone]
-        );
+        // Check for existing email (if provided) or phone
+        let existing;
+        if (cleanEmail) {
+          existing = await pool.query(
+            `SELECT id FROM students WHERE email = $1 OR phone = $2 LIMIT 1`,
+            [cleanEmail, cleanPhone]
+          );
+        } else {
+          existing = await pool.query(
+            `SELECT id FROM students WHERE phone = $1 LIMIT 1`,
+            [cleanPhone]
+          );
+        }
         
         if (existing.rows.length > 0) {
           skipped++;
@@ -2582,13 +2604,13 @@ app.post('/api/admin/students/bulk-import/file', upload.single('file'), async (r
           `INSERT INTO students (first_name, last_name, email, zeta_id, phone, school, location)
            VALUES ($1,$2,$3,$4,$5,$6,$7)`,
           [
-            String(name||'').split(' ')[0]||'', 
-            String(name||'').split(' ').slice(1).join(' ')||'', 
-            cleanEmail, 
-            String(zeta_id||'').trim()||null, 
+            cleanName.split(' ')[0]||cleanName, 
+            cleanName.split(' ').slice(1).join(' ')||'', 
+            cleanEmail||null, 
+            cleanZeta||null, 
             cleanPhone, 
-            String(school||'').trim()||null, 
-            String(location||'').trim()||null
+            cleanSchool||null, 
+            cleanLocation||null
           ]
         );
         inserted++;

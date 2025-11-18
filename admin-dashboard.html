@@ -2798,16 +2798,16 @@
                                     <strong>Required Format (First 6 columns only):</strong>
                                 </div>
                                 <div style="font-family:monospace;font-size:12px;color:#1e3a8a;background:#fff;padding:8px;border-radius:4px;overflow-x:auto">
-                                    name,email,zeta_id,phone,school,location
+                                    name,phone,school,location,email,zeta_id
                                 </div>
                             </div>
                             <ul style="font-size:13px;color:#4b5563;margin:0;padding-left:20px;line-height:1.8">
                                 <li><strong>Name</strong> (Required): Full name of the student</li>
-                                <li><strong>Email</strong> (Required): Must be unique, duplicates will be skipped</li>
-                                <li><strong>Zeta ID</strong> (Required): Student ID</li>
                                 <li><strong>Phone</strong> (Required): 10-digit phone number, duplicates will be skipped</li>
                                 <li><strong>School</strong> (Optional): School or institution name</li>
                                 <li><strong>Location</strong> (Optional): Location or city</li>
+                                <li><strong>Email</strong> (Optional): Must be unique if provided, duplicates will be skipped</li>
+                                <li><strong>Zeta ID</strong> (Optional): Student ID</li>
                             </ul>
                             <div style="margin-top:12px;padding:8px;background:#fef3c7;border-radius:4px;font-size:12px;color:#92400e">
                                 ⚠️ <strong>Duplication Check:</strong> Students with existing email or phone numbers will be automatically skipped.
@@ -2816,9 +2816,9 @@
                         
                         <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:16px">
                             <label style="font-weight:600;margin-bottom:8px;display:block;color:#111827">Paste CSV Data:</label>
-                            <textarea id="bulk-students-text" class="form-textarea" rows="10" placeholder="John Doe,john@example.com,Z123,1234567890,St. Mary's School,New York
-Jane Smith,jane@example.com,Z124,0987654321,Lincoln High,Los Angeles
-Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font-family:monospace;font-size:13px"></textarea>
+                            <textarea id="bulk-students-text" class="form-textarea" rows="10" placeholder="John Doe,1234567890,St. Mary's School,New York,john@example.com,Z123
+Jane Smith,0987654321,Lincoln High,Los Angeles,jane@example.com,Z124
+Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font-family:monospace;font-size:13px"></textarea>
                             <div style="margin-top:8px;font-size:12px;color:#6b7280">
                                 💡 Tip: You can copy data directly from Excel or Google Sheets
                             </div>
@@ -2837,7 +2837,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                                     <li>Accepted formats: <code>.csv</code>, <code>.xls</code>, <code>.xlsx</code></li>
                                     <li>Maximum file size: <strong>5MB</strong></li>
                                     <li>First row should contain headers (will be skipped)</li>
-                                    <li>Column order: name, email, zeta_id, phone, school, location</li>
+                                    <li>Column order: name, phone, school, location, email, zeta_id</li>
                                 </ul>
                             </div>
                             <div style="margin-top:12px;padding:8px;background:#fef3c7;border-radius:4px;font-size:12px;color:#92400e">
@@ -3068,17 +3068,17 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                         return; 
                     }
                     
-                    // Parse CSV lines: name,email,zeta_id,phone,school,location
+                    // Parse CSV lines: name,phone,school,location,email,zeta_id
                     const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
                     const students = [];
                     const errors = [];
                     
                     lines.forEach((line, index) => {
-                        const [name, email, zeta_id, phone, school, location] = line.split(',').map(v => (v || '').trim());
+                        const [name, phone, school, location, email, zeta_id] = line.split(',').map(v => (v || '').trim());
                         
-                        // Validate required fields
-                        if (!name || !email || !zeta_id || !phone) {
-                            errors.push(`Line ${index + 1}: Missing required fields (name, email, zeta_id, phone)`);
+                        // Validate required fields (only name and phone)
+                        if (!name || !phone) {
+                            errors.push(`Line ${index + 1}: Missing required fields (name and phone are required)`);
                             return;
                         }
                         
@@ -3089,7 +3089,7 @@ Bob Johnson,bob@example.com,Z125,5551234567,Central Academy,Chicago" style="font
                             return;
                         }
                         
-                        students.push({ name, email, zeta_id, phone, school: school || '', location: location || '' });
+                        students.push({ name, phone, school: school || '', location: location || '', email: email || '', zeta_id: zeta_id || '' });
                     });
                     
                     if (errors.length > 0) {
