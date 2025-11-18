@@ -3115,8 +3115,24 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     }
                     
                     // Show detailed results
-                    const message = `Successfully imported ${json.count || 0} student(s)${json.skipped > 0 ? `\n${json.skipped} duplicate(s) skipped` : ''}${json.errors > 0 ? `\n${json.errors} error(s)` : ''}`;
-                    showSuccess(message);
+                    let message = `Successfully imported ${json.count || 0} student(s)`;
+                    if (json.skipped > 0) {
+                        message += `\n${json.skipped} duplicate(s) skipped`;
+                    }
+                    if (json.errors > 0) {
+                        message += `\n\n${json.errors} error(s):`;
+                        if (json.errorMessages && json.errorMessages.length > 0) {
+                            message += `\n${json.errorMessages.slice(0, 10).join('\n')}`;
+                            if (json.errorMessages.length > 10) {
+                                message += `\n... and ${json.errorMessages.length - 10} more error(s)`;
+                            }
+                        }
+                    }
+                    if (json.errors > 0) {
+                        showError(message);
+                    } else {
+                        showSuccess(message);
+                    }
                     
                 } else {
                     // File upload mode
@@ -3156,8 +3172,24 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     }
                     
                     // Show detailed results
-                    const message = `Successfully imported ${json.count || 0} student(s)${json.skipped > 0 ? `\n${json.skipped} duplicate(s) skipped` : ''}${json.errors > 0 ? `\n${json.errors} error(s)` : ''}`;
-                    showSuccess(message);
+                    let message = `Successfully imported ${json.count || 0} student(s)`;
+                    if (json.skipped > 0) {
+                        message += `\n${json.skipped} duplicate(s) skipped`;
+                    }
+                    if (json.errors > 0) {
+                        message += `\n\n${json.errors} error(s):`;
+                        if (json.errorMessages && json.errorMessages.length > 0) {
+                            message += `\n${json.errorMessages.slice(0, 10).join('\n')}`;
+                            if (json.errorMessages.length > 10) {
+                                message += `\n... and ${json.errorMessages.length - 10} more error(s)`;
+                            }
+                        }
+                    }
+                    if (json.errors > 0) {
+                        showError(message);
+                    } else {
+                        showSuccess(message);
+                    }
                 }
                 
                 closeBulkImportStudents();

@@ -2465,8 +2465,10 @@ app.post('/api/admin/students/bulk-import/text', async (req, res) => {
     let inserted = 0;
     let skipped = 0;
     let errors = 0;
+    const errorMessages = [];
     
-    for (const s of students) {
+    for (let i = 0; i < students.length; i++) {
+      const s = students[i];
       try {
         const name = (s.name||'').trim();
         const email = (s.email||'').trim().toLowerCase();
@@ -2478,6 +2480,7 @@ app.post('/api/admin/students/bulk-import/text', async (req, res) => {
         // Only name and phone are required
         if (!name || !phone) {
           errors++;
+          errorMessages.push(`Row ${i + 1}: Missing required fields (name and phone are required)`);
           continue;
         }
         
@@ -2503,6 +2506,7 @@ app.post('/api/admin/students/bulk-import/text', async (req, res) => {
       } catch (err) {
         console.error(`Error inserting student:`, err);
         errors++;
+        errorMessages.push(`Row ${i + 1}: ${err.message || 'Failed to insert student'}`);
       }
     }
     
@@ -2511,6 +2515,7 @@ app.post('/api/admin/students/bulk-import/text', async (req, res) => {
       count: inserted,
       skipped: skipped,
       errors: errors,
+      errorMessages: errorMessages,
       message: `Imported ${inserted} student(s), skipped ${skipped} duplicate(s), ${errors} error(s)`
     });
   } catch (e) {
@@ -2547,13 +2552,16 @@ app.post('/api/admin/students/bulk-import/file', upload.single('file'), async (r
     let inserted = 0;
     let skipped = 0;
     let errors = 0;
+    const errorMessages = [];
     let isFirstRow = true; // Skip header row
+    let rowNumber = 1; // Track row number for error messages
     
     for (const r of rows) {
       try {
         // Skip header row
         if (isFirstRow) {
           isFirstRow = false;
+          rowNumber++;
           continue;
         }
         
@@ -2568,6 +2576,8 @@ app.post('/api/admin/students/bulk-import/file', upload.single('file'), async (r
         // Only name and phone are required
         if (!cleanName || !cleanPhone) {
           errors++;
+          errorMessages.push(`Row ${rowNumber}: Missing required fields (name and phone are required)`);
+          rowNumber++;
           continue;
         }
         
@@ -2580,6 +2590,7 @@ app.post('/api/admin/students/bulk-import/file', upload.single('file'), async (r
         if (existing.rows.length > 0) {
           skipped++;
           console.log(`Skipped duplicate phone: ${cleanPhone}`);
+          rowNumber++;
           continue;
         }
         
@@ -2598,9 +2609,12 @@ app.post('/api/admin/students/bulk-import/file', upload.single('file'), async (r
           ]
         );
         inserted++;
+        rowNumber++;
       } catch (err) {
         console.error(`Error inserting student from file:`, err);
         errors++;
+        errorMessages.push(`Row ${rowNumber}: ${err.message || 'Failed to insert student'}`);
+        rowNumber++;
       }
     }
     
@@ -2609,6 +2623,7 @@ app.post('/api/admin/students/bulk-import/file', upload.single('file'), async (r
       count: inserted,
       skipped: skipped,
       errors: errors,
+      errorMessages: errorMessages,
       message: `Imported ${inserted} student(s), skipped ${skipped} duplicate(s), ${errors} error(s)`
     });
   } catch (e) {
