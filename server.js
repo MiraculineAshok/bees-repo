@@ -2481,23 +2481,15 @@ app.post('/api/admin/students/bulk-import/text', async (req, res) => {
           continue;
         }
         
-        // Check for existing email (if provided) or phone
-        let existing;
-        if (email) {
-          existing = await pool.query(
-            `SELECT id FROM students WHERE email = $1 OR phone = $2 LIMIT 1`,
-            [email, phone]
-          );
-        } else {
-          existing = await pool.query(
-            `SELECT id FROM students WHERE phone = $1 LIMIT 1`,
-            [phone]
-          );
-        }
+        // Check for existing phone number (duplicate check)
+        const existing = await pool.query(
+          `SELECT id FROM students WHERE phone = $1 LIMIT 1`,
+          [phone]
+        );
         
         if (existing.rows.length > 0) {
           skipped++;
-          console.log(`Skipped duplicate: ${email} or ${phone}`);
+          console.log(`Skipped duplicate phone: ${phone}`);
           continue;
         }
         
@@ -2579,23 +2571,15 @@ app.post('/api/admin/students/bulk-import/file', upload.single('file'), async (r
           continue;
         }
         
-        // Check for existing email (if provided) or phone
-        let existing;
-        if (cleanEmail) {
-          existing = await pool.query(
-            `SELECT id FROM students WHERE email = $1 OR phone = $2 LIMIT 1`,
-            [cleanEmail, cleanPhone]
-          );
-        } else {
-          existing = await pool.query(
-            `SELECT id FROM students WHERE phone = $1 LIMIT 1`,
-            [cleanPhone]
-          );
-        }
+        // Check for existing phone number (duplicate check)
+        const existing = await pool.query(
+          `SELECT id FROM students WHERE phone = $1 LIMIT 1`,
+          [cleanPhone]
+        );
         
         if (existing.rows.length > 0) {
           skipped++;
-          console.log(`Skipped duplicate: ${cleanEmail} or ${cleanPhone}`);
+          console.log(`Skipped duplicate phone: ${cleanPhone}`);
           continue;
         }
         
