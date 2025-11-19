@@ -201,7 +201,6 @@ class InterviewPage {
 
     async submitNewStudent() {
         const formData = {
-            zeta_id: document.getElementById('new-zeta-id').value.trim(),
             first_name: document.getElementById('new-first-name').value.trim(),
             last_name: document.getElementById('new-last-name').value.trim(),
             email: document.getElementById('new-email').value.trim(),
