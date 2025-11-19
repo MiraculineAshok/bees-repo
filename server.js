@@ -2550,14 +2550,33 @@ app.get('/api/admin/student-sessions', async (req, res) => {
   try {
     if (!pool) return res.json({ success: true, data: [] });
     
+    // Check if student_sessions table exists
+    const tableCheck = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'student_sessions'
+      )
+    `);
+    
+    if (!tableCheck.rows[0]?.exists) {
+      console.warn('⚠️ student_sessions table does not exist yet');
+      return res.json({ success: true, data: [] });
+    }
+    
     const result = await pool.query(`
       SELECT 
         ss.id,
         ss.student_id,
         ss.session_id,
         ss.session_status,
-        CONCAT(s.first_name, ' ', s.last_name) AS student_name,
-        iss.name AS session_name,
+        CASE 
+          WHEN s.first_name IS NULL AND s.last_name IS NULL THEN 'Unknown'
+          WHEN s.first_name IS NULL THEN s.last_name
+          WHEN s.last_name IS NULL THEN s.first_name
+          ELSE TRIM(s.first_name || ' ' || s.last_name)
+        END AS student_name,
+        COALESCE(iss.name, 'Unknown Session') AS session_name,
         ss.created_at,
         ss.updated_at
       FROM student_sessions ss
@@ -2572,9 +2591,10 @@ app.get('/api/admin/student-sessions', async (req, res) => {
     });
   } catch (error) {
     console.error('Error getting student sessions:', error);
+    console.error('Error details:', error.stack);
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message || 'Failed to load student sessions'
     });
   }
 });
