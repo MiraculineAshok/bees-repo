@@ -2660,6 +2660,47 @@ app.put('/api/admin/student-sessions/bulk', async (req, res) => {
   }
 });
 
+// Update single student session
+app.put('/api/admin/student-sessions/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { session_status } = req.body;
+    
+    if (!session_status) {
+      return res.status(400).json({
+        success: false,
+        error: 'session_status is required'
+      });
+    }
+
+    const result = await pool.query(
+      `UPDATE student_sessions 
+       SET session_status = $1 
+       WHERE id = $2 
+       RETURNING id`,
+      [session_status, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Student session not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Student session updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating student session:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to update student session'
+    });
+  }
+});
+
 // Bulk import students (text JSON)
 app.post('/api/admin/students/bulk-import/text', async (req, res) => {
   try {

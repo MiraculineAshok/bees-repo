@@ -2640,11 +2640,12 @@
                                 <th data-field="student_name" onclick="sortBy('student-sessions','student_name')">Student Name <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th data-field="session_name" onclick="sortBy('student-sessions','session_name')">Interview Session <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th data-field="session_status" onclick="sortBy('student-sessions','session_status')">Interview Status <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="student-sessions-table-body">
                             <tr>
-                                <td colspan="4" class="loading">Loading student sessions...</td>
+                                <td colspan="5" class="loading">Loading student sessions...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -10882,7 +10883,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             if (!tbody) return;
 
             if (!studentSessions || studentSessions.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No student sessions found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No student sessions found</td></tr>';
                 const container = document.querySelector('#student-sessions .table-container');
                 if (container) {
                     const existingPagination = container.querySelector('.pagination-controls');
@@ -10901,7 +10902,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
 
             // Check if no results after filtering
             if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No matches found for your search or filter criteria</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No matches found for your search or filter criteria</td></tr>';
                 const container = document.querySelector('#student-sessions .table-container');
                 if (container) {
                     const existingPagination = container.querySelector('.pagination-controls');
@@ -10949,6 +10950,9 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     <td data-field="student_name">${item.student_name || '—'}</td>
                     <td data-field="session_name">${item.session_name || '—'}</td>
                     <td data-field="session_status">${formatStatus(item.session_status)}</td>
+                    <td>
+                        <button class="btn btn-secondary btn-compact" onclick="startEdit('${item.id}', ${JSON.stringify(item).replace(/"/g, '&quot;')})" title="Edit">✎</button>
+                    </td>
                 </tr>
             `).join('');
 
@@ -11476,15 +11480,11 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     select.className = valueInput.className || 'form-input';
                     select.innerHTML = `
                         <option value="">Select Status...</option>
-                        <option value="round 1 started" ${currentValue === 'round 1 started' ? 'selected' : ''}>Round 1 Started</option>
-                        <option value="round 1 ended" ${currentValue === 'round 1 ended' ? 'selected' : ''}>Round 1 Ended</option>
-                        <option value="round 2 started" ${currentValue === 'round 2 started' ? 'selected' : ''}>Round 2 Started</option>
-                        <option value="round 2 ended" ${currentValue === 'round 2 ended' ? 'selected' : ''}>Round 2 Ended</option>
-                        <option value="round 3 started" ${currentValue === 'round 3 started' ? 'selected' : ''}>Round 3 Started</option>
-                        <option value="round 3 ended" ${currentValue === 'round 3 ended' ? 'selected' : ''}>Round 3 Ended</option>
-                        <option value="selected" ${currentValue === 'selected' ? 'selected' : ''}>Selected</option>
-                        <option value="rejected" ${currentValue === 'rejected' ? 'selected' : ''}>Rejected</option>
-                        <option value="waitlisted" ${currentValue === 'waitlisted' ? 'selected' : ''}>Waitlisted</option>
+                        <option value="No show" ${currentValue === 'No show' ? 'selected' : ''}>No show</option>
+                        <option value="Disqualified" ${currentValue === 'Disqualified' ? 'selected' : ''}>Disqualified</option>
+                        <option value="Age Mismatch" ${currentValue === 'Age Mismatch' ? 'selected' : ''}>Age Mismatch</option>
+                        <option value="Degree holder" ${currentValue === 'Degree holder' ? 'selected' : ''}>Degree holder</option>
+                        <option value="Interviewer unavailable" ${currentValue === 'Interviewer unavailable' ? 'selected' : ''}>Interviewer unavailable</option>
                     `;
                     valueInput.replaceWith(select);
                 } else {
@@ -11672,6 +11672,8 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     resolvedData = (interviews || []).find(i => String(i.id) === String(rowId));
                 } else if (section === 'users') {
                     resolvedData = (users || []).find(u => String(u.id) === String(rowId));
+                } else if (section === 'student-sessions') {
+                    resolvedData = (studentSessions || []).find(s => String(s.id) === String(rowId));
                 }
             }
 
@@ -11807,6 +11809,27 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                         continue;
                     } else {
                         // Skip other fields for interviews - only verdict is editable
+                        continue;
+                    }
+                }
+
+                // Special handling for Student Sessions: only allow editing session_status with dropdown
+                if ((typeof currentSection !== 'undefined' && currentSection === 'student-sessions')) {
+                    if (field === 'session_status') {
+                        const statusOptions = ['No show', 'Disqualified', 'Age Mismatch', 'Degree holder', 'Interviewer unavailable'];
+                        const currentStatus = currentEditData ? currentEditData.session_status : '';
+                        const statusOptionsHTML = statusOptions.map(opt => 
+                            `<option value="${opt}" ${currentStatus === opt ? 'selected' : ''}>${opt}</option>`
+                        ).join('');
+                        cell.innerHTML = `
+                            <select class="edit-input" data-field="session_status" style="min-width:200px">
+                                <option value="">Select Status...</option>
+                                ${statusOptionsHTML}
+                            </select>
+                        `;
+                        continue;
+                    } else {
+                        // Skip other fields for student-sessions - only session_status is editable
                         continue;
                     }
                 }
@@ -11978,6 +12001,10 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     <button class="icon-btn view-btn" onclick="viewUser(${user.id})" title="View Details"><img src="/view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
                     <button class="icon-btn delete-btn" onclick="deleteUser(${user.id})" title="Delete"><img src="/delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
                 `;
+            } else if (section === 'student-sessions') {
+                actionCell.innerHTML = `
+                    <button class="btn btn-secondary btn-compact" onclick="startEdit('${originalData.id}', ${JSON.stringify(originalData).replace(/"/g, '&quot;')})" title="Edit">✎</button>
+                `;
             }
         }
 
@@ -11996,7 +12023,8 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     'interviews': ['verdict', 'status', 'overall_notes'],
                     'my-interviews': ['verdict', 'status', 'overall_notes'],
                     'questions': ['question', 'category', 'tags'],
-                    'users': ['name', 'email', 'role', 'is_superadmin']
+                    'users': ['name', 'email', 'role', 'is_superadmin'],
+                    'student-sessions': ['session_status']
                 };
 
                 const section = (typeof currentSection !== 'undefined' && currentSection) ? currentSection : (document.querySelector('.nav-link.active') ? document.querySelector('.nav-link.active').dataset.section : '');
@@ -12045,6 +12073,8 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     endpoint = `/api/question-bank/${rowId}`;
                 } else if (section === 'users') {
                     endpoint = `/api/authorized-users/${rowId}`;
+                } else if (section === 'student-sessions') {
+                    endpoint = `/api/admin/student-sessions/${rowId}`;
                 }
                 
                 const response = await fetch(endpoint, {
