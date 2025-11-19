@@ -2577,6 +2577,9 @@ app.get('/api/admin/student-sessions', async (req, res) => {
           ELSE TRIM(s.first_name || ' ' || s.last_name)
         END AS student_name,
         COALESCE(iss.name, 'Unknown Session') AS session_name,
+        COALESCE(s.phone, '') AS phone,
+        COALESCE(s.email, '') AS email,
+        COALESCE(s.zeta_id, '') AS zeta_id,
         ss.created_at
       FROM student_sessions ss
       INNER JOIN students s ON ss.student_id = s.id

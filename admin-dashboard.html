@@ -2638,6 +2638,9 @@
                             <tr>
                                 <th><input type="checkbox" onchange="toggleAllRows(this.checked)" title="Select All"></th>
                                 <th data-field="student_name" onclick="sortBy('student-sessions','student_name')">Student Name <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                <th data-field="phone" onclick="sortBy('student-sessions','phone')">Phone <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                <th data-field="email" onclick="sortBy('student-sessions','email')">Email <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                <th data-field="zeta_id" onclick="sortBy('student-sessions','zeta_id')">Zeta ID <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th data-field="session_name" onclick="sortBy('student-sessions','session_name')">Interview Session <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th data-field="session_status" onclick="sortBy('student-sessions','session_status')">Interview Status <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th>Actions</th>
@@ -2645,7 +2648,7 @@
                         </thead>
                         <tbody id="student-sessions-table-body">
                             <tr>
-                                <td colspan="5" class="loading">Loading student sessions...</td>
+                                <td colspan="8" class="loading">Loading student sessions...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -4378,6 +4381,9 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         // Student Sessions Advanced Filters
         const studentSessionsFilterFields = [
             { value: 'student_name', label: 'Student Name' },
+            { value: 'phone', label: 'Phone' },
+            { value: 'email', label: 'Email' },
+            { value: 'zeta_id', label: 'Zeta ID' },
             { value: 'session_name', label: 'Session Name' },
             { value: 'session_status', label: 'Interview Status' },
             { value: 'created_at', label: 'Created At' }
@@ -5091,7 +5097,8 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                         const userIdData = await userIdResponse.json();
                         const userId = userIdData.success ? userIdData.userId : null;
                         currentUserId = userId;
-                        const initial = userId ? userId.toString().charAt(0).toUpperCase() : (userData.email || userData.name || 'A').trim().charAt(0).toUpperCase();
+                        // Use first character of name or email, not user ID
+                        const initial = (userData.name || userData.email || 'A').trim().charAt(0).toUpperCase();
                         avatar.textContent = initial || 'A';
                     } else {
                         // Fallback if no email available
@@ -10883,7 +10890,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             if (!tbody) return;
 
             if (!studentSessions || studentSessions.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No student sessions found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No student sessions found</td></tr>';
                 const container = document.querySelector('#student-sessions .table-container');
                 if (container) {
                     const existingPagination = container.querySelector('.pagination-controls');
@@ -10896,13 +10903,13 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
 
             // Inline search + advanced filters + sort
             const term = document.getElementById('student-sessions-inline-search')?.value || '';
-            let list = applyInlineSearch(studentSessions, term, ['student_name', 'session_name', 'session_status']);
+            let list = applyInlineSearch(studentSessions, term, ['student_name', 'session_name', 'session_status', 'phone', 'email', 'zeta_id']);
             list = applyAdvancedFiltersStudentSessions(list);
             list = applyInlineSort(list, 'student-sessions');
 
             // Check if no results after filtering
             if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No matches found for your search or filter criteria</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No matches found for your search or filter criteria</td></tr>';
                 const container = document.querySelector('#student-sessions .table-container');
                 if (container) {
                     const existingPagination = container.querySelector('.pagination-controls');
@@ -10948,6 +10955,9 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 <tr data-row-id="${item.id}">
                     <td><input type="checkbox" class="row-checkbox" data-row-id="${item.id}" ${selectedRows.has(String(item.id)) ? 'checked' : ''} onchange="toggleRowSelection('${item.id}')"></td>
                     <td data-field="student_name">${item.student_name || '—'}</td>
+                    <td data-field="phone">${item.phone || '—'}</td>
+                    <td data-field="email">${item.email || '—'}</td>
+                    <td data-field="zeta_id">${item.zeta_id || '—'}</td>
                     <td data-field="session_name">${item.session_name || '—'}</td>
                     <td data-field="session_status">${formatStatus(item.session_status)}</td>
                     <td>
