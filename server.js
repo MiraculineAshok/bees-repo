@@ -2666,26 +2666,35 @@ app.put('/api/admin/student-sessions/bulk', async (req, res) => {
 // Get student sessions status statistics for charts
 app.get('/api/admin/student-sessions/stats', async (req, res) => {
   try {
-    const { year } = req.query;
+    const { year, session_id } = req.query;
     
-    // Build WHERE clause for year filter
-    let yearFilter = '';
+    // Build WHERE clause for filters
+    let filters = [];
     if (year && year !== 'all') {
       const yearInt = parseInt(year);
       if (!isNaN(yearInt)) {
-        yearFilter = `AND EXTRACT(YEAR FROM ss.created_at) = ${yearInt}`;
+        filters.push(`EXTRACT(YEAR FROM ss.created_at) = ${yearInt}`);
+      }
+    }
+    if (session_id && session_id !== 'all') {
+      const sessionIdInt = parseInt(session_id);
+      if (!isNaN(sessionIdInt)) {
+        filters.push(`ss.session_id = ${sessionIdInt}`);
       }
     }
     
+    const whereClause = filters.length > 0 ? `WHERE ${filters.join(' AND ')}` : '';
+    
     const result = await pool.query(`
       SELECT 
+        iss.id AS session_id,
         iss.name AS session_name,
         COALESCE(ss.session_status, 'No Status') AS status,
         COUNT(*) AS count
       FROM student_sessions ss
       INNER JOIN interview_sessions iss ON ss.session_id = iss.id
-      WHERE 1=1 ${yearFilter}
-      GROUP BY iss.name, ss.session_status
+      ${whereClause}
+      GROUP BY iss.id, iss.name, ss.session_status
       ORDER BY iss.name, ss.session_status
     `);
     
@@ -2697,12 +2706,22 @@ app.get('/api/admin/student-sessions/stats', async (req, res) => {
       ORDER BY year DESC
     `);
     
+    // Get available sessions
+    const sessionsResult = await pool.query(`
+      SELECT DISTINCT iss.id, iss.name
+      FROM interview_sessions iss
+      INNER JOIN student_sessions ss ON iss.id = ss.session_id
+      ORDER BY iss.name
+    `);
+    
     const years = yearsResult.rows.map(row => row.year).filter(y => y != null);
+    const sessions = sessionsResult.rows.map(row => ({ id: row.id, name: row.name }));
     
     res.json({
       success: true,
       data: result.rows,
-      years: years
+      years: years,
+      sessions: sessions
     });
   } catch (error) {
     console.error('Error getting student sessions stats:', error);

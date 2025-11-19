@@ -2266,6 +2266,9 @@
                     <div style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
                         <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:0.75rem;color:#111827">Student Sessions Status by Session</h3>
                         <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap">
+                            <select id="student-sessions-session-filter" class="form-input" style="font-size:0.85rem;padding:0.4rem 0.6rem;width:auto" onchange="updateStudentSessionsChart()">
+                                <option value="all">All Sessions</option>
+                            </select>
                             <select id="student-sessions-year-filter" class="form-input" style="font-size:0.85rem;padding:0.4rem 0.6rem;width:auto" onchange="updateStudentSessionsChart()">
                                 <option value="all">All Years</option>
                             </select>
@@ -5631,7 +5634,8 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         async function updateStudentSessionsChart() {
             try {
                 const year = document.getElementById('student-sessions-year-filter')?.value || 'all';
-                const response = await fetch(`/api/admin/student-sessions/stats?year=${encodeURIComponent(year)}`);
+                const sessionId = document.getElementById('student-sessions-session-filter')?.value || 'all';
+                const response = await fetch(`/api/admin/student-sessions/stats?year=${encodeURIComponent(year)}&session_id=${encodeURIComponent(sessionId)}`);
                 const result = await response.json();
                 
                 if (!response.ok || !result.success) {
@@ -5641,6 +5645,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 
                 const data = result.data || [];
                 const years = result.years || [];
+                const sessions = result.sessions || [];
                 
                 // Populate year dropdown if not already populated
                 const yearSelect = document.getElementById('student-sessions-year-filter');
@@ -5653,7 +5658,18 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     });
                 }
                 
-                createStudentSessionsChart(data);
+                // Populate session dropdown if not already populated
+                const sessionSelect = document.getElementById('student-sessions-session-filter');
+                if (sessionSelect && sessionSelect.options.length === 1) {
+                    sessions.forEach(session => {
+                        const option = document.createElement('option');
+                        option.value = session.id;
+                        option.textContent = session.name;
+                        sessionSelect.appendChild(option);
+                    });
+                }
+                
+                createStudentSessionsChart(data, sessionId);
             } catch (error) {
                 console.error('Error updating student sessions chart:', error);
             }
@@ -5893,25 +5909,32 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             });
         }
 
-        // Student Sessions Status by Session (Grouped Bar Chart)
-        function createStudentSessionsChart(data) {
-            // Group data by session_name
-            const sessionData = {};
-            const statusSet = new Set();
+        // Student Sessions Status by Session (Bar Chart - Status on X-axis)
+        function createStudentSessionsChart(data, selectedSessionId) {
+            // Count statuses
+            const statusCounts = {};
             
             data.forEach(row => {
-                const session = row.session_name || 'Unknown Session';
                 const status = row.status || 'No Status';
-                statusSet.add(status);
-                
-                if (!sessionData[session]) {
-                    sessionData[session] = {};
-                }
-                sessionData[session][status] = parseInt(row.count) || 0;
+                statusCounts[status] = (statusCounts[status] || 0) + parseInt(row.count) || 0;
             });
             
-            const sessions = Object.keys(sessionData);
-            const statuses = Array.from(statusSet).sort();
+            // Sort statuses in a logical order
+            const statusOrder = [
+                'round 1 started', 'round 1 ended',
+                'round 2 started', 'round 2 ended',
+                'round 3 started', 'round 3 ended',
+                'selected', 'rejected', 'waitlisted',
+                'No show', 'Disqualified', 'Age Mismatch', 'Degree holder', 'Interviewer unavailable',
+                'No Status'
+            ];
+            
+            const statuses = statusOrder.filter(s => statusCounts.hasOwnProperty(s));
+            const otherStatuses = Object.keys(statusCounts).filter(s => !statusOrder.includes(s)).sort();
+            const allStatuses = [...statuses, ...otherStatuses];
+            
+            const labels = allStatuses;
+            const counts = allStatuses.map(status => statusCounts[status] || 0);
             
             // Define colors for different statuses
             const statusColors = {
@@ -5932,13 +5955,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 'No Status': '#9ca3af'
             };
             
-            // Create datasets for each status
-            const datasets = statuses.map(status => ({
-                label: status,
-                data: sessions.map(session => sessionData[session][status] || 0),
-                backgroundColor: statusColors[status] || '#6b7280',
-                borderRadius: 4
-            }));
+            const backgroundColor = labels.map(status => statusColors[status] || '#6b7280');
             
             const ctx = document.getElementById('studentSessionsChart');
             if (!ctx) return;
@@ -5948,39 +5965,45 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             charts.studentSessions = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: sessions,
-                    datasets: datasets
+                    labels: labels,
+                    datasets: [{
+                        label: 'Count',
+                        data: counts,
+                        backgroundColor: backgroundColor,
+                        borderRadius: 4
+                    }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
                     plugins: {
                         legend: {
-                            position: 'bottom',
-                            labels: { 
-                                padding: 10, 
-                                font: { size: 11 },
-                                boxWidth: 12
-                            }
+                            display: false
                         },
                         tooltip: {
-                            mode: 'index',
-                            intersect: false
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.parsed.y} student(s)`;
+                                }
+                            }
                         }
                     },
                     scales: {
                         x: {
-                            stacked: false,
                             ticks: {
                                 maxRotation: 45,
                                 minRotation: 45,
-                                font: { size: 10 }
+                                font: { size: 11 }
                             }
                         },
                         y: {
                             beginAtZero: true,
                             ticks: {
                                 stepSize: 1
+                            },
+                            title: {
+                                display: true,
+                                text: 'Number of Students'
                             }
                         }
                     }
