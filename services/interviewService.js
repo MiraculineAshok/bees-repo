@@ -58,10 +58,88 @@ class InterviewService {
                  RETURNING *`,
                 [studentId, interviewerId, sessionId, verdict]
             );
+            
+            // Update session status in student_sessions table
+            if (sessionId) {
+                await this.updateSessionStatusOnStart(studentId, sessionId);
+            }
+            
             return result.rows[0];
         } catch (error) {
             console.error('Error creating interview:', error);
             throw error;
+        }
+    }
+    
+    // Helper function to get current round number for a student-session
+    static async getCurrentRoundNumber(studentId, sessionId) {
+        try {
+            // Count completed interviews for this student-session combination
+            const result = await pool.query(
+                `SELECT COUNT(*) as completed_count 
+                 FROM interviews 
+                 WHERE student_id = $1 AND session_id = $2 AND status = 'completed'`,
+                [studentId, sessionId]
+            );
+            
+            const completedCount = parseInt(result.rows[0]?.completed_count || 0);
+            // Next round is completed count + 1
+            return completedCount + 1;
+        } catch (error) {
+            console.error('Error getting current round number:', error);
+            // Default to round 1 if error
+            return 1;
+        }
+    }
+    
+    // Update session status when interview starts
+    static async updateSessionStatusOnStart(studentId, sessionId) {
+        try {
+            const roundNumber = await this.getCurrentRoundNumber(studentId, sessionId);
+            const status = `round ${roundNumber} started`;
+            
+            await pool.query(
+                `UPDATE student_sessions 
+                 SET session_status = $1 
+                 WHERE student_id = $2 AND session_id = $3`,
+                [status, studentId, sessionId]
+            );
+            
+            console.log(`✅ Updated session status to "${status}" for student ${studentId}, session ${sessionId}`);
+        } catch (error) {
+            console.error('Error updating session status on start:', error);
+            // Don't throw - this is not critical
+        }
+    }
+    
+    // Update session status when interview ends
+    static async updateSessionStatusOnEnd(studentId, sessionId) {
+        try {
+            // Count completed interviews BEFORE updating (this gives us the round number we're ending)
+            const result = await pool.query(
+                `SELECT COUNT(*) as completed_count 
+                 FROM interviews 
+                 WHERE student_id = $1 AND session_id = $2 AND status = 'completed'`,
+                [studentId, sessionId]
+            );
+            
+            const completedCount = parseInt(result.rows[0]?.completed_count || 0);
+            // The round we're ending is completedCount + 1
+            // (e.g., if 0 completed, we're ending round 1; if 1 completed, we're ending round 2)
+            const roundNumber = completedCount + 1;
+            const status = `round ${roundNumber} ended`;
+            
+            await pool.query(
+                `UPDATE student_sessions 
+                 SET session_status = $1 
+                 WHERE student_id = $2 AND session_id = $3`,
+                [status, studentId, sessionId]
+            );
+            
+            console.log(`✅ Updated session status to "${status}" for student ${studentId}, session ${sessionId}`);
+        } catch (error) {
+            console.error('Error updating session status on end:', error);
+            // Don't throw - this is not critical
         }
     }
 
@@ -541,6 +619,19 @@ class InterviewService {
         }
 
         try {
+            // Get interview details before updating
+            const interviewResult = await pool.query(
+                `SELECT student_id, session_id FROM interviews WHERE id = $1`,
+                [interviewId]
+            );
+            
+            if (interviewResult.rows.length === 0) {
+                throw new Error('Interview not found');
+            }
+            
+            const { student_id, session_id } = interviewResult.rows[0];
+            
+            // Update interview status
             const result = await pool.query(
                 `UPDATE interviews 
                  SET status = 'completed', updated_at = CURRENT_TIMESTAMP
@@ -548,6 +639,12 @@ class InterviewService {
                  RETURNING *`,
                 [interviewId]
             );
+            
+            // Update session status in student_sessions table
+            if (session_id) {
+                await this.updateSessionStatusOnEnd(student_id, session_id);
+            }
+            
             return result.rows[0];
         } catch (error) {
             console.error('Error completing interview:', error);

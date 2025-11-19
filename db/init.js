@@ -334,10 +334,21 @@ async function initializeDatabase() {
         id SERIAL PRIMARY KEY,
         student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
         session_id INTEGER NOT NULL REFERENCES interview_sessions(id) ON DELETE CASCADE,
+        session_status VARCHAR(50) DEFAULT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(student_id, session_id)
       )
     `);
+    
+    // Add session_status column if it doesn't exist (for existing tables)
+    try {
+      await pool.query(`
+        ALTER TABLE student_sessions 
+        ADD COLUMN IF NOT EXISTS session_status VARCHAR(50) DEFAULT NULL
+      `);
+    } catch (error) {
+      console.log('Session status column migration:', error.message);
+    }
     
     // Create indexes for student_sessions
     try {
