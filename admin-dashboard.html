@@ -2611,11 +2611,32 @@
                         <button class="btn btn-primary" onclick="refreshStudentSessions()">Refresh</button>
                     </div>
                 </div>
+                
+                <!-- Advanced Filters for Student Sessions -->
+                <div id="advanced-filters-student-sessions" class="adv-filters">
+                    <span class="adv-label">where</span>
+                    <div id="filters-container-student-sessions" class="filters-container"></div>
+                    <div class="filters-actions">
+                        <button class="btn btn-secondary btn-compact" onclick="addStudentSessionsFilterRow()">+ Add filter</button>
+                        <button class="link-btn" onclick="clearAdvancedFiltersStudentSessions()">Clear filters</button>
+                    </div>
+                </div>
 
                 <div class="table-container">
+                    <!-- Bulk Edit Controls -->
+                    <div class="bulk-edit-controls">
+                        <div class="bulk-edit-info" id="bulk-edit-selected-count">0 records selected</div>
+                        <div class="bulk-edit-actions">
+                            <button class="btn btn-secondary" onclick="selectAllRows()">Select All</button>
+                            <button class="btn btn-secondary" onclick="clearSelection()">Clear</button>
+                            <button class="btn btn-primary" onclick="openBulkEditModal()">Bulk Edit</button>
+                        </div>
+                    </div>
+
                     <table class="data-table">
                         <thead>
                             <tr>
+                                <th><input type="checkbox" onchange="toggleAllRows(this.checked)" title="Select All"></th>
                                 <th data-field="student_name" onclick="sortBy('student-sessions','student_name')">Student Name <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th data-field="session_name" onclick="sortBy('student-sessions','session_name')">Interview Session <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th data-field="session_status" onclick="sortBy('student-sessions','session_status')">Interview Status <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
@@ -2623,7 +2644,7 @@
                         </thead>
                         <tbody id="student-sessions-table-body">
                             <tr>
-                                <td colspan="3" class="loading">Loading student sessions...</td>
+                                <td colspan="4" class="loading">Loading student sessions...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -3358,6 +3379,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                         break;
                     case 'student-sessions':
                         ['student-sessions-inline-search'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.value=''; if(el.onchange) el.onchange(); }});
+                        clearAdvancedFiltersStudentSessions && clearAdvancedFiltersStudentSessions();
                         refreshStudentSessions && refreshStudentSessions();
                         break;
                     case 'my-interviews':
@@ -3585,6 +3607,9 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     break;
                 case 'students':
                     displayStudents();
+                    break;
+                case 'student-sessions':
+                    displayStudentSessions();
                     break;
                 case 'users':
                     displayUsers();
@@ -4348,6 +4373,130 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         function clearAdvancedFiltersStudents(){ const c=document.getElementById('filters-container-students'); if(c){ c.innerHTML=''; } displayStudents(); }
         function removeStudentsFilterRow(btn){ const row = btn.parentElement; row && row.remove(); updateStudentsFilterFieldOptions(); displayStudents(); }
         function updateStudentsFilterFieldOptions(){ updateAdvFieldOptions('filters-container-students', studentsFilterFields); }
+        
+        // Student Sessions Advanced Filters
+        const studentSessionsFilterFields = [
+            { value: 'student_name', label: 'Student Name' },
+            { value: 'session_name', label: 'Session Name' },
+            { value: 'session_status', label: 'Interview Status' },
+            { value: 'created_at', label: 'Created At' }
+        ];
+        function addStudentSessionsFilterRow(){
+            const c = document.getElementById('filters-container-student-sessions'); if (!c) return;
+            const isFirst = c.querySelectorAll('.filter-row-adv').length === 0;
+            const row = document.createElement('div');
+            row.className = 'filter-row-adv';
+            row.style.cssText = 'display:flex;gap:8px;align-items:center;flex-wrap:wrap';
+            const connectorHtml = isFirst ? '' : `<select class="filter-connector form-select" style="min-width:90px">
+<option value="AND">AND</option>
+<option value="OR">OR</option>
+<option value="NOT">NOT</option>
+</select>`;
+            row.innerHTML = `
+                ${connectorHtml}
+                <select class="filter-field form-select" style="min-width:140px">
+                    ${studentSessionsFilterFields.map(f=>`<option value="${f.value}">${f.label}</option>`).join('')}
+                </select>
+                <select class="filter-op form-select" style="min-width:140px"></select>
+                <input type="text" class="filter-value form-input" placeholder="Value" style="min-width:180px">
+                <input type="date" class="filter-value2 form-input" style="display:none">
+                <button class="btn btn-secondary" onclick="removeStudentSessionsFilterRow(this);">Remove</button>
+            `;
+            c.appendChild(row);
+            bindStudentSessionsFilterRow(row);
+            updateStudentSessionsFilterFieldOptions();
+            displayStudentSessions();
+        }
+        function bindStudentSessionsFilterRow(row){
+            const fieldSel = row.querySelector('.filter-field');
+            const opSel = row.querySelector('.filter-op');
+            const v1 = row.querySelector('.filter-value');
+            const v2 = row.querySelector('.filter-value2');
+            function refreshOps(){
+                const f = fieldSel.value;
+                const isDate = (f === 'created_at');
+                const ops = isDate ? dateOps : textOps;
+                opSel.innerHTML = ops.map(o=>`<option value="${o}">${o}</option>`).join('');
+                v1.type = isDate ? 'date' : 'text';
+                v2.style.display = 'none'; v2.value = '';
+                opSel.onchange = ()=>{
+                    const op = opSel.value;
+                    if (isDate && (op==='between' || op==='not_between')) { v2.style.display='block'; } else { v2.style.display='none'; v2.value=''; }
+                    displayStudentSessions();
+                };
+            }
+            fieldSel.onchange = ()=>{ refreshOps(); updateStudentSessionsFilterFieldOptions(); displayStudentSessions(); };
+            v1.oninput = ()=> displayStudentSessions();
+            v2.oninput = ()=> displayStudentSessions();
+            const connEl = row.querySelector('.filter-connector');
+            if (connEl) connEl.onchange = ()=> displayStudentSessions();
+            refreshOps();
+        }
+        function clearAdvancedFiltersStudentSessions(){ const c=document.getElementById('filters-container-student-sessions'); if(c){ c.innerHTML=''; } displayStudentSessions(); }
+        function removeStudentSessionsFilterRow(btn){ const row = btn.parentElement; row && row.remove(); updateStudentSessionsFilterFieldOptions(); displayStudentSessions(); }
+        function updateStudentSessionsFilterFieldOptions(){ updateAdvFieldOptions('filters-container-student-sessions', studentSessionsFilterFields); }
+        function applyAdvancedFiltersStudentSessions(items){
+            const c = document.getElementById('filters-container-student-sessions'); if (!c) return items;
+            const rows = Array.from(c.querySelectorAll('.filter-row-adv'));
+            if (rows.length===0) return items;
+            function matchRow(item, row){
+                const field = row.querySelector('.filter-field').value;
+                const op = row.querySelector('.filter-op').value;
+                const v1 = row.querySelector('.filter-value').value;
+                const v2 = row.querySelector('.filter-value2').value;
+                if (!v1 && op !== 'not_between') return true;
+                const valRaw = item[field];
+                if (field==='created_at'){
+                    const ts = valRaw ? new Date(valRaw).getTime() : 0;
+                    if (!v1) return true;
+                    const d1 = v1 ? new Date(v1) : null;
+                    const t1 = d1 ? (d1.setHours(0,0,0,0), d1.getTime()) : NaN;
+                    const d2 = v2 ? new Date(v2) : null;
+                    const t2 = d2 ? (d2.setHours(23,59,59,999), d2.getTime()) : NaN;
+                    const dayStart = d1 ? t1 : NaN;
+                    const dayEnd = d1 ? (new Date(v1)).setHours(23,59,59,999) : NaN;
+                    switch(op){
+                        case '=': return !isNaN(dayStart) && ts>=dayStart && ts<=dayEnd;
+                        case '≠': return !isNaN(dayStart) && (ts<dayStart || ts>dayEnd);
+                        case '>': return ts>t1;
+                        case '≥': return ts>=t1;
+                        case '<': return ts<t1;
+                        case '≤': return ts<=t1;
+                        case 'between': return !isNaN(t1)&&!isNaN(t2) && ts>=Math.min(t1,t2) && ts<=Math.max(t1,t2);
+                        case 'not_between': return (isNaN(t1)||isNaN(t2)) ? true : (ts<Math.min(t1,t2) || ts>Math.max(t1,t2));
+                        default: return true;
+                    }
+                } else {
+                    if (!v1) return true;
+                    const val = (valRaw ?? '').toString().trim().toLowerCase();
+                    const q = (v1||'').trim().toLowerCase();
+                    switch(op){
+                        case 'contains': return val.includes(q);
+                        case 'equals': return val===q;
+                        case 'starts_with': return val.startsWith(q);
+                        case 'ends_with': return val.endsWith(q);
+                        case 'not_contains': return !val.includes(q);
+                        case 'not_equals': return val!==q;
+                        default: return true;
+                    }
+                }
+            }
+            return items.filter(r=>{
+                let result = true; let first = true;
+                for (const row of rows){
+                    const connEl = row.querySelector('.filter-connector');
+                    const conn = connEl ? connEl.value : 'AND';
+                    const match = matchRow(r, row);
+                    if (first) { result = match; first = false; }
+                    else {
+                        if (conn === 'AND') result = result && match;
+                        else if (conn === 'OR') result = result || match;
+                        else if (conn === 'NOT') result = result && !match;
+                    }
+                }
+                return result;
+            });
+        }
         function applyAdvancedFiltersStudents(items){
             const c = document.getElementById('filters-container-students'); if (!c) return items;
             const rows = Array.from(c.querySelectorAll('.filter-row-adv'));
@@ -10733,29 +10882,26 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             if (!tbody) return;
 
             if (!studentSessions || studentSessions.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" class="empty-state">No student sessions found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No student sessions found</td></tr>';
+                const container = document.querySelector('#student-sessions .table-container');
+                if (container) {
+                    const existingPagination = container.querySelector('.pagination-controls');
+                    if (existingPagination) existingPagination.remove();
+                    const existingInfo = container.querySelector('.pagination-info');
+                    if (existingInfo) existingInfo.remove();
+                }
                 return;
             }
 
-            // Inline search + sort
+            // Inline search + advanced filters + sort
             const term = document.getElementById('student-sessions-inline-search')?.value || '';
-            let list = studentSessions.filter(item => {
-                if (!term) return true;
-                const searchTerm = term.toLowerCase();
-                const studentName = (item.student_name || '').toLowerCase();
-                const sessionName = (item.session_name || '').toLowerCase();
-                const status = (item.session_status || '').toLowerCase();
-                return studentName.includes(searchTerm) || 
-                       sessionName.includes(searchTerm) || 
-                       status.includes(searchTerm);
-            });
-
-            // Apply sorting
+            let list = applyInlineSearch(studentSessions, term, ['student_name', 'session_name', 'session_status']);
+            list = applyAdvancedFiltersStudentSessions(list);
             list = applyInlineSort(list, 'student-sessions');
 
             // Check if no results after filtering
             if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" class="empty-state">No matches found for your search criteria</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No matches found for your search or filter criteria</td></tr>';
                 const container = document.querySelector('#student-sessions .table-container');
                 if (container) {
                     const existingPagination = container.querySelector('.pagination-controls');
@@ -10798,12 +10944,16 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             };
 
             tbody.innerHTML = paginatedData.map(item => `
-                <tr>
-                    <td>${item.student_name || '—'}</td>
-                    <td>${item.session_name || '—'}</td>
-                    <td>${formatStatus(item.session_status)}</td>
+                <tr data-row-id="${item.id}">
+                    <td><input type="checkbox" class="row-checkbox" data-row-id="${item.id}" ${selectedRows.has(String(item.id)) ? 'checked' : ''} onchange="toggleRowSelection('${item.id}')"></td>
+                    <td data-field="student_name">${item.student_name || '—'}</td>
+                    <td data-field="session_name">${item.session_name || '—'}</td>
+                    <td data-field="session_status">${formatStatus(item.session_status)}</td>
                 </tr>
             `).join('');
+
+            // Update Select All checkbox state
+            updateSelectAllCheckbox();
 
             // Add pagination controls
             const container = document.querySelector('#student-sessions .table-container');
@@ -10813,14 +10963,8 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 const existingInfo = container.querySelector('.pagination-info');
                 if (existingInfo) existingInfo.remove();
 
-                if (totalPages['student-sessions'] > 1) {
-                    const paginationHTML = `
-                        <div class="pagination-controls">
-                            <button onclick="currentPage['student-sessions'] = Math.max(1, currentPage['student-sessions'] - 1); displayStudentSessions();" ${currentPage['student-sessions'] === 1 ? 'disabled' : ''}>Previous</button>
-                            <span>Page ${currentPage['student-sessions']} of ${totalPages['student-sessions']}</span>
-                            <button onclick="currentPage['student-sessions'] = Math.min(${totalPages['student-sessions']}, currentPage['student-sessions'] + 1); displayStudentSessions();" ${currentPage['student-sessions'] === totalPages['student-sessions'] ? 'disabled' : ''}>Next</button>
-                        </div>
-                    `;
+                const paginationHTML = createPaginationControls('student-sessions');
+                if (paginationHTML) {
                     container.insertAdjacentHTML('beforeend', paginationHTML);
                 }
 
@@ -11180,6 +11324,10 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     { value: 'role', text: 'Role' },
                     { value: 'status', text: 'Status' }
                 ];
+            } else if (section === 'student-sessions') {
+                fields = [
+                    { value: 'session_status', text: 'Interview Status' }
+                ];
             }
             
             fields.forEach(field => {
@@ -11320,6 +11468,25 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                         <option value="inactive" ${currentValue === 'inactive' ? 'selected' : ''}>Inactive</option>
                     `;
                     valueInput.replaceWith(select);
+                } else if (fieldSelect.value === 'session_status' && section === 'student-sessions') {
+                    // If session_status field is selected in student-sessions, replace input with status dropdown
+                    const currentValue = valueInput.value;
+                    const select = document.createElement('select');
+                    select.id = 'bulk-edit-value';
+                    select.className = valueInput.className || 'form-input';
+                    select.innerHTML = `
+                        <option value="">Select Status...</option>
+                        <option value="round 1 started" ${currentValue === 'round 1 started' ? 'selected' : ''}>Round 1 Started</option>
+                        <option value="round 1 ended" ${currentValue === 'round 1 ended' ? 'selected' : ''}>Round 1 Ended</option>
+                        <option value="round 2 started" ${currentValue === 'round 2 started' ? 'selected' : ''}>Round 2 Started</option>
+                        <option value="round 2 ended" ${currentValue === 'round 2 ended' ? 'selected' : ''}>Round 2 Ended</option>
+                        <option value="round 3 started" ${currentValue === 'round 3 started' ? 'selected' : ''}>Round 3 Started</option>
+                        <option value="round 3 ended" ${currentValue === 'round 3 ended' ? 'selected' : ''}>Round 3 Ended</option>
+                        <option value="selected" ${currentValue === 'selected' ? 'selected' : ''}>Selected</option>
+                        <option value="rejected" ${currentValue === 'rejected' ? 'selected' : ''}>Rejected</option>
+                        <option value="waitlisted" ${currentValue === 'waitlisted' ? 'selected' : ''}>Waitlisted</option>
+                    `;
+                    valueInput.replaceWith(select);
                 } else {
                     // If it's not verdict or session status but current element is a select, replace with input
                     if (valueInput && valueInput.tagName === 'SELECT') {
@@ -11365,7 +11532,8 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 'status': 'status',
                 'overall_notes': 'overall_notes',
                 'question': 'question',
-                'category': 'category'
+                'category': 'category',
+                'session_status': 'session_status'
             };
             
             // Validate that the field exists in the mapping
@@ -11398,6 +11566,8 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 endpoint = '/api/question-bank/bulk';
             } else if (section === 'users') {
                 endpoint = '/api/authorized-users/bulk';
+            } else if (section === 'student-sessions') {
+                endpoint = '/api/admin/student-sessions/bulk';
             }
                 
                 console.log('Bulk edit request:', { endpoint, updates });
@@ -11433,7 +11603,8 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                         'sessions': '/api/sessions/',
                         'interviews': '/api/interviews/',
                         'my-interviews': '/api/interviews/',
-                        'questions': '/api/question-bank/'
+                        'questions': '/api/question-bank/',
+                        'student-sessions': '/api/admin/student-sessions/'
                     };
                     const prefix = prefixBySection[section] || '';
                     if (!prefix) {

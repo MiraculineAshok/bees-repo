@@ -2598,6 +2598,68 @@ app.get('/api/admin/student-sessions', async (req, res) => {
   }
 });
 
+// Bulk update student sessions
+app.put('/api/admin/student-sessions/bulk', async (req, res) => {
+  try {
+    const { updates } = req.body;
+    
+    if (!updates || !Array.isArray(updates) || updates.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Updates array is required and must not be empty'
+      });
+    }
+
+    let successCount = 0;
+    let errorCount = 0;
+    const errors = [];
+
+    for (const update of updates) {
+      const { id, data } = update;
+      
+      if (!id || !data || !data.session_status) {
+        errorCount++;
+        errors.push(`Invalid update for id ${id}: session_status is required`);
+        continue;
+      }
+
+      try {
+        const result = await pool.query(
+          `UPDATE student_sessions 
+           SET session_status = $1 
+           WHERE id = $2 
+           RETURNING id`,
+          [data.session_status, id]
+        );
+
+        if (result.rows.length > 0) {
+          successCount++;
+        } else {
+          errorCount++;
+          errors.push(`No record found with id ${id}`);
+        }
+      } catch (err) {
+        errorCount++;
+        errors.push(`Error updating id ${id}: ${err.message}`);
+        console.error(`Error updating student session ${id}:`, err);
+      }
+    }
+
+    res.json({
+      success: successCount > 0,
+      updated: successCount,
+      errors: errorCount,
+      errorMessages: errors.length > 0 ? errors : undefined
+    });
+  } catch (error) {
+    console.error('Error bulk updating student sessions:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to bulk update student sessions'
+    });
+  }
+});
+
 // Bulk import students (text JSON)
 app.post('/api/admin/students/bulk-import/text', async (req, res) => {
   try {
