@@ -95,6 +95,26 @@ class InterviewService {
     // Update session status when interview starts
     static async updateSessionStatusOnStart(studentId, sessionId) {
         try {
+            // Check current status - don't update if it's a final status
+            const currentStatusResult = await pool.query(
+                `SELECT session_status 
+                 FROM student_sessions 
+                 WHERE student_id = $1 AND session_id = $2`,
+                [studentId, sessionId]
+            );
+            
+            const currentStatus = currentStatusResult.rows[0]?.session_status;
+            const finalStatuses = ['selected', 'rejected', 'waitlisted'];
+            
+            // Check if current status is a final status (case-insensitive)
+            if (currentStatus) {
+                const currentStatusLower = currentStatus.toLowerCase();
+                if (finalStatuses.some(final => currentStatusLower === final)) {
+                    console.log(`⚠️ Skipping status update - current status "${currentStatus}" is a final status for student ${studentId}, session ${sessionId}`);
+                    return;
+                }
+            }
+            
             const roundNumber = await this.getCurrentRoundNumber(studentId, sessionId);
             const status = `round ${roundNumber} started`;
             
@@ -115,6 +135,26 @@ class InterviewService {
     // Update session status when interview ends
     static async updateSessionStatusOnEnd(studentId, sessionId) {
         try {
+            // Check current status - don't update if it's a final status
+            const currentStatusResult = await pool.query(
+                `SELECT session_status 
+                 FROM student_sessions 
+                 WHERE student_id = $1 AND session_id = $2`,
+                [studentId, sessionId]
+            );
+            
+            const currentStatus = currentStatusResult.rows[0]?.session_status;
+            const finalStatuses = ['selected', 'rejected', 'waitlisted'];
+            
+            // Check if current status is a final status (case-insensitive)
+            if (currentStatus) {
+                const currentStatusLower = currentStatus.toLowerCase();
+                if (finalStatuses.some(final => currentStatusLower === final)) {
+                    console.log(`⚠️ Skipping status update - current status "${currentStatus}" is a final status for student ${studentId}, session ${sessionId}`);
+                    return;
+                }
+            }
+            
             // Count completed interviews BEFORE updating (this gives us the round number we're ending)
             const result = await pool.query(
                 `SELECT COUNT(*) as completed_count 
