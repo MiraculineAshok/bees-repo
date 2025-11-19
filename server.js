@@ -2662,6 +2662,56 @@ app.put('/api/admin/student-sessions/bulk', async (req, res) => {
   }
 });
 
+// Get student sessions status statistics for charts
+app.get('/api/admin/student-sessions/stats', async (req, res) => {
+  try {
+    const { year } = req.query;
+    
+    // Build WHERE clause for year filter
+    let yearFilter = '';
+    if (year && year !== 'all') {
+      const yearInt = parseInt(year);
+      if (!isNaN(yearInt)) {
+        yearFilter = `AND EXTRACT(YEAR FROM ss.created_at) = ${yearInt}`;
+      }
+    }
+    
+    const result = await pool.query(`
+      SELECT 
+        iss.name AS session_name,
+        COALESCE(ss.session_status, 'No Status') AS status,
+        COUNT(*) AS count
+      FROM student_sessions ss
+      INNER JOIN interview_sessions iss ON ss.session_id = iss.id
+      WHERE 1=1 ${yearFilter}
+      GROUP BY iss.name, ss.session_status
+      ORDER BY iss.name, ss.session_status
+    `);
+    
+    // Get available years from student_sessions
+    const yearsResult = await pool.query(`
+      SELECT DISTINCT EXTRACT(YEAR FROM created_at) AS year
+      FROM student_sessions
+      WHERE created_at IS NOT NULL
+      ORDER BY year DESC
+    `);
+    
+    const years = yearsResult.rows.map(row => row.year).filter(y => y != null);
+    
+    res.json({
+      success: true,
+      data: result.rows,
+      years: years
+    });
+  } catch (error) {
+    console.error('Error getting student sessions stats:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to load student sessions statistics'
+    });
+  }
+});
+
 // Update single student session
 app.put('/api/admin/student-sessions/:id', async (req, res) => {
   try {

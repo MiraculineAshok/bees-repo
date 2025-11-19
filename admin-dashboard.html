@@ -2260,39 +2260,17 @@
                     <canvas id="trendsChart" style="max-height:250px"></canvas>
                 </div>
 
-                <!-- Interviewer Performance & Question Analytics -->
+                <!-- Student Sessions Status Chart -->
                 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(450px,1fr));gap:2rem;margin-top:2rem">
-                    <!-- Top Interviewers -->
+                    <!-- Student Sessions Status by Session -->
                     <div style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
-                        <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:0.75rem;color:#111827">Top Interviewers by Count</h3>
+                        <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:0.75rem;color:#111827">Student Sessions Status by Session</h3>
                         <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap">
-                            <select id="interviewers-date-filter" class="form-input" style="font-size:0.85rem;padding:0.4rem 0.6rem;width:auto" onchange="updateInterviewersChart()">
-                                <option value="all">All Time</option>
-                                <option value="month" selected>Last 30 Days</option>
-                                <option value="quarter">Last 3 Months</option>
-                                <option value="year">Last Year</option>
-                            </select>
-                            <select id="interviewers-session-filter" class="form-input" style="font-size:0.85rem;padding:0.4rem 0.6rem;width:auto" onchange="updateInterviewersChart()">
-                                <option value="all">All Sessions</option>
+                            <select id="student-sessions-year-filter" class="form-input" style="font-size:0.85rem;padding:0.4rem 0.6rem;width:auto" onchange="updateStudentSessionsChart()">
+                                <option value="all">All Years</option>
                             </select>
                         </div>
-                        <canvas id="interviewersChart" style="max-height:300px"></canvas>
-                    </div>
-
-                    <!-- Most Asked Questions -->
-                    <div style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
-                        <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:0.75rem;color:#111827">Most Frequently Asked Questions</h3>
-                        <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap">
-                            <select id="questions-category-filter" class="form-input" style="font-size:0.85rem;padding:0.4rem 0.6rem;width:auto" onchange="updateQuestionsChart()">
-                                <option value="all">All Categories</option>
-                            </select>
-                            <select id="questions-limit-filter" class="form-input" style="font-size:0.85rem;padding:0.4rem 0.6rem;width:auto" onchange="updateQuestionsChart()">
-                                <option value="5">Top 5</option>
-                                <option value="10" selected>Top 10</option>
-                                <option value="15">Top 15</option>
-                            </select>
-                        </div>
-                        <canvas id="questionsChart" style="max-height:300px"></canvas>
+                        <canvas id="studentSessionsChart" style="max-height:400px"></canvas>
                     </div>
                 </div>
 
@@ -5524,7 +5502,6 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             createStatusChart(filteredInterviews);
             createVerdictChart(filteredInterviews);
             createTrendsChart(filteredInterviews);
-            createInterviewersChart(filteredInterviews, rawChartData.users);
             
             console.log(`📊 Charts updated with ${filteredInterviews.length} filtered interviews`);
         }
@@ -5570,46 +5547,20 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 statusInterviewerSelect.appendChild(option);
             });
 
-            // Populate session filters (only active sessions)
+            // Populate session filters (only active sessions) - for verdict chart
             const verdictSessionSelect = document.getElementById('verdict-session-filter');
-            const interviewersSessionSelect = document.getElementById('interviewers-session-filter');
-            verdictSessionSelect.innerHTML = '<option value="all">All Sessions</option>';
-            interviewersSessionSelect.innerHTML = '<option value="all">All Sessions</option>';
-            
-            // Filter out inactive sessions
-            const activeSessions = rawChartData.sessions.filter(session => session.status === 'active');
-            activeSessions.forEach(session => {
-                const opt1 = document.createElement('option');
-                opt1.value = session.id;
-                opt1.textContent = session.name || `Session ${session.id}`;
-                verdictSessionSelect.appendChild(opt1);
+            if (verdictSessionSelect) {
+                verdictSessionSelect.innerHTML = '<option value="all">All Sessions</option>';
                 
-                const opt2 = document.createElement('option');
-                opt2.value = session.id;
-                opt2.textContent = session.name || `Session ${session.id}`;
-                interviewersSessionSelect.appendChild(opt2);
-            });
-
-            // Populate question category filter
-            const categorySelect = document.getElementById('questions-category-filter');
-            categorySelect.innerHTML = '<option value="all">All Categories</option>';
-            const categories = new Set();
-            rawChartData.questions.forEach(q => {
-                if (q.tags) {
-                    // Handle both string and array formats
-                    if (typeof q.tags === 'string') {
-                        q.tags.split(',').forEach(tag => categories.add(tag.trim()));
-                    } else if (Array.isArray(q.tags)) {
-                        q.tags.forEach(tag => categories.add(tag.trim()));
-                    }
-                }
-            });
-            Array.from(categories).sort().forEach(cat => {
-                const option = document.createElement('option');
-                option.value = cat;
-                option.textContent = cat;
-                categorySelect.appendChild(option);
-            });
+                // Filter out inactive sessions
+                const activeSessions = rawChartData.sessions.filter(session => session.status === 'active');
+                activeSessions.forEach(session => {
+                    const opt = document.createElement('option');
+                    opt.value = session.id;
+                    opt.textContent = session.name || `Session ${session.id}`;
+                    verdictSessionSelect.appendChild(opt);
+                });
+            }
         }
 
         // Helper function to filter by date range
@@ -5677,41 +5628,35 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             createTrendsChart(filtered);
         }
 
-        function updateInterviewersChart() {
-            const dateRange = document.getElementById('interviewers-date-filter').value;
-            const session = document.getElementById('interviewers-session-filter').value;
-            
-            let filtered = filterByDateRange(rawChartData.interviews, dateRange);
-            if (session !== 'all') {
-                filtered = filtered.filter(i => i.session_id == session);
+        async function updateStudentSessionsChart() {
+            try {
+                const year = document.getElementById('student-sessions-year-filter')?.value || 'all';
+                const response = await fetch(`/api/admin/student-sessions/stats?year=${encodeURIComponent(year)}`);
+                const result = await response.json();
+                
+                if (!response.ok || !result.success) {
+                    console.error('Failed to load student sessions stats:', result.error);
+                    return;
+                }
+                
+                const data = result.data || [];
+                const years = result.years || [];
+                
+                // Populate year dropdown if not already populated
+                const yearSelect = document.getElementById('student-sessions-year-filter');
+                if (yearSelect && yearSelect.options.length === 1) {
+                    years.forEach(year => {
+                        const option = document.createElement('option');
+                        option.value = year;
+                        option.textContent = year;
+                        yearSelect.appendChild(option);
+                    });
+                }
+                
+                createStudentSessionsChart(data);
+            } catch (error) {
+                console.error('Error updating student sessions chart:', error);
             }
-            
-            createInterviewersChart(filtered, rawChartData.users);
-        }
-
-        function updateQuestionsChart() {
-            const category = document.getElementById('questions-category-filter').value;
-            const limit = parseInt(document.getElementById('questions-limit-filter').value);
-            
-            let filtered = [...rawChartData.questions];
-            if (category !== 'all') {
-                filtered = filtered.filter(q => {
-                    if (!q.tags) return false;
-                    
-                    // Handle both string and array formats
-                    if (typeof q.tags === 'string') {
-                        return q.tags.toLowerCase().includes(category.toLowerCase());
-                    } else if (Array.isArray(q.tags)) {
-                        return q.tags.some(tag => tag.toLowerCase() === category.toLowerCase());
-                    }
-                    return false;
-                });
-            }
-            
-            // Sort by times_asked and limit
-            filtered = filtered.sort((a, b) => (b.times_asked || 0) - (a.times_asked || 0)).slice(0, limit);
-            
-            createQuestionsChart(filtered);
         }
 
         function updateCategoriesChart() {
@@ -5797,8 +5742,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 updateStatusChart();
                 updateVerdictChart();
                 updateTrendsChart();
-                updateInterviewersChart();
-                updateQuestionsChart();
+                updateStudentSessionsChart();
                 updateCategoriesChart();
                 updateScoresChart();
                 
@@ -5949,100 +5893,95 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             });
         }
 
-        // Top Interviewers (Horizontal Bar Chart)
-        function createInterviewersChart(interviews, users) {
-            const interviewerCounts = {};
-            const interviewerNames = {};
-
-            // Map user IDs to names
-            users.forEach(u => {
-                interviewerNames[u.id] = u.name || u.email;
-            });
-
-            // Count interviews per interviewer
-            interviews.forEach(i => {
-                if (i.interviewer_id) {
-                    interviewerCounts[i.interviewer_id] = (interviewerCounts[i.interviewer_id] || 0) + 1;
-                }
-            });
-
-            // Get top 10 interviewers
-            const sorted = Object.entries(interviewerCounts)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 10);
-
-            const labels = sorted.map(([id]) => interviewerNames[id] || `User ${id}`);
-            const data = sorted.map(([, count]) => count);
-
-            const ctx = document.getElementById('interviewersChart');
-            if (charts.interviewers) charts.interviewers.destroy();
+        // Student Sessions Status by Session (Grouped Bar Chart)
+        function createStudentSessionsChart(data) {
+            // Group data by session_name
+            const sessionData = {};
+            const statusSet = new Set();
             
-            charts.interviewers = new Chart(ctx, {
+            data.forEach(row => {
+                const session = row.session_name || 'Unknown Session';
+                const status = row.status || 'No Status';
+                statusSet.add(status);
+                
+                if (!sessionData[session]) {
+                    sessionData[session] = {};
+                }
+                sessionData[session][status] = parseInt(row.count) || 0;
+            });
+            
+            const sessions = Object.keys(sessionData);
+            const statuses = Array.from(statusSet).sort();
+            
+            // Define colors for different statuses
+            const statusColors = {
+                'round 1 started': '#3b82f6',
+                'round 1 ended': '#10b981',
+                'round 2 started': '#3b82f6',
+                'round 2 ended': '#10b981',
+                'round 3 started': '#3b82f6',
+                'round 3 ended': '#10b981',
+                'selected': '#10b981',
+                'rejected': '#ef4444',
+                'waitlisted': '#f59e0b',
+                'No show': '#6b7280',
+                'Disqualified': '#dc2626',
+                'Age Mismatch': '#f97316',
+                'Degree holder': '#8b5cf6',
+                'Interviewer unavailable': '#ec4899',
+                'No Status': '#9ca3af'
+            };
+            
+            // Create datasets for each status
+            const datasets = statuses.map(status => ({
+                label: status,
+                data: sessions.map(session => sessionData[session][status] || 0),
+                backgroundColor: statusColors[status] || '#6b7280',
+                borderRadius: 4
+            }));
+            
+            const ctx = document.getElementById('studentSessionsChart');
+            if (!ctx) return;
+            
+            if (charts.studentSessions) charts.studentSessions.destroy();
+            
+            charts.studentSessions = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Interviews Conducted',
-                        data: data,
-                        backgroundColor: '#1E4ED8',
-                        borderRadius: 4
-                    }]
+                    labels: sessions,
+                    datasets: datasets
                 },
                 options: {
-                    indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: true,
                     plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        x: {
-                            beginAtZero: true,
-                            ticks: { stepSize: 1 }
+                        legend: {
+                            position: 'bottom',
+                            labels: { 
+                                padding: 10, 
+                                font: { size: 11 },
+                                boxWidth: 12
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
                         }
-                    }
-                }
-            });
-        }
-
-        // Most Asked Questions (Bar Chart)
-        function createQuestionsChart(questions) {
-            const sorted = questions
-                .filter(q => q.times_asked > 0)
-                .sort((a, b) => b.times_asked - a.times_asked)
-                .slice(0, 10);
-
-            const labels = sorted.map(q => {
-                const text = q.question_text || q.question || '';
-                return text.length > 40 ? text.substring(0, 40) + '...' : text;
-            });
-            const data = sorted.map(q => q.times_asked);
-
-            const ctx = document.getElementById('questionsChart');
-            if (charts.questions) charts.questions.destroy();
-            
-            charts.questions = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Times Asked',
-                        data: data,
-                        backgroundColor: '#f59e0b',
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: { display: false }
                     },
                     scales: {
                         x: {
+                            stacked: false,
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45,
+                                font: { size: 10 }
+                            }
+                        },
+                        y: {
                             beginAtZero: true,
-                            ticks: { stepSize: 1 }
+                            ticks: {
+                                stepSize: 1
+                            }
                         }
                     }
                 }
