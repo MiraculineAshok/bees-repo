@@ -109,8 +109,12 @@
             <div class="search-section" style="margin-top: 1rem;">
                 <div class="form-group">
                     <label for="zeta-id">Search Student:</label>
-                    <input type="text" id="zeta-id" placeholder="Type name, email or ZETA ID" autocomplete="off">
+                    <input type="text" id="zeta-id" placeholder="Type name, email or ZETA ID" autocomplete="off" disabled>
                     <div id="zeta-error" class="error-message hidden"></div>
+                    <div style="margin-top: 4px; font-size: 0.875rem; color: #6b7280;">
+                        <span id="search-note">Please select an Interview Session first to enable search.</span>
+                        <span id="search-hint" style="display: none;">Press Enter to search</span>
+                    </div>
                     <div id="student-suggestions" class="suggestions" style="left:0;right:0;width:100%;top:100%;margin-top:4px;"></div>
                 </div>
             </div>
@@ -260,6 +264,12 @@
             function search(term){
                 if (!term || term.length < 2) { hide(); return; }
                 
+                // Check if search is disabled
+                if (input.disabled) {
+                    hide();
+                    return;
+                }
+                
                 // Get session ID from session select dropdown
                 const sessionSelect = document.getElementById('session-select');
                 const sessionId = sessionSelect && sessionSelect.value ? sessionSelect.value : null;
@@ -276,23 +286,68 @@
                     .catch(()=> hide());
             }
             input.addEventListener('input', () => {
+                if (input.disabled) return;
                 clearTimeout(t);
                 const term = input.value.trim();
                 t = setTimeout(() => search(term), 250);
             });
             
+            // Handle Enter key press to search
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (!input.disabled && input.value.trim().length >= 2) {
+                        clearTimeout(t);
+                        search(input.value.trim());
+                    }
+                }
+            });
+            
+            // Enable/disable search field based on session selection
+            function updateSearchFieldState() {
+                const sessionSelect = document.getElementById('session-select');
+                const searchInput = document.getElementById('zeta-id');
+                const searchNote = document.getElementById('search-note');
+                const searchHint = document.getElementById('search-hint');
+                
+                if (sessionSelect && searchInput) {
+                    const hasSession = sessionSelect.value && sessionSelect.value !== '';
+                    
+                    if (hasSession) {
+                        searchInput.disabled = false;
+                        searchInput.placeholder = 'Type name, email or ZETA ID';
+                        if (searchNote) searchNote.style.display = 'none';
+                        if (searchHint) searchHint.style.display = 'inline';
+                    } else {
+                        searchInput.disabled = true;
+                        searchInput.value = '';
+                        searchInput.placeholder = 'Select Interview Session first';
+                        if (searchNote) searchNote.style.display = 'inline';
+                        if (searchHint) searchHint.style.display = 'none';
+                        hide(); // Hide suggestions if visible
+                    }
+                }
+            }
+            
+            // Make function globally accessible
+            window.updateSearchFieldState = updateSearchFieldState;
+            
             // Re-trigger search when session changes
             const sessionSelect = document.getElementById('session-select');
             if (sessionSelect) {
                 sessionSelect.addEventListener('change', () => {
+                    updateSearchFieldState();
                     const term = input.value.trim();
-                    if (term && term.length >= 2) {
+                    if (term && term.length >= 2 && !input.disabled) {
                         clearTimeout(t);
                         t = setTimeout(() => search(term), 250);
                     } else {
                         hide();
                     }
                 });
+                
+                // Initial state check
+                updateSearchFieldState();
             }
             
             document.addEventListener('click', (e) => {

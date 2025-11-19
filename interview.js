@@ -352,6 +352,14 @@ class InterviewPage {
         
         // Log for debugging
         console.log(`📋 Displaying ${activeSessions.length} active sessions out of ${this.sessions.length} total sessions`);
+        
+        // Update search field state after sessions are loaded
+        // Use setTimeout to ensure DOM is ready
+        setTimeout(() => {
+            if (typeof window.updateSearchFieldState === 'function') {
+                window.updateSearchFieldState();
+            }
+        }, 100);
     }
 
     startInterviewSession(zetaId) {
