@@ -3720,6 +3720,8 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 loadMyInterviewsForAdmin();
             } else if (section === 'users') {
                 loadUsers();
+            } else if (section === 'student-sessions') {
+                loadStudentSessions();
             } else if (section === 'overview') {
                 loadOverviewStats();
             }
@@ -10961,7 +10963,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     <td data-field="session_name">${item.session_name || '—'}</td>
                     <td data-field="session_status">${formatStatus(item.session_status)}</td>
                     <td>
-                        <button class="btn btn-secondary btn-compact" onclick="startEdit('${item.id}', ${JSON.stringify(item).replace(/"/g, '&quot;')})" title="Edit">✎</button>
+                        <button class="icon-btn edit-btn" onclick="startEdit('${item.id}', ${JSON.stringify(item).replace(/"/g, '&quot;')})" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
                     </td>
                 </tr>
             `).join('');
@@ -12013,7 +12015,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 `;
             } else if (section === 'student-sessions') {
                 actionCell.innerHTML = `
-                    <button class="btn btn-secondary btn-compact" onclick="startEdit('${originalData.id}', ${JSON.stringify(originalData).replace(/"/g, '&quot;')})" title="Edit">✎</button>
+                    <button class="icon-btn edit-btn" onclick="startEdit('${originalData.id}', ${JSON.stringify(originalData).replace(/"/g, '&quot;')})" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
                 `;
             }
         }
