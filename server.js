@@ -2378,9 +2378,60 @@ app.get('/api/admin/sessions', async (req, res) => {
   }
 });
 
+// Get all locations
+app.get('/api/admin/locations', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM locations ORDER BY location_name ASC');
+    res.json({
+      success: true,
+      data: result.rows
+    });
+  } catch (error) {
+    console.error('Error getting locations:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get locations'
+    });
+  }
+});
+
+// Get all schools
+app.get('/api/admin/schools', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM schools ORDER BY school_name ASC');
+    res.json({
+      success: true,
+      data: result.rows
+    });
+  } catch (error) {
+    console.error('Error getting schools:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get schools'
+    });
+  }
+});
+
+// Get all examination modes
+app.get('/api/admin/examination-modes', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM examination_mode ORDER BY mode ASC');
+    res.json({
+      success: true,
+      data: result.rows
+    });
+  } catch (error) {
+    console.error('Error getting examination modes:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get examination modes'
+    });
+  }
+});
+
 app.post('/api/admin/sessions', async (req, res) => {
   try {
-    const { name, description, location, is_panel = false, panelists = [] } = req.body;
+    const { name, description, location_id, school_id, examination_mode_id, is_panel = false, panelists = [] } = req.body;
     if (!name) {
       return res.status(400).json({
         success: false,
@@ -2396,7 +2447,15 @@ app.post('/api/admin/sessions', async (req, res) => {
       });
     }
 
-    const session = await AdminService.createSession({ name, description, location, is_panel, panelists });
+    const session = await AdminService.createSession({ 
+      name, 
+      description, 
+      location_id, 
+      school_id, 
+      examination_mode_id, 
+      is_panel, 
+      panelists 
+    });
     res.json({
       success: true,
       data: session

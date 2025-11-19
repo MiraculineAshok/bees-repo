@@ -404,10 +404,18 @@ class AdminService {
             const createdBy = sessionData.created_by || 1;
             const isPanel = sessionData.is_panel || false;
             const sessionResult = await client.query(`
-                INSERT INTO interview_sessions (name, description, location, is_panel, created_by)
-                VALUES ($1, $2, $3, $4, $5)
+                INSERT INTO interview_sessions (name, description, location_id, school_id, examination_mode_id, is_panel, created_by)
+                VALUES ($1, $2, $3, $4, $5, $6, $7)
                 RETURNING *
-            `, [sessionData.name, sessionData.description, sessionData.location || null, isPanel, createdBy]);
+            `, [
+                sessionData.name, 
+                sessionData.description || null, 
+                sessionData.location_id || null,
+                sessionData.school_id || null,
+                sessionData.examination_mode_id || null,
+                isPanel, 
+                createdBy
+            ]);
 
             const session = sessionResult.rows[0];
 

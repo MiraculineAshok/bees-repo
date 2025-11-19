@@ -2903,7 +2903,21 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="session-location">Location</label>
-                    <input type="text" id="session-location" class="form-input" placeholder="e.g., Chennai Campus">
+                    <select id="session-location" class="form-input">
+                        <option value="">Select Location...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="session-school">For which school</label>
+                    <select id="session-school" class="form-input">
+                        <option value="">Select School...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="session-examination-mode">Examination Mode</label>
+                    <select id="session-examination-mode" class="form-input">
+                        <option value="">Select Examination Mode...</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="session-type">Interview Type</label>
@@ -7002,8 +7016,75 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         }
 
         // Modal functions
-        function openCreateSessionModal() {
+        async function openCreateSessionModal() {
             document.getElementById('create-session-modal').classList.add('active');
+            // Load dropdowns
+            await loadLocations();
+            await loadSchools();
+            await loadExaminationModes();
+        }
+        
+        async function loadLocations() {
+            try {
+                const response = await fetch('/api/admin/locations');
+                const data = await response.json();
+                const locationSelect = document.getElementById('session-location');
+                if (!locationSelect) return;
+                
+                locationSelect.innerHTML = '<option value="">Select Location...</option>';
+                if (data.success && data.data && data.data.length > 0) {
+                    data.data.forEach(location => {
+                        const option = document.createElement('option');
+                        option.value = location.id;
+                        option.textContent = location.location_name;
+                        locationSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading locations:', error);
+            }
+        }
+        
+        async function loadSchools() {
+            try {
+                const response = await fetch('/api/admin/schools');
+                const data = await response.json();
+                const schoolSelect = document.getElementById('session-school');
+                if (!schoolSelect) return;
+                
+                schoolSelect.innerHTML = '<option value="">Select School...</option>';
+                if (data.success && data.data && data.data.length > 0) {
+                    data.data.forEach(school => {
+                        const option = document.createElement('option');
+                        option.value = school.id;
+                        option.textContent = school.school_name;
+                        schoolSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading schools:', error);
+            }
+        }
+        
+        async function loadExaminationModes() {
+            try {
+                const response = await fetch('/api/admin/examination-modes');
+                const data = await response.json();
+                const modeSelect = document.getElementById('session-examination-mode');
+                if (!modeSelect) return;
+                
+                modeSelect.innerHTML = '<option value="">Select Examination Mode...</option>';
+                if (data.success && data.data && data.data.length > 0) {
+                    data.data.forEach(mode => {
+                        const option = document.createElement('option');
+                        option.value = mode.id;
+                        option.textContent = mode.mode;
+                        modeSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading examination modes:', error);
+            }
         }
 
         function closeCreateSessionModal() {
@@ -7018,6 +7099,9 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             const description = document.getElementById('session-description').value;
             const sessionType = document.getElementById('session-type').value;
             const isPanel = sessionType === 'panel';
+            const locationId = document.getElementById('session-location').value || null;
+            const schoolId = document.getElementById('session-school').value || null;
+            const examinationModeId = document.getElementById('session-examination-mode').value || null;
 
             // Validate at least one interviewer
             if (selectedPanelists.length === 0) {
@@ -7034,7 +7118,9 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     body: JSON.stringify({
                         name: name,
                         description: description,
-                        location: document.getElementById('session-location').value || null,
+                        location_id: locationId ? parseInt(locationId) : null,
+                        school_id: schoolId ? parseInt(schoolId) : null,
+                        examination_mode_id: examinationModeId ? parseInt(examinationModeId) : null,
                         created_by: currentUserId || undefined,
                         is_panel: isPanel,
                         panelists: selectedPanelists
