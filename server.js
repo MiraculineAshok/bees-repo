@@ -2267,7 +2267,7 @@ app.post('/api/evaluate-question', async (req, res) => {
     const model = (answer_image_url ? (process.env.OPENAI_VISION_MODEL || 'gpt-4o-mini') : (process.env.OPENAI_MODEL || 'gpt-3.5-turbo'));
     const wantsAnswerEval = !!(answer_text && String(answer_text).trim());
 
-    const userPrompt = `You are a fair and expert interviewer evaluating a candidate's answer. Be balanced and constructive. Consider partial credit for correct concepts even if the answer is incomplete.
+    const userPrompt = `You are a fair and expert interviewer evaluating a candidate's answer. Be balanced and constructive. Consider partial credit for correct concepts even if the answer is incomplete. For math questions, evaluate the answer based on correctness even if explanations are brief or missing.
 
 Question:
 """
@@ -2280,27 +2280,27 @@ ${answer_text}
 """` : ''}
 
 Evaluation Guidelines:
-- Award full credit (8-10) for correct, complete answers with good explanation
+- Award full credit (8-10) for correct answers, even if brief or without detailed explanation (especially for math questions)
 - Award partial credit (5-7) for correct concepts but incomplete or unclear explanations
 - Award partial credit (3-4) for partially correct answers with some understanding
 - Award low credit (1-2) only for clearly incorrect answers or no understanding shown
 - Be generous with partial credit - if the candidate shows understanding of key concepts, reward that
+- For math questions: Focus on whether the answer is correct. Brief answers are acceptable if they provide the correct solution.
 - Consider that interview answers may be brief - focus on correctness of concepts, not length
 
 Return STRICT JSON only with keys:
 - difficulty_label: one of ["easy","medium","hard"]
 - difficulty_score: integer 1-10 (10 hardest)
-- answer_score: integer 0-10 or null if no answer (be fair and generous with partial credit)
+- answer_score: integer 0-10 or null if no answer (be fair and generous with partial credit, especially for correct math answers)
 - rationale: 1-2 sentence summary for a hiring panel (why this score)
-- strengths: concise comma-separated strengths (max 5, focus on what's correct)
-- gaps: concise comma-separated gaps (max 5, only if significant)
 - explanation: 3-5 sentences elaborating how the score was derived, referencing specific parts of the answer. Be constructive and highlight what's correct.
+- correct_answer: Provide the correct answer to the question. For math questions, show the solution step-by-step if applicable.
 
 Example for a correct answer:
-{"difficulty_label":"medium","difficulty_score":6,"answer_score":9,"rationale":"Correct answer with good explanation of key concepts.","strengths":"correct approach, good understanding of core concepts, clear explanation","gaps":"minor: could mention edge cases","explanation":"The candidate provided a correct answer demonstrating solid understanding. They correctly identified the key concepts and explained their reasoning clearly. While they could have mentioned edge cases, the core answer is accurate and well-explained, warranting a high score."}
+{"difficulty_label":"medium","difficulty_score":6,"answer_score":9,"rationale":"Correct answer demonstrating good understanding.","explanation":"The candidate provided a correct answer demonstrating solid understanding. They correctly identified the key concepts and provided the right solution. The answer is accurate and warrants a high score.","correct_answer":"The correct answer is [provide the correct answer here with explanation if needed]."}
 
 Example for a partially correct answer:
-{"difficulty_label":"medium","difficulty_score":6,"answer_score":6,"rationale":"Partially correct with good understanding of some concepts.","strengths":"correct core concept, good attempt at explanation","gaps":"missing some details, incomplete solution","explanation":"The candidate shows understanding of the main concept and provides a partially correct answer. They demonstrate knowledge of key principles, though the solution is incomplete. This warrants partial credit as they show genuine understanding."}`;
+{"difficulty_label":"medium","difficulty_score":6,"answer_score":6,"rationale":"Partially correct with good understanding of some concepts.","explanation":"The candidate shows understanding of the main concept and provides a partially correct answer. They demonstrate knowledge of key principles, though the solution is incomplete. This warrants partial credit as they show genuine understanding.","correct_answer":"The correct answer is [provide the correct answer here with explanation if needed]."}`;
 
     async function callOpenAI(withImage) {
       return fetch('https://api.openai.com/v1/chat/completions', {
@@ -2373,11 +2373,10 @@ Example for a partially correct answer:
     const difficulty_score = Number(parsed.difficulty_score);
     const answer_score = parsed.answer_score == null ? null : Number(parsed.answer_score);
     const rationale = String(parsed.rationale || '').slice(0, 600);
-    const strengths = String(parsed.strengths || '').slice(0, 600);
-    const gaps = String(parsed.gaps || '').slice(0, 600);
     const explanation = String(parsed.explanation || parsed.rationale || '').slice(0, 1000);
+    const correct_answer = String(parsed.correct_answer || '').slice(0, 2000);
 
-    return res.json({ success: true, data: { difficulty_label, difficulty_score, answer_score, rationale, strengths, gaps, explanation } });
+    return res.json({ success: true, data: { difficulty_label, difficulty_score, answer_score, rationale, explanation, correct_answer } });
   } catch (error) {
     console.error('Error evaluating question:', error);
     res.status(500).json({ success: false, error: 'Error evaluating question' });

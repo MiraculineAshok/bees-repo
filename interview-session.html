@@ -3354,11 +3354,9 @@
                             </div>
                             <div style="margin-top:10px">
                                <div style="font-weight:600;color:#111827;margin-bottom:4px">Detailed Evaluation</div>
-                               <div><strong>What was assessed:</strong> Clarity, completeness, technical depth, and correctness.</div>
-                               <div style="margin-top:6px"><strong>Strengths:</strong> ${data.strengths || '—'}</div>
-                               <div style="margin-top:4px"><strong>Gaps:</strong> ${data.gaps || '—'}</div>
                                <div style="margin-top:8px"><strong>Summary:</strong> ${data.rationale || '—'}</div>
                                ${data.explanation ? `<div style=\"margin-top:8px\"><strong>Explanation:</strong> ${data.explanation}</div>` : ''}
+                               ${data.correct_answer ? `<div style=\"margin-top:12px;padding:10px;background:#f0f9ff;border-left:3px solid #3b82f6;border-radius:4px\"><strong>Correct Answer:</strong><div style=\"margin-top:6px;color:#1e40af\">${data.correct_answer}</div></div>` : ''}
                             </div>
                             <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
                                ${data.answer_score != null ? `<button id="set-ai-score-btn" class="btn btn-primary btn-sm">Set this score</button>` : ''}
