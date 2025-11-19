@@ -2267,7 +2267,7 @@ app.post('/api/evaluate-question', async (req, res) => {
     const model = (answer_image_url ? (process.env.OPENAI_VISION_MODEL || 'gpt-4o-mini') : (process.env.OPENAI_MODEL || 'gpt-3.5-turbo'));
     const wantsAnswerEval = !!(answer_text && String(answer_text).trim());
 
-    const userPrompt = `You are a fair and expert interviewer evaluating a candidate's answer. Be balanced and constructive. Consider partial credit for correct concepts even if the answer is incomplete. For math questions, evaluate the answer based on correctness even if explanations are brief or missing.
+    const userPrompt = `You are a fair and expert interviewer evaluating a candidate's answer. Be balanced and constructive. For math questions, accuracy is critical - if the numerical answer is correct, award full credit even if explanations are brief.
 
 Question:
 """
@@ -2280,27 +2280,28 @@ ${answer_text}
 """` : ''}
 
 Evaluation Guidelines:
-- Award full credit (8-10) for correct answers, even if brief or without detailed explanation (especially for math questions)
-- Award partial credit (5-7) for correct concepts but incomplete or unclear explanations
-- Award partial credit (3-4) for partially correct answers with some understanding
-- Award low credit (1-2) only for clearly incorrect answers or no understanding shown
-- Be generous with partial credit - if the candidate shows understanding of key concepts, reward that
-- For math questions: Focus on whether the answer is correct. Brief answers are acceptable if they provide the correct solution.
-- Consider that interview answers may be brief - focus on correctness of concepts, not length
+- For MATH questions: If the numerical answer(s) are CORRECT, award 8-10 points. Accept reasonable rounding (e.g., 8.89 ≈ 8.888...). If ALL parts of a multi-part question are answered correctly, award 9-10 points.
+- For MATH questions: Verify calculations carefully. Speed = distance/time. If a student calculates 400m/50s = 8 m/s, that is CORRECT. If they calculate 400m/45s ≈ 8.89 m/s, that is CORRECT. If they calculate 600m/8 m/s = 75s, that is CORRECT.
+- Award full credit (8-10) for correct answers, especially for math questions where the answer is numerically correct
+- Award partial credit (5-7) only if some parts are correct but others are wrong
+- Award low credit (1-4) only for clearly incorrect answers or major errors
+- Be VERY generous with math questions - if the numbers are right, the answer is right
+- For non-math questions: Award full credit for correct answers even if brief
+- Consider that interview answers may be brief - focus on correctness, not length or explanation depth
 
 Return STRICT JSON only with keys:
 - difficulty_label: one of ["easy","medium","hard"]
 - difficulty_score: integer 1-10 (10 hardest)
-- answer_score: integer 0-10 or null if no answer (be fair and generous with partial credit, especially for correct math answers)
-- rationale: 1-2 sentence summary for a hiring panel (why this score)
-- explanation: 3-5 sentences elaborating how the score was derived, referencing specific parts of the answer. Be constructive and highlight what's correct.
-- correct_answer: Provide the correct answer to the question. For math questions, show the solution step-by-step if applicable.
+- answer_score: integer 0-10 or null if no answer (be VERY generous for correct math answers - award 9-10 if all numerical answers are correct)
+- rationale: 1-2 sentence summary for a hiring panel (why this score). If answer is correct, say so clearly.
+- explanation: 3-5 sentences elaborating how the score was derived. If the answer is correct, explicitly state that all calculations/answers are correct. Be constructive and highlight what's correct.
+- correct_answer: Provide the correct answer to the question. For math questions, show the solution step-by-step with exact calculations.
 
-Example for a correct answer:
-{"difficulty_label":"medium","difficulty_score":6,"answer_score":9,"rationale":"Correct answer demonstrating good understanding.","explanation":"The candidate provided a correct answer demonstrating solid understanding. They correctly identified the key concepts and provided the right solution. The answer is accurate and warrants a high score.","correct_answer":"The correct answer is [provide the correct answer here with explanation if needed]."}
+Example for a CORRECT math answer:
+{"difficulty_label":"medium","difficulty_score":6,"answer_score":9,"rationale":"All calculations are correct. The candidate provided accurate numerical answers for all parts of the question.","explanation":"The candidate correctly calculated Runner A's speed as 8 m/s (400m ÷ 50s = 8 m/s). They correctly calculated Runner B's speed as approximately 8.89 m/s (400m ÷ 45s = 8.888... m/s, which rounds to 8.89 m/s). They correctly calculated the time for Runner A to complete 600m as 75 seconds (600m ÷ 8 m/s = 75s). All numerical answers are accurate and demonstrate correct understanding of speed calculations.","correct_answer":"Runner A's speed: 8 m/s (400m ÷ 50s = 8 m/s). Runner B's speed: 8.888... m/s ≈ 8.89 m/s (400m ÷ 45s = 8.888... m/s). Time for Runner A to complete 600m: 75 seconds (600m ÷ 8 m/s = 75s)."}
 
 Example for a partially correct answer:
-{"difficulty_label":"medium","difficulty_score":6,"answer_score":6,"rationale":"Partially correct with good understanding of some concepts.","explanation":"The candidate shows understanding of the main concept and provides a partially correct answer. They demonstrate knowledge of key principles, though the solution is incomplete. This warrants partial credit as they show genuine understanding.","correct_answer":"The correct answer is [provide the correct answer here with explanation if needed]."}`;
+{"difficulty_label":"medium","difficulty_score":6,"answer_score":6,"rationale":"Partially correct - some calculations are right but others have errors.","explanation":"The candidate shows understanding of the speed formula and correctly calculated Runner A's speed. However, there are errors in the other calculations. This demonstrates partial understanding.","correct_answer":"Runner A's speed: 8 m/s (400m ÷ 50s = 8 m/s). Runner B's speed: 8.888... m/s ≈ 8.89 m/s (400m ÷ 45s = 8.888... m/s). Time for Runner A to complete 600m: 75 seconds (600m ÷ 8 m/s = 75s)."}`;
 
     async function callOpenAI(withImage) {
       return fetch('https://api.openai.com/v1/chat/completions', {
