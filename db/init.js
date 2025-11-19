@@ -171,6 +171,89 @@ async function initializeDatabase() {
       // Column might already exist, ignore error
     }
     
+    // Create schools table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS schools (
+        id SERIAL PRIMARY KEY,
+        school_name VARCHAR(255) NOT NULL UNIQUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    // Create locations table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS locations (
+        id SERIAL PRIMARY KEY,
+        location_name VARCHAR(255) NOT NULL UNIQUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    // Create examination_mode table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS examination_mode (
+        id SERIAL PRIMARY KEY,
+        mode VARCHAR(255) NOT NULL UNIQUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    // Add foreign key columns to interview_sessions table
+    try {
+      await pool.query(`
+        ALTER TABLE interview_sessions 
+        ADD COLUMN IF NOT EXISTS school_id INTEGER REFERENCES schools(id) ON DELETE SET NULL
+      `);
+    } catch (error) {
+      console.log('School ID column migration:', error.message);
+    }
+    
+    try {
+      await pool.query(`
+        ALTER TABLE interview_sessions 
+        ADD COLUMN IF NOT EXISTS location_id INTEGER REFERENCES locations(id) ON DELETE SET NULL
+      `);
+    } catch (error) {
+      console.log('Location ID column migration:', error.message);
+    }
+    
+    try {
+      await pool.query(`
+        ALTER TABLE interview_sessions 
+        ADD COLUMN IF NOT EXISTS examination_mode_id INTEGER REFERENCES examination_mode(id) ON DELETE SET NULL
+      `);
+    } catch (error) {
+      console.log('Examination mode ID column migration:', error.message);
+    }
+    
+    // Create indexes for foreign keys
+    try {
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_interview_sessions_school_id ON interview_sessions(school_id)
+      `);
+    } catch (error) {
+      console.log('School ID index migration:', error.message);
+    }
+    
+    try {
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_interview_sessions_location_id ON interview_sessions(location_id)
+      `);
+    } catch (error) {
+      console.log('Location ID index migration:', error.message);
+    }
+    
+    try {
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_interview_sessions_examination_mode_id ON interview_sessions(examination_mode_id)
+      `);
+    } catch (error) {
+      console.log('Examination mode ID index migration:', error.message);
+    }
+    
     // Add session_id column to students table for mapping to interview sessions
     try {
       await pool.query(`
