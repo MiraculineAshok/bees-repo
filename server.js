@@ -2037,11 +2037,42 @@ app.put('/api/admin/consolidation/:id/status', async (req, res) => {
     if (!allowed.includes(String(status).toLowerCase())) {
       return res.status(400).json({ success: false, error: 'Invalid status' });
     }
+    
+    // Get student_id and session_id from consolidation record before updating
+    const consolidationCheck = await pool.query(
+      `SELECT student_id, session_id FROM interview_consolidation WHERE id = $1`,
+      [id]
+    );
+    
+    if (consolidationCheck.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Not found' });
+    }
+    
+    const { student_id, session_id } = consolidationCheck.rows[0];
+    const statusValue = String(status).toLowerCase();
+    
+    // Update consolidation status
     const result = await pool.query(
       `UPDATE interview_consolidation SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *`,
-      [String(status).toLowerCase(), id]
+      [statusValue, id]
     );
-    if (result.rows.length === 0) return res.status(404).json({ success: false, error: 'Not found' });
+    
+    // Update session_status in student_sessions table to match consolidation status
+    if (student_id && session_id) {
+      try {
+        await pool.query(
+          `UPDATE student_sessions 
+           SET session_status = $1 
+           WHERE student_id = $2 AND session_id = $3`,
+          [statusValue, student_id, session_id]
+        );
+        console.log(`✅ Updated session_status to "${statusValue}" for student ${student_id}, session ${session_id}`);
+      } catch (sessionError) {
+        console.error('Error updating session_status:', sessionError);
+        // Don't fail the request if session_status update fails
+      }
+    }
+    
     res.json({ success: true, data: result.rows[0] });
   } catch (e) {
     console.error('Error updating consolidation status:', e);
