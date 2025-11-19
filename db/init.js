@@ -203,6 +203,34 @@ async function initializeDatabase() {
       )
     `);
     
+    // Create student_sessions junction table for many-to-many relationship
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS student_sessions (
+        id SERIAL PRIMARY KEY,
+        student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+        session_id INTEGER NOT NULL REFERENCES interview_sessions(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(student_id, session_id)
+      )
+    `);
+    
+    // Create indexes for student_sessions
+    try {
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_student_sessions_student_id ON student_sessions(student_id)
+      `);
+    } catch (error) {
+      console.log('Student sessions student_id index:', error.message);
+    }
+    
+    try {
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_student_sessions_session_id ON student_sessions(session_id)
+      `);
+    } catch (error) {
+      console.log('Student sessions session_id index:', error.message);
+    }
+    
     // Create interviewer_favorites table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS interviewer_favorites (

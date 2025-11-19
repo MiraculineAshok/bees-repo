@@ -2457,13 +2457,24 @@ app.get('/api/admin/students', async (req, res) => {
 // Bulk import students (text JSON)
 app.post('/api/admin/students/bulk-import/text', async (req, res) => {
   try {
-    const { students } = req.body || {};
+    const { students, session_id } = req.body || {};
     if (!Array.isArray(students) || students.length === 0) {
       return res.status(400).json({ success: false, error: 'No students provided' });
     }
     
+    if (!session_id) {
+      return res.status(400).json({ success: false, error: 'Interview session is required' });
+    }
+    
+    // Validate session exists
+    const sessionCheck = await pool.query('SELECT id FROM interview_sessions WHERE id = $1', [session_id]);
+    if (sessionCheck.rows.length === 0) {
+      return res.status(400).json({ success: false, error: 'Invalid interview session' });
+    }
+    
     let inserted = 0;
-    let skipped = 0;
+    let updated = 0; // Students updated with new session mapping
+    let skipped = 0; // Duplicate phone + session combinations
     let errors = 0;
     const errorMessages = [];
     
@@ -2484,39 +2495,68 @@ app.post('/api/admin/students/bulk-import/text', async (req, res) => {
           continue;
         }
         
-        // Check for existing phone number (duplicate check)
+        // Check for existing phone number
         const existing = await pool.query(
           `SELECT id FROM students WHERE phone = $1 LIMIT 1`,
           [phone]
         );
         
+        let studentId;
         if (existing.rows.length > 0) {
-          skipped++;
-          console.log(`Skipped duplicate phone: ${phone}`);
-          continue;
+          // Student exists - check if session mapping exists
+          studentId = existing.rows[0].id;
+          
+          // Check if student-session mapping already exists
+          const mappingCheck = await pool.query(
+            `SELECT id FROM student_sessions WHERE student_id = $1 AND session_id = $2`,
+            [studentId, session_id]
+          );
+          
+          if (mappingCheck.rows.length > 0) {
+            // Mapping already exists - skip
+            skipped++;
+            console.log(`Skipped duplicate phone + session: ${phone} -> session ${session_id}`);
+            continue;
+          } else {
+            // Add new session mapping for existing student
+            await pool.query(
+              `INSERT INTO student_sessions (student_id, session_id) VALUES ($1, $2)`,
+              [studentId, session_id]
+            );
+            updated++;
+            console.log(`Added session mapping for existing student: ${phone} -> session ${session_id}`);
+          }
+        } else {
+          // New student - insert student and create session mapping
+          const result = await pool.query(
+            `INSERT INTO students (first_name, last_name, email, zeta_id, phone, school, location)
+             VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
+            [name.split(' ')[0]||name, name.split(' ').slice(1).join(' ')||'', email||null, zeta||null, phone, school||null, location||null]
+          );
+          studentId = result.rows[0].id;
+          
+          // Create session mapping
+          await pool.query(
+            `INSERT INTO student_sessions (student_id, session_id) VALUES ($1, $2)`,
+            [studentId, session_id]
+          );
+          inserted++;
         }
-        
-        // Insert new student
-        await pool.query(
-          `INSERT INTO students (first_name, last_name, email, zeta_id, phone, school, location)
-           VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-          [name.split(' ')[0]||name, name.split(' ').slice(1).join(' ')||'', email||null, zeta||null, phone, school||null, location||null]
-        );
-        inserted++;
       } catch (err) {
-        console.error(`Error inserting student:`, err);
+        console.error(`Error processing student:`, err);
         errors++;
-        errorMessages.push(`Row ${i + 1}: ${err.message || 'Failed to insert student'}`);
+        errorMessages.push(`Row ${i + 1}: ${err.message || 'Failed to process student'}`);
       }
     }
     
     res.json({ 
       success: true, 
       count: inserted,
+      updated: updated,
       skipped: skipped,
       errors: errors,
       errorMessages: errorMessages,
-      message: `Imported ${inserted} student(s), skipped ${skipped} duplicate(s), ${errors} error(s)`
+      message: `Imported ${inserted} new student(s), updated ${updated} existing student(s) with session mapping, skipped ${skipped} duplicate(s), ${errors} error(s)`
     });
   } catch (e) {
     console.error('Bulk import (text) failed:', e);
@@ -2528,6 +2568,17 @@ app.post('/api/admin/students/bulk-import/text', async (req, res) => {
 app.post('/api/admin/students/bulk-import/file', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ success: false, error: 'File is required' });
+    
+    const session_id = req.body.session_id;
+    if (!session_id) {
+      return res.status(400).json({ success: false, error: 'Interview session is required' });
+    }
+    
+    // Validate session exists
+    const sessionCheck = await pool.query('SELECT id FROM interview_sessions WHERE id = $1', [session_id]);
+    if (sessionCheck.rows.length === 0) {
+      return res.status(400).json({ success: false, error: 'Invalid interview session' });
+    }
     
     const buf = req.file.buffer;
     const name = (req.file.originalname||'').toLowerCase();
@@ -2550,7 +2601,8 @@ app.post('/api/admin/students/bulk-import/file', upload.single('file'), async (r
     }
     
     let inserted = 0;
-    let skipped = 0;
+    let updated = 0; // Students updated with new session mapping
+    let skipped = 0; // Duplicate phone + session combinations
     let errors = 0;
     const errorMessages = [];
     let isFirstRow = true; // Skip header row
@@ -2581,39 +2633,69 @@ app.post('/api/admin/students/bulk-import/file', upload.single('file'), async (r
           continue;
         }
         
-        // Check for existing phone number (duplicate check)
+        // Check for existing phone number
         const existing = await pool.query(
           `SELECT id FROM students WHERE phone = $1 LIMIT 1`,
           [cleanPhone]
         );
         
+        let studentId;
         if (existing.rows.length > 0) {
-          skipped++;
-          console.log(`Skipped duplicate phone: ${cleanPhone}`);
+          // Student exists - check if session mapping exists
+          studentId = existing.rows[0].id;
+          
+          // Check if student-session mapping already exists
+          const mappingCheck = await pool.query(
+            `SELECT id FROM student_sessions WHERE student_id = $1 AND session_id = $2`,
+            [studentId, session_id]
+          );
+          
+          if (mappingCheck.rows.length > 0) {
+            // Mapping already exists - skip
+            skipped++;
+            console.log(`Skipped duplicate phone + session: ${cleanPhone} -> session ${session_id}`);
+            rowNumber++;
+            continue;
+          } else {
+            // Add new session mapping for existing student
+            await pool.query(
+              `INSERT INTO student_sessions (student_id, session_id) VALUES ($1, $2)`,
+              [studentId, session_id]
+            );
+            updated++;
+            console.log(`Added session mapping for existing student: ${cleanPhone} -> session ${session_id}`);
+            rowNumber++;
+            continue;
+          }
+        } else {
+          // New student - insert student and create session mapping
+          const result = await pool.query(
+            `INSERT INTO students (first_name, last_name, email, zeta_id, phone, school, location)
+             VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
+            [
+              cleanName.split(' ')[0]||cleanName, 
+              cleanName.split(' ').slice(1).join(' ')||'', 
+              cleanEmail||null, 
+              cleanZeta||null, 
+              cleanPhone, 
+              cleanSchool||null, 
+              cleanLocation||null
+            ]
+          );
+          studentId = result.rows[0].id;
+          
+          // Create session mapping
+          await pool.query(
+            `INSERT INTO student_sessions (student_id, session_id) VALUES ($1, $2)`,
+            [studentId, session_id]
+          );
+          inserted++;
           rowNumber++;
-          continue;
         }
-        
-        // Insert new student
-        await pool.query(
-          `INSERT INTO students (first_name, last_name, email, zeta_id, phone, school, location)
-           VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-          [
-            cleanName.split(' ')[0]||cleanName, 
-            cleanName.split(' ').slice(1).join(' ')||'', 
-            cleanEmail||null, 
-            cleanZeta||null, 
-            cleanPhone, 
-            cleanSchool||null, 
-            cleanLocation||null
-          ]
-        );
-        inserted++;
-        rowNumber++;
       } catch (err) {
-        console.error(`Error inserting student from file:`, err);
+        console.error(`Error processing student from file:`, err);
         errors++;
-        errorMessages.push(`Row ${rowNumber}: ${err.message || 'Failed to insert student'}`);
+        errorMessages.push(`Row ${rowNumber}: ${err.message || 'Failed to process student'}`);
         rowNumber++;
       }
     }
@@ -2621,10 +2703,11 @@ app.post('/api/admin/students/bulk-import/file', upload.single('file'), async (r
     res.json({ 
       success: true, 
       count: inserted,
+      updated: updated,
       skipped: skipped,
       errors: errors,
       errorMessages: errorMessages,
-      message: `Imported ${inserted} student(s), skipped ${skipped} duplicate(s), ${errors} error(s)`
+      message: `Imported ${inserted} new student(s), updated ${updated} existing student(s) with session mapping, skipped ${skipped} duplicate(s), ${errors} error(s)`
     });
   } catch (e) {
     console.error('Bulk import (file) failed:', e);

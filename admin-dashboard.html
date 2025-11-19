@@ -2865,6 +2865,19 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Interview Session Selection (Common for both tabs) -->
+                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-top:16px">
+                        <label style="font-weight:600;margin-bottom:8px;display:block;color:#111827">
+                            Interview Session <span style="color:#dc2626">*</span>
+                        </label>
+                        <select id="bulk-students-session" class="form-input" required style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:4px;font-size:14px">
+                            <option value="">Select Interview Session...</option>
+                        </select>
+                        <div style="margin-top:8px;font-size:12px;color:#6b7280">
+                            All imported students will be mapped to the selected interview session
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="modal-footer" style="display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;border-top:1px solid #e5e7eb;background:#fff">
@@ -2993,17 +3006,55 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         </div>
     </div>
     <script>
-        function openBulkImportStudents(){
+        async function openBulkImportStudents(){
             const m = document.getElementById('bulk-import-students-modal'); 
             if (m){ m.classList.add('active'); m.style.display='flex'; }
             // Reset to paste tab by default
             switchImportTab('students', 'paste');
+            
+            // Load interview sessions for dropdown
+            await loadInterviewSessionsForBulkImport();
+        }
+        
+        async function loadInterviewSessionsForBulkImport() {
+            try {
+                const response = await fetch('/api/admin/sessions');
+                const data = await response.json();
+                
+                const sessionSelect = document.getElementById('bulk-students-session');
+                if (!sessionSelect) return;
+                
+                // Clear existing options except the first one
+                sessionSelect.innerHTML = '<option value="">Select Interview Session...</option>';
+                
+                if (data.success && data.data && data.data.length > 0) {
+                    data.data.forEach(session => {
+                        const option = document.createElement('option');
+                        option.value = session.id;
+                        option.textContent = session.name + (session.status ? ` (${session.status})` : '');
+                        sessionSelect.appendChild(option);
+                    });
+                } else {
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = 'No sessions available';
+                    option.disabled = true;
+                    sessionSelect.appendChild(option);
+                }
+            } catch (error) {
+                console.error('Error loading interview sessions:', error);
+                const sessionSelect = document.getElementById('bulk-students-session');
+                if (sessionSelect) {
+                    sessionSelect.innerHTML = '<option value="">Error loading sessions</option>';
+                }
+            }
         }
         function closeBulkImportStudents(){
             const m = document.getElementById('bulk-import-students-modal'); 
             if (m){ m.classList.remove('active'); m.style.display='none'; }
             const t = document.getElementById('bulk-students-text'); if (t) t.value='';
             const f = document.getElementById('bulk-students-file'); if (f) f.value='';
+            const sessionSelect = document.getElementById('bulk-students-session'); if (sessionSelect) sessionSelect.value='';
             const fileDisplay = document.getElementById('file-name-display-students');
             if (fileDisplay) fileDisplay.style.display = 'none';
         }
@@ -3056,6 +3107,13 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             try{
                 const text = document.getElementById('bulk-students-text')?.value?.trim();
                 const file = document.getElementById('bulk-students-file')?.files?.[0] || null;
+                const sessionId = document.getElementById('bulk-students-session')?.value;
+                
+                // Validate session is selected (required)
+                if (!sessionId) {
+                    showError('Please select an Interview Session');
+                    return;
+                }
                 
                 // Determine which mode we're in
                 const pasteTab = document.getElementById('tab-paste-students');
@@ -3102,7 +3160,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                         return;
                     }
                     
-                    const payload = { students };
+                    const payload = { students, session_id: parseInt(sessionId) };
                     const res = await fetch('/api/admin/students/bulk-import/text', { 
                         method: 'POST', 
                         headers: {'Content-Type': 'application/json'}, 
@@ -3115,7 +3173,10 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     }
                     
                     // Show detailed results
-                    let message = `Successfully imported ${json.count || 0} student(s)`;
+                    let message = `Successfully imported ${json.count || 0} new student(s)`;
+                    if (json.updated > 0) {
+                        message += `\nUpdated ${json.updated} existing student(s) with session mapping`;
+                    }
                     if (json.skipped > 0) {
                         message += `\n${json.skipped} duplicate(s) skipped`;
                     }
@@ -3151,6 +3212,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     
                     const fd = new FormData();
                     fd.append('file', file);
+                    fd.append('session_id', sessionId);
                     
                     const res = await fetch('/api/admin/students/bulk-import/file', { 
                         method: 'POST', 
@@ -3172,7 +3234,10 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     }
                     
                     // Show detailed results
-                    let message = `Successfully imported ${json.count || 0} student(s)`;
+                    let message = `Successfully imported ${json.count || 0} new student(s)`;
+                    if (json.updated > 0) {
+                        message += `\nUpdated ${json.updated} existing student(s) with session mapping`;
+                    }
                     if (json.skipped > 0) {
                         message += `\n${json.skipped} duplicate(s) skipped`;
                     }
