@@ -2587,11 +2587,39 @@ app.post('/api/admin/students/bulk-import/text', async (req, res) => {
             console.log(`Added session mapping for existing student: ${phone} -> session ${session_id}`);
           }
         } else {
-          // New student - insert student and create session mapping
+          // New student - auto-generate ZETA ID if not provided
+          let finalZetaId = zeta;
+          if (!finalZetaId) {
+            finalZetaId = await StudentService.generateZetaId(phone, session_id);
+            
+            // Check if generated ZETA ID already exists, if so modify last digit(s)
+            let counter = 1;
+            let uniqueZetaId = finalZetaId;
+            while (true) {
+              const existing = await pool.query('SELECT id FROM students WHERE zeta_id = $1', [uniqueZetaId]);
+              if (existing.rows.length === 0) {
+                break; // ZETA ID is unique
+              }
+              // Replace last digit(s) with counter to make it unique
+              if (counter < 10) {
+                uniqueZetaId = finalZetaId.slice(0, -1) + counter;
+              } else {
+                uniqueZetaId = finalZetaId.slice(0, -2) + String(counter).padStart(2, '0');
+              }
+              counter++;
+              if (counter > 99) {
+                uniqueZetaId = finalZetaId.slice(0, -3) + Date.now().toString().slice(-3);
+                break;
+              }
+            }
+            finalZetaId = uniqueZetaId;
+          }
+          
+          // Insert student and create session mapping
           const result = await pool.query(
             `INSERT INTO students (first_name, last_name, email, zeta_id, phone, school, location)
              VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
-            [name.split(' ')[0]||name, name.split(' ').slice(1).join(' ')||'', email||null, zeta||null, phone, school||null, location||null]
+            [name.split(' ')[0]||name, name.split(' ').slice(1).join(' ')||'', email||null, finalZetaId, phone, school||null, location||null]
           );
           studentId = result.rows[0].id;
           
@@ -2728,7 +2756,35 @@ app.post('/api/admin/students/bulk-import/file', upload.single('file'), async (r
             continue;
           }
         } else {
-          // New student - insert student and create session mapping
+          // New student - auto-generate ZETA ID if not provided
+          let finalZetaId = cleanZeta;
+          if (!finalZetaId) {
+            finalZetaId = await StudentService.generateZetaId(cleanPhone, session_id);
+            
+            // Check if generated ZETA ID already exists, if so modify last digit(s)
+            let counter = 1;
+            let uniqueZetaId = finalZetaId;
+            while (true) {
+              const existing = await pool.query('SELECT id FROM students WHERE zeta_id = $1', [uniqueZetaId]);
+              if (existing.rows.length === 0) {
+                break; // ZETA ID is unique
+              }
+              // Replace last digit(s) with counter to make it unique
+              if (counter < 10) {
+                uniqueZetaId = finalZetaId.slice(0, -1) + counter;
+              } else {
+                uniqueZetaId = finalZetaId.slice(0, -2) + String(counter).padStart(2, '0');
+              }
+              counter++;
+              if (counter > 99) {
+                uniqueZetaId = finalZetaId.slice(0, -3) + Date.now().toString().slice(-3);
+                break;
+              }
+            }
+            finalZetaId = uniqueZetaId;
+          }
+          
+          // Insert student and create session mapping
           const result = await pool.query(
             `INSERT INTO students (first_name, last_name, email, zeta_id, phone, school, location)
              VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
@@ -2736,7 +2792,7 @@ app.post('/api/admin/students/bulk-import/file', upload.single('file'), async (r
               cleanName.split(' ')[0]||cleanName, 
               cleanName.split(' ').slice(1).join(' ')||'', 
               cleanEmail||null, 
-              cleanZeta||null, 
+              finalZetaId, 
               cleanPhone, 
               cleanSchool||null, 
               cleanLocation||null

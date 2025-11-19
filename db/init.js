@@ -176,6 +176,7 @@ async function initializeDatabase() {
       CREATE TABLE IF NOT EXISTS schools (
         id SERIAL PRIMARY KEY,
         school_name VARCHAR(255) NOT NULL UNIQUE,
+        short_code VARCHAR(10),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -186,6 +187,7 @@ async function initializeDatabase() {
       CREATE TABLE IF NOT EXISTS locations (
         id SERIAL PRIMARY KEY,
         location_name VARCHAR(255) NOT NULL UNIQUE,
+        short_code VARCHAR(10),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -196,9 +198,49 @@ async function initializeDatabase() {
       CREATE TABLE IF NOT EXISTS examination_mode (
         id SERIAL PRIMARY KEY,
         mode VARCHAR(255) NOT NULL UNIQUE,
+        short_code VARCHAR(10),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
+    `);
+    
+    // Add short_code columns if they don't exist (for existing tables)
+    try {
+      await pool.query(`ALTER TABLE schools ADD COLUMN IF NOT EXISTS short_code VARCHAR(10)`);
+      await pool.query(`ALTER TABLE locations ADD COLUMN IF NOT EXISTS short_code VARCHAR(10)`);
+      await pool.query(`ALTER TABLE examination_mode ADD COLUMN IF NOT EXISTS short_code VARCHAR(10)`);
+    } catch (error) {
+      console.log('Short code columns migration:', error.message);
+    }
+    
+    // Insert/Update schools with short codes
+    await pool.query(`
+      INSERT INTO schools (school_name, short_code) VALUES
+        ('School of Business', 'SB'),
+        ('School of Tech', 'ST'),
+        ('School of Design', 'SD')
+      ON CONFLICT (school_name) DO UPDATE SET short_code = EXCLUDED.short_code
+    `);
+    
+    // Insert/Update locations with short codes
+    await pool.query(`
+      INSERT INTO locations (location_name, short_code) VALUES
+        ('Tenkasi', 'TK'),
+        ('Tharuvai', 'TH'),
+        ('Chennai', 'CH'),
+        ('Kumbakonam', 'KK')
+      ON CONFLICT (location_name) DO UPDATE SET short_code = EXCLUDED.short_code
+    `);
+    
+    // Insert/Update examination modes with short codes
+    await pool.query(`
+      INSERT INTO examination_mode (mode, short_code) VALUES
+        ('Regular', 'RE'),
+        ('Examless', 'EX'),
+        ('Zestober', 'ZE'),
+        ('Family Outreach', 'FO'),
+        ('Outreach', 'OR')
+      ON CONFLICT (mode) DO UPDATE SET short_code = EXCLUDED.short_code
     `);
     
     // Add foreign key columns to interview_sessions table

@@ -213,6 +213,12 @@ class InterviewPage {
             this.showError('Please fill in all required fields (First Name, Last Name, Phone)');
             return;
         }
+        
+        // Get selected session ID for ZETA ID generation
+        const sessionSelect = document.getElementById('session-select');
+        if (sessionSelect && sessionSelect.value) {
+            formData.session_id = sessionSelect.value;
+        }
 
         this.showLoading();
         this.hideMessages();

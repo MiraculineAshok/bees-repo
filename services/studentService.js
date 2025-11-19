@@ -12,10 +12,67 @@ class StudentService {
       return false;
     }
   }
+  
+  // Generate ZETA ID: ZS(school short)(location short)(exam mode)(2digit year)(last 7 digits of phone)
+  static async generateZetaId(phone, sessionId = null) {
+    try {
+      if (!phone) {
+        throw new Error('Phone number is required to generate ZETA ID');
+      }
+      
+      // Get last 7 digits of phone
+      const phoneDigits = phone.replace(/\D/g, ''); // Remove non-digits
+      const last7Digits = phoneDigits.slice(-7).padStart(7, '0');
+      
+      // Get current academic year (2 digits) - using last 2 digits of current year
+      const currentYear = new Date().getFullYear();
+      const academicYear = String(currentYear).slice(-2);
+      
+      // Default values if no session
+      let schoolShort = 'XX';
+      let locationShort = 'XX';
+      let examModeShort = 'XX';
+      
+      if (sessionId) {
+        // Get session details with school, location, examination_mode
+        const sessionResult = await pool.query(`
+          SELECT 
+            s.short_code as school_short,
+            l.short_code as location_short,
+            em.short_code as exam_mode_short
+          FROM interview_sessions isess
+          LEFT JOIN schools s ON isess.school_id = s.id
+          LEFT JOIN locations l ON isess.location_id = l.id
+          LEFT JOIN examination_mode em ON isess.examination_mode_id = em.id
+          WHERE isess.id = $1
+        `, [sessionId]);
+        
+        if (sessionResult.rows.length > 0) {
+          const row = sessionResult.rows[0];
+          schoolShort = row.school_short || 'XX';
+          locationShort = row.location_short || 'XX';
+          examModeShort = row.exam_mode_short || 'XX';
+        }
+      }
+      
+      // Generate ZETA ID: ZS + school + location + exam mode + year + last 7 digits
+      const zetaId = `ZS${schoolShort}${locationShort}${examModeShort}${academicYear}${last7Digits}`;
+      
+      return zetaId;
+    } catch (error) {
+      console.error('❌ Error generating ZETA ID:', error.message);
+      // Fallback: generate with defaults
+      const phoneDigits = phone.replace(/\D/g, '');
+      const last7Digits = phoneDigits.slice(-7).padStart(7, '0');
+      const currentYear = new Date().getFullYear();
+      const academicYear = String(currentYear).slice(-2);
+      return `ZSXXXXX${academicYear}${last7Digits}`;
+    }
+  }
   // Create a new student
   static async createStudent(studentData) {
     try {
-      const { first_name, last_name, email, phone, address, zeta_id } = studentData;
+      const { first_name, last_name, email, phone, address, zeta_id, session_id } = studentData;
       
       if (!first_name || !last_name || !phone) {
         throw new Error('Missing required fields: first_name, last_name, and phone are required');
@@ -25,13 +82,44 @@ class StudentService {
         return await mockDataService.createStudent(studentData);
       }
       
+      // Auto-generate ZETA ID if not provided
+      let finalZetaId = zeta_id;
+      if (!finalZetaId) {
+        finalZetaId = await this.generateZetaId(phone, session_id || null);
+        
+        // Check if generated ZETA ID already exists, if so modify last digit(s)
+        let counter = 1;
+        let uniqueZetaId = finalZetaId;
+        while (true) {
+          const existing = await pool.query('SELECT id FROM students WHERE zeta_id = $1', [uniqueZetaId]);
+          if (existing.rows.length === 0) {
+            break; // ZETA ID is unique
+          }
+          // Replace last digit(s) with counter to make it unique
+          // Format: ZS + 2 + 2 + 2 + 2 + 7 = 17 chars total
+          // Replace last 1-2 digits with counter
+          if (counter < 10) {
+            uniqueZetaId = finalZetaId.slice(0, -1) + counter;
+          } else {
+            uniqueZetaId = finalZetaId.slice(0, -2) + String(counter).padStart(2, '0');
+          }
+          counter++;
+          if (counter > 99) {
+            // If still not unique, use timestamp last 3 digits
+            uniqueZetaId = finalZetaId.slice(0, -3) + Date.now().toString().slice(-3);
+            break;
+          }
+        }
+        finalZetaId = uniqueZetaId;
+      }
+      
       const result = await pool.query(`
         INSERT INTO students (first_name, last_name, email, phone, address, zeta_id) 
         VALUES ($1, $2, $3, $4, $5, $6) 
         RETURNING *
-      `, [first_name, last_name, email || null, phone, address || null, zeta_id || null]);
+      `, [first_name, last_name, email || null, phone, address || null, finalZetaId]);
       
-      console.log('✅ New student created:', result.rows[0]);
+      console.log('✅ New student created with ZETA ID:', finalZetaId);
       return result.rows[0];
       
     } catch (error) {
