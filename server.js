@@ -2545,6 +2545,40 @@ app.get('/api/admin/students', async (req, res) => {
   }
 });
 
+// Get student sessions (student-session mappings with status)
+app.get('/api/admin/student-sessions', async (req, res) => {
+  try {
+    if (!pool) return res.json({ success: true, data: [] });
+    
+    const result = await pool.query(`
+      SELECT 
+        ss.id,
+        ss.student_id,
+        ss.session_id,
+        ss.session_status,
+        CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+        iss.name AS session_name,
+        ss.created_at,
+        ss.updated_at
+      FROM student_sessions ss
+      INNER JOIN students s ON ss.student_id = s.id
+      INNER JOIN interview_sessions iss ON ss.session_id = iss.id
+      ORDER BY ss.created_at DESC
+    `);
+    
+    res.json({
+      success: true,
+      data: result.rows
+    });
+  } catch (error) {
+    console.error('Error getting student sessions:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Bulk import students (text JSON)
 app.post('/api/admin/students/bulk-import/text', async (req, res) => {
   try {

@@ -2096,6 +2096,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="student-sessions">
+                        Student Sessions
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a href="#" class="nav-link" data-section="my-interviews">
                         My Interviews
                     </a>
@@ -2592,6 +2597,34 @@
                         </thead>
                         <tbody id="my-interviews-table-body">
                             <tr><td colspan="9" class="loading">Loading interviews...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Student Sessions Section -->
+            <section id="student-sessions" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">Student Sessions</h2>
+                    <div class="header-actions">
+                        <input type="text" id="student-sessions-inline-search" class="form-input" placeholder="Search..." oninput="displayStudentSessions()" style="max-width:220px">
+                        <button class="btn btn-primary" onclick="refreshStudentSessions()">Refresh</button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th data-field="student_name" onclick="sortBy('student-sessions','student_name')">Student Name <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                <th data-field="session_name" onclick="sortBy('student-sessions','session_name')">Interview Session <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                <th data-field="session_status" onclick="sortBy('student-sessions','session_status')">Interview Status <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="student-sessions-table-body">
+                            <tr>
+                                <td colspan="3" class="loading">Loading student sessions...</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -3323,6 +3356,10 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                         ['students-search'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.value=''; if(el.onchange) el.onchange(); }});
                         refreshStudents && refreshStudents();
                         break;
+                    case 'student-sessions':
+                        ['student-sessions-inline-search'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.value=''; if(el.onchange) el.onchange(); }});
+                        refreshStudentSessions && refreshStudentSessions();
+                        break;
                     case 'my-interviews':
                         ['my-search','my-status','my-verdict','my-date-from','my-date-to'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.value=''; if(el.onchange) el.onchange(); }});
                         applyMyInterviewFilters && applyMyInterviewFilters();
@@ -3344,6 +3381,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         let allInterviewers = [];
         let sessions = [];
         let students = [];
+        let studentSessions = [];
         let myInterviews = []; // Add missing myInterviews variable
         let currentUserId = null;
         
@@ -3354,6 +3392,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             questions: 1,
             sessions: 1,
             students: 1,
+            'student-sessions': 1,
             users: 1,
             'my-interviews': 1,
             consolidation: 1
@@ -3363,6 +3402,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             questions: 1,
             sessions: 1,
             students: 1,
+            'student-sessions': 1,
             users: 1,
             'my-interviews': 1,
             consolidation: 1
@@ -3374,6 +3414,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             'questions': { field: 'created_at', dir: 'desc' },
             'sessions': { field: 'created_at', dir: 'desc' },
             'students': { field: 'name', dir: 'asc' },
+            'student-sessions': { field: 'created_at', dir: 'desc' },
             'users': { field: 'name', dir: 'asc' },
             'my-interviews': { field: 'created_at', dir: 'desc' }
         };
@@ -3392,6 +3433,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 case 'questions': displayQuestions(); break;
                 case 'sessions': displaySessions(); break;
                 case 'students': displayStudents(); break;
+                case 'student-sessions': displayStudentSessions(); break;
                 case 'users': displayUsers(); break;
                 case 'my-interviews': displayMyInterviews(); break;
             }
@@ -3402,6 +3444,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             if (tab === 'questions') sectionSel = '#questions';
             else if (tab === 'sessions') sectionSel = '#sessions';
             else if (tab === 'students') sectionSel = '#students';
+            else if (tab === 'student-sessions') sectionSel = '#student-sessions';
             else if (tab === 'users') sectionSel = '#users';
             else if (tab === 'my-interviews') sectionSel = '#my-interviews';
 
@@ -4950,6 +4993,8 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 loadMyInterviewsForAdmin();
             } else if (section === 'consolidation') {
                 loadConsolidation();
+            } else if (section === 'student-sessions') {
+                loadStudentSessions();
             } else if (section === 'overview') {
                 // Reload charts when switching to overview
                 if (Object.keys(charts).length === 0) {
@@ -10642,6 +10687,148 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 await loadStudents();
             } finally {
                 hideLoadingSpinner('students');
+            }
+        }
+
+        // Student Sessions functions
+        async function loadStudentSessions() {
+            try {
+                const response = await fetch('/api/admin/student-sessions');
+                const data = await response.json();
+                
+                if (data.success) {
+                    studentSessions = data.data || [];
+                    displayStudentSessions();
+                } else {
+                    console.error('Error loading student sessions:', data.error);
+                    const tbody = document.getElementById('student-sessions-table-body');
+                    if (tbody) {
+                        tbody.innerHTML = '<tr><td colspan="3" class="error">Error loading student sessions</td></tr>';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading student sessions:', error);
+                const tbody = document.getElementById('student-sessions-table-body');
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="3" class="error">Error loading student sessions</td></tr>';
+                }
+            }
+        }
+
+        function displayStudentSessions() {
+            const tbody = document.getElementById('student-sessions-table-body');
+            if (!tbody) return;
+
+            if (!studentSessions || studentSessions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="empty-state">No student sessions found</td></tr>';
+                return;
+            }
+
+            // Inline search + sort
+            const term = document.getElementById('student-sessions-inline-search')?.value || '';
+            let list = studentSessions.filter(item => {
+                if (!term) return true;
+                const searchTerm = term.toLowerCase();
+                const studentName = (item.student_name || '').toLowerCase();
+                const sessionName = (item.session_name || '').toLowerCase();
+                const status = (item.session_status || '').toLowerCase();
+                return studentName.includes(searchTerm) || 
+                       sessionName.includes(searchTerm) || 
+                       status.includes(searchTerm);
+            });
+
+            // Apply sorting
+            list = applyInlineSort(list, 'student-sessions');
+
+            // Check if no results after filtering
+            if (list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="empty-state">No matches found for your search criteria</td></tr>';
+                const container = document.querySelector('#student-sessions .table-container');
+                if (container) {
+                    const existingPagination = container.querySelector('.pagination-controls');
+                    if (existingPagination) existingPagination.remove();
+                    const existingInfo = container.querySelector('.pagination-info');
+                    if (existingInfo) existingInfo.remove();
+                }
+                return;
+            }
+
+            // Update pagination
+            updateTotalPages(list, 'student-sessions');
+            const paginatedData = getPaginatedData(list, 'student-sessions');
+
+            // Format status with colors
+            const formatStatus = (status) => {
+                if (!status) return '<span style="color: #6b7280;">—</span>';
+                const statusLower = status.toLowerCase();
+                let color = '#6b7280'; // default gray
+                let bgColor = '#f3f4f6';
+                
+                if (statusLower.includes('started')) {
+                    color = '#3b82f6'; // blue
+                    bgColor = '#dbeafe';
+                } else if (statusLower.includes('ended')) {
+                    color = '#10b981'; // green
+                    bgColor = '#d1fae5';
+                } else if (statusLower.includes('selected')) {
+                    color = '#10b981'; // green
+                    bgColor = '#d1fae5';
+                } else if (statusLower.includes('rejected')) {
+                    color = '#ef4444'; // red
+                    bgColor = '#fee2e2';
+                } else if (statusLower.includes('waitlisted')) {
+                    color = '#f59e0b'; // orange
+                    bgColor = '#fef3c7';
+                }
+                
+                return `<span style="display:inline-block;background:${bgColor};color:${color};padding:4px 10px;border-radius:6px;font-size:12px;font-weight:500;">${status}</span>`;
+            };
+
+            tbody.innerHTML = paginatedData.map(item => `
+                <tr>
+                    <td>${item.student_name || '—'}</td>
+                    <td>${item.session_name || '—'}</td>
+                    <td>${formatStatus(item.session_status)}</td>
+                </tr>
+            `).join('');
+
+            // Add pagination controls
+            const container = document.querySelector('#student-sessions .table-container');
+            if (container) {
+                const existingPagination = container.querySelector('.pagination-controls');
+                if (existingPagination) existingPagination.remove();
+                const existingInfo = container.querySelector('.pagination-info');
+                if (existingInfo) existingInfo.remove();
+
+                if (totalPages['student-sessions'] > 1) {
+                    const paginationHTML = `
+                        <div class="pagination-controls">
+                            <button onclick="currentPage['student-sessions'] = Math.max(1, currentPage['student-sessions'] - 1); displayStudentSessions();" ${currentPage['student-sessions'] === 1 ? 'disabled' : ''}>Previous</button>
+                            <span>Page ${currentPage['student-sessions']} of ${totalPages['student-sessions']}</span>
+                            <button onclick="currentPage['student-sessions'] = Math.min(${totalPages['student-sessions']}, currentPage['student-sessions'] + 1); displayStudentSessions();" ${currentPage['student-sessions'] === totalPages['student-sessions'] ? 'disabled' : ''}>Next</button>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', paginationHTML);
+                }
+
+                const startIndex = (currentPage['student-sessions'] - 1) * ITEMS_PER_PAGE + 1;
+                const endIndex = Math.min(currentPage['student-sessions'] * ITEMS_PER_PAGE, list.length);
+                const infoHTML = `
+                    <div class="pagination-info">
+                        <span>Showing ${startIndex}-${endIndex} of ${list.length} records</span>
+                        <span>Page ${currentPage['student-sessions']} of ${totalPages['student-sessions']}</span>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', infoHTML);
+            }
+        }
+
+        async function refreshStudentSessions() {
+            showLoadingSpinner('student-sessions');
+            try {
+                await loadStudentSessions();
+            } finally {
+                hideLoadingSpinner('student-sessions');
             }
         }
 
