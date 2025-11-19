@@ -210,8 +210,8 @@ class InterviewPage {
         };
 
         // Validate required fields
-        if (!formData.zeta_id || !formData.first_name || !formData.last_name || !formData.email) {
-            this.showError('Please fill in all required fields (Zeta ID, First Name, Last Name, Email)');
+        if (!formData.first_name || !formData.last_name || !formData.phone) {
+            this.showError('Please fill in all required fields (First Name, Last Name, Phone)');
             return;
         }
 

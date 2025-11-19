@@ -17,8 +17,8 @@ class StudentService {
     try {
       const { first_name, last_name, email, phone, address, zeta_id } = studentData;
       
-      if (!first_name || !last_name || !email || !zeta_id) {
-        throw new Error('Missing required fields: first_name, last_name, email, and zeta_id are required');
+      if (!first_name || !last_name || !phone) {
+        throw new Error('Missing required fields: first_name, last_name, and phone are required');
       }
       
       if (!(await this.isDatabaseAvailable())) {
@@ -29,7 +29,7 @@ class StudentService {
         INSERT INTO students (first_name, last_name, email, phone, address, zeta_id) 
         VALUES ($1, $2, $3, $4, $5, $6) 
         RETURNING *
-      `, [first_name, last_name, email, phone, address, zeta_id]);
+      `, [first_name, last_name, email || null, phone, address || null, zeta_id || null]);
       
       console.log('✅ New student created:', result.rows[0]);
       return result.rows[0];
