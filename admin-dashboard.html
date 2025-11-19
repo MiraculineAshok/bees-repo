@@ -3042,10 +3042,12 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 sessionSelect.innerHTML = '<option value="">Select Interview Session...</option>';
                 
                 if (data.success && data.data && data.data.length > 0) {
-                    data.data.forEach(session => {
+                    // Filter out inactive sessions
+                    const activeSessions = data.data.filter(session => session.status === 'active');
+                    activeSessions.forEach(session => {
                         const option = document.createElement('option');
                         option.value = session.id;
-                        option.textContent = session.name + (session.status ? ` (${session.status})` : '');
+                        option.textContent = session.name;
                         sessionSelect.appendChild(option);
                     });
                 } else {
@@ -5351,13 +5353,15 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 statusInterviewerSelect.appendChild(option);
             });
 
-            // Populate session filters
+            // Populate session filters (only active sessions)
             const verdictSessionSelect = document.getElementById('verdict-session-filter');
             const interviewersSessionSelect = document.getElementById('interviewers-session-filter');
             verdictSessionSelect.innerHTML = '<option value="all">All Sessions</option>';
             interviewersSessionSelect.innerHTML = '<option value="all">All Sessions</option>';
             
-            rawChartData.sessions.forEach(session => {
+            // Filter out inactive sessions
+            const activeSessions = rawChartData.sessions.filter(session => session.status === 'active');
+            activeSessions.forEach(session => {
                 const opt1 = document.createElement('option');
                 opt1.value = session.id;
                 opt1.textContent = session.name || `Session ${session.id}`;
@@ -6709,8 +6713,9 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             // Clear existing options except "All Sessions"
             sessionFilter.innerHTML = '<option value="">All Sessions</option>';
             
-            // Add unique session names from all sessions (not just interviews)
-            const uniqueSessions = [...new Set(sessions.map(session => session.name))];
+            // Filter out inactive sessions and add unique session names
+            const activeSessions = sessions.filter(session => session.status === 'active');
+            const uniqueSessions = [...new Set(activeSessions.map(session => session.name))];
             uniqueSessions.forEach(sessionName => {
                 const option = document.createElement('option');
                 option.value = sessionName;
@@ -6726,8 +6731,9 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             // Clear existing options except "All Sessions"
             sessionFilter.innerHTML = '<option value="">All Sessions</option>';
             
-            // Add unique session names from all sessions (not just my interviews)
-            const uniqueSessions = [...new Set(sessions.map(session => session.name))];
+            // Filter out inactive sessions and add unique session names
+            const activeSessions = sessions.filter(session => session.status === 'active');
+            const uniqueSessions = [...new Set(activeSessions.map(session => session.name))];
             uniqueSessions.forEach(sessionName => {
                 const option = document.createElement('option');
                 option.value = sessionName;
@@ -11355,26 +11361,37 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     continue;
                 }
 
-                // Special handling for Sessions: panelists multi-select
-                if ((typeof currentSection !== 'undefined' && currentSection === 'sessions') && field === 'panelists') {
-                    if (!allInterviewers || allInterviewers.length === 0) {
-                        try { await loadAllInterviewers(); } catch {}
-                    }
-                    const selectedIds = Array.isArray(currentEditData?.panelist_ids) ? currentEditData.panelist_ids.map(String) : [];
-                    const selectId = `panelist-select-${rowId}`;
-                    const options = (allInterviewers || []).map(interv => `<option value="${interv.id}" ${selectedIds.includes(String(interv.id)) ? 'selected' : ''}>${interv.name} (${interv.email})</option>`).join('');
-                    cell.innerHTML = `
-                        <div>
-                            <select id="${selectId}" class="edit-select" multiple size="4" data-field="panelists" style="min-width:260px">
-                                ${options}
-                            </select>
-                            <div style="margin-top:6px;display:flex;gap:6px;align-items:center">
-                                <input type="email" id="new-panelist-email-${rowId}" class="edit-input" placeholder="new.panelist@example.com" style="flex:1">
-                                <button class="btn btn-secondary" type="button" onclick="addNewInterviewerFromEdit('${rowId}')">Add New</button>
+                // Special handling for Sessions: panelists multi-select and status dropdown
+                if ((typeof currentSection !== 'undefined' && currentSection === 'sessions')) {
+                    if (field === 'panelists') {
+                        if (!allInterviewers || allInterviewers.length === 0) {
+                            try { await loadAllInterviewers(); } catch {}
+                        }
+                        const selectedIds = Array.isArray(currentEditData?.panelist_ids) ? currentEditData.panelist_ids.map(String) : [];
+                        const selectId = `panelist-select-${rowId}`;
+                        const options = (allInterviewers || []).map(interv => `<option value="${interv.id}" ${selectedIds.includes(String(interv.id)) ? 'selected' : ''}>${interv.name} (${interv.email})</option>`).join('');
+                        cell.innerHTML = `
+                            <div>
+                                <select id="${selectId}" class="edit-select" multiple size="4" data-field="panelists" style="min-width:260px">
+                                    ${options}
+                                </select>
+                                <div style="margin-top:6px;display:flex;gap:6px;align-items:center">
+                                    <input type="email" id="new-panelist-email-${rowId}" class="edit-input" placeholder="new.panelist@example.com" style="flex:1">
+                                    <button class="btn btn-secondary" type="button" onclick="addNewInterviewerFromEdit('${rowId}')">Add New</button>
+                                </div>
                             </div>
-                        </div>
-                    `;
-                    continue;
+                        `;
+                        continue;
+                    } else if (field === 'status') {
+                        const currentStatus = currentEditData ? currentEditData.status : '';
+                        cell.innerHTML = `
+                            <select class="edit-input" data-field="status">
+                                <option value="active" ${currentStatus === 'active' ? 'selected' : ''}>Active</option>
+                                <option value="inactive" ${currentStatus === 'inactive' ? 'selected' : ''}>Inactive</option>
+                            </select>
+                        `;
+                        continue;
+                    }
                 }
 
                 // Special handling for Users: role and status dropdowns
