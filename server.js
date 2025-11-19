@@ -474,7 +474,8 @@ app.delete('/api/students/:id', async (req, res) => {
 
 app.get('/api/students/search/:term', async (req, res) => {
   try {
-    const students = await StudentService.searchStudents(req.params.term);
+    const sessionId = req.query.session_id ? parseInt(req.query.session_id) : null;
+    const students = await StudentService.searchStudents(req.params.term, sessionId);
     res.json({
       success: true,
       data: students

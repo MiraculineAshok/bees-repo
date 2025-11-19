@@ -165,21 +165,43 @@ class StudentService {
   }
   
   // Search students
-  static async searchStudents(searchTerm) {
+  static async searchStudents(searchTerm, sessionId = null) {
     try {
       if (!(await this.isDatabaseAvailable())) {
         return await mockDataService.searchStudents(searchTerm);
       }
       
-      const result = await pool.query(`
-        SELECT * FROM students 
-        WHERE first_name ILIKE $1 
-           OR last_name ILIKE $1 
-           OR email ILIKE $1 
-           OR zeta_id ILIKE $1 
-           OR phone ILIKE $1
-        ORDER BY created_at DESC
-      `, [`%${searchTerm}%`]);
+      let query, params;
+      
+      if (sessionId) {
+        // Filter by students mapped to the specific session
+        query = `
+          SELECT DISTINCT s.* FROM students s
+          INNER JOIN student_sessions ss ON s.id = ss.student_id
+          WHERE ss.session_id = $1
+            AND (s.first_name ILIKE $2 
+               OR s.last_name ILIKE $2 
+               OR s.email ILIKE $2 
+               OR s.zeta_id ILIKE $2 
+               OR s.phone ILIKE $2)
+          ORDER BY s.created_at DESC
+        `;
+        params = [sessionId, `%${searchTerm}%`];
+      } else {
+        // No session filter - search all students
+        query = `
+          SELECT * FROM students 
+          WHERE first_name ILIKE $1 
+             OR last_name ILIKE $1 
+             OR email ILIKE $1 
+             OR zeta_id ILIKE $1 
+             OR phone ILIKE $1
+          ORDER BY created_at DESC
+        `;
+        params = [`%${searchTerm}%`];
+      }
+      
+      const result = await pool.query(query, params);
       
       return result.rows;
     } catch (error) {

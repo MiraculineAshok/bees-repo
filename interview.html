@@ -263,7 +263,18 @@
             }
             function search(term){
                 if (!term || term.length < 2) { hide(); return; }
-                fetch(`/api/students/search/${encodeURIComponent(term)}`)
+                
+                // Get session ID from session select dropdown
+                const sessionSelect = document.getElementById('session-select');
+                const sessionId = sessionSelect && sessionSelect.value ? sessionSelect.value : null;
+                
+                // Build URL with session_id query parameter if session is selected
+                let url = `/api/students/search/${encodeURIComponent(term)}`;
+                if (sessionId) {
+                    url += `?session_id=${encodeURIComponent(sessionId)}`;
+                }
+                
+                fetch(url)
                     .then(r=>r.json())
                     .then(j=>{ if (j && j.success) show(j.data || []); else hide(); })
                     .catch(()=> hide());
@@ -273,6 +284,21 @@
                 const term = input.value.trim();
                 t = setTimeout(() => search(term), 250);
             });
+            
+            // Re-trigger search when session changes
+            const sessionSelect = document.getElementById('session-select');
+            if (sessionSelect) {
+                sessionSelect.addEventListener('change', () => {
+                    const term = input.value.trim();
+                    if (term && term.length >= 2) {
+                        clearTimeout(t);
+                        t = setTimeout(() => search(term), 250);
+                    } else {
+                        hide();
+                    }
+                });
+            }
+            
             document.addEventListener('click', (e) => {
                 if (!box.contains(e.target) && e.target !== input) hide();
             });
