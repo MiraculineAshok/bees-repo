@@ -171,6 +171,27 @@ async function initializeDatabase() {
       // Column might already exist, ignore error
     }
     
+    // Add session_id column to students table for mapping to interview sessions
+    try {
+      await pool.query(`
+        ALTER TABLE students 
+        ADD COLUMN IF NOT EXISTS session_id INTEGER REFERENCES interview_sessions(id) ON DELETE SET NULL
+      `);
+    } catch (error) {
+      // Column might already exist, ignore error
+      console.log('Session ID column migration:', error.message);
+    }
+    
+    // Create index for session_id if it doesn't exist
+    try {
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_students_session_id ON students(session_id)
+      `);
+    } catch (error) {
+      // Index might already exist, ignore error
+      console.log('Session ID index migration:', error.message);
+    }
+    
     // Create session_panelists table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS session_panelists (
