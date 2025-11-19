@@ -119,6 +119,37 @@ class StudentService {
         RETURNING *
       `, [first_name, last_name, email || null, phone, address || null, finalZetaId]);
       
+      const studentId = result.rows[0].id;
+      
+      // Create session mapping if session_id is provided
+      if (session_id) {
+        try {
+          // Validate session exists
+          const sessionCheck = await pool.query('SELECT id FROM interview_sessions WHERE id = $1', [session_id]);
+          if (sessionCheck.rows.length > 0) {
+            // Check if mapping already exists (shouldn't for new student, but check anyway)
+            const existingMapping = await pool.query(
+              'SELECT id FROM student_sessions WHERE student_id = $1 AND session_id = $2',
+              [studentId, session_id]
+            );
+            
+            if (existingMapping.rows.length === 0) {
+              // Create session mapping
+              await pool.query(
+                'INSERT INTO student_sessions (student_id, session_id) VALUES ($1, $2)',
+                [studentId, session_id]
+              );
+              console.log(`✅ Created session mapping for student ${studentId} -> session ${session_id}`);
+            }
+          } else {
+            console.warn(`⚠️ Session ${session_id} not found, skipping mapping`);
+          }
+        } catch (mappingError) {
+          console.error('❌ Error creating session mapping:', mappingError);
+          // Don't throw - student creation succeeded, mapping is secondary
+        }
+      }
+      
       console.log('✅ New student created with ZETA ID:', finalZetaId);
       return result.rows[0];
       
