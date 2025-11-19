@@ -2788,7 +2788,20 @@
                     </button>
                 </div>
                 
-                <div class="modal-body" style="padding:20px;background:#f9fafb;min-height:400px">
+                <!-- Interview Session Selection (Common for both tabs) -->
+                <div style="background:#fff;border-bottom:1px solid #e5e7eb;padding:16px 20px">
+                    <label style="font-weight:600;margin-bottom:8px;display:block;color:#111827">
+                        Interview Session <span style="color:#dc2626">*</span>
+                    </label>
+                    <select id="bulk-students-session" class="form-input" required style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:4px;font-size:14px">
+                        <option value="">Select Interview Session...</option>
+                    </select>
+                    <div style="margin-top:8px;font-size:12px;color:#6b7280">
+                        All imported students will be mapped to the selected interview session
+                    </div>
+                </div>
+                
+                <div class="modal-body" style="padding:20px;background:#f9fafb;max-height:60vh;overflow-y:auto">
                     <!-- Paste CSV Tab -->
                     <div id="paste-content-students" class="tab-content" style="display:block">
                         <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-bottom:16px">
@@ -2863,19 +2876,6 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                                 </div>
                                 <button onclick="removeSelectedFile('students')" style="background:#dc2626;color:#fff;border:none;border-radius:4px;padding:4px 8px;cursor:pointer;font-size:12px" title="Remove file">✕ Remove</button>
                             </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Interview Session Selection (Common for both tabs) -->
-                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-top:16px">
-                        <label style="font-weight:600;margin-bottom:8px;display:block;color:#111827">
-                            Interview Session <span style="color:#dc2626">*</span>
-                        </label>
-                        <select id="bulk-students-session" class="form-input" required style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:4px;font-size:14px">
-                            <option value="">Select Interview Session...</option>
-                        </select>
-                        <div style="margin-top:8px;font-size:12px;color:#6b7280">
-                            All imported students will be mapped to the selected interview session
                         </div>
                     </div>
                 </div>
