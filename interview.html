@@ -262,7 +262,15 @@
                 });
             }
             function search(term){
-                if (!term || term.length < 2) { hide(); return; }
+                if (!term || term.length < 2) { 
+                    hide(); 
+                    // Hide new student form if search term is too short
+                    const formContainer = document.getElementById('new-student-form-container');
+                    if (formContainer) {
+                        formContainer.classList.add('hidden');
+                    }
+                    return; 
+                }
                 
                 // Check if search is disabled
                 if (input.disabled) {
@@ -282,8 +290,51 @@
                 
                 fetch(url)
                     .then(r=>r.json())
-                    .then(j=>{ if (j && j.success) show(j.data || []); else hide(); })
-                    .catch(()=> hide());
+                    .then(j=>{ 
+                        if (j && j.success && j.data && j.data.length > 0) {
+                            show(j.data || []); 
+                            // Hide new student form when results are found
+                            const formContainer = document.getElementById('new-student-form-container');
+                            if (formContainer) {
+                                formContainer.classList.add('hidden');
+                            }
+                        } else {
+                            // No results found - show new student form
+                            hide();
+                            if (window.interviewPage && typeof window.interviewPage.showNewStudentForm === 'function') {
+                                // Try to parse search term to pre-fill fields
+                                const searchTerm = term.trim();
+                                
+                                // Check if it looks like an email
+                                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                                // Check if it looks like a phone number (digits only, 10+ digits)
+                                const phoneRegex = /^\d{10,}$/;
+                                
+                                // Pre-fill form fields if possible
+                                setTimeout(() => {
+                                    if (emailRegex.test(searchTerm)) {
+                                        const emailInput = document.getElementById('new-email');
+                                        if (emailInput) emailInput.value = searchTerm;
+                                    } else if (phoneRegex.test(searchTerm.replace(/\D/g, ''))) {
+                                        const phoneInput = document.getElementById('new-phone');
+                                        if (phoneInput) phoneInput.value = searchTerm.replace(/\D/g, '');
+                                    }
+                                    
+                                    // Show the form
+                                    window.interviewPage.showNewStudentForm('');
+                                }, 100);
+                            }
+                        }
+                    })
+                    .catch(()=> {
+                        hide();
+                        // On error, still show the form if user has typed enough
+                        if (term.length >= 2 && window.interviewPage && typeof window.interviewPage.showNewStudentForm === 'function') {
+                            setTimeout(() => {
+                                window.interviewPage.showNewStudentForm('');
+                            }, 100);
+                        }
+                    });
             }
             input.addEventListener('input', () => {
                 if (input.disabled) return;
@@ -298,7 +349,32 @@
                     e.preventDefault();
                     if (!input.disabled && input.value.trim().length >= 2) {
                         clearTimeout(t);
-                        search(input.value.trim());
+                        const searchTerm = input.value.trim();
+                        // Perform search
+                        search(searchTerm);
+                        // If no suggestions are visible after a short delay, show form
+                        setTimeout(() => {
+                            const suggestionsBox = document.getElementById('student-suggestions');
+                            if (suggestionsBox && suggestionsBox.style.display === 'none') {
+                                // No results found, show form
+                                if (window.interviewPage && typeof window.interviewPage.showNewStudentForm === 'function') {
+                                    const searchTerm = input.value.trim();
+                                    // Try to parse and pre-fill
+                                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                                    const phoneRegex = /^\d{10,}$/;
+                                    
+                                    if (emailRegex.test(searchTerm)) {
+                                        const emailInput = document.getElementById('new-email');
+                                        if (emailInput) emailInput.value = searchTerm;
+                                    } else if (phoneRegex.test(searchTerm.replace(/\D/g, ''))) {
+                                        const phoneInput = document.getElementById('new-phone');
+                                        if (phoneInput) phoneInput.value = searchTerm.replace(/\D/g, '');
+                                    }
+                                    
+                                    window.interviewPage.showNewStudentForm('');
+                                }
+                            }
+                        }, 500);
                     }
                 }
             });
