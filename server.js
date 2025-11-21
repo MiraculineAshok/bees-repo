@@ -175,6 +175,32 @@ const upload = multer({
     }
 });
 
+// Separate multer config for bulk import files (CSV, XLS, XLSX)
+const bulkImportUpload = multer({
+    storage: multer.memoryStorage(), // Always use memory storage for bulk imports
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB limit for CSV/XLS files
+    },
+    fileFilter: function (req, file, cb) {
+        // Allow CSV, XLS, XLSX files
+        const allowedMimes = [
+            'text/csv',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ];
+        const allowedExtensions = ['.csv', '.xls', '.xlsx'];
+        const fileExt = path.extname(file.originalname).toLowerCase();
+        
+        if (file.mimetype && allowedMimes.includes(file.mimetype)) {
+            cb(null, true);
+        } else if (allowedExtensions.includes(fileExt)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only CSV, XLS, or XLSX files are allowed for bulk import!'), false);
+        }
+    }
+});
+
 // Routes
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'login.html'));
@@ -2967,11 +2993,22 @@ app.post('/api/admin/students/bulk-import/text', async (req, res) => {
 });
 
 // Bulk import students (file upload - CSV/XLS/XLSX)
-app.post('/api/admin/students/bulk-import/file', upload.single('file'), async (req, res) => {
+app.post('/api/admin/students/bulk-import/file', (req, res, next) => {
+  bulkImportUpload.single('file')(req, res, (err) => {
+    if (err) {
+      console.error('❌ Multer error:', err.message);
+      return res.status(400).json({ 
+        success: false, 
+        error: err.message || 'File upload failed' 
+      });
+    }
+    next();
+  });
+}, async (req, res) => {
   try {
     console.log('📤 Bulk import file endpoint called');
     console.log('Request body keys:', Object.keys(req.body));
-    console.log('File:', req.file ? { name: req.file.originalname, size: req.file.size } : 'No file');
+    console.log('File:', req.file ? { name: req.file.originalname, size: req.file.size, mimetype: req.file.mimetype } : 'No file');
     
     if (!req.file) {
       console.error('❌ No file in request');
