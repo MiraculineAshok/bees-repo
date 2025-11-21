@@ -2969,17 +2969,34 @@ app.post('/api/admin/students/bulk-import/text', async (req, res) => {
 // Bulk import students (file upload - CSV/XLS/XLSX)
 app.post('/api/admin/students/bulk-import/file', upload.single('file'), async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ success: false, error: 'File is required' });
+    console.log('📤 Bulk import file endpoint called');
+    console.log('Request body keys:', Object.keys(req.body));
+    console.log('File:', req.file ? { name: req.file.originalname, size: req.file.size } : 'No file');
+    
+    if (!req.file) {
+      console.error('❌ No file in request');
+      return res.status(400).json({ success: false, error: 'File is required' });
+    }
     
     const session_id = req.body.session_id;
+    console.log('Session ID from request:', session_id);
+    
     if (!session_id) {
+      console.error('❌ No session_id in request');
       return res.status(400).json({ success: false, error: 'Interview session is required' });
     }
     
     // Validate session exists
-    const sessionCheck = await pool.query('SELECT id FROM interview_sessions WHERE id = $1', [session_id]);
-    if (sessionCheck.rows.length === 0) {
-      return res.status(400).json({ success: false, error: 'Invalid interview session' });
+    try {
+      const sessionCheck = await pool.query('SELECT id FROM interview_sessions WHERE id = $1', [session_id]);
+      if (sessionCheck.rows.length === 0) {
+        console.error(`❌ Session ${session_id} not found`);
+        return res.status(400).json({ success: false, error: 'Invalid interview session' });
+      }
+      console.log('✅ Session validated:', session_id);
+    } catch (dbError) {
+      console.error('❌ Database error checking session:', dbError);
+      throw dbError;
     }
     
     const buf = req.file.buffer;
@@ -2988,61 +3005,70 @@ app.post('/api/admin/students/bulk-import/file', upload.single('file'), async (r
     
     console.log(`📤 Received file upload: ${req.file.originalname}, size: ${req.file.size} bytes`);
     
-    if (name.endsWith('.csv')) {
-      // CSV parsing (utf-8, handles quoted fields)
-      const text = buf.toString('utf8');
-      const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
-      
-      console.log(`📄 Parsing CSV file: ${lines.length} lines found`);
-      
-      // Parse CSV lines, handling quoted fields
-      rows = lines.map((line, lineIndex) => {
-        const result = [];
-        let current = '';
-        let inQuotes = false;
+    try {
+      if (name.endsWith('.csv')) {
+        // CSV parsing (utf-8, handles quoted fields)
+        const text = buf.toString('utf8');
+        const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
         
-        for (let i = 0; i < line.length; i++) {
-          const char = line[i];
+        console.log(`📄 Parsing CSV file: ${lines.length} lines found`);
+        
+        // Parse CSV lines, handling quoted fields
+        rows = lines.map((line, lineIndex) => {
+          const result = [];
+          let current = '';
+          let inQuotes = false;
           
-          if (char === '"') {
-            if (inQuotes && line[i + 1] === '"') {
-              // Escaped quote
-              current += '"';
-              i++; // Skip next quote
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            
+            if (char === '"') {
+              if (inQuotes && line[i + 1] === '"') {
+                // Escaped quote
+                current += '"';
+                i++; // Skip next quote
+              } else {
+                // Toggle quote state
+                inQuotes = !inQuotes;
+              }
+            } else if (char === ',' && !inQuotes) {
+              // End of field
+              result.push(current.trim());
+              current = '';
             } else {
-              // Toggle quote state
-              inQuotes = !inQuotes;
+              current += char;
             }
-          } else if (char === ',' && !inQuotes) {
-            // End of field
-            result.push(current.trim());
-            current = '';
-          } else {
-            current += char;
           }
-        }
+          
+          // Add last field
+          result.push(current.trim());
+          
+          if (lineIndex === 0) {
+            console.log(`📋 Header row parsed:`, result);
+          }
+          
+          return result;
+        });
         
-        // Add last field
-        result.push(current.trim());
-        
-        if (lineIndex === 0) {
-          console.log(`📋 Header row parsed:`, result);
-        }
-        
-        return result;
+        console.log(`✅ Parsed ${rows.length} rows from CSV`);
+      } else if (name.endsWith('.xls') || name.endsWith('.xlsx')) {
+        // XLS/XLSX via optional dependency
+        let xlsx = null;
+        try { xlsx = require('xlsx'); } catch { return res.status(400).json({ success:false, error: 'XLS/XLSX not supported on server (xlsx not installed)' }); }
+        const wb = xlsx.read(buf, { type: 'buffer' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const json = xlsx.utils.sheet_to_json(ws, { header: 1 });
+        rows = json.filter(r=>Array.isArray(r) && r.length>0);
+      } else {
+        return res.status(400).json({ success: false, error: 'Unsupported file type' });
+      }
+    } catch (parseError) {
+      console.error('❌ Error parsing file:', parseError);
+      console.error('Parse error stack:', parseError.stack);
+      return res.status(400).json({ 
+        success: false, 
+        error: `Failed to parse file: ${parseError.message}` 
       });
-      
-      console.log(`✅ Parsed ${rows.length} rows from CSV`);
-    } else if (name.endsWith('.xls') || name.endsWith('.xlsx')) {
-      // XLS/XLSX via optional dependency
-      let xlsx = null;
-      try { xlsx = require('xlsx'); } catch { return res.status(400).json({ success:false, error: 'XLS/XLSX not supported on server (xlsx not installed)' }); }
-      const wb = xlsx.read(buf, { type: 'buffer' });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const json = xlsx.utils.sheet_to_json(ws, { header: 1 });
-      rows = json.filter(r=>Array.isArray(r) && r.length>0);
-    } else {
-      return res.status(400).json({ success: false, error: 'Unsupported file type' });
     }
     
     let inserted = 0;
@@ -3123,29 +3149,38 @@ app.post('/api/admin/students/bulk-import/file', upload.single('file'), async (r
           // New student - auto-generate ZETA ID if not provided
           let finalZetaId = cleanZeta;
           if (!finalZetaId) {
-            finalZetaId = await StudentService.generateZetaId(cleanPhone, session_id);
-            
-            // Check if generated ZETA ID already exists, if so modify last digit(s)
-            let counter = 1;
-            let uniqueZetaId = finalZetaId;
-            while (true) {
-              const existing = await pool.query('SELECT id FROM students WHERE zeta_id = $1', [uniqueZetaId]);
-              if (existing.rows.length === 0) {
-                break; // ZETA ID is unique
+            try {
+              finalZetaId = await StudentService.generateZetaId(cleanPhone, session_id);
+              
+              // Check if generated ZETA ID already exists, if so modify last digit(s)
+              let counter = 1;
+              let uniqueZetaId = finalZetaId;
+              while (true) {
+                const existing = await pool.query('SELECT id FROM students WHERE zeta_id = $1', [uniqueZetaId]);
+                if (existing.rows.length === 0) {
+                  break; // ZETA ID is unique
+                }
+                // Replace last digit(s) with counter to make it unique
+                if (counter < 10) {
+                  uniqueZetaId = finalZetaId.slice(0, -1) + counter;
+                } else {
+                  uniqueZetaId = finalZetaId.slice(0, -2) + String(counter).padStart(2, '0');
+                }
+                counter++;
+                if (counter > 99) {
+                  uniqueZetaId = finalZetaId.slice(0, -3) + Date.now().toString().slice(-3);
+                  break;
+                }
               }
-              // Replace last digit(s) with counter to make it unique
-              if (counter < 10) {
-                uniqueZetaId = finalZetaId.slice(0, -1) + counter;
-              } else {
-                uniqueZetaId = finalZetaId.slice(0, -2) + String(counter).padStart(2, '0');
-              }
-              counter++;
-              if (counter > 99) {
-                uniqueZetaId = finalZetaId.slice(0, -3) + Date.now().toString().slice(-3);
-                break;
-              }
+              finalZetaId = uniqueZetaId;
+            } catch (zetaError) {
+              console.error(`Error generating ZETA ID for phone ${cleanPhone}:`, zetaError);
+              // Fallback: use phone-based ZETA ID if generation fails
+              const phoneDigits = cleanPhone.replace(/\D/g, '').slice(-7).padStart(7, '0');
+              const year = String(new Date().getFullYear()).slice(-2);
+              finalZetaId = `ZSXX${year}${phoneDigits}`;
+              console.log(`Using fallback ZETA ID: ${finalZetaId}`);
             }
-            finalZetaId = uniqueZetaId;
           }
           
           // Insert student and create session mapping
@@ -3916,10 +3951,16 @@ app.use(async (error, req, res, next) => {
 
   // Send error response
   if (!res.headersSent) {
+    console.error('❌ Global error handler caught error:', error);
+    console.error('Error stack:', error.stack);
+    console.error('Request path:', req.path);
+    console.error('Request method:', req.method);
+    
     res.status(500).json({
       success: false,
       error: 'Internal server error',
-      message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong',
+      ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
     });
   }
 });
