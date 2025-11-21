@@ -3712,8 +3712,13 @@
                     <h3 style="margin-bottom: 1rem; color: #2d3748;">Previous Interview #${interviewId}</h3>
                     <div style="margin-bottom: 1rem;">
                         ${questions.map((q, index) => {
+                            // Check if question is locked and current user is not authorized
+                            const isLocked = q.is_locked === true;
+                            const lockedBy = q.locked_by;
+                            const canViewAnswer = !isLocked || (lockedBy && lockedBy === currentInterviewerId);
+                            
                             const imageUrls = parseImageUrls(q.answer_photo_url);
-                            const hasImages = imageUrls && imageUrls.length > 0;
+                            const hasImages = imageUrls && imageUrls.length > 0 && canViewAnswer;
                             
                             // Process question content - use rich content if available, otherwise use plain text
                             let questionContent = '';
@@ -3733,23 +3738,33 @@
                                     <div>Q${index + 1}:</div>
                                     <div style="font-weight: 500; margin-top: 0.5rem;">${questionContent}</div>
                                 </div>
-                                <div style="color: #4a5568; margin-bottom: 0.5rem;">
-                                    <strong>Answer:</strong> ${q.student_answer || 'No answer provided'}
-                                </div>
-                                ${hasImages ? `
-                                    <div style="margin-top: 0.5rem; padding: 0.5rem; background: #e8f5e8; border-radius: 6px; border: 1px solid #c3e6c3;">
-                                        <div style="font-weight: 600; color: #28a745; margin-bottom: 0.5rem; font-size: 0.9rem;">
-                                            📷 Answer Sheet${imageUrls.length > 1 ? 's' : ''}
-                                        </div>
-                                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                                            ${imageUrls.map(url => `
-                                                <img src="${url}" style="width: 300px; height: 300px; border-radius: 6px; border: 2px solid #dee2e6; object-fit: contain; cursor: pointer;" 
-                                                     onclick="openImageModal('${url}')" 
-                                                     title="Click to view full size">
-                                            `).join('')}
-                                        </div>
+                                ${canViewAnswer ? `
+                                    <div style="color: #4a5568; margin-bottom: 0.5rem;">
+                                        <strong>Answer:</strong> ${q.student_answer || 'No answer provided'}
                                     </div>
-                                ` : ''}
+                                    ${hasImages ? `
+                                        <div style="margin-top: 0.5rem; padding: 0.5rem; background: #e8f5e8; border-radius: 6px; border: 1px solid #c3e6c3;">
+                                            <div style="font-weight: 600; color: #28a745; margin-bottom: 0.5rem; font-size: 0.9rem;">
+                                                📷 Answer Sheet${imageUrls.length > 1 ? 's' : ''}
+                                            </div>
+                                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                                ${imageUrls.map(url => `
+                                                    <img src="${url}" style="width: 300px; height: 300px; border-radius: 6px; border: 2px solid #dee2e6; object-fit: contain; cursor: pointer;" 
+                                                         onclick="openImageModal('${url}')" 
+                                                         title="Click to view full size">
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                ` : `
+                                    <div style="padding: 20px; background: #fef3c7; border: 1px solid #fbbf24; border-radius: 6px; text-align: center; color: #92400e; margin-top: 0.5rem;">
+                                        <div style="font-size: 32px; margin-bottom: 8px;">
+                                            <img src="/padlock.png" alt="Locked" style="width: 32px; height: 32px; vertical-align: middle;">
+                                        </div>
+                                        <div style="font-weight: 600; margin-bottom: 4px;">This question is locked</div>
+                                        <div style="font-size: 14px;">Only the interviewer who locked this question can view the answer.</div>
+                                    </div>
+                                `}
                             </div>
                         `}).join('')}
                     </div>
