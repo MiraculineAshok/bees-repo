@@ -2986,10 +2986,53 @@ app.post('/api/admin/students/bulk-import/file', upload.single('file'), async (r
     const name = (req.file.originalname||'').toLowerCase();
     let rows = [];
     
+    console.log(`📤 Received file upload: ${req.file.originalname}, size: ${req.file.size} bytes`);
+    
     if (name.endsWith('.csv')) {
-      // Minimal CSV parsing (utf-8, comma separated)
+      // CSV parsing (utf-8, handles quoted fields)
       const text = buf.toString('utf8');
-      rows = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean).map(l=>l.split(','));
+      const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+      
+      console.log(`📄 Parsing CSV file: ${lines.length} lines found`);
+      
+      // Parse CSV lines, handling quoted fields
+      rows = lines.map((line, lineIndex) => {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+        
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          
+          if (char === '"') {
+            if (inQuotes && line[i + 1] === '"') {
+              // Escaped quote
+              current += '"';
+              i++; // Skip next quote
+            } else {
+              // Toggle quote state
+              inQuotes = !inQuotes;
+            }
+          } else if (char === ',' && !inQuotes) {
+            // End of field
+            result.push(current.trim());
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+        
+        // Add last field
+        result.push(current.trim());
+        
+        if (lineIndex === 0) {
+          console.log(`📋 Header row parsed:`, result);
+        }
+        
+        return result;
+      });
+      
+      console.log(`✅ Parsed ${rows.length} rows from CSV`);
     } else if (name.endsWith('.xls') || name.endsWith('.xlsx')) {
       // XLS/XLSX via optional dependency
       let xlsx = null;
@@ -3019,13 +3062,20 @@ app.post('/api/admin/students/bulk-import/file', upload.single('file'), async (r
           continue;
         }
         
-        const [name, phone, school, location, email, zeta_id] = r;
-        const cleanName = String(name||'').trim();
-        const cleanEmail = String(email||'').trim().toLowerCase();
-        const cleanPhone = String(phone||'').trim();
-        const cleanSchool = String(school||'').trim();
-        const cleanLocation = String(location||'').trim();
-        const cleanZeta = String(zeta_id||'').trim();
+        // Extract fields - handle cases where row might have fewer columns
+        const name = (r[0] !== undefined) ? String(r[0]||'').trim() : '';
+        const phone = (r[1] !== undefined) ? String(r[1]||'').trim() : '';
+        const school = (r[2] !== undefined) ? String(r[2]||'').trim() : '';
+        const location = (r[3] !== undefined) ? String(r[3]||'').trim() : '';
+        const email = (r[4] !== undefined) ? String(r[4]||'').trim().toLowerCase() : '';
+        const zeta_id = (r[5] !== undefined) ? String(r[5]||'').trim() : '';
+        
+        const cleanName = name;
+        const cleanEmail = email;
+        const cleanPhone = phone;
+        const cleanSchool = school;
+        const cleanLocation = location;
+        const cleanZeta = zeta_id;
         
         // Only name and phone are required
         if (!cleanName || !cleanPhone) {
