@@ -1224,6 +1224,23 @@
             line-height: 1;
         }
         
+        .lock-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+            margin-left: 0.5rem;
+        }
+        
+        .lock-btn:hover {
+            opacity: 1;
+        }
+        
         .delete-question-btn {
             background: #dc2626;
             color: white;
@@ -2400,6 +2417,7 @@
         // Helper function to get current interviewer ID
         async function getCurrentInterviewerId() {
             let interviewerId = null;
+            let currentInterviewerId = null; // Store current interviewer ID globally
             
             // Try to get from URL parameters first (from OAuth callback)
             const urlParams = new URLSearchParams(window.location.search);
@@ -2591,7 +2609,7 @@
                 console.log('Initializing interview for student:', currentStudent.id);
                 
                 // Get current interviewer ID
-                const currentInterviewerId = await getCurrentInterviewerId();
+                currentInterviewerId = await getCurrentInterviewerId();
                 if (!currentInterviewerId) {
                     console.error('❌ Could not determine interviewer ID');
                     showError('Unable to identify interviewer. Please log in again.');
@@ -3143,6 +3161,15 @@
                             <button class="ai-eval-btn" onclick="event.stopPropagation(); evaluateQuestionAI(${question.id})" title="AI Evaluate">
                                 <img src="/generative.png" class="icn" alt="AI" style="width:25px;height:25px;vertical-align:middle">
                             </button>
+                            ${question.is_locked ? `
+                            <button class="lock-btn" onclick="event.stopPropagation(); unlockQuestion(${question.id})" title="Unlock Question (Make Public)">
+                                <img src="/unlock.png" class="icn" alt="Unlock" style="width:20px;height:20px;vertical-align:middle">
+                            </button>
+                            ` : `
+                            <button class="lock-btn" onclick="event.stopPropagation(); lockQuestion(${question.id})" title="Lock Question (Make Private)">
+                                <img src="/padlock.png" class="icn" alt="Lock" style="width:20px;height:20px;vertical-align:middle">
+                            </button>
+                            `}
                             ${(isFromQuestionBank || question.__fromBank) ? '' : `
                             <button class="add-to-bank-btn-small" onclick="event.stopPropagation(); addQuestionToBankById(${question.id})" title="Add to Question Bank">
                                 📚
@@ -3163,58 +3190,90 @@
                         </div>
                         <div class="answer-section">
                             <label class="answer-label">Student Answer</label>
-                            <textarea 
-                                class="form-textarea" 
-                                placeholder="Enter student's answer here..."
-                                oninput="debouncedAutoSaveAnswer(${question.id}, this.value)"
-                                onchange="updateAnswer(${question.id}, this.value)"
-                                style="background: white; border: 1px solid #d1d5db; color: #1f2937; resize: vertical; min-height: 80px;"
-                            >${question.student_answer || ''}</textarea>
-                            ${question.answer_photo_url ? `
-                                <div class="photo-gallery">
-                                    ${(() => {
-                                        try {
-                                            const photoUrls = JSON.parse(question.answer_photo_url);
-                                            if (Array.isArray(photoUrls)) {
-                                                return photoUrls.map((url, index) => `
-                                                    <div class="photo-item">
-                                                        <img src="${url}" class="message-image" onclick="openImageModal('${url}')" title="Click to view full size" onerror="console.error('Image failed to load:', this.src)" onload="console.log('✅ Image loaded successfully:', this.src)">
-                                                        <button class="photo-delete" onclick="deletePhoto(${question.id}, ${index})" title="Delete image"><img src="/close.png" class="icn" alt="Delete" style="width:16px;height:16px"></button>
-                                                    </div>
-                                                `).join('');
-                                            } else {
-                                                // Handle single image (backward compatibility)
-                                                return `
-                                                    <div class="photo-item">
-                                                        <img src="${question.answer_photo_url}" class="message-image" onclick="openImageModal('${question.answer_photo_url}')" title="Click to view full size" onerror="console.error('Image failed to load:', this.src)" onload="console.log('✅ Image loaded successfully:', this.src)">
-                                                        <button class="photo-delete" onclick="deletePhoto(${question.id})" title="Delete image"><img src="/close.png" class="icn" alt="Delete" style="width:16px;height:16px"></button>
-                                                    </div>
-                                                `;
-                                            }
-                                        } catch (e) {
-                                            // Handle single image (backward compatibility)
-                                            return `
-                                                <div class="photo-item">
-                                                    <img src="${question.answer_photo_url}" class="message-image" onclick="openImageModal('${question.answer_photo_url}')" title="Click to view full size" onerror="console.error('Image failed to load:', this.src)" onload="console.log('✅ Image loaded successfully:', this.src)">
-                                                    <button class="photo-delete" onclick="deletePhoto(${question.id})" title="Delete image">🗑</button>
-                                                </div>
-                                            `;
-                                        }
-                                    })()}
-                                </div>
-                            ` : ''}
-                            <div class="photo-capture">
-                                <button class="photo-btn" onclick="document.getElementById('photo-input-${question.id}').click()">
-                                    📁 Upload images
-                                </button>
-                                <button class="photo-btn" onclick="openCamera('${question.id}')">
-                                    📷 Camera
-                                </button>
-                                <input type="file" class="photo-input" id="photo-input-${question.id}" 
-                                       accept="image/*" multiple onchange="handlePhotoUpload('${question.id}', this)">
-                                <input type="file" class="photo-input" id="camera-input-${question.id}" 
-                                       accept="image/*" capture="environment" onchange="handlePhotoUpload('${question.id}', this)">
-                            </div>
+                            ${(() => {
+                                // Check if question is locked and current user is not authorized
+                                const isLocked = question.is_locked === true;
+                                const lockedBy = question.locked_by;
+                                const canViewAnswer = !isLocked || (lockedBy && lockedBy === currentInterviewerId);
+                                
+                                if (isLocked && !canViewAnswer) {
+                                    return `
+                                        <div style="padding: 20px; background: #fef3c7; border: 1px solid #fbbf24; border-radius: 6px; text-align: center; color: #92400e;">
+                                            <div style="font-size: 24px; margin-bottom: 8px;">🔒</div>
+                                            <div style="font-weight: 600; margin-bottom: 4px;">This question is locked</div>
+                                            <div style="font-size: 14px;">Only the interviewer who locked this question can view the answer.</div>
+                                        </div>
+                                    `;
+                                }
+                                
+                                return `
+                                    <textarea 
+                                        class="form-textarea" 
+                                        placeholder="Enter student's answer here..."
+                                        oninput="debouncedAutoSaveAnswer(${question.id}, this.value)"
+                                        onchange="updateAnswer(${question.id}, this.value)"
+                                        style="background: white; border: 1px solid #d1d5db; color: #1f2937; resize: vertical; min-height: 80px;"
+                                    >${question.student_answer || ''}</textarea>
+                                `;
+                            })()}
+                            ${(() => {
+                                // Check if question is locked and current user is not authorized
+                                const isLocked = question.is_locked === true;
+                                const lockedBy = question.locked_by;
+                                const canViewAnswer = !isLocked || (lockedBy && lockedBy === currentInterviewerId);
+                                
+                                if (isLocked && !canViewAnswer) {
+                                    return ''; // Hide photo gallery and upload buttons for locked questions
+                                }
+                                
+                                return `
+                                    ${question.answer_photo_url ? `
+                                        <div class="photo-gallery">
+                                            ${(() => {
+                                                try {
+                                                    const photoUrls = JSON.parse(question.answer_photo_url);
+                                                    if (Array.isArray(photoUrls)) {
+                                                        return photoUrls.map((url, index) => `
+                                                            <div class="photo-item">
+                                                                <img src="${url}" class="message-image" onclick="openImageModal('${url}')" title="Click to view full size" onerror="console.error('Image failed to load:', this.src)" onload="console.log('✅ Image loaded successfully:', this.src)">
+                                                                <button class="photo-delete" onclick="deletePhoto(${question.id}, ${index})" title="Delete image"><img src="/close.png" class="icn" alt="Delete" style="width:16px;height:16px"></button>
+                                                            </div>
+                                                        `).join('');
+                                                    } else {
+                                                        // Handle single image (backward compatibility)
+                                                        return `
+                                                            <div class="photo-item">
+                                                                <img src="${question.answer_photo_url}" class="message-image" onclick="openImageModal('${question.answer_photo_url}')" title="Click to view full size" onerror="console.error('Image failed to load:', this.src)" onload="console.log('✅ Image loaded successfully:', this.src)">
+                                                                <button class="photo-delete" onclick="deletePhoto(${question.id})" title="Delete image"><img src="/close.png" class="icn" alt="Delete" style="width:16px;height:16px"></button>
+                                                            </div>
+                                                        `;
+                                                    }
+                                                } catch (e) {
+                                                    // Handle single image (backward compatibility)
+                                                    return `
+                                                        <div class="photo-item">
+                                                            <img src="${question.answer_photo_url}" class="message-image" onclick="openImageModal('${question.answer_photo_url}')" title="Click to view full size" onerror="console.error('Image failed to load:', this.src)" onload="console.log('✅ Image loaded successfully:', this.src)">
+                                                            <button class="photo-delete" onclick="deletePhoto(${question.id})" title="Delete image">🗑</button>
+                                                        </div>
+                                                    `;
+                                                }
+                                            })()}
+                                        </div>
+                                    ` : ''}
+                                    <div class="photo-capture">
+                                        <button class="photo-btn" onclick="document.getElementById('photo-input-${question.id}').click()">
+                                            📁 Upload images
+                                        </button>
+                                        <button class="photo-btn" onclick="openCamera('${question.id}')">
+                                            📷 Camera
+                                        </button>
+                                        <input type="file" class="photo-input" id="photo-input-${question.id}" 
+                                               accept="image/*" multiple onchange="handlePhotoUpload('${question.id}', this)">
+                                        <input type="file" class="photo-input" id="camera-input-${question.id}" 
+                                               accept="image/*" capture="environment" onchange="handlePhotoUpload('${question.id}', this)">
+                                    </div>
+                                `;
+                            })()}
                         </div>
                     </div>
                 </div>
@@ -3998,6 +4057,74 @@
                 }
             } catch (error) {
                 console.error('Error updating answer:', error);
+            }
+        }
+
+        async function lockQuestion(questionId) {
+            try {
+                if (!currentInterviewerId) {
+                    showError('Unable to identify interviewer. Please log in again.');
+                    return;
+                }
+
+                const response = await fetch(`/api/interview-questions/${questionId}/lock`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        interviewer_id: currentInterviewerId
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    // Update local questions array
+                    const questionIndex = questions.findIndex(q => q.id === questionId);
+                    if (questionIndex !== -1) {
+                        questions[questionIndex] = result.data;
+                    }
+                    // Reload questions to update UI
+                    await loadQuestions();
+                    showSuccess('Question locked successfully');
+                } else {
+                    console.error('Error locking question:', result);
+                    showError('Error locking question: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error locking question:', error);
+                showError('Error locking question');
+            }
+        }
+
+        async function unlockQuestion(questionId) {
+            try {
+                const response = await fetch(`/api/interview-questions/${questionId}/unlock`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    // Update local questions array
+                    const questionIndex = questions.findIndex(q => q.id === questionId);
+                    if (questionIndex !== -1) {
+                        questions[questionIndex] = result.data;
+                    }
+                    // Reload questions to update UI
+                    await loadQuestions();
+                    showSuccess('Question unlocked successfully');
+                } else {
+                    console.error('Error unlocking question:', result);
+                    showError('Error unlocking question: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error unlocking question:', error);
+                showError('Error unlocking question');
             }
         }
 

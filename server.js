@@ -1134,6 +1134,61 @@ app.put('/api/interview-questions/:questionId/text', async (req, res) => {
   }
 });
 
+// Lock question (make it private)
+app.put('/api/interview-questions/:questionId/lock', async (req, res) => {
+  try {
+    const { interviewer_id } = req.body;
+    console.log('🔒 Server: lockQuestion API called with:', {
+      questionId: req.params.questionId,
+      interviewer_id
+    });
+
+    if (!interviewer_id) {
+      return res.status(400).json({
+        success: false,
+        error: 'interviewer_id is required'
+      });
+    }
+
+    const question = await InterviewService.lockQuestion(req.params.questionId, interviewer_id);
+    console.log('✅ Server: lockQuestion successful, returning:', question);
+    
+    res.json({
+      success: true,
+      data: question
+    });
+  } catch (error) {
+    console.error('❌ Server: lockQuestion error:', error);
+    res.status(400).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Unlock question (make it public)
+app.put('/api/interview-questions/:questionId/unlock', async (req, res) => {
+  try {
+    console.log('🔓 Server: unlockQuestion API called with:', {
+      questionId: req.params.questionId
+    });
+
+    const question = await InterviewService.unlockQuestion(req.params.questionId);
+    console.log('✅ Server: unlockQuestion successful, returning:', question);
+    
+    res.json({
+      success: true,
+      data: question
+    });
+  } catch (error) {
+    console.error('❌ Server: unlockQuestion error:', error);
+    res.status(400).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Individual edit endpoints
 app.put('/api/students/:id', async (req, res) => {
   try {

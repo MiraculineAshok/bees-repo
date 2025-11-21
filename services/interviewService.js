@@ -457,6 +457,56 @@ class InterviewService {
         return this.updateScore(questionId, correctnessScore);
     }
 
+    static async lockQuestion(questionId, interviewerId) {
+        if (!(await this.isDatabaseAvailable())) {
+            throw new Error('Database unavailable');
+        }
+
+        try {
+            const result = await pool.query(
+                `UPDATE interview_questions 
+                 SET is_locked = TRUE, locked_by = $1, updated_at = CURRENT_TIMESTAMP
+                 WHERE id = $2 
+                 RETURNING *`,
+                [interviewerId, questionId]
+            );
+            
+            if (result.rows.length === 0) {
+                throw new Error('Question not found');
+            }
+            
+            return result.rows[0];
+        } catch (error) {
+            console.error('Error locking question:', error);
+            throw error;
+        }
+    }
+
+    static async unlockQuestion(questionId) {
+        if (!(await this.isDatabaseAvailable())) {
+            throw new Error('Database unavailable');
+        }
+
+        try {
+            const result = await pool.query(
+                `UPDATE interview_questions 
+                 SET is_locked = FALSE, locked_by = NULL, updated_at = CURRENT_TIMESTAMP
+                 WHERE id = $1 
+                 RETURNING *`,
+                [questionId]
+            );
+            
+            if (result.rows.length === 0) {
+                throw new Error('Question not found');
+            }
+            
+            return result.rows[0];
+        } catch (error) {
+            console.error('Error unlocking question:', error);
+            throw error;
+        }
+    }
+
     static async updateQuestionText(questionId, questionText) {
         if (!(await this.isDatabaseAvailable())) {
             return mockDataService.updateQuestionText(questionId, questionText);

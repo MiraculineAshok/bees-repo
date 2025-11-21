@@ -498,6 +498,36 @@ async function initializeDatabase() {
       CREATE INDEX IF NOT EXISTS idx_question_bank_times_asked ON question_bank(times_asked)
     `);
     
+    // Add lock columns to interview_questions table
+    try {
+      await pool.query(`
+        ALTER TABLE interview_questions 
+        ADD COLUMN IF NOT EXISTS is_locked BOOLEAN DEFAULT FALSE
+      `);
+      console.log('✅ Added is_locked column to interview_questions');
+    } catch (error) {
+      console.log('⚠️ is_locked column migration:', error.message);
+    }
+    
+    try {
+      await pool.query(`
+        ALTER TABLE interview_questions 
+        ADD COLUMN IF NOT EXISTS locked_by INTEGER REFERENCES authorized_users(id) ON DELETE SET NULL
+      `);
+      console.log('✅ Added locked_by column to interview_questions');
+    } catch (error) {
+      console.log('⚠️ locked_by column migration:', error.message);
+    }
+    
+    try {
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_interview_questions_locked_by ON interview_questions(locked_by)
+      `);
+      console.log('✅ Added index for locked_by column');
+    } catch (error) {
+      console.log('⚠️ locked_by index migration:', error.message);
+    }
+    
     // Insert default authorized users
     await pool.query(`
       INSERT INTO authorized_users (email, name, role, is_superadmin) 
