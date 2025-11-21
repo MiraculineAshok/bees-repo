@@ -3708,8 +3708,15 @@
             };
             
             modal.innerHTML = `
-                <div style="background: white; padding: 2rem; border-radius: 8px; max-width: 800px; max-height: 80vh; overflow-y: auto; margin: 1rem;">
-                    <h3 style="margin-bottom: 1rem; color: #2d3748;">Previous Interview #${interviewId}</h3>
+                <div style="background: white; padding: 2rem; border-radius: 8px; width: 75vw; max-width: 1200px; max-height: 75vh; overflow-y: auto; margin: 1rem; position: relative;">
+                    <button onclick="this.closest('div').parentElement.remove()" 
+                            style="position: absolute; top: 1rem; right: 1rem; background: #dc3545; color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; font-size: 20px; font-weight: bold; display: flex; align-items: center; justify-content: center; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: background 0.2s;"
+                            onmouseover="this.style.background='#c82333'" 
+                            onmouseout="this.style.background='#dc3545'"
+                            title="Close">
+                        ✕
+                    </button>
+                    <h3 style="margin-bottom: 1rem; color: #2d3748; padding-right: 2rem;">Previous Interview #${interviewId}</h3>
                     <div style="margin-bottom: 1rem;">
                         ${questions.map((q, index) => {
                             // Check if question is locked and current user is not authorized
@@ -3768,10 +3775,6 @@
                             </div>
                         `}).join('')}
                     </div>
-                    <button onclick="this.closest('div').parentElement.remove()" 
-                            style="background: #2d3748; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer;">
-                        Close
-                    </button>
                 </div>
             `;
             
