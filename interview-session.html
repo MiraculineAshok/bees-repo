@@ -3163,11 +3163,11 @@
                             </button>
                             ${question.is_locked ? `
                             <button class="lock-btn" onclick="event.stopPropagation(); unlockQuestion(${question.id})" title="Unlock Question (Make Public)">
-                                <img src="/unlock.png" class="icn" alt="Unlock" style="width:20px;height:20px;vertical-align:middle">
+                                <img src="/padlock.png" class="icn" alt="Unlock" style="width:20px;height:20px;vertical-align:middle">
                             </button>
                             ` : `
                             <button class="lock-btn" onclick="event.stopPropagation(); lockQuestion(${question.id})" title="Lock Question (Make Private)">
-                                <img src="/padlock.png" class="icn" alt="Lock" style="width:20px;height:20px;vertical-align:middle">
+                                <img src="/unlock.png" class="icn" alt="Lock" style="width:20px;height:20px;vertical-align:middle">
                             </button>
                             `}
                             ${(isFromQuestionBank || question.__fromBank) ? '' : `
