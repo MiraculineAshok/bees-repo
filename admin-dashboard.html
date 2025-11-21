@@ -3276,11 +3276,22 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     
                     console.log('Upload response status:', res.status);
                     
-                    const json = await res.json();
+                    let json;
+                    try {
+                        json = await res.json();
+                    } catch (parseError) {
+                        console.error('Failed to parse response as JSON:', parseError);
+                        const text = await res.text();
+                        console.error('Response text:', text);
+                        throw new Error(`Server returned invalid response: ${res.status} ${res.statusText}`);
+                    }
+                    
                     console.log('Upload response:', json);
                     
                     if (!res.ok || !json.success) {
-                        throw new Error(json.error || 'Import failed');
+                        const errorMsg = json.error || json.message || `Import failed with status ${res.status}`;
+                        console.error('Import failed:', errorMsg, json);
+                        throw new Error(errorMsg);
                     }
                     
                     if (json.count === 0 && json.errors === 0 && json.skipped === 0) {
@@ -3317,7 +3328,10 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 
             } catch(e) { 
                 console.error('Bulk import error:', e); 
-                showError(e.message || 'Failed to import students'); 
+                console.error('Error stack:', e.stack);
+                const errorMessage = e.message || e.toString() || 'Failed to import students';
+                console.error('Showing error:', errorMessage);
+                showError(errorMessage); 
             }
         }
         function setClearFiltersVisibility(section) {

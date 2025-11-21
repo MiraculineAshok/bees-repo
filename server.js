@@ -3191,7 +3191,12 @@ app.post('/api/admin/students/bulk-import/file', upload.single('file'), async (r
     });
   } catch (e) {
     console.error('Bulk import (file) failed:', e);
-    res.status(500).json({ success: false, error: 'Bulk import failed: ' + e.message });
+    console.error('Error stack:', e.stack);
+    res.status(500).json({ 
+      success: false, 
+      error: e.message || 'Bulk import failed',
+      details: process.env.NODE_ENV === 'development' ? e.stack : undefined
+    });
   }
 });
 
