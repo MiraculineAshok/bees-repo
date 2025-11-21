@@ -2493,7 +2493,7 @@
                         <button class="link-btn" onclick="clearAdvancedFiltersStudents()">Clear filters</button>
                     </div>
                 </div>
-
+                
                 <div class="table-container">
                     <!-- Bulk Delete Controls -->
                     <div class="bulk-edit-controls">
@@ -2504,7 +2504,7 @@
                             <button class="btn btn-danger" onclick="bulkDelete()">Bulk Delete</button>
                         </div>
                     </div>
-
+                    
                     <table class="data-table">
                         <thead>
                             <tr>
@@ -2920,9 +2920,19 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 </div>
                 
                 <div class="modal-footer" style="display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;border-top:1px solid #e5e7eb;background:#fff;flex-shrink:0">
-                    <button class="btn btn-secondary" onclick="closeBulkImportStudents()">Cancel</button>
-                    <button class="btn btn-primary" onclick="submitBulkImportStudents()">Import Students</button>
+                    <button class="btn btn-secondary" id="bulk-import-cancel-btn" onclick="closeBulkImportStudents()">Cancel</button>
+                    <button class="btn btn-primary" id="bulk-import-submit-btn" onclick="submitBulkImportStudents()">
+                        <span id="bulk-import-btn-text">Import Students</span>
+                        <span id="bulk-import-btn-spinner" style="display:none;margin-left:8px;">
+                            <span style="display:inline-block;width:14px;height:14px;border:2px solid #ffffff;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></span>
+                        </span>
+                    </button>
                 </div>
+                <style>
+                    @keyframes spin {
+                        to { transform: rotate(360deg); }
+                    }
+                </style>
             </div>
         </div>
     <div id="create-session-modal" class="modal">
@@ -3158,7 +3168,47 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             if (fileName) fileName.textContent = '';
             if (fileDisplay) fileDisplay.style.display = 'none';
         }
+        function setBulkImportLoadingState(isLoading) {
+            const submitBtn = document.getElementById('bulk-import-submit-btn');
+            const cancelBtn = document.getElementById('bulk-import-cancel-btn');
+            const btnText = document.getElementById('bulk-import-btn-text');
+            const btnSpinner = document.getElementById('bulk-import-btn-spinner');
+            
+            if (isLoading) {
+                // Set loading state
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.style.opacity = '0.7';
+                    submitBtn.style.cursor = 'not-allowed';
+                }
+                if (cancelBtn) {
+                    cancelBtn.disabled = true;
+                    cancelBtn.style.opacity = '0.7';
+                    cancelBtn.style.cursor = 'not-allowed';
+                }
+                if (btnText) btnText.textContent = 'Importing...';
+                if (btnSpinner) btnSpinner.style.display = 'inline-block';
+            } else {
+                // Reset loading state
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.style.opacity = '1';
+                    submitBtn.style.cursor = 'pointer';
+                }
+                if (cancelBtn) {
+                    cancelBtn.disabled = false;
+                    cancelBtn.style.opacity = '1';
+                    cancelBtn.style.cursor = 'pointer';
+                }
+                if (btnText) btnText.textContent = 'Import Students';
+                if (btnSpinner) btnSpinner.style.display = 'none';
+            }
+        }
+        
         async function submitBulkImportStudents(){
+            // Set loading state
+            setBulkImportLoadingState(true);
+            
             try{
                 const text = document.getElementById('bulk-students-text')?.value?.trim();
                 const file = document.getElementById('bulk-students-file')?.files?.[0] || null;
@@ -3167,6 +3217,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 // Validate session is selected (required)
                 if (!sessionId) {
                     showError('Please select an Interview Session');
+                    setBulkImportLoadingState(false);
                     return;
                 }
                 
@@ -3178,6 +3229,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     // Paste CSV mode
                     if (!text){ 
                         showError('Please paste CSV data first'); 
+                        setBulkImportLoadingState(false);
                         return; 
                     }
                     
@@ -3207,11 +3259,13 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     
                     if (errors.length > 0) {
                         showError(`Validation errors:\n${errors.slice(0, 5).join('\n')}${errors.length > 5 ? `\n... and ${errors.length - 5} more` : ''}`);
+                        setBulkImportLoadingState(false);
                         return;
                     }
                     
                     if (students.length === 0) {
                         showError('No valid student data found');
+                        setBulkImportLoadingState(false);
                         return;
                     }
                     
@@ -3247,19 +3301,21 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     if (json.errors > 0) {
                         showError(message);
                     } else {
-                        showSuccess(message);
+                    showSuccess(message);
                     }
                     
                 } else {
                     // File upload mode
                     if (!file) { 
                         showError('Please select a file first'); 
+                        setBulkImportLoadingState(false);
                         return; 
                     }
                     
                     // Validate file size (5MB)
                     if (file.size > 5 * 1024 * 1024) {
                         showError('File size exceeds 5MB limit');
+                        setBulkImportLoadingState(false);
                         return;
                     }
                     
@@ -3296,6 +3352,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     
                     if (json.count === 0 && json.errors === 0 && json.skipped === 0) {
                         showError('No valid data found in file. Please check the file format and content.');
+                        setBulkImportLoadingState(false);
                         return;
                     }
                     
@@ -3319,7 +3376,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     if (json.errors > 0) {
                         showError(message);
                     } else {
-                        showSuccess(message);
+                    showSuccess(message);
                     }
                 }
                 
@@ -3331,7 +3388,10 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 console.error('Error stack:', e.stack);
                 const errorMessage = e.message || e.toString() || 'Failed to import students';
                 console.error('Showing error:', errorMessage);
-                showError(errorMessage); 
+                showError(errorMessage);
+            } finally {
+                // Reset loading state
+                setBulkImportLoadingState(false);
             }
         }
         function setClearFiltersVisibility(section) {
@@ -5091,12 +5151,12 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     
                     if (email) {
                         const userIdResponse = await fetch(`/api/user/id?email=${encodeURIComponent(email)}`);
-                        const userIdData = await userIdResponse.json();
-                        const userId = userIdData.success ? userIdData.userId : null;
-                        currentUserId = userId;
+                    const userIdData = await userIdResponse.json();
+                    const userId = userIdData.success ? userIdData.userId : null;
+                    currentUserId = userId;
                         // Use first character of name or email, not user ID
                         const initial = (userData.name || userData.email || 'A').trim().charAt(0).toUpperCase();
-                        avatar.textContent = initial || 'A';
+                    avatar.textContent = initial || 'A';
                     } else {
                         // Fallback if no email available
                         const initial = (userData.email || userData.name || 'A').trim().charAt(0).toUpperCase();
@@ -5567,7 +5627,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             // Populate session filters (only active sessions) - for verdict chart
             const verdictSessionSelect = document.getElementById('verdict-session-filter');
             if (verdictSessionSelect) {
-                verdictSessionSelect.innerHTML = '<option value="all">All Sessions</option>';
+            verdictSessionSelect.innerHTML = '<option value="all">All Sessions</option>';
                 
                 // Filter out inactive sessions
                 const activeSessions = rawChartData.sessions.filter(session => session.status === 'active');
@@ -11725,24 +11785,24 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 // Special handling for Sessions: panelists multi-select and status dropdown
                 if ((typeof currentSection !== 'undefined' && currentSection === 'sessions')) {
                     if (field === 'panelists') {
-                        if (!allInterviewers || allInterviewers.length === 0) {
-                            try { await loadAllInterviewers(); } catch {}
-                        }
-                        const selectedIds = Array.isArray(currentEditData?.panelist_ids) ? currentEditData.panelist_ids.map(String) : [];
-                        const selectId = `panelist-select-${rowId}`;
-                        const options = (allInterviewers || []).map(interv => `<option value="${interv.id}" ${selectedIds.includes(String(interv.id)) ? 'selected' : ''}>${interv.name} (${interv.email})</option>`).join('');
-                        cell.innerHTML = `
-                            <div>
-                                <select id="${selectId}" class="edit-select" multiple size="4" data-field="panelists" style="min-width:260px">
-                                    ${options}
-                                </select>
-                                <div style="margin-top:6px;display:flex;gap:6px;align-items:center">
-                                    <input type="email" id="new-panelist-email-${rowId}" class="edit-input" placeholder="new.panelist@example.com" style="flex:1">
-                                    <button class="btn btn-secondary" type="button" onclick="addNewInterviewerFromEdit('${rowId}')">Add New</button>
-                                </div>
+                    if (!allInterviewers || allInterviewers.length === 0) {
+                        try { await loadAllInterviewers(); } catch {}
+                    }
+                    const selectedIds = Array.isArray(currentEditData?.panelist_ids) ? currentEditData.panelist_ids.map(String) : [];
+                    const selectId = `panelist-select-${rowId}`;
+                    const options = (allInterviewers || []).map(interv => `<option value="${interv.id}" ${selectedIds.includes(String(interv.id)) ? 'selected' : ''}>${interv.name} (${interv.email})</option>`).join('');
+                    cell.innerHTML = `
+                        <div>
+                            <select id="${selectId}" class="edit-select" multiple size="4" data-field="panelists" style="min-width:260px">
+                                ${options}
+                            </select>
+                            <div style="margin-top:6px;display:flex;gap:6px;align-items:center">
+                                <input type="email" id="new-panelist-email-${rowId}" class="edit-input" placeholder="new.panelist@example.com" style="flex:1">
+                                <button class="btn btn-secondary" type="button" onclick="addNewInterviewerFromEdit('${rowId}')">Add New</button>
                             </div>
-                        `;
-                        continue;
+                        </div>
+                    `;
+                    continue;
                     } else if (field === 'status') {
                         const currentStatus = currentEditData ? currentEditData.status : '';
                         cell.innerHTML = `
@@ -11750,8 +11810,8 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                                 <option value="active" ${currentStatus === 'active' ? 'selected' : ''}>Active</option>
                                 <option value="inactive" ${currentStatus === 'inactive' ? 'selected' : ''}>Inactive</option>
                             </select>
-                        `;
-                        continue;
+                    `;
+                    continue;
                     }
                 }
 
