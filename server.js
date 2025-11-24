@@ -2095,6 +2095,19 @@ app.get('/api/admin/consolidation', async (req, res) => {
           FROM interviews i
           WHERE i.student_id = c.student_id AND (c.session_id IS NULL OR i.session_id = c.session_id)
         ) AS notes,
+        -- Calculate scores for each interview (matching verdicts order)
+        (
+          SELECT ARRAY_AGG(
+            COALESCE((
+              SELECT SUM(COALESCE(iq.correctness_score, 0))
+              FROM interview_questions iq
+              WHERE iq.interview_id = i.id
+            ), 0)
+            ORDER BY i.created_at
+          )
+          FROM interviews i
+          WHERE i.student_id = c.student_id AND (c.session_id IS NULL OR i.session_id = c.session_id)
+        ) AS scores,
         c.last_interview_at,
         c.created_at,
         c.updated_at

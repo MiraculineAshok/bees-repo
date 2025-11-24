@@ -3879,7 +3879,18 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 };
                 const html = paginatedData.map(r => {
                     const interviewerNames = Array.isArray(r.interviewer_names) ? r.interviewer_names.join('<br>') : '-';
-                    const verdicts = Array.isArray(r.verdicts) ? r.verdicts.map(badge).join('<br>') : '-';
+                    const verdictsArray = Array.isArray(r.verdicts) ? r.verdicts : [];
+                    const scoresArray = Array.isArray(r.scores) ? r.scores : [];
+                    // Combine verdicts with scores
+                    const verdictsWithScores = verdictsArray.map((verdict, idx) => {
+                        const score = scoresArray[idx] !== undefined && scoresArray[idx] !== null ? scoresArray[idx] : null;
+                        const verdictBadgeHtml = badge(verdict);
+                        if (score !== null && score !== undefined) {
+                            return `${verdictBadgeHtml} <span style="display:inline-block;background:#6366f1;color:#fff;padding:3px 8px;border-radius:12px;font-size:11px;margin-left:4px;white-space:nowrap">Score: ${score}</span>`;
+                        }
+                        return verdictBadgeHtml;
+                    });
+                    const verdicts = verdictsWithScores.length > 0 ? verdictsWithScores.join('<br>') : '-';
                     const interviewStatuses = Array.isArray(r.interview_statuses) ? r.interview_statuses.map(statusBadge).join('<br>') : '-';
                     const lastAt = r.last_interview_at ? formatDate(r.last_interview_at) : '-';
                     const status = r.status || '';
@@ -4908,7 +4919,14 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                         <div><strong>Email:</strong> ${item.student_email||'-'}</div>
                         <div><strong>Session:</strong> ${item.session_name||'-'}</div>
                         <div><strong>Status:</strong> ${item.status || ''}</div>
-                        <div style="margin:8px 0"><strong>Verdicts:</strong> ${(item.verdicts||[]).map(verdictBadge).join(' ')}</div>
+                        <div style="margin:8px 0"><strong>Verdicts:</strong> ${(item.verdicts||[]).map((verdict, idx) => {
+                            const score = (item.scores||[])[idx];
+                            const verdictBadgeHtml = verdictBadge(verdict);
+                            if (score !== undefined && score !== null) {
+                                return `${verdictBadgeHtml} <span style="display:inline-block;background:#6366f1;color:#fff;padding:3px 8px;border-radius:12px;font-size:11px;margin-left:4px;white-space:nowrap">Score: ${score}</span>`;
+                            }
+                            return verdictBadgeHtml;
+                        }).join(' ')}</div>
                         <div><strong>Last Interview:</strong> ${item.last_interview_at? formatDate(item.last_interview_at) : '-'} </div>
                         <div style="margin-top:8px"><strong>Notes:</strong><br>${(item.notes||'').replace(/\n/g,'<br>') || '-'}</div>
                 <div style="margin-top:12px"><strong>Interviews</strong></div>
