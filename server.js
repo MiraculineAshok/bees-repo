@@ -2095,19 +2095,31 @@ app.get('/api/admin/consolidation', async (req, res) => {
           FROM interviews i
           WHERE i.student_id = c.student_id AND (c.session_id IS NULL OR i.session_id = c.session_id)
         ) AS notes,
-        -- Calculate total score and question count across all interviews
+        -- Calculate scores per interview (matching interviewer_names order)
         (
-          SELECT COALESCE(SUM(iq.correctness_score), 0)
+          SELECT ARRAY_AGG(
+            COALESCE((
+              SELECT SUM(COALESCE(iq.correctness_score, 0))
+              FROM interview_questions iq
+              WHERE iq.interview_id = i.id
+            ), 0)
+            ORDER BY i.created_at
+          )
           FROM interviews i
-          INNER JOIN interview_questions iq ON iq.interview_id = i.id
           WHERE i.student_id = c.student_id AND (c.session_id IS NULL OR i.session_id = c.session_id)
-        ) AS total_score,
+        ) AS interview_scores,
         (
-          SELECT COUNT(iq.id)
+          SELECT ARRAY_AGG(
+            COALESCE((
+              SELECT COUNT(iq.id)
+              FROM interview_questions iq
+              WHERE iq.interview_id = i.id
+            ), 0)
+            ORDER BY i.created_at
+          )
           FROM interviews i
-          INNER JOIN interview_questions iq ON iq.interview_id = i.id
           WHERE i.student_id = c.student_id AND (c.session_id IS NULL OR i.session_id = c.session_id)
-        ) AS question_count,
+        ) AS interview_question_counts,
         c.last_interview_at,
         c.created_at,
         c.updated_at
@@ -2674,19 +2686,38 @@ app.get('/api/admin/student-sessions', async (req, res) => {
         COALESCE(s.phone, '') AS phone,
         COALESCE(s.email, '') AS email,
         COALESCE(s.zeta_id, '') AS zeta_id,
-        -- Calculate total score and question count for all interviews for this student-session
+        -- Get interviewer names ordered by interview creation time
         (
-          SELECT COALESCE(SUM(iq.correctness_score), 0)
+          SELECT ARRAY_AGG(au.name ORDER BY i.created_at)
           FROM interviews i
-          INNER JOIN interview_questions iq ON iq.interview_id = i.id
+          LEFT JOIN authorized_users au ON au.id = i.interviewer_id
           WHERE i.student_id = ss.student_id AND i.session_id = ss.session_id
-        ) AS total_score,
+        ) AS interviewer_names,
+        -- Calculate scores per interview (matching interviewer_names order)
         (
-          SELECT COUNT(iq.id)
+          SELECT ARRAY_AGG(
+            COALESCE((
+              SELECT SUM(COALESCE(iq.correctness_score, 0))
+              FROM interview_questions iq
+              WHERE iq.interview_id = i.id
+            ), 0)
+            ORDER BY i.created_at
+          )
           FROM interviews i
-          INNER JOIN interview_questions iq ON iq.interview_id = i.id
           WHERE i.student_id = ss.student_id AND i.session_id = ss.session_id
-        ) AS question_count,
+        ) AS interview_scores,
+        (
+          SELECT ARRAY_AGG(
+            COALESCE((
+              SELECT COUNT(iq.id)
+              FROM interview_questions iq
+              WHERE iq.interview_id = i.id
+            ), 0)
+            ORDER BY i.created_at
+          )
+          FROM interviews i
+          WHERE i.student_id = ss.student_id AND i.session_id = ss.session_id
+        ) AS interview_question_counts,
         ss.created_at
       FROM student_sessions ss
       INNER JOIN students s ON ss.student_id = s.id
