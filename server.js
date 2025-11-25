@@ -2279,27 +2279,129 @@ app.post('/api/admin/send-email', async (req, res) => {
       return res.status(400).json({ success: false, error: 'From, to, subject, and message are required' });
     }
     
-    // For now, we'll just log the email (you'll need to configure nodemailer or your email service)
-    console.log('📧 Email to send:', {
-      from,
-      to,
-      cc,
-      bcc,
-      subject,
-      message: message.substring(0, 100) + '...',
-      consolidation_id
-    });
+    // Validate email addresses
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(from)) {
+      return res.status(400).json({ success: false, error: 'Invalid sender email address' });
+    }
+    if (!emailRegex.test(to)) {
+      return res.status(400).json({ success: false, error: 'Invalid receiver email address' });
+    }
     
-    // TODO: Implement actual email sending using nodemailer or your email service
-    // Example with nodemailer:
-    // const nodemailer = require('nodemailer');
-    // const transporter = nodemailer.createTransport({ ... });
-    // await transporter.sendMail({ from, to, cc, bcc, subject, text: message });
+    // Parse CC and BCC (comma-separated)
+    const ccArray = cc ? cc.split(',').map(e => e.trim()).filter(e => e && emailRegex.test(e)) : [];
+    const bccArray = bcc ? bcc.split(',').map(e => e.trim()).filter(e => e && emailRegex.test(e)) : [];
     
-    res.json({ 
-      success: true, 
-      message: 'Email sent successfully (logged for now - configure email service to actually send)'
-    });
+    // Try to use nodemailer if available
+    let emailSent = false;
+    let emailError = null;
+    
+    try {
+      const nodemailer = require('nodemailer');
+      
+      // Check if email credentials are configured
+      const emailUser = process.env.EMAIL_USER;
+      const emailPassword = process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD;
+      const emailService = process.env.EMAIL_SERVICE || 'gmail';
+      const emailHost = process.env.EMAIL_HOST;
+      const emailPort = process.env.EMAIL_PORT ? parseInt(process.env.EMAIL_PORT) : null;
+      const emailSecure = process.env.EMAIL_SECURE !== 'false'; // Default to true
+      
+      if (!emailUser || !emailPassword) {
+        throw new Error('Email service not configured. Please set EMAIL_USER and EMAIL_PASSWORD environment variables.');
+      }
+      
+      // Create transporter
+      let transporterConfig;
+      
+      if (emailHost) {
+        // Custom SMTP configuration
+        transporterConfig = {
+          host: emailHost,
+          port: emailPort || 587,
+          secure: emailSecure,
+          auth: {
+            user: emailUser,
+            pass: emailPassword
+          }
+        };
+      } else {
+        // Use service-based configuration (Gmail, Outlook, etc.)
+        transporterConfig = {
+          service: emailService,
+          auth: {
+            user: emailUser,
+            pass: emailPassword
+          }
+        };
+      }
+      
+      const transporter = nodemailer.createTransport(transporterConfig);
+      
+      // Verify transporter configuration
+      await transporter.verify();
+      console.log('✅ Email transporter verified successfully');
+      
+      // Send email
+      const mailOptions = {
+        from: `"${process.env.EMAIL_FROM_NAME || 'BEES Interview Platform'}" <${from}>`,
+        to: to,
+        subject: subject,
+        text: message,
+        html: message.replace(/\n/g, '<br>') // Convert newlines to HTML breaks
+      };
+      
+      if (ccArray.length > 0) {
+        mailOptions.cc = ccArray.join(', ');
+      }
+      if (bccArray.length > 0) {
+        mailOptions.bcc = bccArray.join(', ');
+      }
+      
+      const info = await transporter.sendMail(mailOptions);
+      emailSent = true;
+      console.log('✅ Email sent successfully:', {
+        messageId: info.messageId,
+        from,
+        to,
+        subject,
+        response: info.response
+      });
+      
+    } catch (nodemailerError) {
+      emailError = nodemailerError.message;
+      console.error('❌ Error sending email:', nodemailerError);
+      
+      // Log email details for debugging
+      console.log('📧 Email details (failed to send):', {
+        from,
+        to,
+        cc: ccArray,
+        bcc: bccArray,
+        subject,
+        messageLength: message.length,
+        consolidation_id,
+        error: emailError
+      });
+    }
+    
+    if (emailSent) {
+      res.json({ 
+        success: true, 
+        message: 'Email sent successfully'
+      });
+    } else {
+      // Return error with helpful message
+      const errorMessage = emailError || 'Email service not configured';
+      const helpfulMessage = emailError && emailError.includes('not configured') 
+        ? 'Please set EMAIL_USER and EMAIL_PASSWORD environment variables. For Gmail, use an App Password.'
+        : emailError;
+      
+      res.status(500).json({ 
+        success: false, 
+        error: helpfulMessage
+      });
+    }
   } catch (error) {
     console.error('Error sending email:', error);
     res.status(500).json({ success: false, error: error.message });
