@@ -2807,7 +2807,7 @@
                                 <input type="email" id="send-mail-from" class="form-input" required style="width:100%">
                             </div>
                             <div>
-                                <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">To (Receiver Email)</label>
+                                <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">To (Receiver Email) <span id="send-mail-student-name" style="color:#6b7280;font-weight:400"></span></label>
                                 <input type="email" id="send-mail-to" class="form-input" required style="width:100%">
                             </div>
                             <div>
@@ -13188,7 +13188,15 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 
                 // Prefill form
                 document.getElementById('send-mail-from').value = senderEmail;
+                // Prefill receiver with student email
                 document.getElementById('send-mail-to').value = item.student_email || '';
+                // Show student name next to receiver label
+                const studentNameEl = document.getElementById('send-mail-student-name');
+                if (studentNameEl && item.student_name) {
+                    studentNameEl.textContent = `(${item.student_name})`;
+                } else if (studentNameEl) {
+                    studentNameEl.textContent = '';
+                }
                 document.getElementById('send-mail-cc').value = '';
                 document.getElementById('send-mail-bcc').value = '';
                 document.getElementById('send-mail-subject').value = '';
