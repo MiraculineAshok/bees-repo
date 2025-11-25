@@ -2095,19 +2095,19 @@ app.get('/api/admin/consolidation', async (req, res) => {
           FROM interviews i
           WHERE i.student_id = c.student_id AND (c.session_id IS NULL OR i.session_id = c.session_id)
         ) AS notes,
-        -- Calculate scores for each interview (matching verdicts order)
+        -- Calculate total score and question count across all interviews
         (
-          SELECT ARRAY_AGG(
-            COALESCE((
-              SELECT SUM(COALESCE(iq.correctness_score, 0))
-              FROM interview_questions iq
-              WHERE iq.interview_id = i.id
-            ), 0)
-            ORDER BY i.created_at
-          )
+          SELECT COALESCE(SUM(iq.correctness_score), 0)
           FROM interviews i
+          INNER JOIN interview_questions iq ON iq.interview_id = i.id
           WHERE i.student_id = c.student_id AND (c.session_id IS NULL OR i.session_id = c.session_id)
-        ) AS scores,
+        ) AS total_score,
+        (
+          SELECT COUNT(iq.id)
+          FROM interviews i
+          INNER JOIN interview_questions iq ON iq.interview_id = i.id
+          WHERE i.student_id = c.student_id AND (c.session_id IS NULL OR i.session_id = c.session_id)
+        ) AS question_count,
         c.last_interview_at,
         c.created_at,
         c.updated_at
@@ -2674,6 +2674,19 @@ app.get('/api/admin/student-sessions', async (req, res) => {
         COALESCE(s.phone, '') AS phone,
         COALESCE(s.email, '') AS email,
         COALESCE(s.zeta_id, '') AS zeta_id,
+        -- Calculate total score and question count for all interviews for this student-session
+        (
+          SELECT COALESCE(SUM(iq.correctness_score), 0)
+          FROM interviews i
+          INNER JOIN interview_questions iq ON iq.interview_id = i.id
+          WHERE i.student_id = ss.student_id AND i.session_id = ss.session_id
+        ) AS total_score,
+        (
+          SELECT COUNT(iq.id)
+          FROM interviews i
+          INNER JOIN interview_questions iq ON iq.interview_id = i.id
+          WHERE i.student_id = ss.student_id AND i.session_id = ss.session_id
+        ) AS question_count,
         ss.created_at
       FROM student_sessions ss
       INNER JOIN students s ON ss.student_id = s.id
