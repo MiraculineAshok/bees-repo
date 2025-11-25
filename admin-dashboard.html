@@ -2100,10 +2100,16 @@
                         Users
                     </a>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item" style="display:flex;align-items:center;gap:8px">
                     <a href="#" class="nav-link" data-section="questions">
                         Questions Analytics
                     </a>
+                    <button onclick="openSettings()" style="background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center" title="Settings">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"></path>
+                        </svg>
+                    </button>
                 </li>
             </ul>
             <div class="header-actions">
@@ -2736,6 +2742,103 @@
                 <!-- Slide-in detail panel -->
                 <div id="cons-detail-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.35);display:none;z-index:1600"></div>
                 <div id="cons-detail-panel" style="position:fixed;top:0;right:-520px;width:520px;height:100%;background:#fff;border-left:1px solid #e5e7eb;box-shadow:-8px 0 24px rgba(0,0,0,0.1);z-index:1700;transition:right 0.25s ease;overflow:auto"></div>
+                
+                <!-- Settings Page Overlay -->
+                <div id="settings-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;z-index:1800">
+                    <div style="position:fixed;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:20px">
+                        <div style="background:#fff;border-radius:12px;width:90%;max-width:1200px;height:90%;max-height:800px;display:flex;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+                            <!-- Side Nav -->
+                            <div style="width:250px;background:#f9fafb;border-right:1px solid #e5e7eb;padding:20px;overflow-y:auto">
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+                                    <h2 style="margin:0;font-size:20px;color:#111827">Settings</h2>
+                                    <button onclick="closeSettings()" style="background:none;border:none;cursor:pointer;padding:4px;font-size:20px;color:#6b7280">&times;</button>
+                                </div>
+                                <nav style="display:flex;flex-direction:column;gap:8px">
+                                    <button onclick="showSettingsTab('email-templates')" id="settings-tab-email-templates" class="settings-nav-btn" style="width:100%;text-align:left;padding:12px 16px;background:#3b82f6;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:500">
+                                        Create Email Template
+                                    </button>
+                                </nav>
+                            </div>
+                            <!-- Main Content -->
+                            <div style="flex:1;padding:30px;overflow-y:auto">
+                                <!-- Email Templates Tab -->
+                                <div id="settings-content-email-templates" class="settings-content" style="display:block">
+                                    <h3 style="margin:0 0 24px 0;font-size:24px;color:#111827">Create Email Template</h3>
+                                    <form id="email-template-form" style="display:flex;flex-direction:column;gap:20px">
+                                        <div>
+                                            <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Template Name</label>
+                                            <input type="text" id="template-name" class="form-input" placeholder="e.g., Interview Result Notification" required style="width:100%">
+                                        </div>
+                                        <div>
+                                            <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Subject</label>
+                                            <input type="text" id="template-subject" class="form-input" placeholder="Email subject line" style="width:100%">
+                                        </div>
+                                        <div>
+                                            <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Body</label>
+                                            <textarea id="template-body" class="form-input" rows="15" placeholder="Email body content. You can use placeholders like {{student_name}}, {{session_name}}, etc." required style="width:100%;resize:vertical"></textarea>
+                                        </div>
+                                        <div style="display:flex;gap:12px">
+                                            <button type="submit" class="btn btn-primary">Save Template</button>
+                                            <button type="button" class="btn btn-secondary" onclick="resetEmailTemplateForm()">Reset</button>
+                                        </div>
+                                    </form>
+                                    <div style="margin-top:40px">
+                                        <h4 style="margin:0 0 16px 0;font-size:18px;color:#111827">Saved Templates</h4>
+                                        <div id="email-templates-list" style="display:flex;flex-direction:column;gap:12px">
+                                            <!-- Templates will be loaded here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Send Mail Popup -->
+                <div id="send-mail-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;z-index:1900">
+                    <div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:12px;width:90%;max-width:600px;padding:30px;box-shadow:0 20px 60px rgba(0,0,0,0.3);max-height:90vh;overflow-y:auto">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+                            <h3 style="margin:0;font-size:20px;color:#111827">Send Email</h3>
+                            <button onclick="closeSendMailPopup()" style="background:none;border:none;cursor:pointer;padding:4px;font-size:24px;color:#6b7280">&times;</button>
+                        </div>
+                        <form id="send-mail-form" style="display:flex;flex-direction:column;gap:16px">
+                            <div>
+                                <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">From (Sender Email)</label>
+                                <input type="email" id="send-mail-from" class="form-input" required style="width:100%">
+                            </div>
+                            <div>
+                                <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">To (Receiver Email)</label>
+                                <input type="email" id="send-mail-to" class="form-input" required style="width:100%">
+                            </div>
+                            <div>
+                                <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">CC (Optional)</label>
+                                <input type="text" id="send-mail-cc" class="form-input" placeholder="Comma-separated emails" style="width:100%">
+                            </div>
+                            <div>
+                                <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">BCC (Optional)</label>
+                                <input type="text" id="send-mail-bcc" class="form-input" placeholder="Comma-separated emails" style="width:100%">
+                            </div>
+                            <div>
+                                <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Subject</label>
+                                <input type="text" id="send-mail-subject" class="form-input" required style="width:100%">
+                            </div>
+                            <div>
+                                <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Use Template (Optional)</label>
+                                <select id="send-mail-template" class="form-input" onchange="loadEmailTemplate()" style="width:100%">
+                                    <option value="">Select a template...</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Message</label>
+                                <textarea id="send-mail-message" class="form-input" rows="10" required style="width:100%;resize:vertical"></textarea>
+                            </div>
+                            <div style="display:flex;gap:12px;justify-content:flex-end">
+                                <button type="button" class="btn btn-secondary" onclick="closeSendMailPopup()">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Send Email</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </section>
         </main>
     </div>
@@ -3925,7 +4028,8 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                                       <button onclick="updateConsolidationStatus(${r.id},'waitlisted')" class="menu-item">Waitlist</button>
                                   </div>
                                 </div>
-                                <button class="icon-btn" title="View" onclick="openConsDetail(${r.id})" aria-label="View details" style="border:1px solid #e5e7eb;background:#fff;border-radius:6px;padding:6px 8px;cursor:pointer"><img src="/view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
+                                <button class="icon-btn" title="View" onclick="openConsDetail(${r.id})" aria-label="View details" style="border:1px solid #e5e7eb;background:#fff;border-radius:6px;padding:6px 8px;cursor:pointer;margin-right:4px"><img src="/view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
+                                <button class="btn btn-primary" onclick="openSendMailPopup(${r.id})" title="Send Mail" style="padding:6px 12px;font-size:12px;white-space:nowrap">Send Mail</button>
                             </td>
                         </tr>
                     `;
@@ -12942,6 +13046,251 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
     <script>
         window.chartJsLoaded = false;
         console.log('📦 Loading Chart.js...');
+        
+        // Settings Page Functions
+        function openSettings() {
+            document.getElementById('settings-overlay').style.display = 'block';
+            showSettingsTab('email-templates');
+            loadEmailTemplates();
+        }
+        
+        function closeSettings() {
+            document.getElementById('settings-overlay').style.display = 'none';
+        }
+        
+        function showSettingsTab(tab) {
+            // Hide all content tabs
+            document.querySelectorAll('.settings-content').forEach(el => el.style.display = 'none');
+            // Remove active class from all nav buttons
+            document.querySelectorAll('.settings-nav-btn').forEach(el => {
+                el.style.background = '#f3f4f6';
+                el.style.color = '#374151';
+            });
+            // Show selected tab
+            document.getElementById(`settings-content-${tab}`).style.display = 'block';
+            document.getElementById(`settings-tab-${tab}`).style.background = '#3b82f6';
+            document.getElementById(`settings-tab-${tab}`).style.color = '#fff';
+        }
+        
+        // Email Template Functions
+        async function loadEmailTemplates() {
+            try {
+                const res = await fetch('/api/admin/email-templates');
+                const json = await res.json();
+                if (!res.ok || !json.success) throw new Error(json.error || 'Failed to load templates');
+                
+                const listEl = document.getElementById('email-templates-list');
+                if (json.data && json.data.length > 0) {
+                    listEl.innerHTML = json.data.map(template => `
+                        <div style="border:1px solid #e5e7eb;border-radius:8px;padding:16px;background:#fff">
+                            <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">
+                                <div>
+                                <div>
+                                    <h5 style="margin:0 0 4px 0;font-size:16px;color:#111827">${template.name || 'Unnamed Template'}</h5>
+                                    <p style="margin:0;font-size:14px;color:#6b7280">${template.subject || 'No subject'}</p>
+                                </div>
+                                <button onclick="deleteEmailTemplate(${template.id})" style="background:#ef4444;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px">Delete</button>
+                            </div>
+                            <div style="margin-top:12px;padding:12px;background:#f9fafb;border-radius:6px;max-height:100px;overflow-y:auto">
+                                <pre style="margin:0;font-size:12px;color:#374151;white-space:pre-wrap;word-wrap:break-word">${template.body || ''}</pre>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    listEl.innerHTML = '<p style="color:#6b7280;text-align:center;padding:20px">No templates saved yet</p>';
+                }
+            } catch (e) {
+                console.error('Error loading templates:', e);
+                showError('Failed to load email templates');
+            }
+        }
+        
+        document.getElementById('email-template-form')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            try {
+                const name = document.getElementById('template-name').value.trim();
+                const subject = document.getElementById('template-subject').value.trim();
+                const body = document.getElementById('template-body').value.trim();
+                
+                if (!name || !body) {
+                    showError('Template name and body are required');
+                    return;
+                }
+                
+                const res = await fetch('/api/admin/email-templates', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, subject, body })
+                });
+                
+                const json = await res.json();
+                if (!res.ok || !json.success) throw new Error(json.error || 'Failed to save template');
+                
+                showSuccess('Template saved successfully');
+                resetEmailTemplateForm();
+                loadEmailTemplates();
+            } catch (e) {
+                console.error('Error saving template:', e);
+                showError(e.message || 'Failed to save template');
+            }
+        });
+        
+        async function deleteEmailTemplate(id) {
+            if (!confirm('Are you sure you want to delete this template?')) return;
+            try {
+                const res = await fetch(`/api/admin/email-templates/${id}`, { method: 'DELETE' });
+                const json = await res.json();
+                if (!res.ok || !json.success) throw new Error(json.error || 'Failed to delete template');
+                showSuccess('Template deleted successfully');
+                loadEmailTemplates();
+            } catch (e) {
+                console.error('Error deleting template:', e);
+                showError(e.message || 'Failed to delete template');
+            }
+        }
+        
+        function resetEmailTemplateForm() {
+            document.getElementById('template-name').value = '';
+            document.getElementById('template-subject').value = '';
+            document.getElementById('template-body').value = '';
+        }
+        
+        // Send Mail Functions
+        let currentConsolidationId = null;
+        
+        async function openSendMailPopup(consolidationId) {
+            currentConsolidationId = consolidationId;
+            try {
+                // Get consolidation data
+                const res = await fetch('/api/admin/consolidation');
+                const json = await res.json();
+                if (!res.ok || !json.success) throw new Error('Failed to load consolidation data');
+                
+                const item = json.data.find(x => String(x.id) === String(consolidationId));
+                if (!item) {
+                    showError('Record not found');
+                    return;
+                }
+                
+                // Get session creator email
+                let senderEmail = '';
+                try {
+                    if (item.session_id) {
+                        const sessionRes = await fetch(`/api/admin/sessions/${item.session_id}`);
+                        const sessionJson = await sessionRes.json();
+                        if (sessionJson.success && sessionJson.data && sessionJson.data.created_by_email) {
+                            senderEmail = sessionJson.data.created_by_email;
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Could not fetch session creator email:', e);
+                }
+                
+                // Prefill form
+                document.getElementById('send-mail-from').value = senderEmail;
+                document.getElementById('send-mail-to').value = item.student_email || '';
+                document.getElementById('send-mail-cc').value = '';
+                document.getElementById('send-mail-bcc').value = '';
+                document.getElementById('send-mail-subject').value = '';
+                document.getElementById('send-mail-message').value = '';
+                
+                // Load templates dropdown
+                await loadEmailTemplatesForSend();
+                
+                // Show popup
+                document.getElementById('send-mail-overlay').style.display = 'block';
+            } catch (e) {
+                console.error('Error opening send mail popup:', e);
+                showError('Failed to open send mail popup');
+            }
+        }
+        
+        function closeSendMailPopup() {
+            document.getElementById('send-mail-overlay').style.display = 'none';
+            currentConsolidationId = null;
+        }
+        
+        async function loadEmailTemplatesForSend() {
+            try {
+                const res = await fetch('/api/admin/email-templates');
+                const json = await res.json();
+                const selectEl = document.getElementById('send-mail-template');
+                selectEl.innerHTML = '<option value="">Select a template...</option>';
+                
+                if (json.success && json.data && json.data.length > 0) {
+                    json.data.forEach(template => {
+                        const option = document.createElement('option');
+                        option.value = template.id;
+                        option.textContent = template.name;
+                        option.dataset.subject = template.subject || '';
+                        option.dataset.body = template.body || '';
+                        selectEl.appendChild(option);
+                    });
+                }
+            } catch (e) {
+                console.error('Error loading templates for send:', e);
+            }
+        }
+        
+        function loadEmailTemplate() {
+            const selectEl = document.getElementById('send-mail-template');
+            const selectedOption = selectEl.options[selectEl.selectedIndex];
+            if (selectedOption && selectedOption.value) {
+                document.getElementById('send-mail-subject').value = selectedOption.dataset.subject || '';
+                document.getElementById('send-mail-message').value = selectedOption.dataset.body || '';
+            }
+        }
+        
+        document.getElementById('send-mail-form')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            try {
+                const from = document.getElementById('send-mail-from').value.trim();
+                const to = document.getElementById('send-mail-to').value.trim();
+                const cc = document.getElementById('send-mail-cc').value.trim();
+                const bcc = document.getElementById('send-mail-bcc').value.trim();
+                const subject = document.getElementById('send-mail-subject').value.trim();
+                const message = document.getElementById('send-mail-message').value.trim();
+                
+                if (!from || !to || !subject || !message) {
+                    showError('Please fill in all required fields');
+                    return;
+                }
+                
+                const res = await fetch('/api/admin/send-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        from,
+                        to,
+                        cc: cc || undefined,
+                        bcc: bcc || undefined,
+                        subject,
+                        message,
+                        consolidation_id: currentConsolidationId
+                    })
+                });
+                
+                const json = await res.json();
+                if (!res.ok || !json.success) throw new Error(json.error || 'Failed to send email');
+                
+                showSuccess('Email sent successfully');
+                closeSendMailPopup();
+            } catch (e) {
+                console.error('Error sending email:', e);
+                showError(e.message || 'Failed to send email');
+            }
+        });
+        
+        // Close overlays on outside click handlers
+        setTimeout(() => {
+            document.getElementById('settings-overlay')?.addEventListener('click', function(e) {
+                if (e.target === this) closeSettings();
+            });
+            
+            document.getElementById('send-mail-overlay')?.addEventListener('click', function(e) {
+                if (e.target === this) closeSendMailPopup();
+            });
+        }, 100);
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js" onload="window.chartJsLoaded = true; console.log('✅ Chart.js loaded and ready'); window.dispatchEvent(new Event('chartJsReady'));"></script>
 </body>

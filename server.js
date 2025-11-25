@@ -2211,6 +2211,101 @@ app.get('/api/admin/consolidation/:id/interviews', async (req, res) => {
   }
 });
 
+// Email Templates API
+app.get('/api/admin/email-templates', async (req, res) => {
+  try {
+    if (!pool) return res.json({ success: true, data: [] });
+    const result = await pool.query(`
+      SELECT id, name, subject, body, created_at, updated_at
+      FROM email_templates
+      ORDER BY created_at DESC
+    `);
+    res.json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error('Error fetching email templates:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/api/admin/email-templates', async (req, res) => {
+  try {
+    if (!pool) return res.status(503).json({ success: false, error: 'DB unavailable' });
+    const { name, subject, body } = req.body;
+    
+    if (!name || !body) {
+      return res.status(400).json({ success: false, error: 'Template name and body are required' });
+    }
+    
+    // Get current user ID from session or token (simplified - you may need to adjust based on your auth)
+    const createdBy = null; // TODO: Get from auth middleware
+    
+    const result = await pool.query(`
+      INSERT INTO email_templates (name, subject, body, created_by)
+      VALUES ($1, $2, $3, $4)
+      RETURNING id, name, subject, body, created_at, updated_at
+    `, [name, subject || null, body, createdBy]);
+    
+    res.json({ success: true, data: result.rows[0] });
+  } catch (error) {
+    console.error('Error creating email template:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.delete('/api/admin/email-templates/:id', async (req, res) => {
+  try {
+    if (!pool) return res.status(503).json({ success: false, error: 'DB unavailable' });
+    const id = Number(req.params.id);
+    
+    const result = await pool.query('DELETE FROM email_templates WHERE id = $1 RETURNING id', [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Template not found' });
+    }
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting email template:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Send Email API
+app.post('/api/admin/send-email', async (req, res) => {
+  try {
+    const { from, to, cc, bcc, subject, message, consolidation_id } = req.body;
+    
+    if (!from || !to || !subject || !message) {
+      return res.status(400).json({ success: false, error: 'From, to, subject, and message are required' });
+    }
+    
+    // For now, we'll just log the email (you'll need to configure nodemailer or your email service)
+    console.log('📧 Email to send:', {
+      from,
+      to,
+      cc,
+      bcc,
+      subject,
+      message: message.substring(0, 100) + '...',
+      consolidation_id
+    });
+    
+    // TODO: Implement actual email sending using nodemailer or your email service
+    // Example with nodemailer:
+    // const nodemailer = require('nodemailer');
+    // const transporter = nodemailer.createTransport({ ... });
+    // await transporter.sendMail({ from, to, cc, bcc, subject, text: message });
+    
+    res.json({ 
+      success: true, 
+      message: 'Email sent successfully (logged for now - configure email service to actually send)'
+    });
+  } catch (error) {
+    console.error('Error sending email:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Trigger consolidation refresh manually
 app.post('/api/admin/consolidation/refresh', async (req, res) => {
   try {
@@ -2603,6 +2698,38 @@ app.post('/api/admin/sessions', async (req, res) => {
       success: false,
       error: error.message
     });
+  }
+});
+
+app.get('/api/admin/sessions/:id', async (req, res) => {
+  try {
+    if (!pool) return res.status(503).json({ success: false, error: 'DB unavailable' });
+    const id = Number(req.params.id);
+    
+    const result = await pool.query(`
+      SELECT 
+        ins.id,
+        ins.name,
+        ins.description,
+        ins.status,
+        ins.is_panel,
+        ins.location,
+        ins.created_at,
+        au.email as created_by_email,
+        au.name as created_by_name
+      FROM interview_sessions ins
+      LEFT JOIN authorized_users au ON au.id = ins.created_by
+      WHERE ins.id = $1
+    `, [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Session not found' });
+    }
+    
+    res.json({ success: true, data: result.rows[0] });
+  } catch (error) {
+    console.error('Error fetching session:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 

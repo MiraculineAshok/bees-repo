@@ -537,6 +537,18 @@ async function initializeDatabase() {
       ON CONFLICT (email) DO NOTHING
     `);
     
+    // Create email_templates table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS email_templates (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        subject VARCHAR(500),
+        body TEXT NOT NULL,
+        created_by INTEGER REFERENCES authorized_users(id) ON DELETE SET NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
     
     console.log('✅ Database initialized successfully');
     
