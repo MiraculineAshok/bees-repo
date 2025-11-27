@@ -13168,10 +13168,12 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             document.getElementById('email-template-form-view').style.display = 'none';
         }
         
-        function showEmailTemplateForm() {
+        function showEmailTemplateForm(skipReset = false) {
             document.getElementById('email-template-list-view').style.display = 'none';
             document.getElementById('email-template-form-view').style.display = 'block';
-            resetEmailTemplateForm();
+            if (!skipReset) {
+                resetEmailTemplateForm();
+            }
         }
         
         // SMS Template View Functions
@@ -13180,10 +13182,12 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             document.getElementById('sms-template-form-view').style.display = 'none';
         }
         
-        function showSMSTemplateForm() {
+        function showSMSTemplateForm(skipReset = false) {
             document.getElementById('sms-template-list-view').style.display = 'none';
             document.getElementById('sms-template-form-view').style.display = 'block';
-            resetSMSTemplateForm();
+            if (!skipReset) {
+                resetSMSTemplateForm();
+            }
         }
         
         // Email Template Functions
@@ -13298,13 +13302,16 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 if (!res.ok || !json.success) throw new Error(json.error || 'Failed to load template');
                 
                 const template = json.data;
+                
+                // Show form first without resetting
+                showEmailTemplateForm(true);
+                
+                // Then populate the form fields
                 document.getElementById('email-template-id').value = template.id;
                 document.getElementById('template-name').value = template.name || '';
                 document.getElementById('template-subject').value = template.subject || '';
                 document.getElementById('template-body').value = template.body || '';
                 document.getElementById('email-template-form-title').textContent = 'Edit Email Template';
-                
-                showEmailTemplateForm();
             } catch (e) {
                 console.error('Error loading template:', e);
                 showError(e.message || 'Failed to load template');
@@ -13445,12 +13452,15 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 if (!res.ok || !json.success) throw new Error(json.error || 'Failed to load template');
                 
                 const template = json.data;
+                
+                // Show form first without resetting
+                showSMSTemplateForm(true);
+                
+                // Then populate the form fields
                 document.getElementById('sms-template-id').value = template.id;
                 document.getElementById('sms-template-name').value = template.name || '';
                 document.getElementById('sms-template-message').value = template.message || '';
                 document.getElementById('sms-template-form-title').textContent = 'Edit SMS Template';
-                
-                showSMSTemplateForm();
             } catch (e) {
                 console.error('Error loading SMS template:', e);
                 showError(e.message || 'Failed to load template');
