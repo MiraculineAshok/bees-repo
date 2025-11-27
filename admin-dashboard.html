@@ -2789,30 +2789,62 @@
                                 </div>
                                 
                                 <!-- Email Template Form View -->
-                                <div id="email-template-form-view" style="display:none">
-                                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
-                                        <h3 id="email-template-form-title" style="margin:0;font-size:24px;color:#111827">Create Email Template</h3>
-                                        <button onclick="showEmailTemplateList()" class="btn btn-secondary">← Back to list</button>
+                                <div id="email-template-form-view" style="display:none;background:#1f2937;border-radius:8px;padding:0;overflow:hidden;height:calc(100vh - 300px);min-height:600px" class="email-template-form-container">
+                                    <!-- Top Bar -->
+                                    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#111827;border-bottom:1px solid #374151">
+                                        <div style="display:flex;gap:8px;align-items:center">
+                                            <h3 id="email-template-form-title" style="margin:0;font-size:18px;color:#fff;font-weight:500">Create Email Template</h3>
+                                        </div>
+                                        <div style="display:flex;gap:8px;align-items:center">
+                                            <button type="submit" form="email-template-form" style="background:#3b82f6;color:#fff;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-weight:500;font-size:14px">Save Template</button>
+                                            <button onclick="showEmailTemplateList()" style="background:transparent;color:#9ca3af;border:none;padding:6px;cursor:pointer;font-size:20px">&times;</button>
+                                        </div>
                                     </div>
-                                    <form id="email-template-form" style="display:flex;flex-direction:column;gap:20px">
-                                        <input type="hidden" id="email-template-id" value="">
-                                        <div>
-                                            <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Template Name</label>
-                                            <input type="text" id="template-name" class="form-input" placeholder="e.g., Interview Result Notification" required style="width:100%">
-                                        </div>
-                                        <div>
-                                            <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Subject</label>
-                                            <input type="text" id="template-subject" class="form-input" placeholder="Email subject line" style="width:100%">
-                                        </div>
-                                        <div>
-                                            <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Body</label>
-                                            <textarea id="template-body" class="form-input" rows="15" placeholder="Email body content. You can use placeholders like {{student_name}}, {{session_name}}, etc." required style="width:100%;resize:vertical"></textarea>
-                                        </div>
-                                        <div style="display:flex;gap:12px">
-                                            <button type="submit" class="btn btn-primary">Save Template</button>
-                                            <button type="button" class="btn btn-secondary" onclick="resetEmailTemplateForm()">Reset</button>
-                                        </div>
-                                    </form>
+                                    
+                                    <!-- Template Form Content -->
+                                    <div style="flex:1;overflow-y:auto;background:#1f2937;padding:16px">
+                                        <form id="email-template-form" style="display:flex;flex-direction:column;gap:0;height:100%">
+                                            <input type="hidden" id="email-template-id" value="">
+                                            
+                                            <!-- Template Name Field -->
+                                            <div style="padding:8px 0;border-bottom:1px solid #374151;margin-bottom:8px">
+                                                <div style="display:flex;align-items:center;gap:8px">
+                                                    <span style="color:#9ca3af;font-size:14px;min-width:120px">Template Name:</span>
+                                                    <input type="text" id="template-name" required style="background:transparent;border:none;color:#fff;flex:1;padding:4px;font-size:14px;outline:none" placeholder="e.g., Interview Result Notification">
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Subject Field -->
+                                            <div style="padding:8px 0;border-bottom:1px solid #374151;margin-bottom:8px">
+                                                <div style="display:flex;align-items:center;gap:8px">
+                                                    <span style="color:#9ca3af;font-size:14px;min-width:120px">Subject:</span>
+                                                    <input type="text" id="template-subject" style="background:transparent;border:none;color:#fff;flex:1;padding:4px;font-size:14px;outline:none" placeholder="Email subject line">
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Formatting Toolbar -->
+                                            <div style="padding:8px 0;border-bottom:1px solid #374151;display:flex;gap:4px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+                                                <button type="button" onclick="formatTemplateText('bold')" style="background:transparent;border:none;color:#9ca3af;padding:6px 8px;cursor:pointer;border-radius:4px;font-weight:bold;font-size:14px" title="Bold">B</button>
+                                                <button type="button" onclick="formatTemplateText('italic')" style="background:transparent;border:none;color:#9ca3af;padding:6px 8px;cursor:pointer;border-radius:4px;font-style:italic;font-size:14px" title="Italic">I</button>
+                                                <button type="button" onclick="formatTemplateText('underline')" style="background:transparent;border:none;color:#9ca3af;padding:6px 8px;cursor:pointer;border-radius:4px;text-decoration:underline;font-size:14px" title="Underline">U</button>
+                                                <div style="width:1px;height:20px;background:#374151;margin:0 4px"></div>
+                                                <button type="button" onclick="formatTemplateText('bullet')" style="background:transparent;border:none;color:#9ca3af;padding:6px 8px;cursor:pointer;border-radius:4px;font-size:14px" title="Bullet List">•</button>
+                                                <button type="button" onclick="formatTemplateText('number')" style="background:transparent;border:none;color:#9ca3af;padding:6px 8px;cursor:pointer;border-radius:4px;font-size:14px" title="Numbered List">1.</button>
+                                                <div style="width:1px;height:20px;background:#374151;margin:0 4px"></div>
+                                                <button type="button" onclick="formatTemplateText('left')" style="background:transparent;border:none;color:#9ca3af;padding:6px 8px;cursor:pointer;border-radius:4px;font-size:14px" title="Align Left">⬅</button>
+                                                <button type="button" onclick="formatTemplateText('center')" style="background:transparent;border:none;color:#9ca3af;padding:6px 8px;cursor:pointer;border-radius:4px;font-size:14px" title="Align Center">⬌</button>
+                                                <button type="button" onclick="formatTemplateText('right')" style="background:transparent;border:none;color:#9ca3af;padding:6px 8px;cursor:pointer;border-radius:4px;font-size:14px" title="Align Right">➡</button>
+                                            </div>
+                                            
+                                            <!-- Body Field -->
+                                            <div style="flex:1;min-height:400px;padding:16px 0">
+                                                <div id="template-body" contenteditable="true" style="background:transparent;border:none;color:#fff;width:100%;min-height:400px;padding:8px;font-size:14px;outline:none;line-height:1.6;font-family:inherit" placeholder="Email body content. You can use placeholders like {{student_name}}, {{session_name}}, etc."></div>
+                                            </div>
+                                            
+                                            <!-- Hidden textarea for form submission -->
+                                            <textarea id="template-body-textarea" name="body" style="display:none"></textarea>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                             
@@ -2860,48 +2892,89 @@
             </section>
                 
                 <!-- Send Mail Popup -->
-                <div id="send-mail-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;z-index:1900">
-                    <div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:12px;width:90%;max-width:600px;padding:30px;box-shadow:0 20px 60px rgba(0,0,0,0.3);max-height:90vh;overflow-y:auto">
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
-                            <h3 style="margin:0;font-size:20px;color:#111827">Send Email</h3>
-                            <button onclick="closeSendMailPopup()" style="background:none;border:none;cursor:pointer;padding:4px;font-size:24px;color:#6b7280">&times;</button>
+                <div id="send-mail-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;z-index:1900">
+                    <div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1f2937;border-radius:8px;width:90%;max-width:900px;height:85vh;max-height:800px;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.5);overflow:hidden">
+                        <!-- Top Bar -->
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#111827;border-bottom:1px solid #374151">
+                            <div style="display:flex;gap:8px;align-items:center">
+                                <button type="submit" form="send-mail-form" style="background:#3b82f6;color:#fff;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-weight:500;display:flex;align-items:center;gap:6px;font-size:14px">
+                                    <span>✈</span> Send
+                                </button>
+                                <button type="button" style="background:transparent;color:#9ca3af;border:1px solid #374151;padding:8px 16px;border-radius:6px;cursor:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:6px">
+                                    <span>🕐</span> Send Later
+                                </button>
+                            </div>
+                            <div style="display:flex;gap:8px;align-items:center">
+                                <button type="button" style="background:transparent;color:#9ca3af;border:none;padding:6px;cursor:pointer;font-size:16px" title="Save draft">💾</button>
+                                <button type="button" style="background:transparent;color:#9ca3af;border:none;padding:6px;cursor:pointer;font-size:16px" title="Share">👤</button>
+                                <button onclick="closeSendMailPopup()" style="background:transparent;color:#9ca3af;border:none;padding:6px;cursor:pointer;font-size:20px">&times;</button>
+                            </div>
                         </div>
-                        <form id="send-mail-form" style="display:flex;flex-direction:column;gap:16px">
-                            <div>
-                                <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">From (Sender Email)</label>
-                                <input type="email" id="send-mail-from" class="form-input" required style="width:100%">
-                            </div>
-                            <div>
-                                <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">To (Receiver Email) <span id="send-mail-student-name" style="color:#6b7280;font-weight:400"></span></label>
-                                <input type="email" id="send-mail-to" class="form-input" required style="width:100%">
-                            </div>
-                            <div>
-                                <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">CC (Optional)</label>
-                                <input type="text" id="send-mail-cc" class="form-input" placeholder="Comma-separated emails" style="width:100%">
-                            </div>
-                            <div>
-                                <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">BCC (Optional)</label>
-                                <input type="text" id="send-mail-bcc" class="form-input" placeholder="Comma-separated emails" style="width:100%">
-                            </div>
-                            <div>
-                                <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Subject</label>
-                                <input type="text" id="send-mail-subject" class="form-input" required style="width:100%">
-                            </div>
-                            <div>
-                                <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Use Template (Optional)</label>
-                                <select id="send-mail-template" class="form-input" onchange="loadEmailTemplate()" style="width:100%">
-                                    <option value="">Select a template...</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Message</label>
-                                <textarea id="send-mail-message" class="form-input" rows="10" required style="width:100%;resize:vertical"></textarea>
-                            </div>
-                            <div style="display:flex;gap:12px;justify-content:flex-end">
-                                <button type="button" class="btn btn-secondary" onclick="closeSendMailPopup()">Cancel</button>
-                                <button type="submit" class="btn btn-primary">Send Email</button>
-                            </div>
-                        </form>
+                        
+                        <!-- Email Composer Content -->
+                        <div style="flex:1;overflow-y:auto;background:#1f2937;padding:16px">
+                            <form id="send-mail-form" style="display:flex;flex-direction:column;gap:0;height:100%">
+                                <!-- From Field -->
+                                <div style="padding:8px 0;border-bottom:1px solid #374151">
+                                    <div style="display:flex;align-items:center;gap:8px">
+                                        <span style="color:#9ca3af;font-size:14px;min-width:60px">From:</span>
+                                        <input type="email" id="send-mail-from" required style="background:transparent;border:none;color:#fff;flex:1;padding:4px;font-size:14px;outline:none" placeholder="sender@example.com">
+                                    </div>
+                                </div>
+                                
+                                <!-- To Field -->
+                                <div style="padding:8px 0;border-bottom:1px solid #374151">
+                                    <div style="display:flex;align-items:center;gap:8px">
+                                        <span style="color:#9ca3af;font-size:14px;min-width:60px">To:</span>
+                                        <input type="email" id="send-mail-to" required style="background:transparent;border:none;color:#fff;flex:1;padding:4px;font-size:14px;outline:none" placeholder="recipient@example.com">
+                                        <span id="send-mail-student-name" style="color:#6b7280;font-size:12px"></span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Cc and Bcc Fields -->
+                                <div style="padding:8px 0;border-bottom:1px solid #374151;display:flex;gap:16px">
+                                    <div style="display:flex;align-items:center;gap:8px;flex:1">
+                                        <span style="color:#9ca3af;font-size:14px;min-width:60px">Cc:</span>
+                                        <input type="text" id="send-mail-cc" style="background:transparent;border:none;color:#fff;flex:1;padding:4px;font-size:14px;outline:none" placeholder="cc@example.com">
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:8px;flex:1">
+                                        <span style="color:#9ca3af;font-size:14px;min-width:60px">Bcc:</span>
+                                        <input type="text" id="send-mail-bcc" style="background:transparent;border:none;color:#fff;flex:1;padding:4px;font-size:14px;outline:none" placeholder="bcc@example.com">
+                                    </div>
+                                </div>
+                                
+                                <!-- Subject Field -->
+                                <div style="padding:8px 0;border-bottom:1px solid #374151">
+                                    <input type="text" id="send-mail-subject" required style="background:transparent;border:none;color:#fff;width:100%;padding:4px;font-size:14px;outline:none" placeholder="Subject">
+                                </div>
+                                
+                                <!-- Template Selector -->
+                                <div style="padding:8px 0;border-bottom:1px solid #374151">
+                                    <select id="send-mail-template" onchange="loadEmailTemplate()" style="background:#374151;border:none;color:#fff;width:100%;padding:6px;border-radius:4px;font-size:13px;outline:none;cursor:pointer">
+                                        <option value="" style="background:#374151">Select a template...</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Formatting Toolbar -->
+                                <div style="padding:8px 0;border-bottom:1px solid #374151;display:flex;gap:4px;flex-wrap:wrap;align-items:center">
+                                    <button type="button" onclick="formatText('bold')" style="background:transparent;border:none;color:#9ca3af;padding:6px 8px;cursor:pointer;border-radius:4px;font-weight:bold;font-size:14px" title="Bold">B</button>
+                                    <button type="button" onclick="formatText('italic')" style="background:transparent;border:none;color:#9ca3af;padding:6px 8px;cursor:pointer;border-radius:4px;font-style:italic;font-size:14px" title="Italic">I</button>
+                                    <button type="button" onclick="formatText('underline')" style="background:transparent;border:none;color:#9ca3af;padding:6px 8px;cursor:pointer;border-radius:4px;text-decoration:underline;font-size:14px" title="Underline">U</button>
+                                    <div style="width:1px;height:20px;background:#374151;margin:0 4px"></div>
+                                    <button type="button" onclick="formatText('bullet')" style="background:transparent;border:none;color:#9ca3af;padding:6px 8px;cursor:pointer;border-radius:4px;font-size:14px" title="Bullet List">•</button>
+                                    <button type="button" onclick="formatText('number')" style="background:transparent;border:none;color:#9ca3af;padding:6px 8px;cursor:pointer;border-radius:4px;font-size:14px" title="Numbered List">1.</button>
+                                    <div style="width:1px;height:20px;background:#374151;margin:0 4px"></div>
+                                    <button type="button" onclick="formatText('left')" style="background:transparent;border:none;color:#9ca3af;padding:6px 8px;cursor:pointer;border-radius:4px;font-size:14px" title="Align Left">⬅</button>
+                                    <button type="button" onclick="formatText('center')" style="background:transparent;border:none;color:#9ca3af;padding:6px 8px;cursor:pointer;border-radius:4px;font-size:14px" title="Align Center">⬌</button>
+                                    <button type="button" onclick="formatText('right')" style="background:transparent;border:none;color:#9ca3af;padding:6px 8px;cursor:pointer;border-radius:4px;font-size:14px" title="Align Right">➡</button>
+                                </div>
+                                
+                                <!-- Message Body -->
+                                <div style="flex:1;min-height:300px;padding:16px 0">
+                                    <div id="send-mail-message" contenteditable="true" style="background:transparent;border:none;color:#fff;width:100%;min-height:300px;padding:8px;font-size:14px;outline:none;line-height:1.6;font-family:inherit" placeholder="Compose your message..."></div>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -2909,6 +2982,22 @@
     </div>
 
     <style>
+        /* ContentEditable placeholder */
+        [contenteditable="true"]:empty:before {
+            content: attr(placeholder);
+            color: #6b7280;
+            pointer-events: none;
+        }
+        
+        [contenteditable="true"]:focus {
+            outline: none;
+        }
+        
+        .email-template-form-container {
+            display: flex !important;
+            flex-direction: column;
+        }
+        
         /* Always show pointer where there is a click event */
         .data-table th[data-field],
         .table th[data-field] { cursor: pointer; }
@@ -13251,7 +13340,8 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 const templateId = document.getElementById('email-template-id').value;
                 const name = document.getElementById('template-name').value.trim();
                 const subject = document.getElementById('template-subject').value.trim();
-                const body = document.getElementById('template-body').value.trim();
+                const bodyDiv = document.getElementById('template-body');
+                const body = bodyDiv ? (bodyDiv.innerText || bodyDiv.textContent || '').trim() : '';
                 
                 if (!name || !body) {
                     showError('Template name and body are required');
@@ -13310,7 +13400,10 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 document.getElementById('email-template-id').value = template.id;
                 document.getElementById('template-name').value = template.name || '';
                 document.getElementById('template-subject').value = template.subject || '';
-                document.getElementById('template-body').value = template.body || '';
+                const bodyDiv = document.getElementById('template-body');
+                if (bodyDiv) {
+                    bodyDiv.innerHTML = template.body || '';
+                }
                 document.getElementById('email-template-form-title').textContent = 'Edit Email Template';
             } catch (e) {
                 console.error('Error loading template:', e);
@@ -13336,7 +13429,10 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             document.getElementById('email-template-id').value = '';
             document.getElementById('template-name').value = '';
             document.getElementById('template-subject').value = '';
-            document.getElementById('template-body').value = '';
+            const bodyDiv = document.getElementById('template-body');
+            if (bodyDiv) {
+                bodyDiv.innerHTML = '';
+            }
             document.getElementById('email-template-form-title').textContent = 'Create Email Template';
         }
         
@@ -13533,7 +13629,10 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 document.getElementById('send-mail-cc').value = '';
                 document.getElementById('send-mail-bcc').value = '';
                 document.getElementById('send-mail-subject').value = '';
-                document.getElementById('send-mail-message').value = '';
+                const messageDiv = document.getElementById('send-mail-message');
+                if (messageDiv) {
+                    messageDiv.innerHTML = '';
+                }
                 
                 // Load templates dropdown
                 await loadEmailTemplatesForSend();
@@ -13578,8 +13677,27 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             const selectedOption = selectEl.options[selectEl.selectedIndex];
             if (selectedOption && selectedOption.value) {
                 document.getElementById('send-mail-subject').value = selectedOption.dataset.subject || '';
-                document.getElementById('send-mail-message').value = selectedOption.dataset.body || '';
+                const messageDiv = document.getElementById('send-mail-message');
+                if (messageDiv) {
+                    messageDiv.innerHTML = selectedOption.dataset.body || '';
+                }
             }
+        }
+        
+        // Formatting functions for send mail
+        function formatText(command) {
+            const messageDiv = document.getElementById('send-mail-message');
+            if (!messageDiv) return;
+            messageDiv.focus();
+            document.execCommand(command, false, null);
+        }
+        
+        // Formatting functions for email template
+        function formatTemplateText(command) {
+            const templateBodyDiv = document.getElementById('template-body');
+            if (!templateBodyDiv) return;
+            templateBodyDiv.focus();
+            document.execCommand(command, false, null);
         }
         
         document.getElementById('send-mail-form')?.addEventListener('submit', async function(e) {
@@ -13590,7 +13708,8 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 const cc = document.getElementById('send-mail-cc').value.trim();
                 const bcc = document.getElementById('send-mail-bcc').value.trim();
                 const subject = document.getElementById('send-mail-subject').value.trim();
-                const message = document.getElementById('send-mail-message').value.trim();
+                const messageDiv = document.getElementById('send-mail-message');
+                const message = messageDiv ? (messageDiv.innerText || messageDiv.textContent || '').trim() : '';
                 
                 if (!from || !to || !subject || !message) {
                     showError('Please fill in all required fields');
