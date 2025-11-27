@@ -2252,6 +2252,56 @@ app.post('/api/admin/email-templates', async (req, res) => {
   }
 });
 
+app.get('/api/admin/email-templates/:id', async (req, res) => {
+  try {
+    if (!pool) return res.status(503).json({ success: false, error: 'DB unavailable' });
+    const id = Number(req.params.id);
+    
+    const result = await pool.query(`
+      SELECT id, name, subject, body, created_at, updated_at
+      FROM email_templates
+      WHERE id = $1
+    `, [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Template not found' });
+    }
+    
+    res.json({ success: true, data: result.rows[0] });
+  } catch (error) {
+    console.error('Error fetching email template:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.put('/api/admin/email-templates/:id', async (req, res) => {
+  try {
+    if (!pool) return res.status(503).json({ success: false, error: 'DB unavailable' });
+    const id = Number(req.params.id);
+    const { name, subject, body } = req.body;
+    
+    if (!name || !body) {
+      return res.status(400).json({ success: false, error: 'Template name and body are required' });
+    }
+    
+    const result = await pool.query(`
+      UPDATE email_templates
+      SET name = $1, subject = $2, body = $3, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $4
+      RETURNING id, name, subject, body, created_at, updated_at
+    `, [name, subject || null, body, id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Template not found' });
+    }
+    
+    res.json({ success: true, data: result.rows[0] });
+  } catch (error) {
+    console.error('Error updating email template:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 app.delete('/api/admin/email-templates/:id', async (req, res) => {
   try {
     if (!pool) return res.status(503).json({ success: false, error: 'DB unavailable' });
@@ -2266,6 +2316,130 @@ app.delete('/api/admin/email-templates/:id', async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting email template:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// SMS Template API endpoints
+app.get('/api/admin/sms-templates', async (req, res) => {
+  try {
+    if (!pool) return res.json({ success: true, data: [] });
+    const result = await pool.query(`
+      SELECT id, name, message, created_at, updated_at
+      FROM sms_templates
+      ORDER BY created_at DESC
+    `);
+    res.json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error('Error fetching SMS templates:', error);
+    // If table doesn't exist, return empty array
+    if (error.message.includes('does not exist') || error.message.includes('relation')) {
+      return res.json({ success: true, data: [] });
+    }
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get('/api/admin/sms-templates/:id', async (req, res) => {
+  try {
+    if (!pool) return res.status(503).json({ success: false, error: 'DB unavailable' });
+    const id = Number(req.params.id);
+    
+    const result = await pool.query(`
+      SELECT id, name, message, created_at, updated_at
+      FROM sms_templates
+      WHERE id = $1
+    `, [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Template not found' });
+    }
+    
+    res.json({ success: true, data: result.rows[0] });
+  } catch (error) {
+    console.error('Error fetching SMS template:', error);
+    if (error.message.includes('does not exist') || error.message.includes('relation')) {
+      return res.status(404).json({ success: false, error: 'SMS templates table does not exist' });
+    }
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/api/admin/sms-templates', async (req, res) => {
+  try {
+    if (!pool) return res.status(503).json({ success: false, error: 'DB unavailable' });
+    const { name, message } = req.body;
+    
+    if (!name || !message) {
+      return res.status(400).json({ success: false, error: 'Template name and message are required' });
+    }
+    
+    const createdBy = null; // TODO: Get from auth middleware
+    
+    const result = await pool.query(`
+      INSERT INTO sms_templates (name, message, created_by)
+      VALUES ($1, $2, $3)
+      RETURNING id, name, message, created_at, updated_at
+    `, [name, message, createdBy]);
+    
+    res.json({ success: true, data: result.rows[0] });
+  } catch (error) {
+    console.error('Error creating SMS template:', error);
+    if (error.message.includes('does not exist') || error.message.includes('relation')) {
+      return res.status(404).json({ success: false, error: 'SMS templates table does not exist. Please create the table first.' });
+    }
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.put('/api/admin/sms-templates/:id', async (req, res) => {
+  try {
+    if (!pool) return res.status(503).json({ success: false, error: 'DB unavailable' });
+    const id = Number(req.params.id);
+    const { name, message } = req.body;
+    
+    if (!name || !message) {
+      return res.status(400).json({ success: false, error: 'Template name and message are required' });
+    }
+    
+    const result = await pool.query(`
+      UPDATE sms_templates
+      SET name = $1, message = $2, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $3
+      RETURNING id, name, message, created_at, updated_at
+    `, [name, message, id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Template not found' });
+    }
+    
+    res.json({ success: true, data: result.rows[0] });
+  } catch (error) {
+    console.error('Error updating SMS template:', error);
+    if (error.message.includes('does not exist') || error.message.includes('relation')) {
+      return res.status(404).json({ success: false, error: 'SMS templates table does not exist' });
+    }
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.delete('/api/admin/sms-templates/:id', async (req, res) => {
+  try {
+    if (!pool) return res.status(503).json({ success: false, error: 'DB unavailable' });
+    const id = Number(req.params.id);
+    
+    const result = await pool.query('DELETE FROM sms_templates WHERE id = $1 RETURNING id', [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Template not found' });
+    }
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting SMS template:', error);
+    if (error.message.includes('does not exist') || error.message.includes('relation')) {
+      return res.status(404).json({ success: false, error: 'SMS templates table does not exist' });
+    }
     res.status(500).json({ success: false, error: error.message });
   }
 });

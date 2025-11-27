@@ -528,15 +528,6 @@ async function initializeDatabase() {
       console.log('⚠️ locked_by index migration:', error.message);
     }
     
-    // Insert default authorized users
-    await pool.query(`
-      INSERT INTO authorized_users (email, name, role, is_superadmin) 
-      VALUES 
-        ('miraculine.j@zohocorp.com', 'Miraculine J', 'superadmin', TRUE),
-        ('rajendran@zohocorp.com', 'Rajendran', 'admin', FALSE)
-      ON CONFLICT (email) DO NOTHING
-    `);
-    
     // Create email_templates table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS email_templates (
@@ -549,6 +540,54 @@ async function initializeDatabase() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+    console.log('✅ Created email_templates table');
+    
+    // Create indexes for email_templates
+    try {
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_email_templates_created_by ON email_templates(created_by)
+      `);
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_email_templates_created_at ON email_templates(created_at DESC)
+      `);
+    } catch (error) {
+      console.log('⚠️ Email templates index migration:', error.message);
+    }
+    
+    // Create sms_templates table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS sms_templates (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        message TEXT NOT NULL,
+        created_by INTEGER REFERENCES authorized_users(id) ON DELETE SET NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('✅ Created sms_templates table');
+    
+    // Create indexes for sms_templates
+    try {
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_sms_templates_created_by ON sms_templates(created_by)
+      `);
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_sms_templates_created_at ON sms_templates(created_at DESC)
+      `);
+    } catch (error) {
+      console.log('⚠️ SMS templates index migration:', error.message);
+    }
+    
+    // Insert default authorized users
+    await pool.query(`
+      INSERT INTO authorized_users (email, name, role, is_superadmin) 
+      VALUES 
+        ('miraculine.j@zohocorp.com', 'Miraculine J', 'superadmin', TRUE),
+        ('rajendran@zohocorp.com', 'Rajendran', 'admin', FALSE)
+      ON CONFLICT (email) DO NOTHING
+    `);
+    
     
     console.log('✅ Database initialized successfully');
     
