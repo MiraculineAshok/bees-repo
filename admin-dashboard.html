@@ -2104,11 +2104,14 @@
                     <a href="#" class="nav-link" data-section="questions">
                         Questions Analytics
                     </a>
-                    <button onclick="openSettings()" style="background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center" title="Settings">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 640 640" fill="currentColor">
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="settings" style="display:flex;align-items:center;gap:8px">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 640 640" fill="currentColor" style="flex-shrink:0">
                             <path d="M259.1 73.5C262.1 58.7 275.2 48 290.4 48L350.2 48C365.4 48 378.5 58.7 381.5 73.5L396 143.5C410.1 149.5 423.3 157.2 435.3 166.3L503.1 143.8C517.5 139 533.3 145 540.9 158.2L570.8 210C578.4 223.2 575.7 239.8 564.3 249.9L511 297.3C511.9 304.7 512.3 312.3 512.3 320C512.3 327.7 511.8 335.3 511 342.7L564.4 390.2C575.8 400.3 578.4 417 570.9 430.1L541 481.9C533.4 495 517.6 501.1 503.2 496.3L435.4 473.8C423.3 482.9 410.1 490.5 396.1 496.6L381.7 566.5C378.6 581.4 365.5 592 350.4 592L290.6 592C275.4 592 262.3 581.3 259.3 566.5L244.9 496.6C230.8 490.6 217.7 482.9 205.6 473.8L137.5 496.3C123.1 501.1 107.3 495.1 99.7 481.9L69.8 430.1C62.2 416.9 64.9 400.3 76.3 390.2L129.7 342.7C128.8 335.3 128.4 327.7 128.4 320C128.4 312.3 128.9 304.7 129.7 297.3L76.3 249.8C64.9 239.7 62.3 223 69.8 209.9L99.7 158.1C107.3 144.9 123.1 138.9 137.5 143.7L205.3 166.2C217.4 157.1 230.6 149.5 244.6 143.4L259.1 73.5zM320.3 400C364.5 399.8 400.2 363.9 400 319.7C399.8 275.5 363.9 239.8 319.7 240C275.5 240.2 239.8 276.1 240 320.3C240.2 364.5 276.1 400.2 320.3 400z"/>
                         </svg>
-                    </button>
+                        Settings
+                    </a>
                 </li>
             </ul>
             <div class="header-actions">
@@ -2743,55 +2746,53 @@
                 <div id="cons-detail-panel" style="position:fixed;top:0;right:-520px;width:520px;height:100%;background:#fff;border-left:1px solid #e5e7eb;box-shadow:-8px 0 24px rgba(0,0,0,0.1);z-index:1700;transition:right 0.25s ease;overflow:auto"></div>
                 
                 <!-- Settings Page Overlay -->
-                <div id="settings-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;z-index:1800">
-                    <div style="position:fixed;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:20px">
-                        <div style="background:#fff;border-radius:12px;width:90%;max-width:1200px;height:90%;max-height:800px;display:flex;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
-                            <!-- Side Nav -->
-                            <div style="width:250px;background:#f9fafb;border-right:1px solid #e5e7eb;padding:20px;overflow-y:auto">
-                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
-                                    <h2 style="margin:0;font-size:20px;color:#111827">Settings</h2>
-                                    <button onclick="closeSettings()" style="background:none;border:none;cursor:pointer;padding:4px;font-size:20px;color:#6b7280">&times;</button>
+            <!-- Settings Section -->
+            <section id="settings" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">Settings</h2>
+                </div>
+                <div style="display:flex;gap:20px;height:calc(100vh - 200px);min-height:600px">
+                    <!-- Side Nav -->
+                    <div style="width:250px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:20px;overflow-y:auto;flex-shrink:0">
+                        <nav style="display:flex;flex-direction:column;gap:8px">
+                            <button onclick="showSettingsTab('email-templates')" id="settings-tab-email-templates" class="settings-nav-btn" style="width:100%;text-align:left;padding:12px 16px;background:#3b82f6;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:500">
+                                Create Email Template
+                            </button>
+                        </nav>
+                    </div>
+                    <!-- Main Content -->
+                    <div style="flex:1;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:30px;overflow-y:auto">
+                        <!-- Email Templates Tab -->
+                        <div id="settings-content-email-templates" class="settings-content" style="display:block">
+                            <h3 style="margin:0 0 24px 0;font-size:24px;color:#111827">Create Email Template</h3>
+                            <form id="email-template-form" style="display:flex;flex-direction:column;gap:20px">
+                                <div>
+                                    <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Template Name</label>
+                                    <input type="text" id="template-name" class="form-input" placeholder="e.g., Interview Result Notification" required style="width:100%">
                                 </div>
-                                <nav style="display:flex;flex-direction:column;gap:8px">
-                                    <button onclick="showSettingsTab('email-templates')" id="settings-tab-email-templates" class="settings-nav-btn" style="width:100%;text-align:left;padding:12px 16px;background:#3b82f6;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:500">
-                                        Create Email Template
-                                    </button>
-                                </nav>
-                            </div>
-                            <!-- Main Content -->
-                            <div style="flex:1;padding:30px;overflow-y:auto">
-                                <!-- Email Templates Tab -->
-                                <div id="settings-content-email-templates" class="settings-content" style="display:block">
-                                    <h3 style="margin:0 0 24px 0;font-size:24px;color:#111827">Create Email Template</h3>
-                                    <form id="email-template-form" style="display:flex;flex-direction:column;gap:20px">
-                                        <div>
-                                            <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Template Name</label>
-                                            <input type="text" id="template-name" class="form-input" placeholder="e.g., Interview Result Notification" required style="width:100%">
-                                        </div>
-                                        <div>
-                                            <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Subject</label>
-                                            <input type="text" id="template-subject" class="form-input" placeholder="Email subject line" style="width:100%">
-                                        </div>
-                                        <div>
-                                            <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Body</label>
-                                            <textarea id="template-body" class="form-input" rows="15" placeholder="Email body content. You can use placeholders like {{student_name}}, {{session_name}}, etc." required style="width:100%;resize:vertical"></textarea>
-                                        </div>
-                                        <div style="display:flex;gap:12px">
-                                            <button type="submit" class="btn btn-primary">Save Template</button>
-                                            <button type="button" class="btn btn-secondary" onclick="resetEmailTemplateForm()">Reset</button>
-                                        </div>
-                                    </form>
-                                    <div style="margin-top:40px">
-                                        <h4 style="margin:0 0 16px 0;font-size:18px;color:#111827">Saved Templates</h4>
-                                        <div id="email-templates-list" style="display:flex;flex-direction:column;gap:12px">
-                                            <!-- Templates will be loaded here -->
-                                        </div>
-                                    </div>
+                                <div>
+                                    <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Subject</label>
+                                    <input type="text" id="template-subject" class="form-input" placeholder="Email subject line" style="width:100%">
+                                </div>
+                                <div>
+                                    <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Body</label>
+                                    <textarea id="template-body" class="form-input" rows="15" placeholder="Email body content. You can use placeholders like {{student_name}}, {{session_name}}, etc." required style="width:100%;resize:vertical"></textarea>
+                                </div>
+                                <div style="display:flex;gap:12px">
+                                    <button type="submit" class="btn btn-primary">Save Template</button>
+                                    <button type="button" class="btn btn-secondary" onclick="resetEmailTemplateForm()">Reset</button>
+                                </div>
+                            </form>
+                            <div style="margin-top:40px">
+                                <h4 style="margin:0 0 16px 0;font-size:18px;color:#111827">Saved Templates</h4>
+                                <div id="email-templates-list" style="display:flex;flex-direction:column;gap:12px">
+                                    <!-- Templates will be loaded here -->
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </section>
                 
                 <!-- Send Mail Popup -->
                 <div id="send-mail-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;z-index:1900">
@@ -5357,6 +5358,8 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 loadConsolidation();
             } else if (section === 'student-sessions') {
                 loadStudentSessions();
+            } else if (section === 'settings') {
+                loadEmailTemplates();
             } else if (section === 'overview') {
                 // Reload charts when switching to overview
                 if (Object.keys(charts).length === 0) {
@@ -13048,13 +13051,9 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         
         // Settings Page Functions
         function openSettings() {
-            document.getElementById('settings-overlay').style.display = 'block';
+            switchSection('settings');
             showSettingsTab('email-templates');
             loadEmailTemplates();
-        }
-        
-        function closeSettings() {
-            document.getElementById('settings-overlay').style.display = 'none';
         }
         
         function showSettingsTab(tab) {
@@ -13290,10 +13289,6 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         
         // Close overlays on outside click handlers
         setTimeout(() => {
-            document.getElementById('settings-overlay')?.addEventListener('click', function(e) {
-                if (e.target === this) closeSettings();
-            });
-            
             document.getElementById('send-mail-overlay')?.addEventListener('click', function(e) {
                 if (e.target === this) closeSendMailPopup();
             });
