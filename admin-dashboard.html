@@ -2952,9 +2952,9 @@
                                 <div style="padding:8px 0;border-bottom:1px solid #e5e7eb">
                                     <div style="display:flex;align-items:flex-start;gap:8px">
                                         <span style="color:#6b7280;font-size:14px;min-width:60px;padding-top:4px">To:</span>
-                                        <div style="flex:1;display:flex;flex-wrap:wrap;gap:4px;min-height:32px;padding:4px;border:1px solid #e5e7eb;border-radius:4px;background:#fff">
-                                            <div id="send-mail-to-tags" style="display:flex;flex-wrap:wrap;gap:4px;flex:1"></div>
-                                            <input type="text" id="send-mail-to" required style="background:transparent;border:none;color:#111827;flex:1;min-width:200px;padding:0;font-size:14px;outline:none" placeholder="Enter email addresses (comma-separated or press Enter)" onkeydown="handleEmailInput(event, 'to')" onblur="addEmailFromInput('to')">
+                                        <div style="flex:1;display:flex;flex-wrap:wrap;gap:4px;min-height:32px;padding:4px;border:1px solid #e5e7eb;border-radius:4px;background:#fff;align-items:center">
+                                            <div id="send-mail-to-tags" style="display:flex;flex-wrap:wrap;gap:4px"></div>
+                                            <input type="text" id="send-mail-to" required style="background:transparent;border:none;color:#111827;flex:1;min-width:200px;padding:0;font-size:14px;outline:none;text-align:left" placeholder="Enter email addresses (comma-separated or press Enter)" onkeydown="handleEmailInput(event, 'to')" onblur="addEmailFromInput('to')">
                                         </div>
                                         <span id="send-mail-student-name" style="color:#6b7280;font-size:12px;padding-top:4px"></span>
                                     </div>
@@ -2964,16 +2964,16 @@
                                 <div style="padding:8px 0;border-bottom:1px solid #e5e7eb;display:flex;gap:16px">
                                     <div style="display:flex;align-items:flex-start;gap:8px;flex:1">
                                         <span style="color:#6b7280;font-size:14px;min-width:60px;padding-top:4px">Cc:</span>
-                                        <div style="flex:1;display:flex;flex-wrap:wrap;gap:4px;min-height:32px;padding:4px;border:1px solid #e5e7eb;border-radius:4px;background:#fff">
-                                            <div id="send-mail-cc-tags" style="display:flex;flex-wrap:wrap;gap:4px;flex:1"></div>
-                                            <input type="text" id="send-mail-cc" style="background:transparent;border:none;color:#111827;flex:1;min-width:150px;padding:0;font-size:14px;outline:none" placeholder="Enter email addresses" onkeydown="handleEmailInput(event, 'cc')" onblur="addEmailFromInput('cc')">
+                                        <div style="flex:1;display:flex;flex-wrap:wrap;gap:4px;min-height:32px;padding:4px;border:1px solid #e5e7eb;border-radius:4px;background:#fff;align-items:center">
+                                            <div id="send-mail-cc-tags" style="display:flex;flex-wrap:wrap;gap:4px"></div>
+                                            <input type="text" id="send-mail-cc" style="background:transparent;border:none;color:#111827;flex:1;min-width:150px;padding:0;font-size:14px;outline:none;text-align:left" placeholder="Enter email addresses" onkeydown="handleEmailInput(event, 'cc')" onblur="addEmailFromInput('cc')">
                                         </div>
                                     </div>
                                     <div style="display:flex;align-items:flex-start;gap:8px;flex:1">
                                         <span style="color:#6b7280;font-size:14px;min-width:60px;padding-top:4px">Bcc:</span>
-                                        <div style="flex:1;display:flex;flex-wrap:wrap;gap:4px;min-height:32px;padding:4px;border:1px solid #e5e7eb;border-radius:4px;background:#fff">
-                                            <div id="send-mail-bcc-tags" style="display:flex;flex-wrap:wrap;gap:4px;flex:1"></div>
-                                            <input type="text" id="send-mail-bcc" style="background:transparent;border:none;color:#111827;flex:1;min-width:150px;padding:0;font-size:14px;outline:none" placeholder="Enter email addresses" onkeydown="handleEmailInput(event, 'bcc')" onblur="addEmailFromInput('bcc')">
+                                        <div style="flex:1;display:flex;flex-wrap:wrap;gap:4px;min-height:32px;padding:4px;border:1px solid #e5e7eb;border-radius:4px;background:#fff;align-items:center">
+                                            <div id="send-mail-bcc-tags" style="display:flex;flex-wrap:wrap;gap:4px"></div>
+                                            <input type="text" id="send-mail-bcc" style="background:transparent;border:none;color:#111827;flex:1;min-width:150px;padding:0;font-size:14px;outline:none;text-align:left" placeholder="Enter email addresses" onkeydown="handleEmailInput(event, 'bcc')" onblur="addEmailFromInput('bcc')">
                                         </div>
                                     </div>
                                 </div>
@@ -13764,27 +13764,44 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             try {
                 const from = document.getElementById('send-mail-from').value.trim();
                 
+                // Process any remaining input values into tags first
+                addEmailFromInput('to');
+                addEmailFromInput('cc');
+                addEmailFromInput('bcc');
+                
                 // Get emails from tags (multiple emails)
                 const toEmails = getEmailsFromTags('to');
                 const ccEmails = getEmailsFromTags('cc');
                 const bccEmails = getEmailsFromTags('bcc');
                 
-                // Also check input field for any remaining email
+                // Also check input field for any remaining email (in case blur didn't fire)
                 const toInput = document.getElementById('send-mail-to').value.trim();
                 const ccInput = document.getElementById('send-mail-cc').value.trim();
                 const bccInput = document.getElementById('send-mail-bcc').value.trim();
                 
                 if (toInput) {
                     const emails = toInput.split(',').map(e => e.trim()).filter(e => e && isValidEmail(e));
-                    emails.forEach(email => toEmails.push(email));
+                    emails.forEach(email => {
+                        if (!toEmails.includes(email)) {
+                            toEmails.push(email);
+                        }
+                    });
                 }
                 if (ccInput) {
                     const emails = ccInput.split(',').map(e => e.trim()).filter(e => e && isValidEmail(e));
-                    emails.forEach(email => ccEmails.push(email));
+                    emails.forEach(email => {
+                        if (!ccEmails.includes(email)) {
+                            ccEmails.push(email);
+                        }
+                    });
                 }
                 if (bccInput) {
                     const emails = bccInput.split(',').map(e => e.trim()).filter(e => e && isValidEmail(e));
-                    emails.forEach(email => bccEmails.push(email));
+                    emails.forEach(email => {
+                        if (!bccEmails.includes(email)) {
+                            bccEmails.push(email);
+                        }
+                    });
                 }
                 
                 const to = toEmails.join(', ');
