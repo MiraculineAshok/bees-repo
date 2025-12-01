@@ -2444,6 +2444,67 @@ app.delete('/api/admin/sms-templates/:id', async (req, res) => {
   }
 });
 
+// Test SMTP Connection API (for debugging)
+app.post('/api/admin/test-smtp', async (req, res) => {
+  try {
+    const nodemailer = require('nodemailer');
+    
+    const emailUser = process.env.EMAIL_USER ? process.env.EMAIL_USER.trim() : null;
+    const emailPassword = (process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD) ? (process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD).trim() : null;
+    const emailHost = process.env.EMAIL_HOST ? process.env.EMAIL_HOST.trim() : null;
+    const emailPort = process.env.EMAIL_PORT ? parseInt(process.env.EMAIL_PORT) : null;
+    const emailSecure = process.env.EMAIL_SECURE !== 'false';
+    
+    if (!emailUser || !emailPassword || !emailHost) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Email configuration not found. Please set EMAIL_USER, EMAIL_PASSWORD, and EMAIL_HOST environment variables.' 
+      });
+    }
+    
+    const transporter = nodemailer.createTransport({
+      host: emailHost,
+      port: emailPort || 587,
+      secure: emailSecure,
+      auth: {
+        user: emailUser,
+        pass: emailPassword
+      },
+      ...(emailPort === 587 ? {
+        requireTLS: true,
+        tls: {
+          rejectUnauthorized: false,
+          minVersion: 'TLSv1.2'
+        }
+      } : {}),
+      connectionTimeout: 10000,
+      greetingTimeout: 10000
+    });
+    
+    await transporter.verify();
+    
+    res.json({ 
+      success: true, 
+      message: 'SMTP connection successful!',
+      config: {
+        host: emailHost,
+        port: emailPort || 587,
+        secure: emailSecure,
+        user: emailUser.substring(0, 3) + '***@' + emailUser.split('@')[1],
+        passwordLength: emailPassword.length
+      }
+    });
+  } catch (error) {
+    console.error('SMTP test error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      code: error.code,
+      command: error.command
+    });
+  }
+});
+
 // Send Email API
 app.post('/api/admin/send-email', async (req, res) => {
   try {
@@ -2550,60 +2611,76 @@ app.post('/api/admin/send-email', async (req, res) => {
         let transporterError = null;
         let lastError = null;
         
-        // Try each SMTP server/port combination
+        // Try different username formats (some SMTP servers require different formats)
+        const usernameVariations = [
+          authUser, // Full email: admissions@zohoschools.in
+          authUser.toLowerCase(), // Lowercase version
+          authUser.split('@')[0], // Just username: admissions
+        ];
+        
+        // Try each SMTP server/port combination with different username formats
         for (const config of serversToTry) {
-          try {
-            transporterConfig = {
-              host: config.host,
-              port: config.port,
-              secure: config.secure,
-              auth: {
-                user: authUser,
-                pass: authPass
-              },
-              // TLS options for port 587
-              ...(config.port === 587 ? {
-                requireTLS: true,
-                tls: {
-                  rejectUnauthorized: false,
-                  minVersion: 'TLSv1.2'
-                }
-              } : {}),
-              // SSL options for port 465
-              ...(config.port === 465 ? {
-                tls: {
-                  rejectUnauthorized: false
-                }
-              } : {}),
-              connectionTimeout: 15000,
-              greetingTimeout: 15000
-            };
-            
-            // Log configuration (without password) for debugging
-            console.log('📧 Trying SMTP Configuration:', {
-              host: config.host,
-              port: config.port,
-              secure: config.secure,
-              user: authUser,
-              passwordLength: authPass.length,
-              protocol: config.port === 465 ? 'SSL' : 'TLS'
-            });
-            
-            transporter = nodemailer.createTransport(transporterConfig);
-            
-            // Verify transporter configuration
-            await transporter.verify();
-            console.log(`✅ Email transporter verified successfully with ${config.host}:${config.port} (${config.port === 465 ? 'SSL' : 'TLS'})`);
-            break; // Success, exit loop
-            
-          } catch (verifyError) {
-            lastError = verifyError;
-            transporterError = verifyError;
-            console.error(`❌ Failed to verify with ${config.host}:${config.port} (${config.port === 465 ? 'SSL' : 'TLS'}):`, verifyError.message);
-            console.error(`   Error code: ${verifyError.code || 'N/A'}, Command: ${verifyError.command || 'N/A'}`);
-            
-            // Continue to next configuration
-            continue;
+          for (const username of usernameVariations) {
+            try {
+              transporterConfig = {
+                host: config.host,
+                port: config.port,
+                secure: config.secure,
+                auth: {
+                  user: username,
+                  pass: authPass
+                },
+                // TLS options for port 587
+                ...(config.port === 587 ? {
+                  requireTLS: true,
+                  tls: {
+                    rejectUnauthorized: false,
+                    minVersion: 'TLSv1.2'
+                  }
+                } : {}),
+                // SSL options for port 465
+                ...(config.port === 465 ? {
+                  tls: {
+                    rejectUnauthorized: false
+                  }
+                } : {}),
+                connectionTimeout: 15000,
+                greetingTimeout: 15000,
+                // Disable debug to reduce noise, but keep error logging
+                debug: false,
+                logger: false
+              };
+              
+              // Log configuration (without password) for debugging
+              console.log('📧 Trying SMTP Configuration:', {
+                host: config.host,
+                port: config.port,
+                secure: config.secure,
+                user: username,
+                passwordLength: authPass.length,
+                protocol: config.port === 465 ? 'SSL' : 'TLS'
+              });
+              
+              transporter = nodemailer.createTransport(transporterConfig);
+              
+              // Verify transporter configuration
+              await transporter.verify();
+              console.log(`✅ Email transporter verified successfully with ${config.host}:${config.port} (${config.port === 465 ? 'SSL' : 'TLS'}) using username: ${username}`);
+              break; // Success, exit both loops
+              
+            } catch (verifyError) {
+              lastError = verifyError;
+              transporterError = verifyError;
+              console.error(`❌ Failed: ${config.host}:${config.port} (${config.port === 465 ? 'SSL' : 'TLS'}) with user="${username}":`, verifyError.message);
+              
+              // Continue to next username variation
+              continue;
+            }
+          }
+          
+          // If transporter was successfully created, break out of server loop
+          if (transporter) {
+            break;
           }
         }
         
