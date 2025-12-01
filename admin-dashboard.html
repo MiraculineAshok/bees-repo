@@ -2939,7 +2939,7 @@
                         
                         <!-- Email Composer Content -->
                         <div style="flex:1;overflow-y:auto;background:#fff;padding:16px">
-                            <form id="send-mail-form" style="display:flex;flex-direction:column;gap:0;height:100%">
+                            <form id="send-mail-form" novalidate style="display:flex;flex-direction:column;gap:0;height:100%">
                                 <!-- From Field -->
                                 <div style="padding:8px 0;border-bottom:1px solid #e5e7eb">
                                     <div style="display:flex;align-items:center;gap:8px">
@@ -2954,7 +2954,7 @@
                                         <span style="color:#6b7280;font-size:14px;min-width:60px;padding-top:4px">To:</span>
                                         <div style="flex:1;display:flex;flex-wrap:wrap;gap:4px;min-height:32px;padding:4px;border:1px solid #e5e7eb;border-radius:4px;background:#fff;align-items:center">
                                             <div id="send-mail-to-tags" style="display:flex;flex-wrap:wrap;gap:4px"></div>
-                                            <input type="text" id="send-mail-to" required style="background:transparent;border:none;color:#111827;flex:1;min-width:200px;padding:0;font-size:14px;outline:none;text-align:left" placeholder="Enter email addresses (comma-separated or press Enter)" onkeydown="handleEmailInput(event, 'to')" onblur="addEmailFromInput('to')">
+                                            <input type="text" id="send-mail-to" style="background:transparent;border:none;color:#111827;flex:1;min-width:200px;padding:0;font-size:14px;outline:none;text-align:left" placeholder="Enter email addresses (comma-separated or press Enter)" onkeydown="handleEmailInput(event, 'to')" onblur="addEmailFromInput('to')">
                                         </div>
                                         <span id="send-mail-student-name" style="color:#6b7280;font-size:12px;padding-top:4px"></span>
                                     </div>
