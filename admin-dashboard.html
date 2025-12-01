@@ -13770,9 +13770,9 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 addEmailFromInput('bcc');
                 
                 // Get emails from tags (multiple emails)
-                const toEmails = getEmailsFromTags('to');
-                const ccEmails = getEmailsFromTags('cc');
-                const bccEmails = getEmailsFromTags('bcc');
+                let toEmails = getEmailsFromTags('to');
+                let ccEmails = getEmailsFromTags('cc');
+                let bccEmails = getEmailsFromTags('bcc');
                 
                 // Also check input field for any remaining email (in case blur didn't fire)
                 const toInput = document.getElementById('send-mail-to').value.trim();
@@ -13804,9 +13804,35 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     });
                 }
                 
-                const to = toEmails.join(', ');
-                const cc = ccEmails.length > 0 ? ccEmails.join(', ') : '';
-                const bcc = bccEmails.length > 0 ? bccEmails.join(', ') : '';
+                // Ensure we have collected all emails from input fields
+                if (toInput) {
+                    const emails = toInput.split(',').map(e => e.trim()).filter(e => e && isValidEmail(e));
+                    emails.forEach(email => {
+                        if (!toEmails.includes(email)) {
+                            toEmails.push(email);
+                        }
+                    });
+                }
+                if (ccInput) {
+                    const emails = ccInput.split(',').map(e => e.trim()).filter(e => e && isValidEmail(e));
+                    emails.forEach(email => {
+                        if (!ccEmails.includes(email)) {
+                            ccEmails.push(email);
+                        }
+                    });
+                }
+                if (bccInput) {
+                    const emails = bccInput.split(',').map(e => e.trim()).filter(e => e && isValidEmail(e));
+                    emails.forEach(email => {
+                        if (!bccEmails.includes(email)) {
+                            bccEmails.push(email);
+                        }
+                    });
+                }
+                
+                // Debug: Log collected emails
+                console.log('Collected emails:', { toEmails, ccEmails, bccEmails, toInput, ccInput, bccInput });
+                
                 const subject = document.getElementById('send-mail-subject').value.trim();
                 
                 // Get message from Quill editor or fallback textarea
@@ -13825,10 +13851,31 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     }
                 }
                 
-                if (!from || toEmails.length === 0 || !subject || !message.trim()) {
-                    showError('Please fill in all required fields (From, To, Subject, and Message)');
+                // Validation with specific error messages
+                if (!from) {
+                    showError('Please fill in the From field');
                     return;
                 }
+                
+                if (toEmails.length === 0) {
+                    showError('Please add at least one valid email address in the To field');
+                    return;
+                }
+                
+                if (!subject) {
+                    showError('Please fill in the Subject field');
+                    return;
+                }
+                
+                if (!message.trim()) {
+                    showError('Please fill in the Message field');
+                    return;
+                }
+                
+                // Build final email strings
+                const to = toEmails.join(', ');
+                const cc = ccEmails.length > 0 ? ccEmails.join(', ') : '';
+                const bcc = bccEmails.length > 0 ? bccEmails.join(', ') : '';
                 
                 // Handle bulk email or single email
                 if (window.bulkEmailMode && window.bulkEmailIds && window.bulkEmailIds.length > 0) {
@@ -14152,10 +14199,22 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         
         function getEmailsFromTags(field) {
             const tagsContainer = document.getElementById(`send-mail-${field}-tags`);
-            if (!tagsContainer) return [];
+            if (!tagsContainer) {
+                console.warn(`Tags container not found for field: ${field}`);
+                return [];
+            }
             
             const tags = tagsContainer.querySelectorAll('.email-tag');
-            return Array.from(tags).map(tag => tag.dataset.email);
+            const emails = Array.from(tags).map(tag => {
+                const email = tag.dataset.email;
+                if (!email) {
+                    console.warn('Tag found but no data-email attribute:', tag);
+                }
+                return email;
+            }).filter(email => email); // Filter out any undefined/null emails
+            
+            console.log(`getEmailsFromTags(${field}):`, { tagsCount: tags.length, emails });
+            return emails;
         }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js" onload="window.chartJsLoaded = true; console.log('✅ Chart.js loaded and ready'); window.dispatchEvent(new Event('chartJsReady'));"></script>
