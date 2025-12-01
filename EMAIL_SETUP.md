@@ -11,17 +11,21 @@ Add these to your `.env` file or environment:
 ```bash
 EMAIL_USER=admissions@zohoschools.in
 EMAIL_PASSWORD=your-zoho-password  # Your Zoho Mail account password
-EMAIL_HOST=smtppro.zoho.com
-EMAIL_PORT=587  # Use 587 for TLS or 465 for SSL
-EMAIL_SECURE=false  # Use 'false' for port 587 (TLS), 'true' for port 465 (SSL)
+EMAIL_HOST=smtppro.zoho.in  # Use .in for India datacenter, .com for others
+EMAIL_PORT=465  # Use 465 for SSL (recommended) or 587 for TLS
+EMAIL_SECURE=true  # Use 'true' for port 465 (SSL), 'false' for port 587 (TLS)
 EMAIL_FROM_NAME=BEES Interview Platform  # Optional: Display name
 ```
 
-**Note:** For domain-based Zoho Mail accounts (like admissions@zohoschools.in), use `smtppro.zoho.com`. If you have 2FA enabled, you may need to use an Application-specific Password instead of your regular password.
+**Note:** 
+- For India datacenter accounts, use `smtppro.zoho.in` (check your Zoho Mail settings to confirm)
+- For other datacenters, use `smtppro.zoho.com`
+- The code will automatically try both `.in` and `.com` servers if authentication fails
+- If you have 2FA enabled, you may need to use an Application-specific Password instead of your regular password
 
 **Zoho Mail SMTP Settings:**
-- **SSL Configuration:** `smtppro.zoho.com`, Port `465`, `EMAIL_SECURE=true`
-- **TLS Configuration:** `smtppro.zoho.com`, Port `587`, `EMAIL_SECURE=false` (Recommended)
+- **SSL Configuration (Recommended):** `smtppro.zoho.in` or `smtppro.zoho.com`, Port `465`, `EMAIL_SECURE=true`
+- **TLS Configuration:** `smtppro.zoho.in` or `smtppro.zoho.com`, Port `587`, `EMAIL_SECURE=false`
 
 ### For Gmail:
 ```bash

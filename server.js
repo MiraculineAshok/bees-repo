@@ -2588,16 +2588,34 @@ app.post('/api/admin/send-email', async (req, res) => {
         let serversToTry = [];
         
         if (isZoho) {
-          // For Zoho, try both smtppro.zoho.com and smtp.zoho.com
-          // Also try both port 587 (TLS) and 465 (SSL)
-          const zohoServers = emailHost.includes('smtppro') 
-            ? ['smtppro.zoho.com', 'smtp.zoho.com']
-            : ['smtp.zoho.com', 'smtppro.zoho.com'];
+          // For Zoho, try smtppro.zoho.in first (India datacenter), then smtppro.zoho.com, then smtp.zoho.com
+          // Prioritize port 465 (SSL) as per Zoho Mail configuration
+          const zohoServers = [];
           
-          // Try each server with both ports
+          // Determine which servers to try based on configured host
+          if (emailHost.includes('smtppro')) {
+            if (emailHost.includes('.in')) {
+              // India datacenter - try .in first
+              zohoServers.push('smtppro.zoho.in');
+              zohoServers.push('smtppro.zoho.com');
+              zohoServers.push('smtp.zoho.com');
+            } else {
+              // Other datacenter - try .com first
+              zohoServers.push('smtppro.zoho.com');
+              zohoServers.push('smtppro.zoho.in');
+              zohoServers.push('smtp.zoho.com');
+            }
+          } else {
+            // Default: try India datacenter first, then others
+            zohoServers.push('smtppro.zoho.in');
+            zohoServers.push('smtppro.zoho.com');
+            zohoServers.push('smtp.zoho.com');
+          }
+          
+          // Try each server - prioritize port 465 (SSL) first, then 587 (TLS)
           for (const server of zohoServers) {
+            serversToTry.push({ host: server, port: 465, secure: true }); // SSL (prioritized)
             serversToTry.push({ host: server, port: 587, secure: false }); // TLS
-            serversToTry.push({ host: server, port: 465, secure: true }); // SSL
           }
         } else {
           // For non-Zoho, use configured host and port
@@ -2700,8 +2718,9 @@ app.post('/api/admin/send-email', async (req, res) => {
             console.log('      - Generate a new password for "Mail" or "SMTP"');
             console.log('      - Use this password instead of your regular password');
             console.log('   5. For domain-based emails (like ' + authUser + '), ensure you are using:');
-            console.log('      - EMAIL_HOST=smtppro.zoho.com');
-            console.log('      - Port 587 (TLS) or 465 (SSL)');
+            console.log('      - EMAIL_HOST=smtppro.zoho.in (India datacenter) or smtppro.zoho.com (other datacenters)');
+            console.log('      - Port 465 (SSL) recommended, or Port 587 (TLS)');
+            console.log('      - Check your Zoho Mail Settings → Mail Accounts → SMTP section for exact server');
             console.log('   6. Try logging into Zoho Mail web interface to verify your regular password works');
             console.log('   7. Last error:', lastError ? lastError.message : 'Unknown');
             console.log('   8. Reference: https://www.zoho.com/mail/help/zoho-smtp.html');
