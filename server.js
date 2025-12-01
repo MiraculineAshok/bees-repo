@@ -2496,8 +2496,20 @@ app.post('/api/admin/send-email', async (req, res) => {
         emailPasswordLength: emailPassword ? emailPassword.length : 0,
         emailHost: emailHost || 'not set',
         emailPort: emailPort || 'not set',
-        emailSecure: emailSecure
+        emailSecure: emailSecure,
+        passwordFirstChar: emailPassword ? emailPassword.substring(0, 1) : 'N/A',
+        passwordLastChar: emailPassword ? emailPassword.substring(emailPassword.length - 1) : 'N/A'
       });
+      
+      // Additional check for common issues
+      if (emailPassword) {
+        if (emailPassword.includes(' ')) {
+          console.warn('⚠️ WARNING: Password contains spaces - this may cause authentication issues');
+        }
+        if (emailPassword.length < 8) {
+          console.warn('⚠️ WARNING: Password is very short - Zoho passwords are typically longer');
+        }
+      }
       
       // Create transporter
       let transporterConfig;
@@ -2601,10 +2613,21 @@ app.post('/api/admin/send-email', async (req, res) => {
             console.log('💡 Zoho Mail troubleshooting tips:');
             console.log('   1. Verify EMAIL_USER=' + authUser + ' matches your Zoho account email exactly');
             console.log('   2. Verify EMAIL_PASSWORD is correct (length: ' + authPass.length + ' characters)');
-            console.log('   3. If 2FA is enabled, use an Application-specific Password');
-            console.log('   4. Check Zoho Mail Settings → Mail Accounts → SMTP Access is enabled');
-            console.log('   5. Try logging into Zoho Mail web interface to verify credentials');
-            console.log('   6. Last error:', lastError ? lastError.message : 'Unknown');
+            console.log('   3. ENABLE SMTP ACCESS in Zoho Mail:');
+            console.log('      - Login to Zoho Mail web interface');
+            console.log('      - Go to Settings → Mail Accounts → Click your email address');
+            console.log('      - Under "SMTP" section, ensure SMTP Access is ENABLED');
+            console.log('      - Click Save');
+            console.log('   4. If 2FA is enabled OR you use federated sign-in (Google/SAML), you MUST use an Application-specific Password:');
+            console.log('      - Go to Zoho Account → Security → Application-specific Passwords');
+            console.log('      - Generate a new password for "Mail" or "SMTP"');
+            console.log('      - Use this password instead of your regular password');
+            console.log('   5. For domain-based emails (like ' + authUser + '), ensure you are using:');
+            console.log('      - EMAIL_HOST=smtppro.zoho.com');
+            console.log('      - Port 587 (TLS) or 465 (SSL)');
+            console.log('   6. Try logging into Zoho Mail web interface to verify your regular password works');
+            console.log('   7. Last error:', lastError ? lastError.message : 'Unknown');
+            console.log('   8. Reference: https://www.zoho.com/mail/help/zoho-smtp.html');
           }
           throw transporterError || new Error('Failed to create email transporter after trying all SMTP server/port combinations');
         }

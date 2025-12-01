@@ -43,13 +43,41 @@ EMAIL_FROM_NAME=BEES Interview Platform  # Optional
 
 ## Zoho Mail Setup Instructions
 
-1. **Login to Zoho Mail** with your account (admissions@zohoschools.in)
-2. **Get your password** or create an Application-specific Password if 2FA is enabled:
-   - Go to Zoho Account → Security → Application-specific Passwords
-   - Generate a new password for "Mail" or "SMTP"
-   - Use this password instead of your regular password if 2FA is enabled
-3. **Configure environment variables** as shown above
-4. **Test the configuration** by sending a test email
+### Step 1: Enable SMTP Access in Zoho Mail
+**CRITICAL:** SMTP access must be enabled in your Zoho Mail settings before it will work!
+
+1. **Login to Zoho Mail** web interface with your account (admissions@zohoschools.in)
+2. Go to **Settings** → **Mail Accounts**
+3. Click on your primary email address (admissions@zohoschools.in)
+4. Scroll down to the **SMTP** section
+5. **Check the "SMTP Access" checkbox** to enable SMTP access
+6. Click **Save**
+
+**Reference:** [Zoho Mail IMAP/SMTP Access Guide](https://www.zoho.com/mail/help/imap-access.html#EnableIMAP)
+
+### Step 2: Get Your Password or Application-specific Password
+
+**If you have Two-Factor Authentication (2FA) enabled:**
+- You **MUST** use an Application-specific Password, not your regular password
+- Go to Zoho Account → Security → Application-specific Passwords
+- Generate a new password for "Mail" or "SMTP"
+- Use this password in `EMAIL_PASSWORD`
+
+**If you use Federated Sign-In (Google, SAML, etc.):**
+- You **MUST** generate an Application-specific Password
+- You cannot use your external account password for SMTP
+- Go to Zoho Account → Security → Application-specific Passwords
+- Generate a new password for "Mail" or "SMTP"
+
+**If you have a regular Zoho account password:**
+- Try using your regular password first
+- If it doesn't work, generate an Application-specific Password as a fallback
+
+### Step 3: Configure Environment Variables
+Set the environment variables in Render as shown in the configuration section above.
+
+### Step 4: Test the Configuration
+After setting up, restart your server and try sending a test email. Check server logs for detailed error messages.
 
 **Reference:** [Zoho Mail SMTP Configuration](https://www.zoho.com/mail/help/zoho-smtp.html)
 
@@ -75,36 +103,42 @@ After setting up environment variables, restart your server and try sending an e
 - Make sure EMAIL_USER and EMAIL_PASSWORD are set in your environment
 
 ### "Invalid login" or "Authentication failed" (Error 535)
-**For Zoho Mail specifically:**
-1. **Verify SMTP Access is Enabled:**
-   - Login to Zoho Mail web interface
-   - Go to Settings → Mail Accounts → Select your email
-   - Under "SMTP" section, ensure SMTP access is enabled
-   - Check "Save copy of sent emails" if needed
+**For Zoho Mail specifically - Follow these steps IN ORDER:**
 
-2. **Check Email Address Format:**
+1. **CRITICAL: Enable SMTP Access in Zoho Mail Settings:**
+   - Login to Zoho Mail web interface
+   - Go to **Settings** → **Mail Accounts** → Click your email address
+   - Scroll down to **SMTP** section
+   - **Check the "SMTP Access" checkbox** (this is often the main issue!)
+   - Click **Save**
+   - **Reference:** [Enable IMAP/SMTP Access](https://www.zoho.com/mail/help/imap-access.html#EnableIMAP)
+
+2. **Check if You Need Application-specific Password:**
+   - **If 2FA is enabled:** You MUST use Application-specific Password
+   - **If you use Federated Sign-In (Google/SAML):** You MUST use Application-specific Password
+   - **If you have regular password:** Try regular password first, then app password if it fails
+   - To generate: Zoho Account → Security → Application-specific Passwords → Generate for "Mail"
+
+3. **Verify Email Address Format:**
    - Ensure EMAIL_USER matches your Zoho account email exactly (case-sensitive)
    - For domain-based emails: Use the full email (e.g., `admissions@zohoschools.in`)
+   - No extra spaces before/after
 
-3. **Password Issues:**
-   - If 2FA is enabled: Use Application-specific Password (not regular password)
-   - If 2FA is NOT enabled: Try using your regular Zoho Mail password
+4. **Verify Password:**
    - Copy password exactly - no extra spaces before/after
-   - Generate a new Application-specific Password if unsure
+   - Password length should match what you see in Zoho
+   - If using app password, make sure it was generated for "Mail" or "SMTP"
 
-4. **SMTP Server:**
-   - For domain-based emails: Use `smtppro.zoho.com`
-   - If smtppro.zoho.com fails, try `smtp.zoho.com` as fallback
-   - The code will automatically try both servers
-
-5. **Port Configuration:**
-   - Try Port 587 with `EMAIL_SECURE=false` (TLS)
-   - If that fails, try Port 465 with `EMAIL_SECURE=true` (SSL)
+5. **SMTP Server Configuration:**
+   - For domain-based emails (like admissions@zohoschools.in): Use `smtppro.zoho.com`
+   - The code will automatically try both `smtppro.zoho.com` and `smtp.zoho.com`
+   - The code will automatically try both port 587 (TLS) and 465 (SSL)
 
 6. **Check Server Logs:**
-   - Look for "📧 SMTP Configuration" output
-   - Check which SMTP server was tried
+   - Look for "📧 Trying SMTP Configuration" output
+   - Check which SMTP server/port combinations were tried
    - Verify password length matches your actual password
+   - Look for specific error codes and messages
 
 **For Gmail:**
 - Make sure you're using an App Password, not your regular password
