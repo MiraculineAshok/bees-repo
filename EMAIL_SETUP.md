@@ -74,8 +74,40 @@ After setting up environment variables, restart your server and try sending an e
 ### "Email service not configured"
 - Make sure EMAIL_USER and EMAIL_PASSWORD are set in your environment
 
-### "Invalid login" or "Authentication failed"
-- For Gmail: Make sure you're using an App Password, not your regular password
+### "Invalid login" or "Authentication failed" (Error 535)
+**For Zoho Mail specifically:**
+1. **Verify SMTP Access is Enabled:**
+   - Login to Zoho Mail web interface
+   - Go to Settings → Mail Accounts → Select your email
+   - Under "SMTP" section, ensure SMTP access is enabled
+   - Check "Save copy of sent emails" if needed
+
+2. **Check Email Address Format:**
+   - Ensure EMAIL_USER matches your Zoho account email exactly (case-sensitive)
+   - For domain-based emails: Use the full email (e.g., `admissions@zohoschools.in`)
+
+3. **Password Issues:**
+   - If 2FA is enabled: Use Application-specific Password (not regular password)
+   - If 2FA is NOT enabled: Try using your regular Zoho Mail password
+   - Copy password exactly - no extra spaces before/after
+   - Generate a new Application-specific Password if unsure
+
+4. **SMTP Server:**
+   - For domain-based emails: Use `smtppro.zoho.com`
+   - If smtppro.zoho.com fails, try `smtp.zoho.com` as fallback
+   - The code will automatically try both servers
+
+5. **Port Configuration:**
+   - Try Port 587 with `EMAIL_SECURE=false` (TLS)
+   - If that fails, try Port 465 with `EMAIL_SECURE=true` (SSL)
+
+6. **Check Server Logs:**
+   - Look for "📧 SMTP Configuration" output
+   - Check which SMTP server was tried
+   - Verify password length matches your actual password
+
+**For Gmail:**
+- Make sure you're using an App Password, not your regular password
 - Check that 2-Step Verification is enabled
 - Verify the email and password are correct
 

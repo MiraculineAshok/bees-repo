@@ -2469,15 +2469,16 @@ app.post('/api/admin/send-email', async (req, res) => {
     // Try to use nodemailer if available
     let emailSent = false;
     let emailError = null;
+    let lastAttemptError = null;
     
     try {
       const nodemailer = require('nodemailer');
       
       // Check if email credentials are configured
-      const emailUser = process.env.EMAIL_USER;
-      const emailPassword = process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD;
+      const emailUser = process.env.EMAIL_USER ? process.env.EMAIL_USER.trim() : null;
+      const emailPassword = (process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD) ? (process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD).trim() : null;
       const emailService = process.env.EMAIL_SERVICE || 'gmail';
-      const emailHost = process.env.EMAIL_HOST;
+      const emailHost = process.env.EMAIL_HOST ? process.env.EMAIL_HOST.trim() : null;
       const emailPort = process.env.EMAIL_PORT ? parseInt(process.env.EMAIL_PORT) : null;
       const emailSecure = process.env.EMAIL_SECURE !== 'false'; // Default to true
       
@@ -2485,20 +2486,103 @@ app.post('/api/admin/send-email', async (req, res) => {
         throw new Error('Email service not configured. Please set EMAIL_USER and EMAIL_PASSWORD environment variables.');
       }
       
+      // Log configuration check (without sensitive data)
+      console.log('📧 Email configuration check:', {
+        emailUser: emailUser ? emailUser.substring(0, 3) + '***@' + emailUser.split('@')[1] : 'not set',
+        emailPasswordSet: !!emailPassword,
+        emailPasswordLength: emailPassword ? emailPassword.length : 0,
+        emailHost: emailHost || 'not set',
+        emailPort: emailPort || 'not set',
+        emailSecure: emailSecure
+      });
+      
       // Create transporter
       let transporterConfig;
       
+      let transporter = null;
+      
       if (emailHost) {
         // Custom SMTP configuration
-        transporterConfig = {
-          host: emailHost,
-          port: emailPort || 587,
-          secure: emailSecure,
-          auth: {
-            user: emailUser,
-            pass: emailPassword
+        // For Zoho Mail, ensure email address is used exactly as provided
+        const authUser = emailUser.trim();
+        const authPass = emailPassword.trim();
+        
+        // For Zoho Mail, try both smtppro.zoho.com and smtp.zoho.com if smtppro fails
+        const zohoServers = emailHost.includes('zoho') && emailHost.includes('smtppro') 
+          ? [emailHost, emailHost.replace('smtppro', 'smtp')] 
+          : [emailHost];
+        
+        let transporterError = null;
+        
+        // Try each SMTP server
+        for (const smtpHost of zohoServers) {
+          try {
+            transporterConfig = {
+              host: smtpHost,
+              port: emailPort || 587,
+              secure: emailSecure, // true for port 465 (SSL), false for port 587 (TLS)
+              auth: {
+                user: authUser, // Use full email address for Zoho
+                pass: authPass // Password
+              },
+              // TLS options for port 587
+              ...(emailPort === 587 || (!emailPort && !emailSecure) ? {
+                requireTLS: true,
+                tls: {
+                  rejectUnauthorized: false,
+                  minVersion: 'TLSv1.2'
+                }
+              } : {}),
+              // SSL options for port 465
+              ...(emailPort === 465 || emailSecure ? {
+                tls: {
+                  rejectUnauthorized: false
+                }
+              } : {}),
+              connectionTimeout: 10000,
+              greetingTimeout: 10000
+            };
+            
+            // Log configuration (without password) for debugging
+            console.log('📧 Trying SMTP Configuration:', {
+              host: smtpHost,
+              port: emailPort || 587,
+              secure: emailSecure,
+              user: authUser,
+              passwordLength: authPass.length,
+              requireTLS: !emailSecure
+            });
+            
+            transporter = nodemailer.createTransport(transporterConfig);
+            
+            // Verify transporter configuration
+            await transporter.verify();
+            console.log(`✅ Email transporter verified successfully with ${smtpHost}`);
+            break; // Success, exit loop
+            
+          } catch (verifyError) {
+            transporterError = verifyError;
+            console.error(`❌ Failed to verify with ${smtpHost}:`, verifyError.message);
+            if (smtpHost !== zohoServers[zohoServers.length - 1]) {
+              console.log(`🔄 Trying next SMTP server...`);
+              continue; // Try next server
+            }
           }
-        };
+        }
+        
+        if (!transporter) {
+          console.error('❌ All SMTP server attempts failed');
+          if (emailHost.includes('zoho')) {
+            console.log('💡 Zoho Mail troubleshooting tips:');
+            console.log('   1. Ensure EMAIL_USER matches your Zoho account email exactly');
+            console.log('   2. If using app password, make sure it was generated for "Mail" or "SMTP"');
+            console.log('   3. Try port 465 with EMAIL_SECURE=true');
+            console.log('   4. Check if SMTP access is enabled in Zoho Mail settings');
+            console.log('   5. Verify the password has no extra spaces or special characters');
+            console.log('   6. Try using smtp.zoho.com instead of smtppro.zoho.com');
+          }
+          throw transporterError || new Error('Failed to create email transporter');
+        }
       } else {
         // Use service-based configuration (Gmail, Outlook, etc.)
         transporterConfig = {
@@ -2508,13 +2592,22 @@ app.post('/api/admin/send-email', async (req, res) => {
             pass: emailPassword
           }
         };
+        
+        transporter = nodemailer.createTransport(transporterConfig);
+        
+        // Verify transporter configuration
+        try {
+          await transporter.verify();
+          console.log('✅ Email transporter verified successfully');
+        } catch (verifyError) {
+          console.error('❌ Email transporter verification failed:', verifyError);
+          throw verifyError;
+        }
       }
       
-      const transporter = nodemailer.createTransport(transporterConfig);
-      
-      // Verify transporter configuration
-      await transporter.verify();
-      console.log('✅ Email transporter verified successfully');
+      if (!transporter) {
+        throw new Error('Failed to create email transporter');
+      }
       
       // Send email
       const mailOptions = {
@@ -2546,7 +2639,7 @@ app.post('/api/admin/send-email', async (req, res) => {
       emailError = nodemailerError.message;
       console.error('❌ Error sending email:', nodemailerError);
       
-      // Log email details for debugging
+      // Log detailed error information for debugging
       console.log('📧 Email details (failed to send):', {
         from,
         to,
@@ -2555,8 +2648,18 @@ app.post('/api/admin/send-email', async (req, res) => {
         subject,
         messageLength: message.length,
         consolidation_id,
-        error: emailError
+        error: emailError,
+        errorCode: nodemailerError.code,
+        emailHost: emailHost || emailService,
+        emailPort: emailPort || (emailService === 'gmail' ? 587 : null),
+        emailSecure: emailSecure,
+        emailUser: emailUser ? emailUser.substring(0, 3) + '***' : 'not set' // Partially mask email for security
       });
+      
+      // Provide helpful error messages for common issues
+      if (emailError.includes('535') || emailError.includes('Authentication Failed') || emailError.includes('Invalid login')) {
+        emailError = 'Authentication failed. Please verify: 1) Email address and password are correct, 2) If 2FA is enabled on your Zoho account, you must use an Application-specific Password instead of your regular password, 3) Email address matches your Zoho account exactly.';
+      }
     }
     
     if (emailSent) {
