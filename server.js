@@ -2510,26 +2510,47 @@ app.post('/api/admin/send-email', async (req, res) => {
         const authUser = emailUser.trim();
         const authPass = emailPassword.trim();
         
-        // For Zoho Mail, try both smtppro.zoho.com and smtp.zoho.com if smtppro fails
-        const zohoServers = emailHost.includes('zoho') && emailHost.includes('smtppro') 
-          ? [emailHost, emailHost.replace('smtppro', 'smtp')] 
-          : [emailHost];
+        // For Zoho Mail, try multiple server/port combinations
+        const isZoho = emailHost.includes('zoho');
+        let serversToTry = [];
+        
+        if (isZoho) {
+          // For Zoho, try both smtppro.zoho.com and smtp.zoho.com
+          // Also try both port 587 (TLS) and 465 (SSL)
+          const zohoServers = emailHost.includes('smtppro') 
+            ? ['smtppro.zoho.com', 'smtp.zoho.com']
+            : ['smtp.zoho.com', 'smtppro.zoho.com'];
+          
+          // Try each server with both ports
+          for (const server of zohoServers) {
+            serversToTry.push({ host: server, port: 587, secure: false }); // TLS
+            serversToTry.push({ host: server, port: 465, secure: true }); // SSL
+          }
+        } else {
+          // For non-Zoho, use configured host and port
+          serversToTry.push({
+            host: emailHost,
+            port: emailPort || 587,
+            secure: emailSecure
+          });
+        }
         
         let transporterError = null;
+        let lastError = null;
         
-        // Try each SMTP server
-        for (const smtpHost of zohoServers) {
+        // Try each SMTP server/port combination
+        for (const config of serversToTry) {
           try {
             transporterConfig = {
-              host: smtpHost,
-              port: emailPort || 587,
-              secure: emailSecure, // true for port 465 (SSL), false for port 587 (TLS)
+              host: config.host,
+              port: config.port,
+              secure: config.secure,
               auth: {
-                user: authUser, // Use full email address for Zoho
-                pass: authPass // Password
+                user: authUser,
+                pass: authPass
               },
               // TLS options for port 587
-              ...(emailPort === 587 || (!emailPort && !emailSecure) ? {
+              ...(config.port === 587 ? {
                 requireTLS: true,
                 tls: {
                   rejectUnauthorized: false,
@@ -2537,54 +2558,55 @@ app.post('/api/admin/send-email', async (req, res) => {
                 }
               } : {}),
               // SSL options for port 465
-              ...(emailPort === 465 || emailSecure ? {
+              ...(config.port === 465 ? {
                 tls: {
                   rejectUnauthorized: false
                 }
               } : {}),
-              connectionTimeout: 10000,
-              greetingTimeout: 10000
+              connectionTimeout: 15000,
+              greetingTimeout: 15000
             };
             
             // Log configuration (without password) for debugging
             console.log('📧 Trying SMTP Configuration:', {
-              host: smtpHost,
-              port: emailPort || 587,
-              secure: emailSecure,
+              host: config.host,
+              port: config.port,
+              secure: config.secure,
               user: authUser,
               passwordLength: authPass.length,
-              requireTLS: !emailSecure
+              protocol: config.port === 465 ? 'SSL' : 'TLS'
             });
             
             transporter = nodemailer.createTransport(transporterConfig);
             
             // Verify transporter configuration
             await transporter.verify();
-            console.log(`✅ Email transporter verified successfully with ${smtpHost}`);
+            console.log(`✅ Email transporter verified successfully with ${config.host}:${config.port} (${config.port === 465 ? 'SSL' : 'TLS'})`);
             break; // Success, exit loop
             
           } catch (verifyError) {
+            lastError = verifyError;
             transporterError = verifyError;
-            console.error(`❌ Failed to verify with ${smtpHost}:`, verifyError.message);
-            if (smtpHost !== zohoServers[zohoServers.length - 1]) {
-              console.log(`🔄 Trying next SMTP server...`);
-              continue; // Try next server
-            }
+            console.error(`❌ Failed to verify with ${config.host}:${config.port} (${config.port === 465 ? 'SSL' : 'TLS'}):`, verifyError.message);
+            console.error(`   Error code: ${verifyError.code || 'N/A'}, Command: ${verifyError.command || 'N/A'}`);
+            
+            // Continue to next configuration
+            continue;
           }
         }
         
         if (!transporter) {
-          console.error('❌ All SMTP server attempts failed');
-          if (emailHost.includes('zoho')) {
+          console.error('❌ All SMTP server/port combinations failed');
+          if (isZoho) {
             console.log('💡 Zoho Mail troubleshooting tips:');
-            console.log('   1. Ensure EMAIL_USER matches your Zoho account email exactly');
-            console.log('   2. If using app password, make sure it was generated for "Mail" or "SMTP"');
-            console.log('   3. Try port 465 with EMAIL_SECURE=true');
-            console.log('   4. Check if SMTP access is enabled in Zoho Mail settings');
-            console.log('   5. Verify the password has no extra spaces or special characters');
-            console.log('   6. Try using smtp.zoho.com instead of smtppro.zoho.com');
+            console.log('   1. Verify EMAIL_USER=' + authUser + ' matches your Zoho account email exactly');
+            console.log('   2. Verify EMAIL_PASSWORD is correct (length: ' + authPass.length + ' characters)');
+            console.log('   3. If 2FA is enabled, use an Application-specific Password');
+            console.log('   4. Check Zoho Mail Settings → Mail Accounts → SMTP Access is enabled');
+            console.log('   5. Try logging into Zoho Mail web interface to verify credentials');
+            console.log('   6. Last error:', lastError ? lastError.message : 'Unknown');
           }
-          throw transporterError || new Error('Failed to create email transporter');
+          throw transporterError || new Error('Failed to create email transporter after trying all SMTP server/port combinations');
         }
       } else {
         // Use service-based configuration (Gmail, Outlook, etc.)
