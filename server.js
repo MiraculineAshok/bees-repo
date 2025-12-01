@@ -2519,13 +2519,15 @@ app.post('/api/admin/send-email', async (req, res) => {
     if (!emailRegex.test(from)) {
       return res.status(400).json({ success: false, error: 'Invalid sender email address' });
     }
-    if (!emailRegex.test(to)) {
-      return res.status(400).json({ success: false, error: 'Invalid receiver email address' });
-    }
     
-    // Parse CC and BCC (comma-separated)
+    // Parse To, CC, and BCC (comma-separated)
+    const toArray = to ? to.split(',').map(e => e.trim()).filter(e => e && emailRegex.test(e)) : [];
     const ccArray = cc ? cc.split(',').map(e => e.trim()).filter(e => e && emailRegex.test(e)) : [];
     const bccArray = bcc ? bcc.split(',').map(e => e.trim()).filter(e => e && emailRegex.test(e)) : [];
+    
+    if (toArray.length === 0) {
+      return res.status(400).json({ success: false, error: 'At least one valid receiver email address is required' });
+    }
     
     // Try to use nodemailer if available
     let emailSent = false;
@@ -2756,7 +2758,7 @@ app.post('/api/admin/send-email', async (req, res) => {
       // Send email
       const mailOptions = {
         from: `"${process.env.EMAIL_FROM_NAME || 'BEES Interview Platform'}" <${from}>`,
-        to: to,
+        to: toArray.join(', '),
         subject: subject,
         text: message,
         html: message.replace(/\n/g, '<br>') // Convert newlines to HTML breaks
