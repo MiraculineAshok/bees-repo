@@ -2471,17 +2471,20 @@ app.post('/api/admin/send-email', async (req, res) => {
     let emailError = null;
     let lastAttemptError = null;
     
+    // Declare variables outside try-catch so they're accessible in catch block
+    const emailUser = process.env.EMAIL_USER ? process.env.EMAIL_USER.trim() : null;
+    const emailPassword = (process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD) ? (process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD).trim() : null;
+    const emailService = process.env.EMAIL_SERVICE || 'gmail';
+    const emailHost = process.env.EMAIL_HOST ? process.env.EMAIL_HOST.trim() : null;
+    const emailPort = process.env.EMAIL_PORT ? parseInt(process.env.EMAIL_PORT) : null;
+    const emailSecure = process.env.EMAIL_SECURE !== 'false'; // Default to true
+    
     try {
       const nodemailer = require('nodemailer');
       
       // Check if email credentials are configured
-      const emailUser = process.env.EMAIL_USER ? process.env.EMAIL_USER.trim() : null;
-      const emailPassword = (process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD) ? (process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD).trim() : null;
-      const emailService = process.env.EMAIL_SERVICE || 'gmail';
-      const emailHost = process.env.EMAIL_HOST ? process.env.EMAIL_HOST.trim() : null;
-      const emailPort = process.env.EMAIL_PORT ? parseInt(process.env.EMAIL_PORT) : null;
-      const emailSecure = process.env.EMAIL_SECURE !== 'false'; // Default to true
       
+      // Check if email credentials are configured
       if (!emailUser || !emailPassword) {
         throw new Error('Email service not configured. Please set EMAIL_USER and EMAIL_PASSWORD environment variables.');
       }
