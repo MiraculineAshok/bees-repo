@@ -13587,6 +13587,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         
         // Send Mail Functions
         let currentConsolidationId = null;
+        let sendMailQuill = null;
         
         async function openSendMailPopup(consolidationId) {
             currentConsolidationId = consolidationId;
@@ -13616,10 +13617,21 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     console.warn('Could not fetch session creator email:', e);
                 }
                 
-                // Prefill form
-                document.getElementById('send-mail-from').value = senderEmail;
-                // Prefill receiver with student email
-                document.getElementById('send-mail-to').value = item.student_email || '';
+                // Prefill form - check if elements exist
+                const fromEl = document.getElementById('send-mail-from');
+                const toEl = document.getElementById('send-mail-to');
+                const ccEl = document.getElementById('send-mail-cc');
+                const bccEl = document.getElementById('send-mail-bcc');
+                const subjectEl = document.getElementById('send-mail-subject');
+                const overlayEl = document.getElementById('send-mail-overlay');
+                
+                if (!fromEl || !toEl || !subjectEl || !overlayEl) {
+                    throw new Error('Send mail form elements not found. Please refresh the page.');
+                }
+                
+                fromEl.value = senderEmail || 'admissions@zohoschools.in';
+                toEl.value = item.student_email || '';
+                
                 // Show student name next to receiver label
                 const studentNameEl = document.getElementById('send-mail-student-name');
                 if (studentNameEl && item.student_name) {
@@ -13627,40 +13639,56 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 } else if (studentNameEl) {
                     studentNameEl.textContent = '';
                 }
-                document.getElementById('send-mail-cc').value = '';
-                document.getElementById('send-mail-bcc').value = '';
-                document.getElementById('send-mail-subject').value = '';
                 
-                // Initialize Quill editor if not already initialized
-                const editorContainer = document.getElementById('send-mail-message-editor');
-                if (editorContainer && !sendMailQuill) {
-                    sendMailQuill = new Quill('#send-mail-message-editor', {
-                        theme: 'snow',
-                        modules: {
-                            toolbar: [
-                                [{ 'header': [1, 2, 3, false] }],
-                                ['bold', 'italic', 'underline', 'strike'],
-                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                                [{ 'align': [] }],
-                                ['link', 'image'],
-                                ['clean']
-                            ]
-                        },
-                        placeholder: 'Compose your message...'
-                    });
-                } else if (sendMailQuill) {
-                    // Clear editor content
-                    sendMailQuill.setContents([]);
-                }
+                if (ccEl) ccEl.value = '';
+                if (bccEl) bccEl.value = '';
+                subjectEl.value = '';
                 
                 // Load templates dropdown
                 await loadEmailTemplatesForSend();
                 
-                // Show popup
-                document.getElementById('send-mail-overlay').style.display = 'block';
+                // Show popup first so the editor container exists
+                overlayEl.style.display = 'block';
+                
+                // Initialize Quill editor if not already initialized (after popup is shown)
+                setTimeout(() => {
+                    const editorContainer = document.getElementById('send-mail-message-editor');
+                    if (editorContainer && !sendMailQuill) {
+                        try {
+                            if (typeof Quill !== 'undefined') {
+                                sendMailQuill = new Quill('#send-mail-message-editor', {
+                                    theme: 'snow',
+                                    modules: {
+                                        toolbar: [
+                                            [{ 'header': [1, 2, 3, false] }],
+                                            ['bold', 'italic', 'underline', 'strike'],
+                                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                            [{ 'align': [] }],
+                                            ['link', 'image'],
+                                            ['clean']
+                                        ]
+                                    },
+                                    placeholder: 'Compose your message...'
+                                });
+                            } else {
+                                console.error('Quill.js is not loaded');
+                                throw new Error('Quill.js library not found');
+                            }
+                        } catch (quillError) {
+                            console.error('Error initializing Quill editor:', quillError);
+                            // Fallback: create a simple textarea if Quill fails
+                            if (editorContainer && !sendMailQuill) {
+                                editorContainer.innerHTML = '<textarea id="send-mail-message-fallback" style="width:100%;min-height:300px;padding:8px;border:1px solid #d1d5db;border-radius:4px;font-size:14px;font-family:inherit" placeholder="Compose your message..."></textarea>';
+                            }
+                        }
+                    } else if (sendMailQuill) {
+                        // Clear editor content
+                        sendMailQuill.setContents([]);
+                    }
+                }, 100);
             } catch (e) {
                 console.error('Error opening send mail popup:', e);
-                showError('Failed to open send mail popup');
+                showError('Failed to open send mail popup: ' + (e.message || e.toString()));
             }
         }
         
@@ -13698,6 +13726,12 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 document.getElementById('send-mail-subject').value = selectedOption.dataset.subject || '';
                 if (sendMailQuill) {
                     sendMailQuill.root.innerHTML = selectedOption.dataset.body || '';
+                } else {
+                    // Fallback for textarea
+                    const fallback = document.getElementById('send-mail-message-fallback');
+                    if (fallback) {
+                        fallback.value = selectedOption.dataset.body || '';
+                    }
                 }
             }
         }
@@ -13719,7 +13753,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 const bcc = document.getElementById('send-mail-bcc').value.trim();
                 const subject = document.getElementById('send-mail-subject').value.trim();
                 
-                // Get message from Quill editor
+                // Get message from Quill editor or fallback textarea
                 let message = '';
                 if (sendMailQuill) {
                     const htmlContent = sendMailQuill.root.innerHTML;
@@ -13727,6 +13761,12 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     const tempDiv = document.createElement('div');
                     tempDiv.innerHTML = htmlContent;
                     message = tempDiv.textContent || tempDiv.innerText || '';
+                } else {
+                    // Fallback for textarea
+                    const fallback = document.getElementById('send-mail-message-fallback');
+                    if (fallback) {
+                        message = fallback.value || '';
+                    }
                 }
                 
                 if (!from || !to || !subject || !message.trim()) {
@@ -13938,6 +13978,17 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 const range = sendMailQuill.getSelection(true);
                 sendMailQuill.insertText(range.index, code, 'user');
                 sendMailQuill.setSelection(range.index + code.length, 'user');
+            } else {
+                // Fallback for textarea
+                const fallback = document.getElementById('send-mail-message-fallback');
+                if (fallback) {
+                    const start = fallback.selectionStart;
+                    const end = fallback.selectionEnd;
+                    const text = fallback.value;
+                    fallback.value = text.substring(0, start) + code + text.substring(end);
+                    fallback.selectionStart = fallback.selectionEnd = start + code.length;
+                    fallback.focus();
+                }
             }
             closeReferenceFields();
         }
