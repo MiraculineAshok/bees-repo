@@ -591,7 +591,7 @@ async function initializeDatabase() {
         message TEXT NOT NULL,
         status VARCHAR(20) NOT NULL DEFAULT 'drafted',
         error_message TEXT,
-        consolidation_id INTEGER REFERENCES consolidation(id) ON DELETE SET NULL,
+        consolidation_id INTEGER REFERENCES interview_consolidation(id) ON DELETE SET NULL,
         sent_by INTEGER REFERENCES authorized_users(id) ON DELETE SET NULL,
         sent_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

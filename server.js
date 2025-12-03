@@ -2903,7 +2903,7 @@ app.get('/api/admin/email-logs', async (req, res) => {
         c.zeta_id
       FROM email_logs el
       LEFT JOIN authorized_users au ON el.sent_by = au.id
-      LEFT JOIN consolidation c ON el.consolidation_id = c.id
+      LEFT JOIN interview_consolidation c ON el.consolidation_id = c.id
     `;
     
     const params = [];
