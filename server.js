@@ -2508,7 +2508,7 @@ app.post('/api/admin/test-smtp', async (req, res) => {
 // Send Email API
 app.post('/api/admin/send-email', async (req, res) => {
   try {
-    const { from, to, cc, bcc, subject, message, consolidation_id, status } = req.body;
+    const { from, to, cc, bcc, subject, message, consolidation_id, status, draft_id } = req.body;
     
     if (!from || !to || !subject || !message) {
       return res.status(400).json({ success: false, error: 'From, to, subject, and message are required' });
@@ -2519,28 +2519,57 @@ app.post('/api/admin/send-email', async (req, res) => {
     
     // Store email log (if status is 'drafted', save as drafted; otherwise will update after sending)
     let emailLogId = null;
-    const emailStatus = status || 'drafted';
+    const emailStatus = status || (draft_id ? undefined : 'drafted'); // Don't set status if sending from draft
     
-    try {
-      const logResult = await pool.query(`
-        INSERT INTO email_logs (from_email, to_emails, cc_emails, bcc_emails, subject, message, status, consolidation_id, sent_by)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-        RETURNING id
-      `, [
-        from,
-        to || '',
-        cc || null,
-        bcc || null,
-        subject,
-        message,
-        emailStatus,
-        consolidation_id || null,
-        userId
-      ]);
-      emailLogId = logResult.rows[0].id;
-    } catch (logError) {
-      console.error('⚠️ Failed to create email log:', logError);
-      // Continue with email sending even if logging fails
+    // If draft_id is provided, use it (will be updated to 'sent' after successful send)
+    if (draft_id) {
+      emailLogId = draft_id;
+    } else if (emailStatus === 'drafted') {
+      // Create new draft log entry
+      try {
+        const logResult = await pool.query(`
+          INSERT INTO email_logs (from_email, to_emails, cc_emails, bcc_emails, subject, message, status, consolidation_id, sent_by)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          RETURNING id
+        `, [
+          from,
+          to || '',
+          cc || null,
+          bcc || null,
+          subject,
+          message,
+          'drafted',
+          consolidation_id || null,
+          userId
+        ]);
+        emailLogId = logResult.rows[0].id;
+      } catch (logError) {
+        console.error('⚠️ Failed to create email log:', logError);
+        // Continue with email sending even if logging fails
+      }
+    } else {
+      // Create new log entry for sending (will be updated to 'sent' after successful send)
+      try {
+        const logResult = await pool.query(`
+          INSERT INTO email_logs (from_email, to_emails, cc_emails, bcc_emails, subject, message, status, consolidation_id, sent_by)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          RETURNING id
+        `, [
+          from,
+          to || '',
+          cc || null,
+          bcc || null,
+          subject,
+          message,
+          'drafted', // Will be updated to 'sent' after successful send
+          consolidation_id || null,
+          userId
+        ]);
+        emailLogId = logResult.rows[0].id;
+      } catch (logError) {
+        console.error('⚠️ Failed to create email log:', logError);
+        // Continue with email sending even if logging fails
+      }
     }
     
     // Validate email addresses
@@ -2810,14 +2839,16 @@ app.post('/api/admin/send-email', async (req, res) => {
         response: info.response
       });
       
-      // Update email log to 'sent' status
+      // Update email log to 'sent' status (this will update draft if draft_id was provided)
       if (emailLogId) {
         try {
           await pool.query(`
             UPDATE email_logs 
-            SET status = 'sent', sent_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+            SET status = 'sent', sent_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP,
+                from_email = $2, to_emails = $3, cc_emails = $4, bcc_emails = $5,
+                subject = $6, message = $7
             WHERE id = $1
-          `, [emailLogId]);
+          `, [emailLogId, from, to || '', cc || null, bcc || null, subject, message]);
         } catch (logError) {
           console.error('⚠️ Failed to update email log:', logError);
         }
@@ -2922,6 +2953,39 @@ app.get('/api/admin/email-logs', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching email logs:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get single email log by ID
+app.get('/api/admin/email-logs/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await pool.query(`
+      SELECT 
+        el.*,
+        au.email as sent_by_email,
+        au.name as sent_by_name,
+        c.student_name,
+        c.student_email,
+        c.zeta_id
+      FROM email_logs el
+      LEFT JOIN authorized_users au ON el.sent_by = au.id
+      LEFT JOIN interview_consolidation c ON el.consolidation_id = c.id
+      WHERE el.id = $1
+    `, [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Email log not found' });
+    }
+    
+    res.json({
+      success: true,
+      data: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error fetching email log:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -3056,7 +3120,7 @@ app.post('/api/generate-ai-question', async (req, res) => {
 
         // Create prompt for OpenAI
         const prompt = `Generate an ${interviewType} question based on the following requirements:
-
+        
 Tags: ${tags.join(', ')}
 Difficulty: ${difficulty || 'intermediate'}
 
@@ -3783,9 +3847,9 @@ app.post('/api/admin/students/bulk-import/text', async (req, res) => {
           
           if (mappingCheck.rows.length > 0) {
             // Mapping already exists - skip
-            skipped++;
+          skipped++;
             console.log(`Skipped duplicate phone + session: ${phone} -> session ${session_id}`);
-            continue;
+          continue;
           } else {
             // Add new session mapping for existing student
             await pool.query(
@@ -3826,7 +3890,7 @@ app.post('/api/admin/students/bulk-import/text', async (req, res) => {
           
           // Insert student and create session mapping
           const result = await pool.query(
-            `INSERT INTO students (first_name, last_name, email, zeta_id, phone, school, location)
+          `INSERT INTO students (first_name, last_name, email, zeta_id, phone, school, location)
              VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
             [name.split(' ')[0]||name, name.split(' ').slice(1).join(' ')||'', email||null, finalZetaId, phone, school||null, location||null]
           );
@@ -3836,8 +3900,8 @@ app.post('/api/admin/students/bulk-import/text', async (req, res) => {
           await pool.query(
             `INSERT INTO student_sessions (student_id, session_id) VALUES ($1, $2)`,
             [studentId, session_id]
-          );
-          inserted++;
+        );
+        inserted++;
         }
       } catch (err) {
         console.error(`Error processing student:`, err);
@@ -3912,9 +3976,9 @@ app.post('/api/admin/students/bulk-import/file', (req, res, next) => {
     console.log(`📤 Received file upload: ${req.file.originalname}, size: ${req.file.size} bytes`);
     
     try {
-      if (name.endsWith('.csv')) {
+    if (name.endsWith('.csv')) {
         // CSV parsing (utf-8, handles quoted fields)
-        const text = buf.toString('utf8');
+      const text = buf.toString('utf8');
         const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
         
         console.log(`📄 Parsing CSV file: ${lines.length} lines found`);
@@ -3957,16 +4021,16 @@ app.post('/api/admin/students/bulk-import/file', (req, res, next) => {
         });
         
         console.log(`✅ Parsed ${rows.length} rows from CSV`);
-      } else if (name.endsWith('.xls') || name.endsWith('.xlsx')) {
-        // XLS/XLSX via optional dependency
-        let xlsx = null;
-        try { xlsx = require('xlsx'); } catch { return res.status(400).json({ success:false, error: 'XLS/XLSX not supported on server (xlsx not installed)' }); }
-        const wb = xlsx.read(buf, { type: 'buffer' });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const json = xlsx.utils.sheet_to_json(ws, { header: 1 });
-        rows = json.filter(r=>Array.isArray(r) && r.length>0);
-      } else {
-        return res.status(400).json({ success: false, error: 'Unsupported file type' });
+    } else if (name.endsWith('.xls') || name.endsWith('.xlsx')) {
+      // XLS/XLSX via optional dependency
+      let xlsx = null;
+      try { xlsx = require('xlsx'); } catch { return res.status(400).json({ success:false, error: 'XLS/XLSX not supported on server (xlsx not installed)' }); }
+      const wb = xlsx.read(buf, { type: 'buffer' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const json = xlsx.utils.sheet_to_json(ws, { header: 1 });
+      rows = json.filter(r=>Array.isArray(r) && r.length>0);
+    } else {
+      return res.status(400).json({ success: false, error: 'Unsupported file type' });
       }
     } catch (parseError) {
       console.error('❌ Error parsing file:', parseError);
@@ -4036,7 +4100,7 @@ app.post('/api/admin/students/bulk-import/file', (req, res, next) => {
           
           if (mappingCheck.rows.length > 0) {
             // Mapping already exists - skip
-            skipped++;
+          skipped++;
             console.log(`Skipped duplicate phone + session: ${cleanPhone} -> session ${session_id}`);
             rowNumber++;
             continue;
@@ -4049,8 +4113,8 @@ app.post('/api/admin/students/bulk-import/file', (req, res, next) => {
             updated++;
             console.log(`Added session mapping for existing student: ${cleanPhone} -> session ${session_id}`);
             rowNumber++;
-            continue;
-          }
+          continue;
+        }
         } else {
           // New student - auto-generate ZETA ID if not provided
           let finalZetaId = cleanZeta;
@@ -4091,14 +4155,14 @@ app.post('/api/admin/students/bulk-import/file', (req, res, next) => {
           
           // Insert student and create session mapping
           const result = await pool.query(
-            `INSERT INTO students (first_name, last_name, email, zeta_id, phone, school, location)
+          `INSERT INTO students (first_name, last_name, email, zeta_id, phone, school, location)
              VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
             [
               cleanName.split(' ')[0]||cleanName, 
               cleanName.split(' ').slice(1).join(' ')||'', 
               cleanEmail||null, 
               finalZetaId, 
-              cleanPhone, 
+            cleanPhone, 
               cleanSchool||null, 
               cleanLocation||null
             ]
@@ -4110,7 +4174,7 @@ app.post('/api/admin/students/bulk-import/file', (req, res, next) => {
             `INSERT INTO student_sessions (student_id, session_id) VALUES ($1, $2)`,
             [studentId, session_id]
           );
-          inserted++;
+        inserted++;
           rowNumber++;
         }
       } catch (err) {

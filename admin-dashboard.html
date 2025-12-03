@@ -2937,8 +2937,8 @@
                                 <button type="submit" form="send-mail-form" style="background:#3b82f6;color:#fff;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-weight:500;display:flex;align-items:center;gap:6px;font-size:14px">
                                     <span>✈</span> Send
                                 </button>
-                                <button type="button" style="background:transparent;color:#6b7280;border:1px solid #d1d5db;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:6px">
-                                    <span>🕐</span> Send Later
+                                <button type="button" id="save-draft-btn" onclick="saveEmailAsDraft()" style="background:transparent;color:#6b7280;border:1px solid #d1d5db;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:6px">
+                                    <span>💾</span> Save as Draft
                                 </button>
                                 <select id="send-mail-template" onchange="loadEmailTemplate()" style="background:#fff;border:1px solid #d1d5db;color:#111827;padding:6px 12px;border-radius:6px;font-size:13px;outline:none;cursor:pointer;min-width:200px">
                                     <option value="">Select a template...</option>
@@ -13350,6 +13350,13 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                             <div style="padding:12px;background:#f9fafb;border-radius:4px;max-height:200px;overflow-y:auto">
                                 <div style="font-size:14px;color:#374151;line-height:1.6">${log.message || ''}</div>
                             </div>
+                            ${status === 'drafted' ? `
+                                <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
+                                    <button onclick="openSendMailFromDraft(${log.id})" class="btn btn-primary" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:14px">
+                                        <span>✈</span> Send Mail
+                                    </button>
+                                </div>
+                            ` : ''}
                         </div>
                     `;
                 }).join('');
@@ -13921,6 +13928,225 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         function closeSendMailPopup() {
             document.getElementById('send-mail-overlay').style.display = 'none';
             currentConsolidationId = null;
+            window.currentDraftId = null; // Clear draft ID when closing
+        }
+        
+        // Open send mail popup from draft
+        async function openSendMailFromDraft(draftId) {
+            try {
+                const response = await fetch(`/api/admin/email-logs/${draftId}`);
+                const result = await response.json();
+                
+                if (!response.ok || !result.success) {
+                    throw new Error(result.error || 'Failed to load draft');
+                }
+                
+                const draft = result.data;
+                
+                // Set draft ID so we can update it when sending
+                window.currentDraftId = draftId;
+                
+                // Prefill form fields
+                const fromEl = document.getElementById('send-mail-from');
+                const subjectEl = document.getElementById('send-mail-subject');
+                
+                if (fromEl) fromEl.value = draft.from_email || '';
+                if (subjectEl) subjectEl.value = draft.subject || '';
+                
+                // Clear and populate email tags
+                clearEmailTags('to');
+                clearEmailTags('cc');
+                clearEmailTags('bcc');
+                
+                if (draft.to_emails) {
+                    draft.to_emails.split(',').forEach(email => {
+                        const trimmed = email.trim();
+                        if (trimmed && isValidEmail(trimmed)) {
+                            addEmailTag('to', trimmed);
+                        }
+                    });
+                }
+                
+                if (draft.cc_emails) {
+                    draft.cc_emails.split(',').forEach(email => {
+                        const trimmed = email.trim();
+                        if (trimmed && isValidEmail(trimmed)) {
+                            addEmailTag('cc', trimmed);
+                        }
+                    });
+                }
+                
+                if (draft.bcc_emails) {
+                    draft.bcc_emails.split(',').forEach(email => {
+                        const trimmed = email.trim();
+                        if (trimmed && isValidEmail(trimmed)) {
+                            addEmailTag('bcc', trimmed);
+                        }
+                    });
+                }
+                
+                // Set message in Quill editor
+                if (sendMailQuill) {
+                    sendMailQuill.root.innerHTML = draft.message || '';
+                } else {
+                    // Initialize Quill if not already initialized
+                    setTimeout(() => {
+                        const editorContainer = document.getElementById('send-mail-message-editor');
+                        if (editorContainer && typeof Quill !== 'undefined') {
+                            if (!sendMailQuill) {
+                                sendMailQuill = new Quill('#send-mail-message-editor', {
+                                    theme: 'snow',
+                                    modules: {
+                                        toolbar: [
+                                            [{ 'header': [1, 2, 3, false] }],
+                                            ['bold', 'italic', 'underline', 'strike'],
+                                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                            [{ 'align': [] }],
+                                            ['link', 'image'],
+                                            [{ 'color': [] }, { 'background': [] }],
+                                            ['clean']
+                                        ]
+                                    }
+                                });
+                            }
+                            sendMailQuill.root.innerHTML = draft.message || '';
+                        }
+                    }, 100);
+                }
+                
+                // Set consolidation ID if available
+                if (draft.consolidation_id) {
+                    currentConsolidationId = draft.consolidation_id;
+                }
+                
+                // Show popup
+                document.getElementById('send-mail-overlay').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error loading draft:', error);
+                showError(error.message || 'Failed to load draft');
+            }
+        }
+        
+        // Save email as draft
+        async function saveEmailAsDraft() {
+            try {
+                const from = document.getElementById('send-mail-from').value.trim();
+                
+                // Process any remaining input values into tags first
+                addEmailFromInput('to');
+                addEmailFromInput('cc');
+                addEmailFromInput('bcc');
+                
+                // Get emails from tags
+                let toEmails = getEmailsFromTags('to');
+                let ccEmails = getEmailsFromTags('cc');
+                let bccEmails = getEmailsFromTags('bcc');
+                
+                // Also check input fields
+                const toInput = document.getElementById('send-mail-to').value.trim();
+                const ccInput = document.getElementById('send-mail-cc').value.trim();
+                const bccInput = document.getElementById('send-mail-bcc').value.trim();
+                
+                if (toInput) {
+                    const emails = toInput.split(',').map(e => e.trim()).filter(e => e && isValidEmail(e));
+                    emails.forEach(email => {
+                        if (!toEmails.includes(email)) {
+                            toEmails.push(email);
+                        }
+                    });
+                }
+                if (ccInput) {
+                    const emails = ccInput.split(',').map(e => e.trim()).filter(e => e && isValidEmail(e));
+                    emails.forEach(email => {
+                        if (!ccEmails.includes(email)) {
+                            ccEmails.push(email);
+                        }
+                    });
+                }
+                if (bccInput) {
+                    const emails = bccInput.split(',').map(e => e.trim()).filter(e => e && isValidEmail(e));
+                    emails.forEach(email => {
+                        if (!bccEmails.includes(email)) {
+                            bccEmails.push(email);
+                        }
+                    });
+                }
+                
+                const subject = document.getElementById('send-mail-subject').value.trim();
+                
+                // Get message from Quill editor
+                let message = '';
+                if (sendMailQuill) {
+                    message = sendMailQuill.root.innerHTML.trim();
+                } else {
+                    const fallback = document.getElementById('send-mail-message-fallback');
+                    if (fallback) {
+                        message = fallback.value || '';
+                    }
+                }
+                
+                if (!from || toEmails.length === 0 || !subject || !message) {
+                    showError('Please fill in From, To, Subject, and Message fields');
+                    return;
+                }
+                
+                const draftData = {
+                    from,
+                    to: toEmails.join(', '),
+                    cc: ccEmails.length > 0 ? ccEmails.join(', ') : undefined,
+                    bcc: bccEmails.length > 0 ? bccEmails.join(', ') : undefined,
+                    subject,
+                    message,
+                    status: 'drafted',
+                    consolidation_id: currentConsolidationId || undefined
+                };
+                
+                // If updating existing draft
+                if (window.currentDraftId) {
+                    const response = await fetch(`/api/admin/email-logs/${window.currentDraftId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            status: 'drafted',
+                            subject: draftData.subject,
+                            message: draftData.message,
+                            to: draftData.to,
+                            cc: draftData.cc,
+                            bcc: draftData.bcc
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    if (!response.ok || !result.success) {
+                        throw new Error(result.error || 'Failed to update draft');
+                    }
+                } else {
+                    // Create new draft
+                    const response = await fetch('/api/admin/send-email', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(draftData)
+                    });
+                    
+                    const result = await response.json();
+                    if (!response.ok || !result.success) {
+                        throw new Error(result.error || 'Failed to save draft');
+                    }
+                }
+                
+                showSuccess('Draft saved successfully');
+                closeSendMailPopup();
+                
+                // Reload drafts if on drafted tab
+                if (currentEmailLogTab === 'drafted') {
+                    await loadEmailLogs('drafted');
+                }
+                
+            } catch (error) {
+                console.error('Error saving draft:', error);
+                showError(error.message || 'Failed to save draft');
+            }
         }
         
         async function loadEmailTemplatesForSend() {
@@ -14197,18 +14423,25 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     const replacedMessage = consolidationData ? replaceVariables(message, consolidationData) : message;
                     const replacedSubject = consolidationData ? replaceVariables(subject, consolidationData) : subject;
                     
+                    const emailPayload = {
+                        from,
+                        to,
+                        cc: cc || undefined,
+                        bcc: bcc || undefined,
+                        subject: replacedSubject,
+                        message: replacedMessage,
+                        consolidation_id: currentConsolidationId || undefined
+                    };
+                    
+                    // If sending from a draft, include draft_id to update it
+                    if (window.currentDraftId) {
+                        emailPayload.draft_id = window.currentDraftId;
+                    }
+                    
                     const res = await fetch('/api/admin/send-email', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            from,
-                            to,
-                            cc: cc || undefined,
-                            bcc: bcc || undefined,
-                            subject: replacedSubject,
-                            message: replacedMessage,
-                            consolidation_id: currentConsolidationId
-                        })
+                        body: JSON.stringify(emailPayload)
                     });
                     
                     const json = await res.json();
@@ -14216,6 +14449,12 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     
                     showSuccess('Email sent successfully');
                     closeSendMailPopup();
+                    
+                    // Reload drafts if we sent from a draft
+                    if (window.currentDraftId && currentEmailLogTab === 'drafted') {
+                        await loadEmailLogs('drafted');
+                    }
+                    window.currentDraftId = null; // Clear draft ID
                 }
             } catch (e) {
                 console.error('Error sending email:', e);
