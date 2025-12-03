@@ -2588,6 +2588,15 @@ app.post('/api/admin/send-email', async (req, res) => {
       return res.status(400).json({ success: false, error: 'At least one valid receiver email address is required' });
     }
     
+    // If status is 'drafted', just save the draft and return (don't send email)
+    if (emailStatus === 'drafted') {
+      return res.json({
+        success: true,
+        message: 'Draft saved successfully',
+        logId: emailLogId
+      });
+    }
+    
     // Try to use nodemailer if available
     let emailSent = false;
     let emailError = null;

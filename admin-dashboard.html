@@ -14182,7 +14182,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 }
                 
                 showSuccess('Draft saved successfully');
-                closeSendMailPopup();
+                // Don't close popup when saving draft - keep it open for editing
                 
                 // Reload drafts if on drafted tab
                 if (currentEmailLogTab === 'drafted') {
