@@ -14542,14 +14542,6 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                             await loadEmailLogs(currentEmailLogTab);
                         }
                         
-                        // Reload appropriate tab if we sent from a draft or failed email
-                        if (window.currentDraftId) {
-                            if (currentEmailLogTab === 'drafted') {
-                                await loadEmailLogs('drafted');
-                            } else if (currentEmailLogTab === 'failed') {
-                                await loadEmailLogs('failed');
-                            }
-                        }
                         window.currentDraftId = null; // Clear draft ID
                     } catch (sendError) {
                         console.error('Error sending email:', sendError);
