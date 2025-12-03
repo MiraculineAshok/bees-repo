@@ -2969,7 +2969,7 @@
                                 <div style="padding:8px 0;border-bottom:1px solid #e5e7eb">
                                     <div style="display:flex;align-items:center;gap:8px">
                                         <span style="color:#6b7280;font-size:14px;min-width:60px">From:</span>
-                                        <input type="email" id="send-mail-from" required style="background:transparent;border:none;color:#111827;flex:1;padding:4px;font-size:14px;outline:none" placeholder="sender@example.com">
+                                        <input type="email" id="send-mail-from" required readonly style="background:#f3f4f6;border:none;color:#6b7280;flex:1;padding:4px;font-size:14px;outline:none;cursor:not-allowed" value="admissions@zohoschools.in">
                                     </div>
                                 </div>
                                 
@@ -13871,7 +13871,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     throw new Error('Send mail form elements not found. Please refresh the page.');
                 }
                 
-                fromEl.value = senderEmail || 'admissions@zohoschools.in';
+                fromEl.value = 'admissions@zohoschools.in';
                 
                 // Clear and populate email tags
                 clearEmailTags('to');
@@ -13995,7 +13995,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 const fromEl = document.getElementById('send-mail-from');
                 const subjectEl = document.getElementById('send-mail-subject');
                 
-                if (fromEl) fromEl.value = draft.from_email || '';
+                if (fromEl) fromEl.value = 'admissions@zohoschools.in';
                 if (subjectEl) subjectEl.value = draft.subject || '';
                 
                 // Clear and populate email tags
@@ -14631,7 +14631,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     throw new Error('Send mail form elements not found. Please refresh the page.');
                 }
                 
-                fromEl.value = senderEmail || 'admissions@zohoschools.in';
+                fromEl.value = 'admissions@zohoschools.in';
                 
                 // Clear and populate email tags with ALL selected emails
                 clearEmailTags('to');
