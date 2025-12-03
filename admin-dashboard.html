@@ -2828,7 +2828,12 @@
                                             <input type="text" id="template-subject" class="form-input" placeholder="Email subject line" style="width:100%">
                                         </div>
                                         <div>
-                                            <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Body</label>
+                                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                                                <label style="display:block;margin:0;font-weight:500;color:#374151">Body</label>
+                                                <button type="button" onclick="showReferenceFieldsForEmailTemplate()" style="background:#fff;border:1px solid #d1d5db;color:#111827;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:4px" title="Insert Reference Fields">
+                                                    📋 <span style="font-size:12px">Fields</span>
+                                                </button>
+                                            </div>
                                             <div id="email-template-body-editor" style="min-height:400px"></div>
                                         </div>
                                         <div style="display:flex;gap:12px">
@@ -2867,8 +2872,13 @@
                                             <input type="text" id="sms-template-name" class="form-input" placeholder="e.g., Interview Reminder" required style="width:100%">
                                         </div>
                                         <div>
-                                            <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Message</label>
-                                            <textarea id="sms-template-message" class="form-input" rows="10" placeholder="SMS message content. You can use placeholders like {{student_name}}, {{session_name}}, etc." required style="width:100%;resize:vertical"></textarea>
+                                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                                                <label style="display:block;margin:0;font-weight:500;color:#374151">Message</label>
+                                                <button type="button" onclick="showReferenceFieldsForSMSTemplate()" style="background:#fff;border:1px solid #d1d5db;color:#111827;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:4px" title="Insert Reference Fields">
+                                                    📋 <span style="font-size:12px">Fields</span>
+                                                </button>
+                                            </div>
+                                            <textarea id="sms-template-message" class="form-input" rows="10" placeholder="SMS message content. Use reference fields like ${student_name}, ${session_name}, etc." required style="width:100%;resize:vertical"></textarea>
                                         </div>
                                         <div style="display:flex;gap:12px">
                                             <button type="submit" class="btn btn-primary">Save Template</button>
@@ -14731,8 +14741,17 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             const overlay = document.getElementById('reference-fields-overlay');
             const list = document.getElementById('reference-fields-list');
             
+            // Determine which insert function to use based on context
+            const context = window.currentReferenceFieldContext || 'send-mail';
+            let insertFunction = 'insertReferenceField';
+            if (context === 'email-template') {
+                insertFunction = 'insertReferenceFieldIntoEmailTemplate';
+            } else if (context === 'sms-template') {
+                insertFunction = 'insertReferenceFieldIntoSMSTemplate';
+            }
+            
             list.innerHTML = referenceFields.map(field => `
-                <div onclick="insertReferenceField('${field.code}')" style="border:1px solid #e5e7eb;border-radius:6px;padding:12px;cursor:pointer;transition:all 0.2s;background:#fff" onmouseover="this.style.borderColor='#3b82f6';this.style.background='#f0f9ff'" onmouseout="this.style.borderColor='#e5e7eb';this.style.background='#fff'">
+                <div onclick="${insertFunction}('${field.code}')" style="border:1px solid #e5e7eb;border-radius:6px;padding:12px;cursor:pointer;transition:all 0.2s;background:#fff" onmouseover="this.style.borderColor='#3b82f6';this.style.background='#f0f9ff'" onmouseout="this.style.borderColor='#e5e7eb';this.style.background='#fff'">
                     <div style="font-weight:600;color:#111827;margin-bottom:4px;font-size:14px">${field.label}</div>
                     <div style="font-family:monospace;color:#3b82f6;font-size:13px;margin-bottom:4px;background:#f0f9ff;padding:4px 8px;border-radius:4px;display:inline-block">${field.code}</div>
                     <div style="color:#6b7280;font-size:12px">${field.description}</div>
@@ -14744,6 +14763,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         
         function closeReferenceFields() {
             document.getElementById('reference-fields-overlay').style.display = 'none';
+            window.currentReferenceFieldContext = null;
         }
         
         function insertReferenceField(code) {
