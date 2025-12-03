@@ -14635,6 +14635,16 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     return;
                 }
                 
+                // Validate that all selected records have email addresses
+                const recordsWithoutEmail = selectedRecords.filter(record => 
+                    !record.student_email || !isValidEmail(record.student_email)
+                );
+                
+                if (recordsWithoutEmail.length > 0) {
+                    showError('Some applicants don\'t have an email ID. Please select only those applicants who have a valid email ID.');
+                    return;
+                }
+                
                 // Get session creator email from first record
                 let senderEmail = '';
                 try {
