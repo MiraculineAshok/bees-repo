@@ -579,6 +579,48 @@ async function initializeDatabase() {
       console.log('⚠️ SMS templates index migration:', error.message);
     }
     
+    // Create email_logs table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS email_logs (
+        id SERIAL PRIMARY KEY,
+        from_email VARCHAR(255) NOT NULL,
+        to_emails TEXT NOT NULL,
+        cc_emails TEXT,
+        bcc_emails TEXT,
+        subject TEXT NOT NULL,
+        message TEXT NOT NULL,
+        status VARCHAR(20) NOT NULL DEFAULT 'drafted',
+        error_message TEXT,
+        consolidation_id INTEGER REFERENCES consolidation(id) ON DELETE SET NULL,
+        sent_by INTEGER REFERENCES authorized_users(id) ON DELETE SET NULL,
+        sent_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('✅ Created email_logs table');
+    
+    // Create indexes for email_logs
+    try {
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_email_logs_status ON email_logs(status)
+      `);
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_email_logs_sent_by ON email_logs(sent_by)
+      `);
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_email_logs_consolidation_id ON email_logs(consolidation_id)
+      `);
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_email_logs_sent_at ON email_logs(sent_at DESC)
+      `);
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_email_logs_created_at ON email_logs(created_at DESC)
+      `);
+    } catch (error) {
+      console.log('⚠️ Email logs index migration:', error.message);
+    }
+    
     // Insert default authorized users
     await pool.query(`
       INSERT INTO authorized_users (email, name, role, is_superadmin) 

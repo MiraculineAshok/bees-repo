@@ -2508,10 +2508,39 @@ app.post('/api/admin/test-smtp', async (req, res) => {
 // Send Email API
 app.post('/api/admin/send-email', async (req, res) => {
   try {
-    const { from, to, cc, bcc, subject, message, consolidation_id } = req.body;
+    const { from, to, cc, bcc, subject, message, consolidation_id, status } = req.body;
     
     if (!from || !to || !subject || !message) {
       return res.status(400).json({ success: false, error: 'From, to, subject, and message are required' });
+    }
+    
+    // Get current user ID for logging
+    const userId = await getCurrentUserId(req);
+    
+    // Store email log (if status is 'drafted', save as drafted; otherwise will update after sending)
+    let emailLogId = null;
+    const emailStatus = status || 'drafted';
+    
+    try {
+      const logResult = await pool.query(`
+        INSERT INTO email_logs (from_email, to_emails, cc_emails, bcc_emails, subject, message, status, consolidation_id, sent_by)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        RETURNING id
+      `, [
+        from,
+        to || '',
+        cc || null,
+        bcc || null,
+        subject,
+        message,
+        emailStatus,
+        consolidation_id || null,
+        userId
+      ]);
+      emailLogId = logResult.rows[0].id;
+    } catch (logError) {
+      console.error('⚠️ Failed to create email log:', logError);
+      // Continue with email sending even if logging fails
     }
     
     // Validate email addresses
@@ -2781,6 +2810,19 @@ app.post('/api/admin/send-email', async (req, res) => {
         response: info.response
       });
       
+      // Update email log to 'sent' status
+      if (emailLogId) {
+        try {
+          await pool.query(`
+            UPDATE email_logs 
+            SET status = 'sent', sent_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+            WHERE id = $1
+          `, [emailLogId]);
+        } catch (logError) {
+          console.error('⚠️ Failed to update email log:', logError);
+        }
+      }
+      
     } catch (nodemailerError) {
       emailError = nodemailerError.message;
       console.error('❌ Error sending email:', nodemailerError);
@@ -2806,12 +2848,26 @@ app.post('/api/admin/send-email', async (req, res) => {
       if (emailError.includes('535') || emailError.includes('Authentication Failed') || emailError.includes('Invalid login')) {
         emailError = 'Authentication failed. Please verify: 1) Email address and password are correct, 2) If 2FA is enabled on your Zoho account, you must use an Application-specific Password instead of your regular password, 3) Email address matches your Zoho account exactly.';
       }
+      
+      // Update email log to 'failed' status
+      if (emailLogId) {
+        try {
+          await pool.query(`
+            UPDATE email_logs 
+            SET status = 'failed', error_message = $1, updated_at = CURRENT_TIMESTAMP
+            WHERE id = $2
+          `, [emailError, emailLogId]);
+        } catch (logError) {
+          console.error('⚠️ Failed to update email log:', logError);
+        }
+      }
     }
     
     if (emailSent) {
       res.json({ 
         success: true, 
-        message: 'Email sent successfully'
+        message: 'Email sent successfully',
+        logId: emailLogId
       });
     } else {
       // Return error with helpful message
@@ -2822,11 +2878,115 @@ app.post('/api/admin/send-email', async (req, res) => {
       
       res.status(500).json({ 
         success: false, 
-        error: helpfulMessage
+        error: helpfulMessage,
+        logId: emailLogId
       });
     }
   } catch (error) {
     console.error('Error sending email:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get email logs filtered by status
+app.get('/api/admin/email-logs', async (req, res) => {
+  try {
+    const { status } = req.query;
+    
+    let query = `
+      SELECT 
+        el.*,
+        au.email as sent_by_email,
+        au.name as sent_by_name,
+        c.student_name,
+        c.student_email,
+        c.zeta_id
+      FROM email_logs el
+      LEFT JOIN authorized_users au ON el.sent_by = au.id
+      LEFT JOIN consolidation c ON el.consolidation_id = c.id
+    `;
+    
+    const params = [];
+    if (status && ['sent', 'failed', 'drafted'].includes(status)) {
+      query += ` WHERE el.status = $1`;
+      params.push(status);
+    }
+    
+    query += ` ORDER BY el.created_at DESC LIMIT 1000`;
+    
+    const result = await pool.query(query, params);
+    
+    res.json({
+      success: true,
+      data: result.rows
+    });
+  } catch (error) {
+    console.error('Error fetching email logs:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Update email log status (for saving drafts)
+app.put('/api/admin/email-logs/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, subject, message, to, cc, bcc } = req.body;
+    
+    const updates = [];
+    const params = [];
+    let paramIndex = 1;
+    
+    if (status !== undefined) {
+      updates.push(`status = $${paramIndex++}`);
+      params.push(status);
+    }
+    if (subject !== undefined) {
+      updates.push(`subject = $${paramIndex++}`);
+      params.push(subject);
+    }
+    if (message !== undefined) {
+      updates.push(`message = $${paramIndex++}`);
+      params.push(message);
+    }
+    if (to !== undefined) {
+      updates.push(`to_emails = $${paramIndex++}`);
+      params.push(to);
+    }
+    if (cc !== undefined) {
+      updates.push(`cc_emails = $${paramIndex++}`);
+      params.push(cc);
+    }
+    if (bcc !== undefined) {
+      updates.push(`bcc_emails = $${paramIndex++}`);
+      params.push(bcc);
+    }
+    
+    if (updates.length === 0) {
+      return res.status(400).json({ success: false, error: 'No fields to update' });
+    }
+    
+    updates.push(`updated_at = CURRENT_TIMESTAMP`);
+    params.push(id);
+    
+    const query = `
+      UPDATE email_logs 
+      SET ${updates.join(', ')}
+      WHERE id = $${paramIndex}
+      RETURNING *
+    `;
+    
+    const result = await pool.query(query, params);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Email log not found' });
+    }
+    
+    res.json({
+      success: true,
+      data: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error updating email log:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });

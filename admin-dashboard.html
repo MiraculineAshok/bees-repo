@@ -2774,8 +2774,11 @@
                     <!-- Side Nav -->
                     <div style="width:250px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:20px;overflow-y:auto;flex-shrink:0">
                         <nav style="display:flex;flex-direction:column;gap:8px">
-                            <button onclick="showSettingsTab('templates')" id="settings-tab-templates" class="settings-nav-btn" style="width:100%;text-align:left;padding:12px 16px;background:#3b82f6;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:500">
+                            <button onclick="showSettingsTab('templates')" id="settings-tab-templates" class="settings-nav-btn" style="width:100%;text-align:left;padding:12px 16px;background:#f3f4f6;color:#6b7280;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:500">
                                 Templates
+                            </button>
+                            <button onclick="showSettingsTab('email-logs')" id="settings-tab-email-logs" class="settings-nav-btn" style="width:100%;text-align:left;padding:12px 16px;background:#f3f4f6;color:#6b7280;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:500">
+                                Email Logs
                             </button>
                         </nav>
                     </div>
@@ -2806,62 +2809,56 @@
                                     <div id="email-templates-list" style="display:flex;flex-direction:column;gap:12px">
                                         <!-- Templates will be loaded here -->
                                     </div>
+                                    <div style="margin-top:24px;padding-top:24px;border-top:1px solid #e5e7eb">
+                                        <button onclick="showEmailTemplateForm()" class="btn btn-primary" style="display:flex;align-items:center;gap:8px;width:100%;justify-content:center">
+                                            <span>+</span> Create new template
+                                        </button>
+                                    </div>
                                 </div>
                                 
                                 <!-- Email Template Form View -->
-                                <div id="email-template-form-view" style="display:none;background:#1f2937;border-radius:8px;padding:0;overflow:hidden;height:calc(100vh - 300px);min-height:600px" class="email-template-form-container">
+                                <div id="email-template-form-view" style="display:none;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:0;overflow:hidden;height:calc(100vh - 300px);min-height:600px" class="email-template-form-container">
                                     <!-- Top Bar -->
-                                    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#111827;border-bottom:1px solid #374151">
+                                    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#f9fafb;border-bottom:1px solid #e5e7eb">
                                         <div style="display:flex;gap:8px;align-items:center">
-                                            <h3 id="email-template-form-title" style="margin:0;font-size:18px;color:#fff;font-weight:500">Create Email Template</h3>
+                                            <h3 id="email-template-form-title" style="margin:0;font-size:18px;color:#111827;font-weight:500">Create Email Template</h3>
                                         </div>
                                         <div style="display:flex;gap:8px;align-items:center">
                                             <button type="submit" form="email-template-form" style="background:#3b82f6;color:#fff;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-weight:500;font-size:14px">Save Template</button>
-                                            <button onclick="showEmailTemplateList()" style="background:transparent;color:#9ca3af;border:none;padding:6px;cursor:pointer;font-size:20px">&times;</button>
+                                            <button onclick="showEmailTemplateList()" style="background:transparent;color:#6b7280;border:none;padding:6px;cursor:pointer;font-size:20px">&times;</button>
                                         </div>
                                     </div>
                                     
                                     <!-- Template Form Content -->
-                                    <div style="flex:1;overflow-y:auto;background:#1f2937;padding:16px">
+                                    <div style="flex:1;overflow-y:auto;background:#fff;padding:16px">
                                         <form id="email-template-form" style="display:flex;flex-direction:column;gap:0;height:100%">
                                             <input type="hidden" id="email-template-id" value="">
                                             
                                             <!-- Template Name Field -->
-                                            <div style="padding:8px 0;border-bottom:1px solid #374151;margin-bottom:8px">
+                                            <div style="padding:8px 0;border-bottom:1px solid #e5e7eb;margin-bottom:8px">
                                                 <div style="display:flex;align-items:center;gap:8px">
-                                                    <span style="color:#9ca3af;font-size:14px;min-width:120px">Template Name:</span>
-                                                    <input type="text" id="template-name" required style="background:transparent;border:none;color:#fff;flex:1;padding:4px;font-size:14px;outline:none" placeholder="e.g., Interview Result Notification">
+                                                    <span style="color:#374151;font-size:14px;min-width:120px;font-weight:500">Template Name:</span>
+                                                    <input type="text" id="template-name" required style="background:#fff;border:1px solid #d1d5db;border-radius:4px;color:#111827;flex:1;padding:8px;font-size:14px;outline:none" placeholder="e.g., Interview Result Notification">
                                                 </div>
                                             </div>
                                             
                                             <!-- Subject Field -->
-                                            <div style="padding:8px 0;border-bottom:1px solid #374151;margin-bottom:8px">
+                                            <div style="padding:8px 0;border-bottom:1px solid #e5e7eb;margin-bottom:8px">
                                                 <div style="display:flex;align-items:center;gap:8px">
-                                                    <span style="color:#9ca3af;font-size:14px;min-width:120px">Subject:</span>
-                                                    <input type="text" id="template-subject" style="background:transparent;border:none;color:#fff;flex:1;padding:4px;font-size:14px;outline:none" placeholder="Email subject line">
+                                                    <span style="color:#374151;font-size:14px;min-width:120px;font-weight:500">Subject:</span>
+                                                    <input type="text" id="template-subject" style="background:#fff;border:1px solid #d1d5db;border-radius:4px;color:#111827;flex:1;padding:8px;font-size:14px;outline:none" placeholder="Email subject line">
                                                 </div>
                                             </div>
                                             
-                                            <!-- Formatting Toolbar -->
-                                            <div style="padding:8px 0;border-bottom:1px solid #374151;display:flex;gap:4px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
-                                                <button type="button" onclick="formatTemplateText('bold')" style="background:transparent;border:none;color:#9ca3af;padding:6px 8px;cursor:pointer;border-radius:4px;font-weight:bold;font-size:14px" title="Bold">B</button>
-                                                <button type="button" onclick="formatTemplateText('italic')" style="background:transparent;border:none;color:#9ca3af;padding:6px 8px;cursor:pointer;border-radius:4px;font-style:italic;font-size:14px" title="Italic">I</button>
-                                                <button type="button" onclick="formatTemplateText('underline')" style="background:transparent;border:none;color:#9ca3af;padding:6px 8px;cursor:pointer;border-radius:4px;text-decoration:underline;font-size:14px" title="Underline">U</button>
-                                                <div style="width:1px;height:20px;background:#374151;margin:0 4px"></div>
-                                                <button type="button" onclick="formatTemplateText('bullet')" style="background:transparent;border:none;color:#9ca3af;padding:6px 8px;cursor:pointer;border-radius:4px;font-size:14px" title="Bullet List">•</button>
-                                                <button type="button" onclick="formatTemplateText('number')" style="background:transparent;border:none;color:#9ca3af;padding:6px 8px;cursor:pointer;border-radius:4px;font-size:14px" title="Numbered List">1.</button>
-                                                <div style="width:1px;height:20px;background:#374151;margin:0 4px"></div>
-                                                <button type="button" onclick="formatTemplateText('left')" style="background:transparent;border:none;color:#9ca3af;padding:6px 8px;cursor:pointer;border-radius:4px;font-size:14px" title="Align Left">⬅</button>
-                                                <button type="button" onclick="formatTemplateText('center')" style="background:transparent;border:none;color:#9ca3af;padding:6px 8px;cursor:pointer;border-radius:4px;font-size:14px" title="Align Center">⬌</button>
-                                                <button type="button" onclick="formatTemplateText('right')" style="background:transparent;border:none;color:#9ca3af;padding:6px 8px;cursor:pointer;border-radius:4px;font-size:14px" title="Align Right">➡</button>
-                                            </div>
-                                            
-                                            <!-- Body Field -->
+                                            <!-- Body Field with Quill Editor -->
                                             <div style="flex:1;min-height:400px;padding:16px 0">
-                                                <div id="template-body" contenteditable="true" style="background:transparent;border:none;color:#fff;width:100%;min-height:400px;padding:8px;font-size:14px;outline:none;line-height:1.6;font-family:inherit" placeholder="Email body content. You can use placeholders like {{student_name}}, {{session_name}}, etc."></div>
+                                                <div style="margin-bottom:8px">
+                                                    <span style="color:#374151;font-size:14px;font-weight:500">Body:</span>
+                                                </div>
+                                                <div id="email-template-body-editor" style="min-height:400px"></div>
                                             </div>
                                             
-                                            <!-- Hidden textarea for form submission -->
+                                            <!-- Hidden textarea for form submission (fallback) -->
                                             <textarea id="template-body-textarea" name="body" style="display:none"></textarea>
                                         </form>
                                     </div>
@@ -2907,11 +2904,57 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Email Logs Content -->
+                        <div id="settings-content-email-logs" class="settings-content" style="display:none">
+                            <h3 style="margin:0 0 24px;font-size:24px;color:#111827">Email Logs</h3>
+                            
+                            <!-- Sub-tabs for Sent, Failed, Drafted -->
+                            <div style="display:flex;gap:8px;border-bottom:2px solid #e5e7eb;margin-bottom:24px">
+                                <button onclick="showEmailLogTab('sent')" id="email-log-tab-sent" class="email-log-tab-btn" style="padding:12px 24px;background:#3b82f6;color:#fff;border:none;border-radius:8px 8px 0 0;cursor:pointer;font-size:14px;font-weight:500">
+                                    Sent
+                                </button>
+                                <button onclick="showEmailLogTab('failed')" id="email-log-tab-failed" class="email-log-tab-btn" style="padding:12px 24px;background:transparent;color:#6b7280;border:none;border-radius:8px 8px 0 0;cursor:pointer;font-size:14px;font-weight:500">
+                                    Failed
+                                </button>
+                                <button onclick="showEmailLogTab('drafted')" id="email-log-tab-drafted" class="email-log-tab-btn" style="padding:12px 24px;background:transparent;color:#6b7280;border:none;border-radius:8px 8px 0 0;cursor:pointer;font-size:14px;font-weight:500">
+                                    Drafted
+                                </button>
+                            </div>
+                            
+                            <!-- Email Logs List -->
+                            <div id="email-logs-list" style="display:flex;flex-direction:column;gap:12px">
+                                <!-- Email logs will be loaded here -->
+                                <div style="text-align:center;padding:40px;color:#6b7280">
+                                    <p>Loading email logs...</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
                 
                 <!-- Send Mail Popup -->
+                <!-- Bulk Email Loading Overlay -->
+                <div id="bulk-email-loading-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.8);display:none;z-index:2000;align-items:center;justify-content:center;flex-direction:column;gap:20px">
+                    <div style="background:#fff;border-radius:12px;padding:40px;text-align:center;max-width:400px">
+                        <div style="width:50px;height:50px;border:4px solid #e5e7eb;border-top-color:#3b82f6;border-radius:50%;margin:0 auto 20px;animation:spin 1s linear infinite"></div>
+                        <h3 style="margin:0 0 10px;font-size:18px;color:#111827">Sending Emails...</h3>
+                        <p id="bulk-email-progress" style="margin:0;color:#6b7280;font-size:14px">Preparing to send emails</p>
+                        <div style="margin-top:20px;padding-top:20px;border-top:1px solid #e5e7eb">
+                            <div style="display:flex;justify-content:space-between;font-size:14px;color:#6b7280">
+                                <span>Sent: <strong id="bulk-email-sent-count" style="color:#10b981">0</strong></span>
+                                <span>Failed: <strong id="bulk-email-failed-count" style="color:#ef4444">0</strong></span>
+                                <span>Total: <strong id="bulk-email-total-count">0</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <style>
+                    @keyframes spin {
+                        to { transform: rotate(360deg); }
+                    }
+                </style>
                 <div id="send-mail-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;z-index:1900">
                     <div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:8px;width:90%;max-width:900px;height:85vh;max-height:800px;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.5);overflow:hidden">
                         <!-- Top Bar -->
@@ -3000,6 +3043,12 @@
         #send-mail-message-editor .ql-editor {
             min-height: 300px;
             font-size: 14px;
+        }
+        
+        #email-template-body-editor .ql-editor {
+            min-height: 400px;
+            font-size: 14px;
+            color: #111827;
         }
         
         .email-template-form-container {
@@ -13229,12 +13278,122 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             // Remove active class from all nav buttons
             document.querySelectorAll('.settings-nav-btn').forEach(el => {
                 el.style.background = '#f3f4f6';
-                el.style.color = '#fff';
+                el.style.color = '#6b7280';
             });
             // Show selected tab
             document.getElementById(`settings-content-${tab}`).style.display = 'block';
             document.getElementById(`settings-tab-${tab}`).style.background = '#3b82f6';
             document.getElementById(`settings-tab-${tab}`).style.color = '#fff';
+            
+            // Load email logs if email-logs tab is selected
+            if (tab === 'email-logs') {
+                showEmailLogTab('sent');
+            }
+        }
+        
+        // Email Logs Functions
+        let currentEmailLogTab = 'sent';
+        
+        async function showEmailLogTab(status) {
+            currentEmailLogTab = status;
+            
+            // Update tab buttons
+            document.querySelectorAll('.email-log-tab-btn').forEach(btn => {
+                btn.style.background = 'transparent';
+                btn.style.color = '#6b7280';
+            });
+            document.getElementById(`email-log-tab-${status}`).style.background = '#3b82f6';
+            document.getElementById(`email-log-tab-${status}`).style.color = '#fff';
+            
+            // Load email logs
+            await loadEmailLogs(status);
+        }
+        
+        async function loadEmailLogs(status) {
+            const logsList = document.getElementById('email-logs-list');
+            logsList.innerHTML = '<div style="text-align:center;padding:40px;color:#6b7280"><p>Loading email logs...</p></div>';
+            
+            try {
+                const response = await fetch(`/api/admin/email-logs?status=${status}`);
+                const result = await response.json();
+                
+                if (!response.ok || !result.success) {
+                    throw new Error(result.error || 'Failed to load email logs');
+                }
+                
+                const logs = result.data || [];
+                
+                if (logs.length === 0) {
+                    logsList.innerHTML = `
+                        <div style="text-align:center;padding:40px;color:#6b7280">
+                            <p>No ${status} emails found.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                logsList.innerHTML = logs.map(log => {
+                    const sentAt = log.sent_at ? new Date(log.sent_at).toLocaleString() : (log.created_at ? new Date(log.created_at).toLocaleString() : 'N/A');
+                    const sentBy = log.sent_by_name || log.sent_by_email || 'Unknown';
+                    const studentInfo = log.student_name ? `${log.student_name} (${log.student_email || 'N/A'})` : log.to_emails;
+                    
+                    return `
+                        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:20px;display:flex;flex-direction:column;gap:12px">
+                            <div style="display:flex;justify-content:space-between;align-items:start">
+                                <div style="flex:1">
+                                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+                                        <h4 style="margin:0;font-size:16px;color:#111827;font-weight:600">${escapeHtml(log.subject || 'No Subject')}</h4>
+                                        <span style="padding:4px 12px;border-radius:4px;font-size:12px;font-weight:500;background:${
+                                            status === 'sent' ? '#d1fae5' : status === 'failed' ? '#fee2e2' : '#e0e7ff'
+                                        };color:${
+                                            status === 'sent' ? '#065f46' : status === 'failed' ? '#991b1b' : '#3730a3'
+                                        }">${status.toUpperCase()}</span>
+                                    </div>
+                                    <div style="display:flex;flex-wrap:wrap;gap:16px;font-size:14px;color:#6b7280">
+                                        <div><strong>From:</strong> ${escapeHtml(log.from_email)}</div>
+                                        <div><strong>To:</strong> ${escapeHtml(log.to_emails)}</div>
+                                        ${log.cc_emails ? `<div><strong>CC:</strong> ${escapeHtml(log.cc_emails)}</div>` : ''}
+                                        ${log.bcc_emails ? `<div><strong>BCC:</strong> ${escapeHtml(log.bcc_emails)}</div>` : ''}
+                                    </div>
+                                </div>
+                                <div style="text-align:right;font-size:12px;color:#9ca3af">
+                                    <div>${sentAt}</div>
+                                    <div style="margin-top:4px">By: ${escapeHtml(sentBy)}</div>
+                                </div>
+                            </div>
+                            ${log.student_name ? `
+                                <div style="padding:8px;background:#f9fafb;border-radius:4px;font-size:14px">
+                                    <strong>Student:</strong> ${escapeHtml(log.student_name)} 
+                                    ${log.student_email ? `(${escapeHtml(log.student_email)})` : ''}
+                                    ${log.zeta_id ? ` | Zeta ID: ${escapeHtml(log.zeta_id)}` : ''}
+                                </div>
+                            ` : ''}
+                            ${log.error_message ? `
+                                <div style="padding:8px;background:#fee2e2;border-radius:4px;font-size:14px;color:#991b1b">
+                                    <strong>Error:</strong> ${escapeHtml(log.error_message)}
+                                </div>
+                            ` : ''}
+                            <div style="padding:12px;background:#f9fafb;border-radius:4px;max-height:200px;overflow-y:auto">
+                                <div style="font-size:14px;color:#374151;line-height:1.6">${log.message || ''}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading email logs:', error);
+                logsList.innerHTML = `
+                    <div style="text-align:center;padding:40px;color:#ef4444">
+                        <p>Error loading email logs: ${escapeHtml(error.message)}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
         
         // Template Type Switching (Email/SMS)
@@ -13270,6 +13429,44 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         function showEmailTemplateForm(skipReset = false) {
             document.getElementById('email-template-list-view').style.display = 'none';
             document.getElementById('email-template-form-view').style.display = 'block';
+            
+            // Initialize Quill editor if not already initialized
+            setTimeout(() => {
+                const editorContainer = document.getElementById('email-template-body-editor');
+                if (editorContainer && !emailTemplateQuill) {
+                    try {
+                        if (typeof Quill !== 'undefined') {
+                            emailTemplateQuill = new Quill('#email-template-body-editor', {
+                                theme: 'snow',
+                                modules: {
+                                    toolbar: [
+                                        [{ 'header': [1, 2, 3, false] }],
+                                        ['bold', 'italic', 'underline', 'strike'],
+                                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                        [{ 'align': [] }],
+                                        ['link', 'image'],
+                                        [{ 'color': [] }, { 'background': [] }],
+                                        ['clean']
+                                    ]
+                                },
+                                placeholder: 'Email body content. You can use placeholders like ${student_name}, ${session_name}, etc.'
+                            });
+                        } else {
+                            console.warn('Quill.js not loaded, using fallback textarea');
+                            editorContainer.innerHTML = '<textarea id="email-template-body-fallback" style="width:100%;min-height:400px;padding:8px;border:1px solid #d1d5db;border-radius:4px;font-size:14px;font-family:inherit" placeholder="Email body content. You can use placeholders like ${student_name}, ${session_name}, etc."></textarea>';
+                        }
+                    } catch (quillError) {
+                        console.error('Error initializing Quill editor:', quillError);
+                        if (editorContainer && !emailTemplateQuill) {
+                            editorContainer.innerHTML = '<textarea id="email-template-body-fallback" style="width:100%;min-height:400px;padding:8px;border:1px solid #d1d5db;border-radius:4px;font-size:14px;font-family:inherit" placeholder="Email body content. You can use placeholders like ${student_name}, ${session_name}, etc."></textarea>';
+                        }
+                    }
+                } else if (emailTemplateQuill && !skipReset) {
+                    // Clear editor content
+                    emailTemplateQuill.setContents([]);
+                }
+            }, 100);
+            
             if (!skipReset) {
                 resetEmailTemplateForm();
             }
@@ -13350,8 +13547,22 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 const templateId = document.getElementById('email-template-id').value;
                 const name = document.getElementById('template-name').value.trim();
                 const subject = document.getElementById('template-subject').value.trim();
-                const bodyDiv = document.getElementById('template-body');
-                const body = bodyDiv ? (bodyDiv.innerText || bodyDiv.textContent || '').trim() : '';
+                
+                // Get body from Quill editor or fallback textarea
+                let body = '';
+                if (emailTemplateQuill) {
+                    // Get HTML content from Quill editor
+                    body = emailTemplateQuill.root.innerHTML.trim();
+                } else {
+                    // Fallback to textarea if Quill is not available
+                    const fallback = document.getElementById('email-template-body-fallback');
+                    if (fallback) {
+                        body = fallback.value.trim();
+                    } else {
+                        const bodyDiv = document.getElementById('template-body');
+                        body = bodyDiv ? (bodyDiv.innerHTML || bodyDiv.innerText || bodyDiv.textContent || '').trim() : '';
+                    }
+                }
                 
                 if (!name || !body) {
                     showError('Template name and body are required');
@@ -13406,15 +13617,29 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 // Show form first without resetting
                 showEmailTemplateForm(true);
                 
-                // Then populate the form fields
-                document.getElementById('email-template-id').value = template.id;
-                document.getElementById('template-name').value = template.name || '';
-                document.getElementById('template-subject').value = template.subject || '';
-                const bodyDiv = document.getElementById('template-body');
-                if (bodyDiv) {
-                    bodyDiv.innerHTML = template.body || '';
-                }
-                document.getElementById('email-template-form-title').textContent = 'Edit Email Template';
+                // Wait for Quill to initialize, then populate the form fields
+                setTimeout(() => {
+                    document.getElementById('email-template-id').value = template.id;
+                    document.getElementById('template-name').value = template.name || '';
+                    document.getElementById('template-subject').value = template.subject || '';
+                    
+                    // Set content in Quill editor or fallback textarea
+                    if (emailTemplateQuill) {
+                        // Set HTML content in Quill editor
+                        emailTemplateQuill.root.innerHTML = template.body || '';
+                    } else {
+                        const fallback = document.getElementById('email-template-body-fallback');
+                        if (fallback) {
+                            fallback.value = template.body || '';
+                        } else {
+                            const bodyDiv = document.getElementById('template-body');
+                            if (bodyDiv) {
+                                bodyDiv.innerHTML = template.body || '';
+                            }
+                        }
+                    }
+                    document.getElementById('email-template-form-title').textContent = 'Edit Email Template';
+                }, 200);
             } catch (e) {
                 console.error('Error loading template:', e);
                 showError(e.message || 'Failed to load template');
@@ -13439,9 +13664,20 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             document.getElementById('email-template-id').value = '';
             document.getElementById('template-name').value = '';
             document.getElementById('template-subject').value = '';
-            const bodyDiv = document.getElementById('template-body');
-            if (bodyDiv) {
-                bodyDiv.innerHTML = '';
+            
+            // Clear Quill editor or fallback textarea
+            if (emailTemplateQuill) {
+                emailTemplateQuill.setContents([]);
+            } else {
+                const fallback = document.getElementById('email-template-body-fallback');
+                if (fallback) {
+                    fallback.value = '';
+                } else {
+                    const bodyDiv = document.getElementById('template-body');
+                    if (bodyDiv) {
+                        bodyDiv.innerHTML = '';
+                    }
+                }
             }
             document.getElementById('email-template-form-title').textContent = 'Create Email Template';
         }
@@ -13597,6 +13833,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         // Send Mail Functions
         let currentConsolidationId = null;
         let sendMailQuill = null;
+        let emailTemplateQuill = null;
         
         async function openSendMailPopup(consolidationId) {
             currentConsolidationId = consolidationId;
@@ -13880,23 +14117,44 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 // Handle bulk email or single email
                 if (window.bulkEmailMode && window.bulkEmailIds && window.bulkEmailIds.length > 0) {
                     // Bulk email mode
+                    const loadingOverlay = document.getElementById('bulk-email-loading-overlay');
+                    const progressText = document.getElementById('bulk-email-progress');
+                    const sentCountEl = document.getElementById('bulk-email-sent-count');
+                    const failedCountEl = document.getElementById('bulk-email-failed-count');
+                    const totalCountEl = document.getElementById('bulk-email-total-count');
+                    
+                    // Show loading overlay
+                    loadingOverlay.style.display = 'flex';
+                    const totalEmails = window.bulkEmailIds.length;
+                    totalCountEl.textContent = totalEmails;
+                    sentCountEl.textContent = '0';
+                    failedCountEl.textContent = '0';
+                    
                     const consolidationRes = await fetch('/api/admin/consolidation');
                     const consolidationJson = await consolidationRes.json();
                     
                     if (!consolidationRes.ok || !consolidationJson.success) {
+                        loadingOverlay.style.display = 'none';
                         throw new Error('Failed to load consolidation data');
                     }
                     
                     let successCount = 0;
                     let errorCount = 0;
+                    let processedCount = 0;
                     
                     for (const id of window.bulkEmailIds) {
                         try {
                             const consolidation = consolidationJson.data.find(c => c.id === parseInt(id));
                             if (!consolidation) {
                                 errorCount++;
+                                processedCount++;
+                                failedCountEl.textContent = errorCount;
+                                progressText.textContent = `Processing ${processedCount} of ${totalEmails} emails...`;
                                 continue;
                             }
+                            
+                            // Update progress
+                            progressText.textContent = `Sending email ${processedCount + 1} of ${totalEmails} to ${consolidation.student_email || 'recipient'}...`;
                             
                             // Replace variables in message and subject
                             const replacedMessage = replaceVariables(message, consolidation);
@@ -13920,14 +14178,24 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                             const json = await res.json();
                             if (res.ok && json.success) {
                                 successCount++;
+                                sentCountEl.textContent = successCount;
                             } else {
                                 errorCount++;
+                                failedCountEl.textContent = errorCount;
                             }
+                            processedCount++;
+                            progressText.textContent = `Processed ${processedCount} of ${totalEmails} emails...`;
                         } catch (e) {
                             console.error(`Error sending email to ${id}:`, e);
                             errorCount++;
+                            processedCount++;
+                            failedCountEl.textContent = errorCount;
+                            progressText.textContent = `Processed ${processedCount} of ${totalEmails} emails...`;
                         }
                     }
+                    
+                    // Hide loading overlay
+                    loadingOverlay.style.display = 'none';
                     
                     showSuccess(`Bulk email sent: ${successCount} successful, ${errorCount} failed`);
                     closeSendMailPopup();
@@ -14219,4 +14487,5 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js" onload="window.chartJsLoaded = true; console.log('✅ Chart.js loaded and ready'); window.dispatchEvent(new Event('chartJsReady'));"></script>
 </body>
+</html>
 </html>
