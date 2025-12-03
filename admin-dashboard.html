@@ -2979,7 +2979,7 @@
                                         <span style="color:#6b7280;font-size:14px;min-width:60px;padding-top:4px">To:</span>
                                         <div style="flex:1;display:flex;flex-wrap:wrap;gap:4px;min-height:32px;padding:4px;border:1px solid #e5e7eb;border-radius:4px;background:#fff;align-items:center">
                                             <div id="send-mail-to-tags" style="display:flex;flex-wrap:wrap;gap:4px"></div>
-                                            <input type="text" id="send-mail-to" style="background:transparent;border:none;color:#111827;flex:1;min-width:200px;padding:0;font-size:14px;outline:none;text-align:left" placeholder="Enter email addresses (comma-separated or press Enter)" onkeydown="handleEmailInput(event, 'to')" onblur="addEmailFromInput('to')">
+                                            <input type="text" id="send-mail-to" autocomplete="off" data-lpignore="true" data-form-type="other" style="background:transparent;border:none;color:#111827;flex:1;min-width:200px;padding:0;font-size:14px;outline:none;text-align:left" placeholder="Enter email addresses (comma-separated or press Enter)" onkeydown="handleEmailInput(event, 'to')" onblur="addEmailFromInput('to')" oninput="updateEmailFieldPlaceholder('to')">
                                         </div>
                                         <span id="send-mail-student-name" style="color:#6b7280;font-size:12px;padding-top:4px"></span>
                                     </div>
@@ -2991,14 +2991,14 @@
                                         <span style="color:#6b7280;font-size:14px;min-width:60px;padding-top:4px">Cc:</span>
                                         <div style="flex:1;display:flex;flex-wrap:wrap;gap:4px;min-height:32px;padding:4px;border:1px solid #e5e7eb;border-radius:4px;background:#fff;align-items:center">
                                             <div id="send-mail-cc-tags" style="display:flex;flex-wrap:wrap;gap:4px"></div>
-                                            <input type="text" id="send-mail-cc" style="background:transparent;border:none;color:#111827;flex:1;min-width:150px;padding:0;font-size:14px;outline:none;text-align:left" placeholder="Enter email addresses" onkeydown="handleEmailInput(event, 'cc')" onblur="addEmailFromInput('cc')">
+                                            <input type="text" id="send-mail-cc" autocomplete="off" data-lpignore="true" data-form-type="other" style="background:transparent;border:none;color:#111827;flex:1;min-width:150px;padding:0;font-size:14px;outline:none;text-align:left" placeholder="Enter email addresses" onkeydown="handleEmailInput(event, 'cc')" onblur="addEmailFromInput('cc')" oninput="updateEmailFieldPlaceholder('cc')">
                                         </div>
                                     </div>
                                     <div style="display:flex;align-items:flex-start;gap:8px;flex:1">
                                         <span style="color:#6b7280;font-size:14px;min-width:60px;padding-top:4px">Bcc:</span>
                                         <div style="flex:1;display:flex;flex-wrap:wrap;gap:4px;min-height:32px;padding:4px;border:1px solid #e5e7eb;border-radius:4px;background:#fff;align-items:center">
                                             <div id="send-mail-bcc-tags" style="display:flex;flex-wrap:wrap;gap:4px"></div>
-                                            <input type="text" id="send-mail-bcc" style="background:transparent;border:none;color:#111827;flex:1;min-width:150px;padding:0;font-size:14px;outline:none;text-align:left" placeholder="Enter email addresses" onkeydown="handleEmailInput(event, 'bcc')" onblur="addEmailFromInput('bcc')">
+                                            <input type="text" id="send-mail-bcc" autocomplete="off" data-lpignore="true" data-form-type="other" style="background:transparent;border:none;color:#111827;flex:1;min-width:150px;padding:0;font-size:14px;outline:none;text-align:left" placeholder="Enter email addresses" onkeydown="handleEmailInput(event, 'bcc')" onblur="addEmailFromInput('bcc')" oninput="updateEmailFieldPlaceholder('bcc')">
                                         </div>
                                     </div>
                                 </div>
@@ -14794,6 +14794,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 });
                 input.value = '';
             }
+            updateEmailFieldPlaceholder(field);
         }
         
         function isValidEmail(email) {
@@ -14822,6 +14823,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 <button type="button" onclick="removeEmailTag('${field}', '${email}')" style="background:transparent;border:none;color:#3730a3;cursor:pointer;padding:0;margin-left:4px;font-size:16px;line-height:1;font-weight:bold;width:16px;height:16px;display:flex;align-items:center;justify-content:center" title="Remove">×</button>
             `;
             tagsContainer.appendChild(tag);
+            updateEmailFieldPlaceholder(field);
         }
         
         function removeEmailTag(field, email) {
@@ -14832,6 +14834,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             if (tag) {
                 tag.remove();
             }
+            updateEmailFieldPlaceholder(field);
         }
         
         function clearEmailTags(field) {
@@ -14842,6 +14845,28 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             const input = document.getElementById(`send-mail-${field}`);
             if (input) {
                 input.value = '';
+                updateEmailFieldPlaceholder(field);
+            }
+        }
+        
+        // Update placeholder based on field content
+        function updateEmailFieldPlaceholder(field) {
+            const input = document.getElementById(`send-mail-${field}`);
+            const tagsContainer = document.getElementById(`send-mail-${field}-tags`);
+            if (!input) return;
+            
+            const hasTags = tagsContainer && tagsContainer.querySelectorAll('.email-tag').length > 0;
+            const hasInputValue = input.value.trim().length > 0;
+            
+            if (hasTags || hasInputValue) {
+                input.placeholder = '';
+            } else {
+                // Restore original placeholder
+                if (field === 'to') {
+                    input.placeholder = 'Enter email addresses (comma-separated or press Enter)';
+                } else {
+                    input.placeholder = 'Enter email addresses';
+                }
             }
         }
         
