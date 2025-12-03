@@ -2991,7 +2991,6 @@
                                             <div id="send-mail-to-tags" style="display:flex;flex-wrap:wrap;gap:4px"></div>
                                             <input type="text" id="send-mail-to" autocomplete="off" data-lpignore="true" data-form-type="other" style="background:transparent;border:none;color:#111827;flex:1;min-width:200px;padding:0;font-size:14px;outline:none;text-align:left" placeholder="Enter email addresses (comma-separated or press Enter)" onkeydown="handleEmailInput(event, 'to')" onblur="addEmailFromInput('to')" oninput="updateEmailFieldPlaceholder('to')">
                                         </div>
-                                        <span id="send-mail-student-name" style="color:#6b7280;font-size:12px;padding-top:4px"></span>
                                     </div>
                                 </div>
                                 
@@ -4157,13 +4156,13 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 } else {
                     // Only refresh backend if cache expired or force refresh
                     if (forceRefresh) {
-                        await fetch('/api/admin/consolidation/refresh', { method: 'POST' });
+                await fetch('/api/admin/consolidation/refresh', { method: 'POST' });
                     }
-                    
+                
                     // Load the data
-                    const res = await fetch('/api/admin/consolidation');
-                    const json = await res.json();
-                    if (!res.ok || !json.success) throw new Error(json.error || 'Failed to load');
+                const res = await fetch('/api/admin/consolidation');
+                const json = await res.json();
+                if (!res.ok || !json.success) throw new Error(json.error || 'Failed to load');
                     
                     // Update cache
                     consolidationDataCache = json.data || [];
@@ -13914,12 +13913,6 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 }
                 
                 // Show student name next to receiver label
-                const studentNameEl = document.getElementById('send-mail-student-name');
-                if (studentNameEl && item.student_name) {
-                    studentNameEl.textContent = `(${item.student_name})`;
-                } else if (studentNameEl) {
-                    studentNameEl.textContent = '';
-                }
                 
                 subjectEl.value = '';
                 
