@@ -14786,6 +14786,52 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             closeReferenceFields();
         }
         
+        // Show reference fields for email template
+        function showReferenceFieldsForEmailTemplate() {
+            window.currentReferenceFieldContext = 'email-template';
+            showReferenceFields();
+        }
+        
+        // Show reference fields for SMS template
+        function showReferenceFieldsForSMSTemplate() {
+            window.currentReferenceFieldContext = 'sms-template';
+            showReferenceFields();
+        }
+        
+        // Insert reference field into email template editor
+        function insertReferenceFieldIntoEmailTemplate(code) {
+            if (emailTemplateQuill) {
+                const range = emailTemplateQuill.getSelection(true);
+                emailTemplateQuill.insertText(range.index, code, 'user');
+                emailTemplateQuill.setSelection(range.index + code.length, 'user');
+            } else {
+                const fallback = document.getElementById('email-template-body-fallback');
+                if (fallback) {
+                    const start = fallback.selectionStart;
+                    const end = fallback.selectionEnd;
+                    const text = fallback.value;
+                    fallback.value = text.substring(0, start) + code + text.substring(end);
+                    fallback.selectionStart = fallback.selectionEnd = start + code.length;
+                    fallback.focus();
+                }
+            }
+            closeReferenceFields();
+        }
+        
+        // Insert reference field into SMS template textarea
+        function insertReferenceFieldIntoSMSTemplate(code) {
+            const textarea = document.getElementById('sms-template-message');
+            if (textarea) {
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const text = textarea.value;
+                textarea.value = text.substring(0, start) + code + text.substring(end);
+                textarea.selectionStart = textarea.selectionEnd = start + code.length;
+                textarea.focus();
+            }
+            closeReferenceFields();
+        }
+        
         // Variable replacement function
         function replaceVariables(message, consolidationData) {
             if (!consolidationData) return message;
