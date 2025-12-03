@@ -4129,19 +4129,39 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             }
         }
 
-        async function loadConsolidation() {
+        // Cache consolidation data to avoid unnecessary reloads
+        let consolidationDataCache = null;
+        let consolidationCacheTime = null;
+        const CONSOLIDATION_CACHE_TTL = 30000; // 30 seconds cache
+        
+        async function loadConsolidation(forceRefresh = false) {
             try {
                 const tbody = document.getElementById('consolidation-table-body');
-                if (tbody) tbody.innerHTML = '<tr><td colspan="9" class="loading">Refreshing consolidation data...</td></tr>';
+                if (tbody) tbody.innerHTML = '<tr><td colspan="9" class="loading">Loading consolidation data...</td></tr>';
                 
-                // First, trigger consolidation refresh
-                await fetch('/api/admin/consolidation/refresh', { method: 'POST' });
+                // Check cache first unless force refresh
+                const now = Date.now();
+                if (!forceRefresh && consolidationDataCache && consolidationCacheTime && (now - consolidationCacheTime) < CONSOLIDATION_CACHE_TTL) {
+                    // Use cached data
+                    window.__consolidationRows = consolidationDataCache;
+                } else {
+                    // Only refresh backend if cache expired or force refresh
+                    if (forceRefresh) {
+                        await fetch('/api/admin/consolidation/refresh', { method: 'POST' });
+                    }
+                    
+                    // Load the data
+                    const res = await fetch('/api/admin/consolidation');
+                    const json = await res.json();
+                    if (!res.ok || !json.success) throw new Error(json.error || 'Failed to load');
+                    
+                    // Update cache
+                    consolidationDataCache = json.data || [];
+                    consolidationCacheTime = now;
+                    window.__consolidationRows = consolidationDataCache;
+                }
                 
-                // Then, load the updated data
-                const res = await fetch('/api/admin/consolidation');
-                const json = await res.json();
-                if (!res.ok || !json.success) throw new Error(json.error || 'Failed to load');
-                window.__consolidationRows = json.data || [];
+                // Apply filters and sort to cached data (no API call needed)
                 let rows = applyConsolidationFiltersAndSort(window.__consolidationRows);
                 // Apply advanced filters for consolidation
                 rows = applyAdvancedFiltersCons(rows);
@@ -4277,7 +4297,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         let consolidationSortDir = 'asc';
         function onConsolidationSearch(val){
             window.__consolidationSearch = (val||'').trim().toLowerCase();
-            loadConsolidation();
+            loadConsolidation(false); // Use cache, just re-filter
         }
         function setConsolidationSort(field){
             if (consolidationSortField === field){
@@ -4285,7 +4305,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             } else {
                 consolidationSortField = field; consolidationSortDir = 'asc';
             }
-            loadConsolidation();
+            loadConsolidation(false); // Use cache, just re-sort
         }
         function applyConsolidationFiltersAndSort(items){
             let out = Array.isArray(items)? [...items] : [];
@@ -4371,14 +4391,14 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     loadConsolidation();
                 };
             }
-            fieldSel.onchange = ()=>{ refreshOps(); updateConsFilterFieldOptions(); loadConsolidation(); };
-            v1.oninput = ()=> loadConsolidation();
-            v2.oninput = ()=> loadConsolidation();
+            fieldSel.onchange = ()=>{ refreshOps(); updateConsFilterFieldOptions(); loadConsolidation(false); };
+            v1.oninput = ()=> loadConsolidation(false);
+            v2.oninput = ()=> loadConsolidation(false);
             const connEl = row.querySelector('.filter-connector');
-            if (connEl) connEl.onchange = ()=> loadConsolidation();
+            if (connEl) connEl.onchange = ()=> loadConsolidation(false);
             refreshOps();
         }
-        function clearAdvancedFiltersCons(){ const c=document.getElementById('filters-container-cons'); if(c){ c.innerHTML=''; } loadConsolidation(); }
+        function clearAdvancedFiltersCons(){ const c=document.getElementById('filters-container-cons'); if(c){ c.innerHTML=''; } loadConsolidation(false); }
         function updateConsFilterFieldOptions(){ updateAdvFieldOptions('filters-container-cons', consFilterFields); }
         function applyAdvancedFiltersCons(items){
             const c = document.getElementById('filters-container-cons'); if (!c) return items;
@@ -5194,7 +5214,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 const json = await res.json();
                 if (!res.ok || !json.success) throw new Error(json.error||'Failed');
                 showSuccess('Status updated');
-                loadConsolidation();
+                loadConsolidation(true); // Force refresh after status update
             }catch(e){ showError('Failed to update status'); }
         }
 
@@ -6679,7 +6699,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             refreshOps();
         }
         function clearAdvancedFilters(){ const c=document.getElementById('filters-container'); if(c){ c.innerHTML=''; } displayInterviews(); }
-        function removeFilterRow(btn, containerId){ const row = btn.parentElement; row && row.remove(); if (containerId==='filters-container'){ updateInterviewsFilterFieldOptions(); displayInterviews(); } if (containerId==='filters-container-cons'){ updateConsFilterFieldOptions(); loadConsolidation(); } }
+        function removeFilterRow(btn, containerId){ const row = btn.parentElement; row && row.remove(); if (containerId==='filters-container'){ updateInterviewsFilterFieldOptions(); displayInterviews(); } if (containerId==='filters-container-cons'){ updateConsFilterFieldOptions(); loadConsolidation(false); } }
         function normalizeFilterConnectors(containerId){ const c=document.getElementById(containerId); if(!c) return; const rows=Array.from(c.querySelectorAll('.filter-row-adv')); rows.forEach((r,i)=>{ const conn=r.querySelector('.filter-connector'); if(conn){ conn.style.display = i===0 ? 'none' : 'inline-block'; }}); }
         function updateAdvFieldOptions(containerId, fields){ const c=document.getElementById(containerId); if(!c) return; const rows=Array.from(c.querySelectorAll('.filter-row-adv')); const selected = new Set(rows.map(r=> (r.querySelector('.filter-field')?.value)||'')); rows.forEach(r=>{ const sel=r.querySelector('.filter-field'); if(!sel) return; const cur=sel.value; const opts = fields.filter(f=> f.value===cur || !selected.has(f.value)); sel.innerHTML = opts.map(f=>`<option value="${f.value}">${f.label}</option>`).join(''); sel.value = cur; }); normalizeFilterConnectors(containerId); }
         function updateInterviewsFilterFieldOptions(){ updateAdvFieldOptions('filters-container', filterFields); }
@@ -11406,7 +11426,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         async function refreshConsolidation() {
             showLoadingSpinner('consolidation');
             try {
-                await loadConsolidation();
+                await loadConsolidation(true); // Force refresh
             } finally {
                 hideLoadingSpinner('consolidation');
             }
@@ -14458,6 +14478,11 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     selectedConsolidationIds.clear();
                     document.querySelectorAll('.consolidation-checkbox').forEach(cb => cb.checked = false);
                     updateBulkEmailButton();
+                    
+                    // Refresh email logs if on email logs tab
+                    if (currentEmailLogTab) {
+                        await loadEmailLogs(currentEmailLogTab);
+                    }
                 } else {
                     // Single email mode - show loading
                     const isResend = !!window.currentDraftId;
@@ -14511,6 +14536,11 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                         
                         showSuccess('Email sent successfully');
                         closeSendMailPopup();
+                        
+                        // Always reload email logs if on email logs tab
+                        if (currentEmailLogTab) {
+                            await loadEmailLogs(currentEmailLogTab);
+                        }
                         
                         // Reload appropriate tab if we sent from a draft or failed email
                         if (window.currentDraftId) {
