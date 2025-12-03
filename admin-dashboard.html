@@ -14075,6 +14075,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         
         // Save email as draft
         async function saveEmailAsDraft() {
+            showSingleEmailLoading('Saving Draft...', 'Please wait while we save your draft');
             try {
                 const from = document.getElementById('send-mail-from').value.trim();
                 
