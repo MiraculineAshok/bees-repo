@@ -2809,59 +2809,33 @@
                                     <div id="email-templates-list" style="display:flex;flex-direction:column;gap:12px">
                                         <!-- Templates will be loaded here -->
                                     </div>
-                                    <div style="margin-top:24px;padding-top:24px;border-top:1px solid #e5e7eb">
-                                        <button onclick="showEmailTemplateForm()" class="btn btn-primary" style="display:flex;align-items:center;gap:8px;width:100%;justify-content:center">
-                                            <span>+</span> Create new template
-                                        </button>
-                                    </div>
                                 </div>
                                 
                                 <!-- Email Template Form View -->
-                                <div id="email-template-form-view" style="display:none;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:0;overflow:hidden;height:calc(100vh - 300px);min-height:600px" class="email-template-form-container">
-                                    <!-- Top Bar -->
-                                    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#f9fafb;border-bottom:1px solid #e5e7eb">
-                                        <div style="display:flex;gap:8px;align-items:center">
-                                            <h3 id="email-template-form-title" style="margin:0;font-size:18px;color:#111827;font-weight:500">Create Email Template</h3>
-                                        </div>
-                                        <div style="display:flex;gap:8px;align-items:center">
-                                            <button type="submit" form="email-template-form" style="background:#3b82f6;color:#fff;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-weight:500;font-size:14px">Save Template</button>
-                                            <button onclick="showEmailTemplateList()" style="background:transparent;color:#6b7280;border:none;padding:6px;cursor:pointer;font-size:20px">&times;</button>
-                                        </div>
+                                <div id="email-template-form-view" style="display:none">
+                                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+                                        <h3 id="email-template-form-title" style="margin:0;font-size:24px;color:#111827">Create Email Template</h3>
+                                        <button onclick="showEmailTemplateList()" class="btn btn-secondary">← Back to list</button>
                                     </div>
-                                    
-                                    <!-- Template Form Content -->
-                                    <div style="flex:1;overflow-y:auto;background:#fff;padding:16px">
-                                        <form id="email-template-form" style="display:flex;flex-direction:column;gap:0;height:100%">
-                                            <input type="hidden" id="email-template-id" value="">
-                                            
-                                            <!-- Template Name Field -->
-                                            <div style="padding:8px 0;border-bottom:1px solid #e5e7eb;margin-bottom:8px">
-                                                <div style="display:flex;align-items:center;gap:8px">
-                                                    <span style="color:#374151;font-size:14px;min-width:120px;font-weight:500">Template Name:</span>
-                                                    <input type="text" id="template-name" required style="background:#fff;border:1px solid #d1d5db;border-radius:4px;color:#111827;flex:1;padding:8px;font-size:14px;outline:none" placeholder="e.g., Interview Result Notification">
-                                                </div>
-                                            </div>
-                                            
-                                            <!-- Subject Field -->
-                                            <div style="padding:8px 0;border-bottom:1px solid #e5e7eb;margin-bottom:8px">
-                                                <div style="display:flex;align-items:center;gap:8px">
-                                                    <span style="color:#374151;font-size:14px;min-width:120px;font-weight:500">Subject:</span>
-                                                    <input type="text" id="template-subject" style="background:#fff;border:1px solid #d1d5db;border-radius:4px;color:#111827;flex:1;padding:8px;font-size:14px;outline:none" placeholder="Email subject line">
-                                                </div>
-                                            </div>
-                                            
-                                            <!-- Body Field with Quill Editor -->
-                                            <div style="flex:1;min-height:400px;padding:16px 0">
-                                                <div style="margin-bottom:8px">
-                                                    <span style="color:#374151;font-size:14px;font-weight:500">Body:</span>
-                                                </div>
-                                                <div id="email-template-body-editor" style="min-height:400px"></div>
-                                            </div>
-                                            
-                                            <!-- Hidden textarea for form submission (fallback) -->
-                                            <textarea id="template-body-textarea" name="body" style="display:none"></textarea>
-                                        </form>
-                                    </div>
+                                    <form id="email-template-form" style="display:flex;flex-direction:column;gap:20px">
+                                        <input type="hidden" id="email-template-id" value="">
+                                        <div>
+                                            <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Template Name</label>
+                                            <input type="text" id="template-name" class="form-input" placeholder="e.g., Interview Result Notification" required style="width:100%">
+                                        </div>
+                                        <div>
+                                            <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Subject</label>
+                                            <input type="text" id="template-subject" class="form-input" placeholder="Email subject line" style="width:100%">
+                                        </div>
+                                        <div>
+                                            <label style="display:block;margin-bottom:8px;font-weight:500;color:#374151">Body</label>
+                                            <div id="email-template-body-editor" style="min-height:400px"></div>
+                                        </div>
+                                        <div style="display:flex;gap:12px">
+                                            <button type="submit" class="btn btn-primary">Save Template</button>
+                                            <button type="button" class="btn btn-secondary" onclick="resetEmailTemplateForm()">Reset</button>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
                             
@@ -13453,12 +13427,12 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                             });
                         } else {
                             console.warn('Quill.js not loaded, using fallback textarea');
-                            editorContainer.innerHTML = '<textarea id="email-template-body-fallback" style="width:100%;min-height:400px;padding:8px;border:1px solid #d1d5db;border-radius:4px;font-size:14px;font-family:inherit" placeholder="Email body content. You can use placeholders like ${student_name}, ${session_name}, etc."></textarea>';
+                            editorContainer.innerHTML = '<textarea id="email-template-body-fallback" class="form-input" rows="15" style="width:100%;resize:vertical" placeholder="Email body content. You can use placeholders like ${student_name}, ${session_name}, etc."></textarea>';
                         }
                     } catch (quillError) {
                         console.error('Error initializing Quill editor:', quillError);
                         if (editorContainer && !emailTemplateQuill) {
-                            editorContainer.innerHTML = '<textarea id="email-template-body-fallback" style="width:100%;min-height:400px;padding:8px;border:1px solid #d1d5db;border-radius:4px;font-size:14px;font-family:inherit" placeholder="Email body content. You can use placeholders like ${student_name}, ${session_name}, etc."></textarea>';
+                            editorContainer.innerHTML = '<textarea id="email-template-body-fallback" class="form-input" rows="15" style="width:100%;resize:vertical" placeholder="Email body content. You can use placeholders like ${student_name}, ${session_name}, etc."></textarea>';
                         }
                     }
                 } else if (emailTemplateQuill && !skipReset) {
@@ -13584,7 +13558,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 showSuccess(templateId ? 'Template updated successfully' : 'Template saved successfully');
                 resetEmailTemplateForm();
                 loadEmailTemplates();
-                showEmailTemplateList();
+                showEmailTemplateList(); // Go back to list view after saving
             } catch (e) {
                 console.error('Error saving template:', e);
                 showError(e.message || 'Failed to save template');
