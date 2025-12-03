@@ -13357,6 +13357,13 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                                     </button>
                                 </div>
                             ` : ''}
+                            ${status === 'failed' ? `
+                                <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
+                                    <button onclick="openSendMailFromFailed(${log.id})" class="btn btn-primary" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:14px">
+                                        <span>✏️</span> Edit & Resend
+                                    </button>
+                                </div>
+                            ` : ''}
                         </div>
                     `;
                 }).join('');
@@ -13931,6 +13938,11 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             window.currentDraftId = null; // Clear draft ID when closing
         }
         
+        // Open send mail popup from failed email (same as draft, but will resend)
+        async function openSendMailFromFailed(failedId) {
+            await openSendMailFromDraft(failedId);
+        }
+        
         // Open send mail popup from draft
         async function openSendMailFromDraft(draftId) {
             try {
@@ -14382,9 +14394,14 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                             } else {
                                 errorCount++;
                                 failedCountEl.textContent = errorCount;
+                                // Log the error for debugging
+                                console.error(`Failed to send email to ${emailTo}:`, json.error || 'Unknown error');
                             }
                             processedCount++;
                             progressText.textContent = `Processed ${processedCount} of ${totalEmails} emails...`;
+                            
+                            // Small delay to ensure database updates complete
+                            await new Promise(resolve => setTimeout(resolve, 100));
                         } catch (e) {
                             console.error(`Error sending email to ${id}:`, e);
                             errorCount++;
@@ -14450,9 +14467,13 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     showSuccess('Email sent successfully');
                     closeSendMailPopup();
                     
-                    // Reload drafts if we sent from a draft
-                    if (window.currentDraftId && currentEmailLogTab === 'drafted') {
-                        await loadEmailLogs('drafted');
+                    // Reload appropriate tab if we sent from a draft or failed email
+                    if (window.currentDraftId) {
+                        if (currentEmailLogTab === 'drafted') {
+                            await loadEmailLogs('drafted');
+                        } else if (currentEmailLogTab === 'failed') {
+                            await loadEmailLogs('failed');
+                        }
                     }
                     window.currentDraftId = null; // Clear draft ID
                 }

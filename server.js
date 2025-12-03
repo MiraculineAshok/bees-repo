@@ -2548,7 +2548,8 @@ app.post('/api/admin/send-email', async (req, res) => {
         // Continue with email sending even if logging fails
       }
     } else {
-      // Create new log entry for sending (will be updated to 'sent' after successful send)
+      // Create new log entry for sending (will be updated to 'sent' or 'failed' after attempt)
+      // Use 'failed' as initial status so if update fails, it's still marked as failed
       try {
         const logResult = await pool.query(`
           INSERT INTO email_logs (from_email, to_emails, cc_emails, bcc_emails, subject, message, status, consolidation_id, sent_by)
@@ -2561,7 +2562,7 @@ app.post('/api/admin/send-email', async (req, res) => {
           bcc || null,
           subject,
           message,
-          'drafted', // Will be updated to 'sent' after successful send
+          'failed', // Default to 'failed', will be updated to 'sent' if successful
           consolidation_id || null,
           userId
         ]);
@@ -2880,16 +2881,28 @@ app.post('/api/admin/send-email', async (req, res) => {
         emailError = 'Authentication failed. Please verify: 1) Email address and password are correct, 2) If 2FA is enabled on your Zoho account, you must use an Application-specific Password instead of your regular password, 3) Email address matches your Zoho account exactly.';
       }
       
-      // Update email log to 'failed' status
+      // Update email log to 'failed' status (ensure it's updated even if initial status was wrong)
       if (emailLogId) {
         try {
           await pool.query(`
             UPDATE email_logs 
-            SET status = 'failed', error_message = $1, updated_at = CURRENT_TIMESTAMP
+            SET status = 'failed', error_message = $1, updated_at = CURRENT_TIMESTAMP,
+                from_email = $3, to_emails = $4, cc_emails = $5, bcc_emails = $6,
+                subject = $7, message = $8
             WHERE id = $2
-          `, [emailError, emailLogId]);
+          `, [emailError, emailLogId, from, to || '', cc || null, bcc || null, subject, message]);
         } catch (logError) {
-          console.error('⚠️ Failed to update email log:', logError);
+          console.error('⚠️ Failed to update email log to failed:', logError);
+          // Try a simpler update as fallback
+          try {
+            await pool.query(`
+              UPDATE email_logs 
+              SET status = 'failed', error_message = $1, updated_at = CURRENT_TIMESTAMP
+              WHERE id = $2
+            `, [emailError, emailLogId]);
+          } catch (fallbackError) {
+            console.error('⚠️ Failed to update email log (fallback):', fallbackError);
+          }
         }
       }
     }
