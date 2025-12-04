@@ -2944,7 +2944,7 @@ app.post('/api/admin/send-email', async (req, res) => {
 // Get email logs filtered by status
 app.get('/api/admin/email-logs', async (req, res) => {
   try {
-    const { status } = req.query;
+    const { status, consolidation_id } = req.query;
     
     let query = `
       SELECT 
@@ -2960,9 +2960,20 @@ app.get('/api/admin/email-logs', async (req, res) => {
     `;
     
     const params = [];
+    const conditions = [];
+    
     if (status && ['sent', 'failed', 'drafted'].includes(status)) {
-      query += ` WHERE el.status = $1`;
+      conditions.push(`el.status = $${params.length + 1}`);
       params.push(status);
+    }
+    
+    if (consolidation_id) {
+      conditions.push(`el.consolidation_id = $${params.length + 1}`);
+      params.push(parseInt(consolidation_id));
+    }
+    
+    if (conditions.length > 0) {
+      query += ` WHERE ${conditions.join(' AND ')}`;
     }
     
     query += ` ORDER BY el.created_at DESC LIMIT 1000`;

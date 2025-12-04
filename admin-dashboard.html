@@ -5234,6 +5234,12 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 const json = await res.json();
                 const item = (json.data||[]).find(x=>String(x.id)===String(id));
                 if (!item){ showError('Record not found'); return; }
+                
+                // Fetch email logs for this consolidation
+                const emailLogsRes = await fetch(`/api/admin/email-logs?consolidation_id=${id}`);
+                const emailLogsJson = await emailLogsRes.json();
+                const emailLogs = emailLogsJson.success ? (emailLogsJson.data||[]) : [];
+                
                 const interviewsRes = await fetch(`/api/admin/consolidation/${id}/interviews`);
                 const interviewsJson = await interviewsRes.json();
                 const interviews = interviewsJson.success ? (interviewsJson.data||[]) : [];
@@ -5272,7 +5278,46 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                         })()}</div>
                         <div><strong>Last Interview:</strong> ${item.last_interview_at? formatDate(item.last_interview_at) : '-'} </div>
                         <div style="margin-top:8px"><strong>Notes:</strong><br>${(item.notes||'').replace(/\n/g,'<br>') || '-'}</div>
-                <div style="margin-top:12px"><strong>Interviews</strong></div>
+                
+                <!-- Email Logs Section -->
+                <div style="margin-top:16px"><strong>Emails Sent</strong></div>
+                <div style="margin-top:6px;border:1px solid #e5e7eb;border-radius:8px">
+                    ${emailLogs.length === 0 ? '<div style="padding:12px;color:#6b7280;text-align:center">No emails sent</div>' : emailLogs.map(email => {
+                        const sentAt = email.sent_at ? formatDate(email.sent_at) : (email.created_at ? formatDate(email.created_at) : 'N/A');
+                        const statusColor = email.status === 'sent' ? '#10b981' : email.status === 'failed' ? '#ef4444' : '#f59e0b';
+                        const statusBg = email.status === 'sent' ? '#d1fae5' : email.status === 'failed' ? '#fee2e2' : '#fef3c7';
+                        return `
+                            <details style="border-bottom:1px solid #e5e7eb;padding:8px">
+                                <summary style="cursor:pointer;color:#111827;display:flex;justify-content:space-between;align-items:center;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:8px">
+                                    <div style="flex:1">
+                                        <div style="font-weight:600">${email.subject || 'No Subject'}</div>
+                                        <div style="font-size:12px;color:#6b7280;margin-top:4px">
+                                            <div>To: ${email.to_emails || '-'}</div>
+                                            ${email.cc_emails ? `<div>CC: ${email.cc_emails}</div>` : ''}
+                                            ${email.bcc_emails ? `<div>BCC: ${email.bcc_emails}</div>` : ''}
+                                        </div>
+                                        <div style="margin-top:6px">
+                                            <span style="display:inline-block;padding:2px 6px;border-radius:10px;color:#fff;background:${statusColor}">${email.status || 'drafted'}</span>
+                                            <span style="display:inline-block;margin-left:6px;font-size:12px;color:#6b7280">${sentAt}</span>
+                                        </div>
+                                    </div>
+                                    <span class="arrow" style="opacity:0.7;margin-left:8px">▶</span>
+                                </summary>
+                                <div style="margin-top:8px;padding:8px;background:#fff;border-radius:4px">
+                                    <div style="margin-bottom:8px"><strong>From:</strong> ${email.from_email || '-'}</div>
+                                    ${email.error_message ? `<div style="margin-bottom:8px;color:#ef4444"><strong>Error:</strong> ${email.error_message}</div>` : ''}
+                                    <div style="margin-bottom:8px"><strong>Message:</strong></div>
+                                    <div style="padding:8px;background:#f9fafb;border-radius:4px;max-height:300px;overflow-y:auto;border:1px solid #e5e7eb">
+                                        ${email.message || '-'}
+                                    </div>
+                                </div>
+                            </details>
+                        `;
+                    }).join('')}
+                </div>
+                
+                <!-- Interviews Section -->
+                <div style="margin-top:16px"><strong>Interviews</strong></div>
                 <div style="margin-top:6px;border:1px solid #e5e7eb;border-radius:8px">
                            ${interviews.map(i=>`
                      <details style=\"border-bottom:1px solid #e5e7eb;padding:8px\">
