@@ -5553,6 +5553,66 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 }
             }catch(e){ console.error(e); showError('Failed to open details'); }
         }
+        
+        // Helper function to render email list
+        function renderEmailList(emails, consolidationId, status, offset) {
+            if (emails.length === 0) return '<div style="padding:12px;color:#6b7280;text-align:center">No emails</div>';
+            
+            return emails.map(email => {
+                const sentAt = email.sent_at ? formatDate(email.sent_at) : (email.created_at ? formatDate(email.created_at) : 'N/A');
+                const statusColor = email.status === 'sent' ? '#10b981' : email.status === 'failed' ? '#ef4444' : '#f59e0b';
+                return `
+                    <details style="border-bottom:1px solid #e5e7eb;padding:8px;margin-bottom:4px">
+                        <summary style="cursor:pointer;color:#111827;display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid #e5e7eb;border-radius:6px;padding:8px">
+                            <div style="flex:1">
+                                <div style="font-weight:600">${email.subject || 'No Subject'}</div>
+                                <div style="font-size:12px;color:#6b7280;margin-top:4px">
+                                    <div>To: ${email.to_emails || '-'}</div>
+                                    ${email.cc_emails ? `<div>CC: ${email.cc_emails}</div>` : ''}
+                                    ${email.bcc_emails ? `<div>BCC: ${email.bcc_emails}</div>` : ''}
+                                </div>
+                                <div style="margin-top:6px">
+                                    <span style="display:inline-block;padding:2px 6px;border-radius:10px;color:#fff;background:${statusColor}">${email.status || 'drafted'}</span>
+                                    <span style="display:inline-block;margin-left:6px;font-size:12px;color:#6b7280">${sentAt}</span>
+                                </div>
+                            </div>
+                            <span class="arrow" style="opacity:0.7;margin-left:8px">▶</span>
+                        </summary>
+                        <div style="margin-top:8px;padding:8px;background:#fff;border-radius:4px">
+                            <div style="margin-bottom:8px"><strong>From:</strong> ${email.from_email || '-'}</div>
+                            ${email.error_message ? `<div style="margin-bottom:8px;color:#ef4444"><strong>Error:</strong> ${email.error_message}</div>` : ''}
+                            <div style="margin-bottom:8px"><strong>Message:</strong></div>
+                            <div style="padding:8px;background:#f9fafb;border-radius:4px;max-height:300px;overflow-y:auto;border:1px solid #e5e7eb">
+                                ${email.message || '-'}
+                            </div>
+                            ${email.status === 'failed' ? `<div style="margin-top:8px"><button onclick="openSendMailFromFailed(${email.id})" style="background:#3b82f6;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:13px">Edit & Resend</button></div>` : ''}
+                            ${email.status === 'drafted' ? `<div style="margin-top:8px"><button onclick="openSendMailFromDraft(${email.id})" style="background:#3b82f6;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:13px">Send</button></div>` : ''}
+                        </div>
+                    </details>
+                `;
+            }).join('');
+        }
+        
+        // Load more emails on scroll
+        function loadMoreEmails(consolidationId, status) {
+            const dataKey = `consEmailData_${consolidationId}`;
+            const emailData = window[dataKey];
+            if (!emailData) return;
+            
+            const emails = emailData[status];
+            const currentOffset = emailData.offsets[status];
+            
+            if (currentOffset >= emails.length) return; // No more emails
+            
+            const nextBatch = emails.slice(currentOffset, currentOffset + 5);
+            if (nextBatch.length === 0) return;
+            
+            const listEl = document.getElementById(`${status}-emails-list-${consolidationId}`);
+            if (!listEl) return;
+            
+            listEl.innerHTML += renderEmailList(nextBatch, consolidationId, status, currentOffset);
+            emailData.offsets[status] = currentOffset + 5;
+        }
 
         // User authentication functions
         async function checkUserLoginStatus() {
