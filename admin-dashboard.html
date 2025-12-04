@@ -5375,28 +5375,6 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     ` : ''}
                 </div>
                 
-                <script>
-                    // Store email lists for scroll loading
-                    window.consEmailData_${id} = {
-                        sent: ${JSON.stringify(sentEmails)},
-                        failed: ${JSON.stringify(failedEmails)},
-                        drafted: ${JSON.stringify(draftedEmails)},
-                        offsets: { sent: 5, failed: 5, drafted: 5 }
-                    };
-                    
-                    // Setup scroll listeners for each email list
-                    ['sent', 'failed', 'drafted'].forEach(status => {
-                        const listEl = document.getElementById(status + '-emails-list-${id}');
-                        if (listEl) {
-                            listEl.addEventListener('scroll', function() {
-                                if (this.scrollTop + this.clientHeight >= this.scrollHeight - 10) {
-                                    loadMoreEmails('${id}', '${status}');
-                                }
-                            });
-                        }
-                    });
-                </script>
-                
                 <!-- Interviews Section -->
                 <div style="margin-top:16px"><strong>Interviews</strong></div>
                 <div style="margin-top:6px;border:1px solid #e5e7eb;border-radius:8px">
