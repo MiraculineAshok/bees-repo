@@ -5238,7 +5238,23 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 // Fetch email logs for this consolidation
                 const emailLogsRes = await fetch(`/api/admin/email-logs?consolidation_id=${id}`);
                 const emailLogsJson = await emailLogsRes.json();
-                const emailLogs = emailLogsJson.success ? (emailLogsJson.data||[]) : [];
+                const allEmailLogs = emailLogsJson.success ? (emailLogsJson.data||[]) : [];
+                
+                // Sort by created_at descending (latest first)
+                allEmailLogs.sort((a, b) => {
+                    const dateA = new Date(a.created_at || 0);
+                    const dateB = new Date(b.created_at || 0);
+                    return dateB - dateA;
+                });
+                
+                // Get latest 2 emails for initial display
+                const latestEmails = allEmailLogs.slice(0, 2);
+                
+                // Separate emails by status (excluding the latest 2)
+                const remainingEmails = allEmailLogs.slice(2);
+                const sentEmails = remainingEmails.filter(e => e.status === 'sent');
+                const failedEmails = remainingEmails.filter(e => e.status === 'failed');
+                const draftedEmails = remainingEmails.filter(e => e.status === 'drafted');
                 
                 const interviewsRes = await fetch(`/api/admin/consolidation/${id}/interviews`);
                 const interviewsJson = await interviewsRes.json();
@@ -5280,12 +5296,14 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                         <div style="margin-top:8px"><strong>Notes:</strong><br>${(item.notes||'').replace(/\n/g,'<br>') || '-'}</div>
                 
                 <!-- Email Logs Section -->
-                <div style="margin-top:16px"><strong>Emails Sent</strong></div>
+                <div style="margin-top:16px"><strong>Emails</strong></div>
                 <div style="margin-top:6px;border:1px solid #e5e7eb;border-radius:8px">
-                    ${emailLogs.length === 0 ? '<div style="padding:12px;color:#6b7280;text-align:center">No emails sent</div>' : emailLogs.map(email => {
+                    ${allEmailLogs.length === 0 ? '<div style="padding:12px;color:#6b7280;text-align:center">No emails</div>' : ''}
+                    
+                    <!-- Latest 2 Emails -->
+                    ${latestEmails.map(email => {
                         const sentAt = email.sent_at ? formatDate(email.sent_at) : (email.created_at ? formatDate(email.created_at) : 'N/A');
                         const statusColor = email.status === 'sent' ? '#10b981' : email.status === 'failed' ? '#ef4444' : '#f59e0b';
-                        const statusBg = email.status === 'sent' ? '#d1fae5' : email.status === 'failed' ? '#fee2e2' : '#fef3c7';
                         return `
                             <details style="border-bottom:1px solid #e5e7eb;padding:8px">
                                 <summary style="cursor:pointer;color:#111827;display:flex;justify-content:space-between;align-items:center;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:8px">
@@ -5310,11 +5328,74 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                                     <div style="padding:8px;background:#f9fafb;border-radius:4px;max-height:300px;overflow-y:auto;border:1px solid #e5e7eb">
                                         ${email.message || '-'}
                                     </div>
+                                    ${email.status === 'failed' ? `<div style="margin-top:8px"><button onclick="openSendMailFromFailed(${email.id})" style="background:#3b82f6;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:13px">Edit & Resend</button></div>` : ''}
+                                    ${email.status === 'drafted' ? `<div style="margin-top:8px"><button onclick="openSendMailFromDraft(${email.id})" style="background:#3b82f6;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:13px">Send</button></div>` : ''}
                                 </div>
                             </details>
                         `;
                     }).join('')}
+                    
+                    <!-- Sent Emails Collapsible -->
+                    ${sentEmails.length > 0 ? `
+                        <details style="border-bottom:1px solid #e5e7eb;padding:8px">
+                            <summary style="cursor:pointer;color:#111827;display:flex;justify-content:space-between;align-items:center;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:8px">
+                                <div style="font-weight:600">Sent Emails (${sentEmails.length})</div>
+                                <span class="arrow" style="opacity:0.7;margin-left:8px">▶</span>
+                            </summary>
+                            <div id="sent-emails-list-${id}" style="margin-top:8px">
+                                ${renderEmailList(sentEmails.slice(0, 5), id, 'sent', 0)}
+                            </div>
+                        </details>
+                    ` : ''}
+                    
+                    <!-- Failed Emails Collapsible -->
+                    ${failedEmails.length > 0 ? `
+                        <details style="border-bottom:1px solid #e5e7eb;padding:8px">
+                            <summary style="cursor:pointer;color:#111827;display:flex;justify-content:space-between;align-items:center;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:8px">
+                                <div style="font-weight:600">Failed Emails (${failedEmails.length})</div>
+                                <span class="arrow" style="opacity:0.7;margin-left:8px">▶</span>
+                            </summary>
+                            <div id="failed-emails-list-${id}" style="margin-top:8px">
+                                ${renderEmailList(failedEmails.slice(0, 5), id, 'failed', 0)}
+                            </div>
+                        </details>
+                    ` : ''}
+                    
+                    <!-- Drafted Emails Collapsible -->
+                    ${draftedEmails.length > 0 ? `
+                        <details style="border-bottom:1px solid #e5e7eb;padding:8px">
+                            <summary style="cursor:pointer;color:#111827;display:flex;justify-content:space-between;align-items:center;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:8px">
+                                <div style="font-weight:600">Drafted Emails (${draftedEmails.length})</div>
+                                <span class="arrow" style="opacity:0.7;margin-left:8px">▶</span>
+                            </summary>
+                            <div id="drafted-emails-list-${id}" style="margin-top:8px">
+                                ${renderEmailList(draftedEmails.slice(0, 5), id, 'drafted', 0)}
+                            </div>
+                        </details>
+                    ` : ''}
                 </div>
+                
+                <script>
+                    // Store email lists for scroll loading
+                    window.consEmailData_${id} = {
+                        sent: ${JSON.stringify(sentEmails)},
+                        failed: ${JSON.stringify(failedEmails)},
+                        drafted: ${JSON.stringify(draftedEmails)},
+                        offsets: { sent: 5, failed: 5, drafted: 5 }
+                    };
+                    
+                    // Setup scroll listeners for each email list
+                    ['sent', 'failed', 'drafted'].forEach(status => {
+                        const listEl = document.getElementById(status + '-emails-list-${id}');
+                        if (listEl) {
+                            listEl.addEventListener('scroll', function() {
+                                if (this.scrollTop + this.clientHeight >= this.scrollHeight - 10) {
+                                    loadMoreEmails('${id}', '${status}');
+                                }
+                            });
+                        }
+                    });
+                </script>
                 
                 <!-- Interviews Section -->
                 <div style="margin-top:16px"><strong>Interviews</strong></div>
