@@ -5597,7 +5597,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                                 ${email.message || '-'}
                             </div>
                             ${email.status === 'failed' ? `<div style="margin-top:8px"><button onclick="openSendMailFromFailed(${email.id})" style="background:#3b82f6;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:13px">Edit & Resend</button></div>` : ''}
-                            ${email.status === 'drafted' ? `<div style="margin-top:8px"><button onclick="openSendMailFromDraft(${email.id})" style="background:#3b82f6;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:13px">Send</button></div>` : ''}
+                            ${email.status === 'drafted' ? `<div style="margin-top:8px"><button onclick="openSendMailFromDraft(${email.id})" style="background:#3b82f6;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:13px">Resend</button></div>` : ''}
                         </div>
                     </details>
                 `;
