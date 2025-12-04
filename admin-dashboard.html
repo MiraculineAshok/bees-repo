@@ -5402,6 +5402,31 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     </div>`;
                 setTimeout(()=>{ panel.style.right='0px'; }, 10);
                 overlay.onclick = ()=>{ overlay.style.display='none'; panel.style.right='-520px'; };
+                
+                // Store email lists for scroll loading
+                window[`consEmailData_${id}`] = {
+                    sent: sentEmails,
+                    failed: failedEmails,
+                    drafted: draftedEmails,
+                    offsets: { sent: 5, failed: 5, drafted: 5 }
+                };
+                
+                // Setup scroll listeners for each email list
+                setTimeout(() => {
+                    ['sent', 'failed', 'drafted'].forEach(status => {
+                        const listEl = document.getElementById(`${status}-emails-list-${id}`);
+                        if (listEl) {
+                            listEl.style.maxHeight = '400px';
+                            listEl.style.overflowY = 'auto';
+                            listEl.addEventListener('scroll', function() {
+                                if (this.scrollTop + this.clientHeight >= this.scrollHeight - 10) {
+                                    loadMoreEmails(id, status);
+                                }
+                            });
+                        }
+                    });
+                }, 100);
+                
                 // Fetch questions per interview and render
                 for (const interview of interviews){
                     try{
