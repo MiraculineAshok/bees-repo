@@ -5335,41 +5335,52 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                         `;
                     }).join('')}
                     
-                    <!-- Sent Emails Collapsible -->
-                    ${sentEmails.length > 0 ? `
-                        <details style="border-bottom:1px solid #e5e7eb;padding:8px">
-                            <summary style="cursor:pointer;color:#111827;display:flex;justify-content:space-between;align-items:center;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:8px">
-                                <div style="font-weight:600">Sent Emails (${sentEmails.length})</div>
+                    <!-- Other Emails Major Collapse -->
+                    ${(sentEmails.length > 0 || failedEmails.length > 0 || draftedEmails.length > 0) ? `
+                        <details style="border-bottom:1px solid #e5e7eb;padding:8px;margin-top:8px">
+                            <summary style="cursor:pointer;color:#111827;display:flex;justify-content:space-between;align-items:center;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:6px;padding:10px">
+                                <div style="font-weight:600;font-size:15px">Other Emails</div>
                                 <span class="arrow" style="opacity:0.7;margin-left:8px">▶</span>
                             </summary>
-                            <div id="sent-emails-list-${id}" style="margin-top:8px">
-                                ${renderEmailList(sentEmails.slice(0, 5), id, 'sent', 0)}
-                            </div>
-                        </details>
-                    ` : ''}
-                    
-                    <!-- Failed Emails Collapsible -->
-                    ${failedEmails.length > 0 ? `
-                        <details style="border-bottom:1px solid #e5e7eb;padding:8px">
-                            <summary style="cursor:pointer;color:#111827;display:flex;justify-content:space-between;align-items:center;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:8px">
-                                <div style="font-weight:600">Failed Emails (${failedEmails.length})</div>
-                                <span class="arrow" style="opacity:0.7;margin-left:8px">▶</span>
-                            </summary>
-                            <div id="failed-emails-list-${id}" style="margin-top:8px">
-                                ${renderEmailList(failedEmails.slice(0, 5), id, 'failed', 0)}
-                            </div>
-                        </details>
-                    ` : ''}
-                    
-                    <!-- Drafted Emails Collapsible -->
-                    ${draftedEmails.length > 0 ? `
-                        <details style="border-bottom:1px solid #e5e7eb;padding:8px">
-                            <summary style="cursor:pointer;color:#111827;display:flex;justify-content:space-between;align-items:center;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:8px">
-                                <div style="font-weight:600">Drafted Emails (${draftedEmails.length})</div>
-                                <span class="arrow" style="opacity:0.7;margin-left:8px">▶</span>
-                            </summary>
-                            <div id="drafted-emails-list-${id}" style="margin-top:8px">
-                                ${renderEmailList(draftedEmails.slice(0, 5), id, 'drafted', 0)}
+                            <div style="margin-top:8px;padding-left:8px">
+                                <!-- Sent Emails Collapsible -->
+                                ${sentEmails.length > 0 ? `
+                                    <details style="border-bottom:1px solid #e5e7eb;padding:8px;margin-bottom:4px">
+                                        <summary style="cursor:pointer;color:#111827;display:flex;justify-content:space-between;align-items:center;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:8px">
+                                            <div style="font-weight:600">Sent Emails (${sentEmails.length})</div>
+                                            <span class="arrow" style="opacity:0.7;margin-left:8px">▶</span>
+                                        </summary>
+                                        <div id="sent-emails-list-${id}" style="margin-top:8px">
+                                            ${renderEmailList(sentEmails.slice(0, 5), id, 'sent', 0)}
+                                        </div>
+                                    </details>
+                                ` : ''}
+                                
+                                <!-- Failed Emails Collapsible -->
+                                ${failedEmails.length > 0 ? `
+                                    <details style="border-bottom:1px solid #e5e7eb;padding:8px;margin-bottom:4px">
+                                        <summary style="cursor:pointer;color:#111827;display:flex;justify-content:space-between;align-items:center;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:8px">
+                                            <div style="font-weight:600">Failed Emails (${failedEmails.length})</div>
+                                            <span class="arrow" style="opacity:0.7;margin-left:8px">▶</span>
+                                        </summary>
+                                        <div id="failed-emails-list-${id}" style="margin-top:8px">
+                                            ${renderEmailList(failedEmails.slice(0, 5), id, 'failed', 0)}
+                                        </div>
+                                    </details>
+                                ` : ''}
+                                
+                                <!-- Drafted Emails Collapsible -->
+                                ${draftedEmails.length > 0 ? `
+                                    <details style="border-bottom:1px solid #e5e7eb;padding:8px;margin-bottom:4px">
+                                        <summary style="cursor:pointer;color:#111827;display:flex;justify-content:space-between;align-items:center;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:8px">
+                                            <div style="font-weight:600">Drafted Emails (${draftedEmails.length})</div>
+                                            <span class="arrow" style="opacity:0.7;margin-left:8px">▶</span>
+                                        </summary>
+                                        <div id="drafted-emails-list-${id}" style="margin-top:8px">
+                                            ${renderEmailList(draftedEmails.slice(0, 5), id, 'drafted', 0)}
+                                        </div>
+                                    </details>
+                                ` : ''}
                             </div>
                         </details>
                     ` : ''}
