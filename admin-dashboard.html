@@ -14087,9 +14087,47 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         // Send Mail Functions
         let currentConsolidationId = null;
         let sendMailQuill = null;
+        
+        // Store pending consolidation ID for communication type selection
+        let pendingConsolidationId = null;
+        let pendingBulkEmailIds = null;
+        
+        function showCommTypeModal(consolidationId = null, bulkEmailIds = null) {
+            pendingConsolidationId = consolidationId;
+            pendingBulkEmailIds = bulkEmailIds;
+            document.getElementById('comm-type-overlay').style.display = 'flex';
+        }
+        
+        function closeCommTypeModal() {
+            document.getElementById('comm-type-overlay').style.display = 'none';
+            pendingConsolidationId = null;
+            pendingBulkEmailIds = null;
+        }
+        
+        function proceedWithCommType() {
+            const selectedType = document.querySelector('input[name="comm-type"]:checked').value;
+            closeCommTypeModal();
+            
+            if (selectedType === 'email') {
+                if (pendingBulkEmailIds) {
+                    // Bulk email mode
+                    openBulkEmailPopupDirect();
+                } else if (pendingConsolidationId) {
+                    // Single email mode
+                    openSendMailPopupDirect(pendingConsolidationId);
+                }
+            } else if (selectedType === 'sms') {
+                // TODO: Implement SMS sending functionality
+                showError('SMS functionality coming soon');
+            }
+        }
         let emailTemplateQuill = null;
         
         async function openSendMailPopup(consolidationId) {
+            showCommTypeModal(consolidationId);
+        }
+        
+        async function openSendMailPopupDirect(consolidationId) {
             currentConsolidationId = consolidationId;
             try {
                 // Get consolidation data
@@ -14863,9 +14901,18 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 return;
             }
             
+            showCommTypeModal(null, Array.from(selectedConsolidationIds));
+        }
+        
+        async function openBulkEmailPopupDirect() {
+            if (!pendingBulkEmailIds || pendingBulkEmailIds.length === 0) {
+                showError('No records selected');
+                return;
+            }
+            
             // Store bulk mode
             window.bulkEmailMode = true;
-            window.bulkEmailIds = Array.from(selectedConsolidationIds);
+            window.bulkEmailIds = pendingBulkEmailIds;
             
             try {
                 // Get consolidation data for all selected records
