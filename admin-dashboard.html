@@ -14370,8 +14370,13 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     }
                 }
                 
-                if (!from || toEmails.length === 0 || !subject || !message) {
-                    showError('Please fill in From, To, Subject, and Message fields');
+                // For drafts, at least one field (To, Subject, or Message) should be filled
+                const hasTo = toEmails.length > 0;
+                const hasSubject = subject && subject.trim().length > 0;
+                const hasMessage = message && message.trim().length > 0;
+                
+                if (!hasTo && !hasSubject && !hasMessage) {
+                    showError('Please fill in at least one field (To, Subject, or Message) to save as draft');
                     return;
                 }
                 
