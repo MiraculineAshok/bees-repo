@@ -2529,7 +2529,7 @@ app.post('/api/admin/send-email', async (req, res) => {
     
     // Store email log (if status is 'drafted', save as drafted; otherwise will update after sending)
     let emailLogId = null;
-    const emailStatus = status || (draft_id ? undefined : 'drafted'); // Don't set status if sending from draft
+    // emailStatus is already defined above
     
     // If draft_id is provided, use it (will be updated to 'sent' after successful send)
     if (draft_id) {
