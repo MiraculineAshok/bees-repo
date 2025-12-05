@@ -14106,15 +14106,23 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         
         function proceedWithCommType() {
             const selectedType = document.querySelector('input[name="comm-type"]:checked').value;
+            
+            // Store values before closing modal (which clears them)
+            const consolidationId = pendingConsolidationId;
+            const bulkEmailIds = pendingBulkEmailIds;
+            
+            // Close modal (this clears pendingConsolidationId and pendingBulkEmailIds)
             closeCommTypeModal();
             
             if (selectedType === 'email') {
-                if (pendingBulkEmailIds) {
+                if (bulkEmailIds && bulkEmailIds.length > 0) {
                     // Bulk email mode
-                    openBulkEmailPopupDirect();
-                } else if (pendingConsolidationId) {
+                    openBulkEmailPopupDirect(bulkEmailIds);
+                } else if (consolidationId) {
                     // Single email mode
-                    openSendMailPopupDirect(pendingConsolidationId);
+                    openSendMailPopupDirect(consolidationId);
+                } else {
+                    showError('No records selected');
                 }
             } else if (selectedType === 'sms') {
                 // TODO: Implement SMS sending functionality
@@ -14904,15 +14912,15 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             showCommTypeModal(null, Array.from(selectedConsolidationIds));
         }
         
-        async function openBulkEmailPopupDirect() {
-            if (!pendingBulkEmailIds || pendingBulkEmailIds.length === 0) {
+        async function openBulkEmailPopupDirect(bulkEmailIds) {
+            if (!bulkEmailIds || bulkEmailIds.length === 0) {
                 showError('No records selected');
                 return;
             }
             
             // Store bulk mode
             window.bulkEmailMode = true;
-            window.bulkEmailIds = pendingBulkEmailIds;
+            window.bulkEmailIds = bulkEmailIds;
             
             try {
                 // Get consolidation data for all selected records
