@@ -3001,6 +3001,12 @@ app.get('/api/admin/email-logs/:id', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Invalid email log ID' });
     }
     
+    // Check database connection
+    if (!pool) {
+      console.error('Database pool not available');
+      return res.status(500).json({ success: false, error: 'Database connection not available' });
+    }
+    
     const result = await pool.query(`
       SELECT 
         el.*,
@@ -3026,9 +3032,13 @@ app.get('/api/admin/email-logs/:id', async (req, res) => {
   } catch (error) {
     console.error('Error fetching email log:', error);
     console.error('Error stack:', error.stack);
+    console.error('Request params:', req.params);
+    console.error('Request ID:', id);
     // Ensure we always return JSON, not HTML
     if (!res.headersSent) {
       res.status(500).json({ success: false, error: error.message || 'Failed to fetch email log' });
+    } else {
+      console.error('Response already sent, cannot send error response');
     }
   }
 });
