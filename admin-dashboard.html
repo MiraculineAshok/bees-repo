@@ -14205,6 +14205,15 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         async function openSendMailFromDraft(draftId) {
             try {
                 const response = await fetch(`/api/admin/email-logs/${draftId}`);
+                
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    console.error('Non-JSON response from server:', text.substring(0, 200));
+                    throw new Error('Server returned an error. Please check the console for details.');
+                }
+                
                 const result = await response.json();
                 
                 if (!response.ok || !result.success) {
