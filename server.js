@@ -69,7 +69,15 @@ const InterviewerService = require('./services/interviewerService');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const BASE_URL = process.env.BASE_URL || 'https://bees-repo.onrender.com';
+// BASE_URL must be set via environment variable - no hardcoded default
+// This ensures each deployment (bees-repo, beez-local, etc.) uses its own URL
+const BASE_URL = process.env.BASE_URL;
+if (!BASE_URL) {
+  console.error('❌ ERROR: BASE_URL environment variable is not set!');
+  console.error('   Please set BASE_URL in your environment variables.');
+  console.error('   Example: BASE_URL=https://beez-local.onrender.com');
+  process.exit(1);
+}
 
 // Middleware
 app.use(helmet({
