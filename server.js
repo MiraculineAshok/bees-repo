@@ -2597,6 +2597,11 @@ app.post('/api/admin/send-email', async (req, res) => {
       });
     }
     
+    // For sending emails (not drafts), validate required fields
+    if (toArray.length === 0) {
+      return res.status(400).json({ success: false, error: 'At least one valid receiver email address is required' });
+    }
+    
     // Try to use nodemailer if available
     let emailSent = false;
     let emailError = null;
