@@ -2510,8 +2510,18 @@ app.post('/api/admin/send-email', async (req, res) => {
   try {
     const { from, to, cc, bcc, subject, message, consolidation_id, status, draft_id } = req.body;
     
-    if (!from || !to || !subject || !message) {
-      return res.status(400).json({ success: false, error: 'From, to, subject, and message are required' });
+    const emailStatus = status || (draft_id ? undefined : 'drafted');
+    
+    // For drafts, allow partial data. For sending emails, require all fields.
+    if (emailStatus !== 'drafted') {
+      if (!from || !to || !subject || !message) {
+        return res.status(400).json({ success: false, error: 'From, to, subject, and message are required' });
+      }
+    } else {
+      // For drafts, only require 'from' (which is always set)
+      if (!from) {
+        return res.status(400).json({ success: false, error: 'From email is required' });
+      }
     }
     
     // Get current user ID for logging
