@@ -2995,6 +2995,12 @@ app.get('/api/admin/email-logs/:id', async (req, res) => {
   try {
     const { id } = req.params;
     
+    // Validate ID is a number
+    const logId = parseInt(id);
+    if (isNaN(logId)) {
+      return res.status(400).json({ success: false, error: 'Invalid email log ID' });
+    }
+    
     const result = await pool.query(`
       SELECT 
         el.*,
@@ -3007,7 +3013,7 @@ app.get('/api/admin/email-logs/:id', async (req, res) => {
       LEFT JOIN authorized_users au ON el.sent_by = au.id
       LEFT JOIN interview_consolidation c ON el.consolidation_id = c.id
       WHERE el.id = $1
-    `, [id]);
+    `, [logId]);
     
     if (result.rows.length === 0) {
       return res.status(404).json({ success: false, error: 'Email log not found' });
@@ -3019,7 +3025,11 @@ app.get('/api/admin/email-logs/:id', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching email log:', error);
-    res.status(500).json({ success: false, error: error.message });
+    console.error('Error stack:', error.stack);
+    // Ensure we always return JSON, not HTML
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, error: error.message || 'Failed to fetch email log' });
+    }
   }
 });
 
