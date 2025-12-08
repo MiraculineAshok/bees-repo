@@ -2093,6 +2093,7 @@ app.get('/api/admin/consolidation', async (req, res) => {
         c.student_email,
         c.zeta_id,
         c.session_name,
+        s.phone,
         c.interviewer_ids,
         c.interviewer_names,
         c.verdicts,
@@ -2131,8 +2132,10 @@ app.get('/api/admin/consolidation', async (req, res) => {
         ) AS interview_question_counts,
         c.last_interview_at,
         c.created_at,
-        c.updated_at
+        c.updated_at,
+        s.phone
       FROM interview_consolidation c
+      LEFT JOIN students s ON c.student_id = s.id
       ORDER BY c.last_interview_at DESC NULLS LAST, c.student_name
     `);
     res.json({ success: true, data: result.rows });
@@ -3181,6 +3184,179 @@ app.post('/api/admin/send-sms', async (req, res) => {
     }
   } catch (error) {
     console.error('Error sending SMS:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get Twilio configuration (from number)
+app.get('/api/admin/twilio-config', async (req, res) => {
+  try {
+    const fromNumber = process.env.TWILIO_FROM_NUMBER || '';
+    const whatsappFromNumber = process.env.TWILIO_WHATSAPP_FROM_NUMBER || '';
+    const isConfigured = !!(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN);
+    
+    res.json({
+      success: true,
+      data: {
+        from_number: fromNumber,
+        whatsapp_from_number: whatsappFromNumber,
+        is_configured: isConfigured
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching Twilio config:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get SMS logs filtered by status
+app.get('/api/admin/sms-logs', async (req, res) => {
+  try {
+    const { status, consolidation_id } = req.query;
+    
+    let query = `
+      SELECT 
+        sl.*,
+        au.email as sent_by_email,
+        au.name as sent_by_name,
+        c.student_name,
+        c.student_email,
+        c.zeta_id
+      FROM sms_logs sl
+      LEFT JOIN authorized_users au ON sl.sent_by = au.id
+      LEFT JOIN interview_consolidation c ON sl.consolidation_id = c.id
+    `;
+    
+    const params = [];
+    const conditions = [];
+    
+    if (status && ['sent', 'failed', 'drafted'].includes(status)) {
+      conditions.push(`sl.status = $${params.length + 1}`);
+      params.push(status);
+    }
+    
+    if (consolidation_id) {
+      conditions.push(`sl.consolidation_id = $${params.length + 1}`);
+      params.push(parseInt(consolidation_id));
+    }
+    
+    if (conditions.length > 0) {
+      query += ` WHERE ${conditions.join(' AND ')}`;
+    }
+    
+    query += ` ORDER BY sl.created_at DESC LIMIT 1000`;
+    
+    const result = await pool.query(query, params);
+    
+    res.json({
+      success: true,
+      data: result.rows
+    });
+  } catch (error) {
+    console.error('Error fetching SMS logs:', error);
+    if (error.message.includes('does not exist') || error.message.includes('relation')) {
+      return res.json({ success: true, data: [] });
+    }
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get single SMS log by ID
+app.get('/api/admin/sms-logs/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Validate ID is a number
+    const logId = parseInt(id);
+    if (isNaN(logId)) {
+      return res.status(400).json({ success: false, error: 'Invalid SMS log ID' });
+    }
+    
+    // Check database connection
+    if (!pool) {
+      console.error('Database pool not available');
+      return res.status(500).json({ success: false, error: 'Database connection not available' });
+    }
+    
+    const result = await pool.query(`
+      SELECT 
+        sl.*,
+        au.email as sent_by_email,
+        au.name as sent_by_name,
+        c.student_name,
+        c.student_email,
+        c.zeta_id
+      FROM sms_logs sl
+      LEFT JOIN authorized_users au ON sl.sent_by = au.id
+      LEFT JOIN interview_consolidation c ON sl.consolidation_id = c.id
+      WHERE sl.id = $1
+    `, [logId]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'SMS log not found' });
+    }
+    
+    res.json({
+      success: true,
+      data: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error fetching SMS log:', error);
+    console.error('Error stack:', error.stack);
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, error: error.message || 'Failed to fetch SMS log' });
+    }
+  }
+});
+
+// Update SMS log status (for saving drafts)
+app.put('/api/admin/sms-logs/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, message, to, message_type } = req.body;
+    
+    const updates = [];
+    const params = [];
+    let paramIndex = 1;
+    
+    if (status !== undefined) {
+      updates.push(`status = $${paramIndex++}`);
+      params.push(status);
+    }
+    if (message !== undefined) {
+      updates.push(`message = $${paramIndex++}`);
+      params.push(message);
+    }
+    if (to !== undefined) {
+      updates.push(`to_numbers = $${paramIndex++}`);
+      params.push(to);
+    }
+    if (message_type !== undefined) {
+      updates.push(`message_type = $${paramIndex++}`);
+      params.push(message_type);
+    }
+    
+    if (updates.length === 0) {
+      return res.status(400).json({ success: false, error: 'No fields to update' });
+    }
+    
+    updates.push(`updated_at = CURRENT_TIMESTAMP`);
+    params.push(parseInt(id));
+    
+    const result = await pool.query(`
+      UPDATE sms_logs
+      SET ${updates.join(', ')}
+      WHERE id = $${paramIndex}
+      RETURNING *
+    `, params);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'SMS log not found' });
+    }
+    
+    res.json({ success: true, data: result.rows[0] });
+  } catch (error) {
+    console.error('Error updating SMS log:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
