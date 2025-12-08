@@ -66,6 +66,7 @@ const InterviewService = require('./services/interviewService');
 const QuestionBankService = require('./services/questionBankService');
 const AdminService = require('./services/adminService');
 const InterviewerService = require('./services/interviewerService');
+const SMSService = require('./services/smsService');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -2960,6 +2961,226 @@ app.post('/api/admin/send-email', async (req, res) => {
     }
   } catch (error) {
     console.error('Error sending email:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Send SMS/WhatsApp API
+app.post('/api/admin/send-sms', async (req, res) => {
+  try {
+    const { from, to, message, message_type, consolidation_id, status, draft_id } = req.body;
+    
+    const smsStatus = status || (draft_id ? undefined : 'drafted');
+    const messageType = message_type || 'sms'; // 'sms' or 'whatsapp'
+    
+    // For drafts, allow partial data. For sending SMS, require all fields.
+    if (smsStatus !== 'drafted') {
+      if (!from || !to || !message) {
+        return res.status(400).json({ success: false, error: 'From, to, and message are required' });
+      }
+    } else {
+      // For drafts, only require 'from' (which is always set)
+      if (!from) {
+        return res.status(400).json({ success: false, error: 'From number is required' });
+      }
+    }
+    
+    // Get current user ID for logging
+    const userId = await getCurrentUserId(req);
+    
+    // Store SMS log (if status is 'drafted', save as drafted; otherwise will update after sending)
+    let smsLogId = null;
+    
+    // If draft_id is provided, use it (will be updated to 'sent' after successful send)
+    if (draft_id) {
+      smsLogId = draft_id;
+    } else if (smsStatus === 'drafted') {
+      // Create new draft log entry
+      try {
+        const logResult = await pool.query(`
+          INSERT INTO sms_logs (from_number, to_numbers, message, message_type, status, consolidation_id, sent_by)
+          VALUES ($1, $2, $3, $4, $5, $6, $7)
+          RETURNING id
+        `, [
+          from,
+          to || '',
+          message || '',
+          messageType,
+          'drafted',
+          consolidation_id || null,
+          userId
+        ]);
+        smsLogId = logResult.rows[0].id;
+      } catch (logError) {
+        console.error('⚠️ Failed to create SMS log:', logError);
+        // Continue with SMS sending even if logging fails
+      }
+    } else {
+      // Create new log entry for sending (will be updated to 'sent' or 'failed' after attempt)
+      try {
+        const logResult = await pool.query(`
+          INSERT INTO sms_logs (from_number, to_numbers, message, message_type, status, consolidation_id, sent_by)
+          VALUES ($1, $2, $3, $4, $5, $6, $7)
+          RETURNING id
+        `, [
+          from,
+          to || '',
+          message,
+          messageType,
+          'failed', // Default to 'failed', will be updated to 'sent' if successful
+          consolidation_id || null,
+          userId
+        ]);
+        smsLogId = logResult.rows[0].id;
+      } catch (logError) {
+        console.error('⚠️ Failed to create SMS log:', logError);
+        // Continue with SMS sending even if logging fails
+      }
+    }
+    
+    // Parse To numbers (comma-separated)
+    const toArray = to ? to.split(',').map(n => n.trim()).filter(n => n) : [];
+    
+    // If status is 'drafted', just save the draft and return (don't send SMS)
+    if (smsStatus === 'drafted') {
+      // For drafts, check if at least one field has content
+      const hasTo = toArray.length > 0;
+      const hasMessage = message && message.trim().length > 0;
+      
+      if (!hasTo && !hasMessage) {
+        return res.status(400).json({ success: false, error: 'Please fill in at least one field (To or Message) to save as draft' });
+      }
+      
+      return res.json({
+        success: true,
+        message: 'Draft saved successfully',
+        logId: smsLogId
+      });
+    }
+    
+    // For sending SMS (not drafts), validate required fields
+    if (toArray.length === 0) {
+      return res.status(400).json({ success: false, error: 'At least one valid phone number is required' });
+    }
+    
+    if (!message || !message.trim()) {
+      return res.status(400).json({ success: false, error: 'Message is required' });
+    }
+    
+    // Validate phone numbers
+    const invalidNumbers = [];
+    for (const phoneNumber of toArray) {
+      if (!SMSService.isValidPhoneNumber(phoneNumber)) {
+        invalidNumbers.push(phoneNumber);
+      }
+    }
+    
+    if (invalidNumbers.length > 0) {
+      return res.status(400).json({ 
+        success: false, 
+        error: `Invalid phone numbers: ${invalidNumbers.join(', ')}` 
+      });
+    }
+    
+    // Send SMS/WhatsApp messages
+    let smsSent = false;
+    let smsError = null;
+    const results = [];
+    
+    try {
+      for (const phoneNumber of toArray) {
+        try {
+          const result = await SMSService.sendMessage(phoneNumber, message, messageType);
+          results.push({ to: phoneNumber, success: true, ...result });
+          smsSent = true;
+        } catch (error) {
+          console.error(`❌ Error sending ${messageType} to ${phoneNumber}:`, error);
+          results.push({ to: phoneNumber, success: false, error: error.message });
+          smsError = error.message;
+        }
+        
+        // Small delay to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
+      // Update SMS log based on results
+      if (smsLogId) {
+        const allSuccessful = results.every(r => r.success);
+        const allFailed = results.every(r => !r.success);
+        
+        try {
+          if (allSuccessful) {
+            await pool.query(`
+              UPDATE sms_logs 
+              SET status = 'sent', sent_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+              WHERE id = $1
+            `, [smsLogId]);
+          } else if (allFailed) {
+            await pool.query(`
+              UPDATE sms_logs 
+              SET status = 'failed', error_message = $1, updated_at = CURRENT_TIMESTAMP
+              WHERE id = $2
+            `, [smsError || 'Failed to send SMS', smsLogId]);
+          } else {
+            // Partial success - mark as sent but include error details
+            await pool.query(`
+              UPDATE sms_logs 
+              SET status = 'sent', error_message = $1, sent_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+              WHERE id = $2
+            `, [`Partial success: ${results.filter(r => !r.success).length} failed`, smsLogId]);
+          }
+        } catch (logError) {
+          console.error('⚠️ Failed to update SMS log:', logError);
+        }
+      }
+      
+      const allFailed = results.every(r => !r.success);
+      if (allFailed) {
+        return res.status(500).json({
+          success: false,
+          error: smsError || 'Failed to send SMS',
+          results: results,
+          logId: smsLogId
+        });
+      }
+      
+      res.json({
+        success: true,
+        message: `${messageType.toUpperCase()} sent successfully to ${results.filter(r => r.success).length} recipient(s)`,
+        results: results,
+        logId: smsLogId
+      });
+      
+    } catch (error) {
+      console.error('❌ Error sending SMS:', error);
+      smsError = error.message;
+      
+      // Update SMS log to 'failed'
+      if (smsLogId) {
+        try {
+          await pool.query(`
+            UPDATE sms_logs 
+            SET status = 'failed', error_message = $1, updated_at = CURRENT_TIMESTAMP
+            WHERE id = $2
+          `, [smsError, smsLogId]);
+        } catch (logError) {
+          console.error('⚠️ Failed to update SMS log:', logError);
+        }
+      }
+      
+      // Return error with helpful message
+      const helpfulMessage = smsError && smsError.includes('not configured') 
+        ? 'Please set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_FROM_NUMBER environment variables.'
+        : smsError;
+      
+      res.status(500).json({ 
+        success: false, 
+        error: helpfulMessage,
+        logId: smsLogId
+      });
+    }
+  } catch (error) {
+    console.error('Error sending SMS:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });

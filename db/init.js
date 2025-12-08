@@ -621,6 +621,30 @@ async function initializeDatabase() {
       console.log('⚠️ Email logs index migration:', error.message);
     }
     
+    // Create indexes for sms_logs
+    try {
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_sms_logs_status ON sms_logs(status)
+      `);
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_sms_logs_sent_by ON sms_logs(sent_by)
+      `);
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_sms_logs_consolidation_id ON sms_logs(consolidation_id)
+      `);
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_sms_logs_sent_at ON sms_logs(sent_at DESC)
+      `);
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_sms_logs_created_at ON sms_logs(created_at DESC)
+      `);
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_sms_logs_message_type ON sms_logs(message_type)
+      `);
+    } catch (error) {
+      console.log('⚠️ SMS logs index migration:', error.message);
+    }
+    
     // Insert default authorized users
     await pool.query(`
       INSERT INTO authorized_users (email, name, role, is_superadmin) 
