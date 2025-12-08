@@ -17,7 +17,9 @@ This application now supports sending SMS and WhatsApp messages using Twilio. Th
 
 ## Environment Variables
 
-Add the following environment variables to your `.env` file or Render dashboard:
+**⚠️ IMPORTANT: Never commit these credentials to git! Set them only in your Render dashboard environment variables.**
+
+Add the following environment variables to your Render dashboard (Settings → Environment):
 
 ```bash
 # Twilio Configuration (Required for SMS/WhatsApp)
@@ -28,6 +30,8 @@ TWILIO_FROM_NUMBER=+1234567890  # Your Twilio phone number (E.164 format)
 # WhatsApp Configuration (Optional - for WhatsApp messaging)
 TWILIO_WHATSAPP_FROM_NUMBER=whatsapp:+14155238886  # Twilio WhatsApp sandbox number
 ```
+
+**⚠️ IMPORTANT:** Replace the placeholder values above with your actual Twilio credentials from your Twilio Console. Never commit real credentials to git!
 
 ### Getting Your Twilio Credentials
 
