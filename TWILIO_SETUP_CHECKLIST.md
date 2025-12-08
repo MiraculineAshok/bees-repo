@@ -7,7 +7,7 @@
 **Store your Twilio credentials securely:**
 - **Account SID**: Get from Twilio Console → Account → API Keys & Tokens
 - **Auth Token**: Get from Twilio Console → Account → API Keys & Tokens  
-- **From Number**: Your Twilio phone number (E.164 format, e.g., `+15167744921`)
+- **From Number**: Your Twilio phone number (E.164 format, e.g., `+1234567890`)
 
 ## 📋 Setup Steps
 
@@ -18,7 +18,7 @@ Go to your Render dashboard → Your Service → Environment tab → Add the fol
 ```
 TWILIO_ACCOUNT_SID=your_account_sid_here
 TWILIO_AUTH_TOKEN=your_auth_token_here
-TWILIO_FROM_NUMBER=+15167744921
+TWILIO_FROM_NUMBER=+1234567890
 ```
 
 **Replace the placeholder values with your actual Twilio credentials.**
@@ -27,7 +27,7 @@ TWILIO_FROM_NUMBER=+15167744921
 
 - ✅ Account SID format should start with `AC`
 - ✅ Auth Token should be 32 characters
-- ✅ Phone number should be in E.164 format (e.g., `+15167744921`)
+- ✅ Phone number should be in E.164 format (e.g., `+1234567890`)
 
 ### 3. Test SMS Sending
 
@@ -36,7 +36,7 @@ After setting environment variables and redeploying:
 1. Go to Admin Dashboard → Consolidation
 2. Click "Send Mail" on any record
 3. Select "SMS" in the communication type modal
-4. The SMS popup should show your from number: `+15167744921`
+4. The SMS popup should show your from number (your configured Twilio number)
 5. Enter a phone number and message
 6. Click "Send"
 
@@ -78,7 +78,7 @@ To enable WhatsApp messaging:
 
 - [ ] Environment variables set in Render dashboard
 - [ ] Service redeployed after adding variables
-- [ ] From number displays correctly in SMS popup (`+15167744921`)
+- [ ] From number displays correctly in SMS popup (your Twilio number)
 - [ ] Test SMS sent successfully
 - [ ] SMS appears in Twilio Console logs
 - [ ] SMS logs appear in Admin Dashboard → Settings → SMS Logs
