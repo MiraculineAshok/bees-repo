@@ -477,6 +477,19 @@ class MockDataService {
         return Promise.resolve({ ...this.interviews[index] });
     }
 
+    updateInterviewRecordingUrl(interviewId, recordingUrl) {
+        const index = this.interviews.findIndex(i => i.id === parseInt(interviewId));
+        if (index === -1) {
+            throw new Error('Interview not found');
+        }
+        this.interviews[index] = {
+            ...this.interviews[index],
+            meeting_recording_url: recordingUrl,
+            updated_at: new Date().toISOString()
+        };
+        return Promise.resolve({ ...this.interviews[index] });
+    }
+
     completeInterview(interviewId) {
         const index = this.interviews.findIndex(i => i.id === parseInt(interviewId));
         if (index === -1) {
