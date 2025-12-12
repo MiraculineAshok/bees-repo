@@ -4437,12 +4437,28 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             loadConsolidation(false); // Use cache, just re-sort
         }
         // Global variable to store session filter for consolidation
-        let consolidationSessionFilter = null;
+        // Initialize from sessionStorage if available
+        let consolidationSessionFilter = (() => {
+            try {
+                const stored = sessionStorage.getItem('consolidationSessionFilter');
+                return stored ? parseInt(stored) : null;
+            } catch (e) {
+                return null;
+            }
+        })();
 
         // Function to view consolidation filtered by session
         function viewConsolidationForSession(sessionId) {
             // Set the session filter
-            consolidationSessionFilter = parseInt(sessionId);
+            const sessionIdInt = parseInt(sessionId);
+            consolidationSessionFilter = sessionIdInt;
+            
+            // Store in sessionStorage for persistence
+            try {
+                sessionStorage.setItem('consolidationSessionFilter', sessionIdInt.toString());
+            } catch (e) {
+                console.warn('Failed to store session filter:', e);
+            }
             
             // Clear consolidation search
             const searchInput = document.getElementById('consolidation-search');
@@ -5922,6 +5938,27 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         }
 
         function switchSection(section) {
+            // Clear consolidation session filter when switching away from consolidation
+            if (section !== 'consolidation') {
+                consolidationSessionFilter = null;
+                // Clear from sessionStorage
+                try {
+                    sessionStorage.removeItem('consolidationSessionFilter');
+                } catch (e) {
+                    console.warn('Failed to clear session filter:', e);
+                }
+            } else {
+                // When switching to consolidation, restore filter from sessionStorage
+                try {
+                    const stored = sessionStorage.getItem('consolidationSessionFilter');
+                    if (stored) {
+                        consolidationSessionFilter = parseInt(stored);
+                    }
+                } catch (e) {
+                    console.warn('Failed to restore session filter:', e);
+                }
+            }
+
             // Update navigation
             document.querySelectorAll('.nav-link').forEach(link => {
                 link.classList.remove('active');
