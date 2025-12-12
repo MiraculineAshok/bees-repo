@@ -27,6 +27,7 @@ class InterviewerService {
                     i.verdict,
                     i.duration_seconds,
                     i.created_at,
+                    i.meeting_url,
                     CONCAT(s.first_name, ' ', s.last_name) as student_name,
                     s.email as student_email,
                     s.zeta_id,
