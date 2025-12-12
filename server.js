@@ -1716,6 +1716,23 @@ app.put('/api/interviews/:id/notes', async (req, res) => {
   }
 });
 
+app.put('/api/interviews/:id/recording-url', async (req, res) => {
+  try {
+    const { recording_url } = req.body;
+    const interview = await InterviewService.updateInterviewRecordingUrl(req.params.id, recording_url);
+    res.json({
+      success: true,
+      data: interview
+    });
+  } catch (error) {
+    console.error('Error updating interview recording URL:', error);
+    res.status(400).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 app.put('/api/interviews/:id/complete', async (req, res) => {
   try {
     const interview = await InterviewService.completeInterview(req.params.id);

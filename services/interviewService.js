@@ -703,6 +703,26 @@ class InterviewService {
         }
     }
 
+    static async updateInterviewRecordingUrl(interviewId, recordingUrl) {
+        if (!(await this.isDatabaseAvailable())) {
+            return mockDataService.updateInterviewRecordingUrl(interviewId, recordingUrl);
+        }
+
+        try {
+            const result = await pool.query(
+                `UPDATE interviews 
+                 SET meeting_recording_url = $1, updated_at = CURRENT_TIMESTAMP
+                 WHERE id = $2 
+                 RETURNING *`,
+                [recordingUrl, interviewId]
+            );
+            return result.rows[0];
+        } catch (error) {
+            console.error('Error updating interview recording URL:', error);
+            throw error;
+        }
+    }
+
     static async completeInterview(interviewId) {
         if (!(await this.isDatabaseAvailable())) {
             return mockDataService.completeInterview(interviewId);

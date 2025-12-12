@@ -124,6 +124,7 @@ async function initializeDatabase() {
         verdict VARCHAR(50),
         overall_notes TEXT,
         meeting_url VARCHAR(500),
+        meeting_recording_url VARCHAR(500),
         start_time TIMESTAMP,
         end_time TIMESTAMP,
         duration_seconds INTEGER DEFAULT 0,
@@ -141,6 +142,17 @@ async function initializeDatabase() {
     } catch (error) {
       // Column might already exist, ignore error
       console.log('Meeting URL column migration:', error.message);
+    }
+    
+    // Add meeting_recording_url column to interviews table (for existing databases)
+    try {
+      await pool.query(`
+        ALTER TABLE interviews 
+        ADD COLUMN IF NOT EXISTS meeting_recording_url VARCHAR(500)
+      `);
+    } catch (error) {
+      // Column might already exist, ignore error
+      console.log('Meeting Recording URL column migration:', error.message);
     }
     
     // Create interview_questions table
