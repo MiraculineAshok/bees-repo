@@ -123,6 +123,7 @@ async function initializeDatabase() {
         status VARCHAR(20) DEFAULT 'in_progress',
         verdict VARCHAR(50),
         overall_notes TEXT,
+        meeting_url VARCHAR(500),
         start_time TIMESTAMP,
         end_time TIMESTAMP,
         duration_seconds INTEGER DEFAULT 0,
@@ -130,6 +131,17 @@ async function initializeDatabase() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+    
+    // Add meeting_url column to interviews table (for existing databases)
+    try {
+      await pool.query(`
+        ALTER TABLE interviews 
+        ADD COLUMN IF NOT EXISTS meeting_url VARCHAR(500)
+      `);
+    } catch (error) {
+      // Column might already exist, ignore error
+      console.log('Meeting URL column migration:', error.message);
+    }
     
     // Create interview_questions table
     await pool.query(`

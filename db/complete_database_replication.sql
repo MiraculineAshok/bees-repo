@@ -126,6 +126,7 @@ CREATE TABLE IF NOT EXISTS interviews (
     status VARCHAR(20) DEFAULT 'in_progress',
     verdict VARCHAR(50),
     overall_notes TEXT,
+    meeting_url VARCHAR(500),
     start_time TIMESTAMP,
     end_time TIMESTAMP,
     duration_seconds INTEGER DEFAULT 0,

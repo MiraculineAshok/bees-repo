@@ -859,7 +859,7 @@ class InterviewService {
 
         try {
             // Define allowed fields for interviews table
-            const allowedFields = ['verdict', 'status', 'overall_notes', 'interviewer_id', 'student_id', 'session_id'];
+            const allowedFields = ['verdict', 'status', 'overall_notes', 'interviewer_id', 'student_id', 'session_id', 'meeting_url'];
             
             // Filter out invalid fields
             const validUpdateData = {};
