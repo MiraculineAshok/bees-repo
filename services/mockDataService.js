@@ -484,7 +484,7 @@ class MockDataService {
         }
         this.interviews[index] = {
             ...this.interviews[index],
-            meeting_recording_url: recordingUrl,
+            meeting_url: recordingUrl,
             updated_at: new Date().toISOString()
         };
         return Promise.resolve({ ...this.interviews[index] });

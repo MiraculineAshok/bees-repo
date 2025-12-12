@@ -711,7 +711,7 @@ class InterviewService {
         try {
             const result = await pool.query(
                 `UPDATE interviews 
-                 SET meeting_recording_url = $1, updated_at = CURRENT_TIMESTAMP
+                 SET meeting_url = $1, updated_at = CURRENT_TIMESTAMP
                  WHERE id = $2 
                  RETURNING *`,
                 [recordingUrl, interviewId]
