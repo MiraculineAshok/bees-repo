@@ -4265,6 +4265,18 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         
         async function loadConsolidation(forceRefresh = false) {
             try {
+                // Restore session filter from sessionStorage if not already set
+                if (consolidationSessionFilter === null) {
+                    try {
+                        const stored = sessionStorage.getItem('consolidationSessionFilter');
+                        if (stored) {
+                            consolidationSessionFilter = parseInt(stored);
+                        }
+                    } catch (e) {
+                        console.warn('Failed to restore session filter:', e);
+                    }
+                }
+
                 const tbody = document.getElementById('consolidation-table-body');
                 if (tbody) tbody.innerHTML = '<tr><td colspan="9" class="loading">Loading consolidation data...</td></tr>';
                 
@@ -5980,6 +5992,15 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             if (section === 'my-interviews') {
                 loadMyInterviewsForAdmin();
             } else if (section === 'consolidation') {
+                // Restore session filter from sessionStorage when loading consolidation
+                try {
+                    const stored = sessionStorage.getItem('consolidationSessionFilter');
+                    if (stored) {
+                        consolidationSessionFilter = parseInt(stored);
+                    }
+                } catch (e) {
+                    console.warn('Failed to restore session filter:', e);
+                }
                 loadConsolidation();
             } else if (section === 'student-sessions') {
                 loadStudentSessions();
