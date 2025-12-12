@@ -2466,7 +2466,7 @@
                                 <th>Description</th>
                                 <th data-field="is_panel" onclick="sortBy('sessions','is_panel')">Type <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th data-field="status" onclick="sortBy('sessions','status')">Status <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
-                                <th>Panelists</th>
+                                <th style="width: 200px;">Panelists</th>
                                 <th data-field="created_by_name" onclick="sortBy('sessions','created_by_name')">Created By <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th data-field="created_at" onclick="sortBy('sessions','created_at')">Created At <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th>Actions</th>
@@ -4225,6 +4225,43 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 });
             });
 
+        // Function to view consolidation filtered by session
+        function viewConsolidationForSession(sessionId) {
+            // Set the session filter
+            consolidationSessionFilter = parseInt(sessionId);
+            
+            // Clear consolidation search
+            const searchInput = document.getElementById('consolidation-search');
+            if (searchInput) {
+                searchInput.value = '';
+                window.__consolidationSearch = '';
+            }
+            
+            // Clear advanced filters
+            const filtersContainer = document.getElementById('filters-container-cons');
+            if (filtersContainer) {
+                filtersContainer.innerHTML = '';
+            }
+            
+            // Switch to consolidation tab
+            const consolidationLink = document.querySelector('[data-section="consolidation"]');
+            if (consolidationLink) {
+                consolidationLink.click();
+            } else {
+                // Fallback: manually switch tabs
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                document.querySelectorAll('.content-section').forEach(s => s.style.display = 'none');
+                const consolidationSection = document.getElementById('consolidation');
+                if (consolidationSection) {
+                    consolidationSection.style.display = 'block';
+                }
+                if (consolidationLink) {
+                    consolidationLink.classList.add('active');
+                }
+                loadConsolidation();
+            }
+        }
+
             // Global delegated handler for all edit buttons
             document.addEventListener('click', (e) => {
                 const btn = e.target.closest('.edit-btn');
@@ -4436,6 +4473,9 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             }
             loadConsolidation(false); // Use cache, just re-sort
         }
+        // Global variable to store session filter for consolidation
+        let consolidationSessionFilter = null;
+
         function applyConsolidationFiltersAndSort(items){
             let out = Array.isArray(items)? [...items] : [];
             const q = window.__consolidationSearch || '';
@@ -4444,6 +4484,10 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     const hay = `${r.student_name||''} ${r.student_email||''} ${r.zeta_id||''} ${r.session_name||''} ${r.status||''} ${(r.verdicts||[]).join(' ')}`.toLowerCase();
                     return hay.includes(q);
                 });
+            }
+            // Apply session filter if set
+            if (consolidationSessionFilter !== null) {
+                out = out.filter(r => r.session_id === consolidationSessionFilter);
             }
             if (consolidationSortField){
                 out.sort((a,b)=>{
@@ -7707,7 +7751,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
 
             // Check if no results after filtering
             if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No matches found for your search or filter criteria</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No matches found for your search or filter criteria</td></tr>';
                 // Remove pagination controls and info
                 const container = document.querySelector('#sessions .table-container');
                 if (container) {
@@ -7727,6 +7771,21 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 // Determine the type display based on is_panel value
                 const typeDisplay = session.is_panel ? 'Panel' : 'Regular';
                 
+                // Format panelists: show first 2 emails, then "+X" for the rest
+                let panelistsDisplay = '—';
+                if (session.panelist_names) {
+                    const panelistArray = Array.isArray(session.panelist_names) ? session.panelist_names : (session.panelist_names.split ? session.panelist_names.split(',').map(p => p.trim()) : [session.panelist_names]);
+                    if (panelistArray.length > 0) {
+                        const firstTwo = panelistArray.slice(0, 2);
+                        const remaining = panelistArray.length - 2;
+                        if (remaining > 0) {
+                            panelistsDisplay = firstTwo.join(', ') + ` +${remaining}`;
+                        } else {
+                            panelistsDisplay = firstTwo.join(', ');
+                        }
+                    }
+                }
+                
                 return `
                 <tr data-row-id="${session.id}">
                     <td><input type="checkbox" class="row-checkbox" data-row-id="${session.id}" ${selectedRows.has(String(session.id)) ? 'checked' : ''} onchange="toggleRowSelection('${session.id}')"></td>
@@ -7734,13 +7793,14 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     <td data-field="description">${session.description || 'N/A'}</td>
                     <td data-field="is_panel">${typeDisplay}</td>
                     <td data-field="status"><span class="status-badge status-${session.status}">${session.status}</span></td>
-                    <td data-field="panelists">${session.panelist_names || '—'}</td>
+                    <td data-field="panelists" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${panelistsDisplay}</td>
                     <td data-field="created_by_name">${session.created_by_name || 'N/A'}</td>
                     <td data-field="created_at">${formatDate(session.created_at)}</td>
                     <td>
                         <button class="icon-btn edit-btn" onclick="startEdit('${session.id}')" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
                         <button class="icon-btn delete-btn" onclick="deleteSession('${session.id}')" title="Delete"><img src="/delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
                         <button class="icon-btn" onclick="viewSession(${session.id})" title="View"><img src="/view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="btn btn-secondary" onclick="viewConsolidationForSession(${session.id})" style="padding: 4px 8px; font-size: 12px; margin-left: 4px;">View Consolidation</button>
                     </td>
                 </tr>
                 `;
@@ -9744,18 +9804,39 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             `;
         }
         function generateSessionRow(session) {
+            const typeDisplay = session.is_panel ? 'Panel' : 'Regular';
+            
+            // Format panelists: show first 2 emails, then "+X" for the rest
+            let panelistsDisplay = '—';
+            if (session.panelist_names) {
+                // panelist_names is a comma-separated string of emails
+                const panelistArray = session.panelist_names.split(',').map(p => p.trim()).filter(p => p);
+                if (panelistArray.length > 0) {
+                    const firstTwo = panelistArray.slice(0, 2);
+                    const remaining = panelistArray.length - 2;
+                    if (remaining > 0) {
+                        panelistsDisplay = firstTwo.join(', ') + ` +${remaining}`;
+                    } else {
+                        panelistsDisplay = firstTwo.join(', ');
+                    }
+                }
+            }
+            
             return `
                 <tr data-row-id="${session.id}">
                     <td><input type="checkbox" class="row-checkbox" data-row-id="${session.id}" onchange="toggleRowSelection('${session.id}')"></td>
                     <td data-field="name">${session.name}</td>
                     <td data-field="description">${session.description || 'N/A'}</td>
+                    <td data-field="is_panel">${typeDisplay}</td>
                     <td data-field="status"><span class="status-badge status-${session.status}">${session.status}</span></td>
-                    <td data-field="panelists">${session.panelist_names || '—'}</td>
+                    <td data-field="panelists" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${panelistsDisplay}</td>
+                    <td data-field="created_by_name">${session.created_by_name || 'N/A'}</td>
                     <td data-field="created_at">${formatDate(session.created_at)}</td>
                     <td>
                         <button class="icon-btn edit-btn" onclick="startEdit('${session.id}', 'sessions')" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
                         <button class="icon-btn view-btn" onclick="viewSession('${session.id}')" title="View"><img src="/view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
                         <button class="icon-btn delete-btn" onclick="deleteSession('${session.id}')" title="Delete"><img src="/delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
+                        <button class="btn btn-secondary" onclick="viewConsolidationForSession(${session.id})" style="padding: 4px 8px; font-size: 12px; margin-left: 4px;">View Consolidation</button>
                     </td>
                 </tr>
             `;

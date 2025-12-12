@@ -351,7 +351,7 @@ class AdminService {
             }
 
             const panelistsSelect = panelistsTableExists
-                ? `COALESCE((SELECT STRING_AGG(au2.name, ', ')
+                ? `COALESCE((SELECT STRING_AGG(au2.email, ', ')
                              FROM session_panelists sp
                              JOIN authorized_users au2 ON sp.user_id = au2.id
                              WHERE sp.session_id = ins.id), '') as panelist_names,
