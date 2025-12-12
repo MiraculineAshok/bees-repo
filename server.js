@@ -1449,6 +1449,41 @@ app.post('/api/question-bank/bulk-import', async (req, res) => {
 });
 
 // Delete endpoints
+// Cancel interview (set status to cancelled instead of deleting)
+app.put('/api/interviews/:id/cancel', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!(await InterviewService.isDatabaseAvailable())) {
+      return res.json({ success: true, message: 'Interview cancelled (mock)' });
+    }
+    
+    // Update interview status to cancelled
+    const result = await pool.query(
+      'UPDATE interviews SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING id, student_id, session_id',
+      ['cancelled', id]
+    );
+    
+    if (result.rowCount === 0) {
+      return res.status(404).json({ success: false, error: 'Interview not found' });
+    }
+    
+    const { student_id, session_id } = result.rows[0];
+
+    // Refresh consolidation for this student/session
+    try {
+      const { refreshConsolidationForStudentSession } = require('./db/consolidate');
+      await refreshConsolidationForStudentSession(student_id, session_id);
+    } catch (e) {
+      console.warn('⚠️ Failed to refresh consolidation after cancel:', e.message);
+    }
+
+    res.json({ success: true, message: 'Interview cancelled successfully' });
+  } catch (error) {
+    console.error('Error cancelling interview:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 app.delete('/api/interviews/:id', async (req, res) => {
   try {
     const { id } = req.params;

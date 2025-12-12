@@ -4384,7 +4384,7 @@
                     // No questions, no verdict, no notes -> cancel
                     try {
                         stopDurationTracking();
-                        const response = await fetch(`/api/interviews/${currentInterview.id}`, { method: 'DELETE' });
+                        const response = await fetch(`/api/interviews/${currentInterview.id}/cancel`, { method: 'PUT' });
                         const result = await response.json();
                         if (response.ok && result.success) {
                             showSuccess('Interview cancelled (no questions, verdict, or notes).');
@@ -4473,9 +4473,9 @@
                 // Stop duration tracking
                 stopDurationTracking();
 
-                // Delete the interview from the database
-                const response = await fetch(`/api/interviews/${currentInterview.id}`, {
-                    method: 'DELETE'
+                // Cancel the interview (set status to cancelled instead of deleting)
+                const response = await fetch(`/api/interviews/${currentInterview.id}/cancel`, {
+                    method: 'PUT'
                 });
                 
                 const result = await response.json();
