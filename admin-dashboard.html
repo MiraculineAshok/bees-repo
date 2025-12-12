@@ -4439,6 +4439,43 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         // Global variable to store session filter for consolidation
         let consolidationSessionFilter = null;
 
+        // Function to view consolidation filtered by session
+        function viewConsolidationForSession(sessionId) {
+            // Set the session filter
+            consolidationSessionFilter = parseInt(sessionId);
+            
+            // Clear consolidation search
+            const searchInput = document.getElementById('consolidation-search');
+            if (searchInput) {
+                searchInput.value = '';
+                window.__consolidationSearch = '';
+            }
+            
+            // Clear advanced filters
+            const filtersContainer = document.getElementById('filters-container-cons');
+            if (filtersContainer) {
+                filtersContainer.innerHTML = '';
+            }
+            
+            // Switch to consolidation tab
+            const consolidationLink = document.querySelector('[data-section="consolidation"]');
+            if (consolidationLink) {
+                consolidationLink.click();
+            } else {
+                // Fallback: manually switch tabs
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                document.querySelectorAll('.content-section').forEach(s => s.style.display = 'none');
+                const consolidationSection = document.getElementById('consolidation');
+                if (consolidationSection) {
+                    consolidationSection.style.display = 'block';
+                }
+                if (consolidationLink) {
+                    consolidationLink.classList.add('active');
+                }
+                loadConsolidation();
+            }
+        }
+
         function applyConsolidationFiltersAndSort(items){
             let out = Array.isArray(items)? [...items] : [];
             const q = window.__consolidationSearch || '';
