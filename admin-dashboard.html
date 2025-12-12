@@ -2359,6 +2359,7 @@
                                 <th data-field="duration_seconds" onclick="sortBy('interviews','duration_seconds')">Duration <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th data-field="status" onclick="sortBy('interviews','status')">Status <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th data-field="verdict" onclick="sortBy('interviews','verdict')">Verdict <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                <th data-field="meeting_url">URL</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -2580,11 +2581,12 @@
                                 <th data-field="status" onclick="sortBy('my-interviews','status')">Status <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th data-field="verdict" onclick="sortBy('my-interviews','verdict')">Verdict <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th data-field="duration_seconds" onclick="sortBy('my-interviews','duration_seconds')">Duration <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                <th data-field="meeting_url">URL</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="my-interviews-table-body">
-                            <tr><td colspan="9" class="loading">Loading interviews...</td></tr>
+                            <tr><td colspan="10" class="loading">Loading interviews...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -5938,7 +5940,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 const items = json.data || [];
                 myInterviews = items; // Store in global variable for filtering
                 if (!items.length) {
-                    tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No interviews found.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No interviews found.</td></tr>';
                     return;
                 }
 
@@ -6020,6 +6022,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     <td data-field="status"><span class="status-badge status-${interview.status}">${interview.status}</span></td>
                     <td data-field="verdict">${interview.verdict || ''}</td>
                     <td data-field="duration_seconds">${formatDuration(interview.duration_seconds)}</td>
+                    <td data-field="meeting_url">${interview.meeting_url ? `<a href="${interview.meeting_url}" target="_blank" rel="noopener noreferrer" style="color: #007bff; text-decoration: none;">${interview.meeting_url.length > 40 ? interview.meeting_url.substring(0, 40) + '...' : interview.meeting_url}</a>` : ''}</td>
                     <td>
                         ${interview.status === 'in_progress' ? `<button class="icon-btn" onclick="resumeInterviewAdmin(${interview.id})" title="Resume">⏵</button>` : ''}
                         <button class="icon-btn" onclick="viewInterview(${interview.id})" title="View"><img src="/view.png" alt="View" style="width:16px;height:16px;vertical-align:middle"></button>
@@ -6103,7 +6106,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 const groupInterviews = groups[groupKey];
                 html += `
                     <tr class="group-header">
-                        <td colspan="9" style="background: #2d3748; color: white; font-weight: 600; padding: 12px;">
+                        <td colspan="10" style="background: #2d3748; color: white; font-weight: 600; padding: 12px;">
                             ${groupKey} (${groupInterviews.length} interviews)
                         </td>
                     </tr>
@@ -6120,6 +6123,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                             <td data-field="status"><span class="status-badge status-${interview.status}">${interview.status}</span></td>
                             <td data-field="verdict">${interview.verdict || ''}</td>
                             <td data-field="duration_seconds">${formatDuration(interview.duration_seconds)}</td>
+                            <td data-field="meeting_url">${interview.meeting_url ? `<a href="${interview.meeting_url}" target="_blank" rel="noopener noreferrer" style="color: #007bff; text-decoration: none;">${interview.meeting_url.length > 40 ? interview.meeting_url.substring(0, 40) + '...' : interview.meeting_url}</a>` : ''}</td>
                             <td>
                                 <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
                                 <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete"><img src="/delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
@@ -6904,7 +6908,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             const container = document.querySelector('#interviews .table-container');
             
             if (interviews.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No interviews found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="11" class="empty-state">No interviews found</td></tr>';
                 return;
             }
 
@@ -6916,7 +6920,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             
             // Check if no results after filtering
             if (filteredInterviews.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No matches found for your search or filter criteria</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="11" class="empty-state">No matches found for your search or filter criteria</td></tr>';
                 // Remove pagination controls and info
                 const existingPagination = container.querySelector('.pagination-controls');
                 if (existingPagination) existingPagination.remove();
@@ -7179,7 +7183,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
 
         function displayRegularInterviews(interviewList, tbody, groupBy = '') {
             if (interviewList.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No interviews match the current filters</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="11" class="empty-state">No interviews match the current filters</td></tr>';
                 return;
             }
 
@@ -7200,6 +7204,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     <td data-field="duration_seconds">${formatDuration(interview.duration_seconds)}</td>
                     <td data-field="status"><span class="status-badge status-${interview.status}">${interview.status}</span></td>
                     <td data-field="verdict">${interview.verdict || ''}</td>
+                    <td data-field="meeting_url">${interview.meeting_url ? `<a href="${interview.meeting_url}" target="_blank" rel="noopener noreferrer" style="color: #007bff; text-decoration: none;">${interview.meeting_url.length > 40 ? interview.meeting_url.substring(0, 40) + '...' : interview.meeting_url}</a>` : ''}</td>
                     <td>
                         <button class="icon-btn edit-btn" onclick="startEdit('${interview.id}')" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
                         <button class="icon-btn delete-btn" onclick="deleteInterview('${interview.id}')" title="Delete"><img src="/delete.png" alt="Delete" style="width:16px;height:16px;vertical-align:middle"></button>
@@ -7248,6 +7253,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                                     <th>Duration</th>
                                     <th>Status</th>
                                     <th>Verdict</th>
+                                    <th>URL</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -7261,6 +7267,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                                         <td>${formatDuration(interview.duration_seconds)}</td>
                                         <td><span class="status-badge status-${interview.status}">${interview.status}</span></td>
                                         <td>${interview.verdict || ''}</td>
+                                        <td>${interview.meeting_url ? `<a href="${interview.meeting_url}" target="_blank" rel="noopener noreferrer" style="color: #007bff; text-decoration: none;">${interview.meeting_url.length > 40 ? interview.meeting_url.substring(0, 40) + '...' : interview.meeting_url}</a>` : ''}</td>
                                         <td>
                                             <button class="btn btn-primary" onclick="viewInterview(${interview.id})">View</button>
                                         </td>
@@ -12538,7 +12545,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     }
                 }
 
-                // Special handling for Interviews: only allow editing verdict with dropdown
+                // Special handling for Interviews: allow editing verdict and meeting_url
                 if ((typeof currentSection !== 'undefined' && (currentSection === 'interviews' || currentSection === 'my-interviews'))) {
                     // Skip status field entirely - don't allow editing
                     if (field === 'status') {
@@ -12554,8 +12561,14 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                             </select>
                         `;
                         continue;
+                    } else if (field === 'meeting_url') {
+                        const currentUrl = currentEditData ? (currentEditData.meeting_url || '') : '';
+                        cell.innerHTML = `
+                            <input type="url" class="edit-input" data-field="meeting_url" value="${currentUrl}" placeholder="https://..." style="width: 100%;">
+                        `;
+                        continue;
                     } else {
-                        // Skip other fields for interviews - only verdict is editable
+                        // Skip other fields for interviews - only verdict and meeting_url are editable
                         continue;
                     }
                 }
@@ -12767,8 +12780,8 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 const validFieldsBySection = {
                     'students': ['first_name', 'last_name', 'email', 'phone', 'address', 'zeta_id'],
                     'sessions': ['name', 'description', 'status'],
-                    'interviews': ['verdict', 'status', 'overall_notes'],
-                    'my-interviews': ['verdict', 'status', 'overall_notes'],
+                    'interviews': ['verdict', 'status', 'overall_notes', 'meeting_url'],
+                    'my-interviews': ['verdict', 'status', 'overall_notes', 'meeting_url'],
                     'questions': ['question', 'category', 'tags'],
                     'users': ['name', 'email', 'role', 'is_superadmin'],
                     'student-sessions': ['session_status']
