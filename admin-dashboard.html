@@ -2474,7 +2474,7 @@
                         </thead>
                         <tbody id="sessions-table-body">
                             <tr>
-                                <td colspan="9" class="loading">Loading sessions...</td>
+                                <td colspan="10" class="loading">Loading sessions...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -9756,7 +9756,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             if (groupedData.groups) {
                 tbody.innerHTML = Object.entries(groupedData.groups).map(([groupName, groupSessions]) => `
                     <tr class="group-header">
-                        <td colspan="8" class="group-title">${groupName} (${groupSessions.length})</td>
+                        <td colspan="10" class="group-title">${groupName} (${groupSessions.length})</td>
                     </tr>
                     ${groupSessions.map(session => generateSessionRow(session)).join('')}
                 `).join('');
