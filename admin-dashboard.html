@@ -7668,7 +7668,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         async function loadSessions() {
             const tbody = document.getElementById('sessions-table-body');
             if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="9" class="loading">Loading sessions...</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="10" class="loading">Loading sessions...</td></tr>';
             }
             
             try {
@@ -7681,7 +7681,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     populateSessionFilter();
                 } else {
                     if (tbody) {
-                        tbody.innerHTML = '<tr><td colspan="9" class="error">Failed to load sessions</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="10" class="error">Failed to load sessions</td></tr>';
                     }
                 }
             } catch (error) {
@@ -7732,7 +7732,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             const tbody = document.getElementById('sessions-table-body');
             
             if (!sessionsData || sessionsData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No sessions found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No sessions found</td></tr>';
                 return;
             }
 
