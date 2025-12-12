@@ -2639,6 +2639,11 @@
                     console.log('Found existing interview:', currentInterview);
                     // Restore verdict
                     document.getElementById('verdict-select').value = currentInterview.verdict || '';
+                    // Restore recording URL if present
+                    const recordingUrlEl = document.getElementById('interview-recording-url');
+                    if (recordingUrlEl) {
+                        recordingUrlEl.value = currentInterview.meeting_recording_url || '';
+                    }
                     // Restore notes if present
                     const notesEl = document.getElementById('interview-notes');
                     if (notesEl) {
