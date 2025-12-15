@@ -301,12 +301,21 @@ class InterviewService {
                 params 
             });
             
-            const result = await pool.query(query, params);
+            let result;
+            try {
+                result = await pool.query(query, params);
+            } catch (queryError) {
+                console.error('❌ Database query error:', queryError);
+                console.error('❌ Query:', query);
+                console.error('❌ Params:', params);
+                throw queryError;
+            }
             
+            const rows = result.rows || [];
             console.log('📊 Student interview history result:', { 
-                count: result.rows.length, 
+                count: rows.length, 
                 studentId: studentIdInt,
-                rows: result.rows.map(r => ({ 
+                rows: rows.slice(0, 5).map(r => ({ 
                     id: r.id, 
                     student_id: r.student_id, 
                     status: r.status, 
@@ -315,7 +324,7 @@ class InterviewService {
                 }))
             });
             
-            return result.rows;
+            return rows;
         } catch (error) {
             console.error('❌ Error getting student interview history:', error);
             console.error('❌ Error stack:', error.stack);
