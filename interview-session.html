@@ -3600,6 +3600,16 @@
         function displayPreviousInterviews() {
             const previousInterviewsList = document.getElementById('previous-interviews-list');
             
+            if (!previousInterviewsList) {
+                console.error('❌ Element previous-interviews-list not found in DOM');
+                return;
+            }
+            
+            console.log('📋 Displaying previous interviews:', { 
+                count: previousInterviews.length, 
+                interviews: previousInterviews 
+            });
+            
             if (previousInterviews.length === 0) {
                 previousInterviewsList.innerHTML = `
                     <div class="no-data-container">

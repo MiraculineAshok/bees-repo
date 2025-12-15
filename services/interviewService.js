@@ -259,6 +259,13 @@ class InterviewService {
         }
 
         try {
+            // Ensure studentId is an integer
+            const studentIdInt = parseInt(studentId);
+            if (isNaN(studentIdInt)) {
+                console.error('❌ Invalid studentId:', studentId);
+                return [];
+            }
+
             let query = `
                 SELECT i.*, 
                        s.first_name, 
@@ -273,25 +280,45 @@ class InterviewService {
                  LEFT JOIN interview_sessions iss ON i.session_id = iss.id
                  WHERE i.student_id = $1`;
             
-            const params = [studentId];
+            const params = [studentIdInt];
             
             // Exclude current interview if provided
             if (excludeInterviewId) {
-                query += ` AND i.id != $2`;
-                params.push(excludeInterviewId);
+                const excludeIdInt = parseInt(excludeInterviewId);
+                if (!isNaN(excludeIdInt)) {
+                    query += ` AND i.id != $2`;
+                    params.push(excludeIdInt);
+                }
             }
             
             query += ` ORDER BY i.created_at DESC`;
             
-            console.log('🔍 Getting student interview history:', { studentId, excludeInterviewId, query, params });
+            console.log('🔍 Getting student interview history:', { 
+                studentId, 
+                studentIdInt, 
+                excludeInterviewId, 
+                query, 
+                params 
+            });
             
             const result = await pool.query(query, params);
             
-            console.log('📊 Student interview history result:', { count: result.rows.length, rows: result.rows });
+            console.log('📊 Student interview history result:', { 
+                count: result.rows.length, 
+                studentId: studentIdInt,
+                rows: result.rows.map(r => ({ 
+                    id: r.id, 
+                    student_id: r.student_id, 
+                    status: r.status, 
+                    created_at: r.created_at,
+                    interviewer_name: r.interviewer_name 
+                }))
+            });
             
             return result.rows;
         } catch (error) {
-            console.error('Error getting student interview history:', error);
+            console.error('❌ Error getting student interview history:', error);
+            console.error('❌ Error stack:', error.stack);
             throw error;
         }
     }
