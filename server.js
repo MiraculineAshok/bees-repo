@@ -994,7 +994,8 @@ app.get('/api/interviews/student/:studentId', async (req, res) => {
 
 app.get('/api/interviews/student/:studentId/history', async (req, res) => {
   try {
-    const interviews = await InterviewService.getStudentInterviewHistory(req.params.studentId);
+    const excludeInterviewId = req.query.exclude_interview_id || null;
+    const interviews = await InterviewService.getStudentInterviewHistory(req.params.studentId, excludeInterviewId);
     res.json({
       success: true,
       data: interviews

@@ -253,23 +253,42 @@ class InterviewService {
         }
     }
 
-    static async getStudentInterviewHistory(studentId) {
+    static async getStudentInterviewHistory(studentId, excludeInterviewId = null) {
         if (!(await this.isDatabaseAvailable())) {
             return mockDataService.getStudentInterviewHistory(studentId);
         }
 
         try {
-            const result = await pool.query(
-                `SELECT i.*, s.first_name, s.last_name, s.zeta_id, au.name as interviewer_name, au.email as interviewer_email, 
-                        iss.name as session_name
+            let query = `
+                SELECT i.*, 
+                       s.first_name, 
+                       s.last_name, 
+                       s.zeta_id, 
+                       au.name as interviewer_name, 
+                       au.email as interviewer_email, 
+                       iss.name as session_name
                  FROM interviews i
                  JOIN students s ON i.student_id = s.id
-                 JOIN authorized_users au ON i.interviewer_id = au.id
+                 LEFT JOIN authorized_users au ON i.interviewer_id = au.id
                  LEFT JOIN interview_sessions iss ON i.session_id = iss.id
-                 WHERE i.student_id = $1
-                 ORDER BY i.created_at DESC`,
-                [studentId]
-            );
+                 WHERE i.student_id = $1`;
+            
+            const params = [studentId];
+            
+            // Exclude current interview if provided
+            if (excludeInterviewId) {
+                query += ` AND i.id != $2`;
+                params.push(excludeInterviewId);
+            }
+            
+            query += ` ORDER BY i.created_at DESC`;
+            
+            console.log('🔍 Getting student interview history:', { studentId, excludeInterviewId, query, params });
+            
+            const result = await pool.query(query, params);
+            
+            console.log('📊 Student interview history result:', { count: result.rows.length, rows: result.rows });
+            
             return result.rows;
         } catch (error) {
             console.error('Error getting student interview history:', error);
