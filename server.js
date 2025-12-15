@@ -994,14 +994,30 @@ app.get('/api/interviews/student/:studentId', async (req, res) => {
 
 app.get('/api/interviews/student/:studentId/history', async (req, res) => {
   try {
+    const studentId = req.params.studentId;
     const excludeInterviewId = req.query.exclude_interview_id || null;
-    const interviews = await InterviewService.getStudentInterviewHistory(req.params.studentId, excludeInterviewId);
+    
+    console.log('📥 API Request: /api/interviews/student/:studentId/history', {
+      studentId,
+      excludeInterviewId,
+      studentIdType: typeof studentId
+    });
+    
+    const interviews = await InterviewService.getStudentInterviewHistory(studentId, excludeInterviewId);
+    
+    console.log('📤 API Response: returning interviews', {
+      count: interviews.length,
+      studentId,
+      interviews: interviews.map(i => ({ id: i.id, student_id: i.student_id, status: i.status }))
+    });
+    
     res.json({
       success: true,
       data: interviews
     });
   } catch (error) {
-    console.error('Error getting student interview history:', error);
+    console.error('❌ Error getting student interview history:', error);
+    console.error('❌ Error stack:', error.stack);
     res.status(500).json({
       success: false,
       error: error.message
