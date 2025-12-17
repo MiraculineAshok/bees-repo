@@ -14134,6 +14134,33 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                                 },
                                 placeholder: 'Email body content. You can use placeholders like ${student_name}, ${session_name}, etc.'
                             });
+                            
+                            // Configure link handler to ensure proper URL format
+                            const linkHandler = emailTemplateQuill.getModule('toolbar').handlers.link;
+                            emailTemplateQuill.getModule('toolbar').handlers.link = function(value) {
+                                if (value) {
+                                    // Ensure URL has protocol
+                                    if (!/^https?:\/\//i.test(value)) {
+                                        value = 'https://' + value;
+                                    }
+                                }
+                                linkHandler.call(this, value);
+                            };
+                            
+                            // Intercept link clicks to open in new tab with correct URL
+                            emailTemplateQuill.root.addEventListener('click', function(e) {
+                                const link = e.target.closest('a');
+                                if (link && link.href) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    let url = link.getAttribute('href');
+                                    // Ensure URL has protocol
+                                    if (url && !/^https?:\/\//i.test(url)) {
+                                        url = 'https://' + url;
+                                    }
+                                    window.open(url, '_blank', 'noopener,noreferrer');
+                                }
+                            });
                         } else {
                             console.warn('Quill.js not loaded, using fallback textarea');
                             editorContainer.innerHTML = '<textarea id="email-template-body-fallback" class="form-input" rows="15" style="width:100%;resize:vertical" placeholder="Email body content. You can use placeholders like ${student_name}, ${session_name}, etc."></textarea>';
@@ -14651,6 +14678,33 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                                         ]
                                     },
                                     placeholder: 'Compose your message...'
+                                });
+                                
+                                // Configure link handler to ensure proper URL format
+                                const linkHandler = sendMailQuill.getModule('toolbar').handlers.link;
+                                sendMailQuill.getModule('toolbar').handlers.link = function(value) {
+                                    if (value) {
+                                        // Ensure URL has protocol
+                                        if (!/^https?:\/\//i.test(value)) {
+                                            value = 'https://' + value;
+                                        }
+                                    }
+                                    linkHandler.call(this, value);
+                                };
+                                
+                                // Intercept link clicks to open in new tab with correct URL
+                                sendMailQuill.root.addEventListener('click', function(e) {
+                                    const link = e.target.closest('a');
+                                    if (link && link.href) {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        let url = link.getAttribute('href');
+                                        // Ensure URL has protocol
+                                        if (url && !/^https?:\/\//i.test(url)) {
+                                            url = 'https://' + url;
+                                        }
+                                        window.open(url, '_blank', 'noopener,noreferrer');
+                                    }
                                 });
                             } else {
                                 console.error('Quill.js is not loaded');
