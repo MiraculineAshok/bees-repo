@@ -3172,6 +3172,15 @@
         .table th[data-field] { cursor: pointer; }
         .sort-indicator .asc,
         .sort-indicator .desc { cursor: pointer; }
+        
+        /* Reduce Description column width in sessions table */
+        #sessions .data-table th:nth-child(3),
+        #sessions .data-table td:nth-child(3) {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
             /* Consistent column widths for consolidation table */
             .data-table.fixed-columns { table-layout: fixed; width: 100%; }
             #consolidation.data-table th,
