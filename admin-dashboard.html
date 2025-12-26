@@ -11003,20 +11003,29 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         function downloadExcel(data, filename) {
             // Check if SheetJS is available
             if (typeof XLSX === 'undefined') {
-                console.error('SheetJS library not loaded. Falling back to CSV.');
-                // Fallback to CSV
-                const csvContent = data.map(row => row.join(',')).join('\n');
-                downloadCSV(csvContent, filename.replace('.xlsx', '.csv'));
+                console.error('SheetJS library not loaded. Please wait for the library to load and try again.');
+                alert('Excel library is still loading. Please wait a moment and try again.');
                 return;
             }
 
-            // Create workbook and worksheet
-            const ws = XLSX.utils.aoa_to_sheet(data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+            try {
+                // Create workbook and worksheet
+                const ws = XLSX.utils.aoa_to_sheet(data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
 
-            // Generate Excel file and download
-            XLSX.writeFile(wb, filename);
+                // Ensure filename has .xlsx extension
+                if (!filename.toLowerCase().endsWith('.xlsx')) {
+                    filename = filename.replace(/\.(csv|xls)$/i, '') + '.xlsx';
+                }
+
+                // Generate Excel file and download
+                XLSX.writeFile(wb, filename);
+                console.log('Excel file downloaded:', filename);
+            } catch (error) {
+                console.error('Error generating Excel file:', error);
+                alert('Error generating Excel file: ' + error.message);
+            }
         }
 
         // Users Management Functions
