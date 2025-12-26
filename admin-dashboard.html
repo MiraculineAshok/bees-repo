@@ -2284,6 +2284,20 @@
                     </div>
                 </div>
 
+                <!-- Verdict Distribution by Round -->
+                <div style="background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1);margin-top:2rem">
+                    <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:0.75rem;color:#111827">Verdict Distribution by Round</h3>
+                    <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap">
+                        <select id="round-verdict-session-filter" class="form-input" style="font-size:0.85rem;padding:0.4rem 0.6rem;width:auto" onchange="updateRoundVerdictChart()">
+                            <option value="all">All Sessions</option>
+                        </select>
+                        <select id="round-verdict-student-filter" class="form-input" style="font-size:0.85rem;padding:0.4rem 0.6rem;width:auto" onchange="updateRoundVerdictChart()">
+                            <option value="all">All Students</option>
+                        </select>
+                    </div>
+                    <canvas id="roundVerdictChart" style="max-height:400px"></canvas>
+                </div>
+
                 <!-- Question Categories -->
                 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(450px,1fr));gap:2rem;margin-top:2rem">
                     <!-- Category Distribution -->
@@ -6435,6 +6449,49 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     opt.value = session.id;
                     opt.textContent = session.name || `Session ${session.id}`;
                     verdictSessionSelect.appendChild(opt);
+                });
+            }
+
+            // Populate session filter for round verdict chart
+            const roundVerdictSessionSelect = document.getElementById('round-verdict-session-filter');
+            if (roundVerdictSessionSelect) {
+                roundVerdictSessionSelect.innerHTML = '<option value="all">All Sessions</option>';
+                const activeSessions = rawChartData.sessions.filter(session => session.status === 'active');
+                activeSessions.forEach(session => {
+                    const opt = document.createElement('option');
+                    opt.value = session.id;
+                    opt.textContent = session.name || `Session ${session.id}`;
+                    roundVerdictSessionSelect.appendChild(opt);
+                });
+            }
+
+            // Populate student filter for round verdict chart
+            const roundVerdictStudentSelect = document.getElementById('round-verdict-student-filter');
+            if (roundVerdictStudentSelect) {
+                roundVerdictStudentSelect.innerHTML = '<option value="all">All Students</option>';
+                // Get unique students from interviews
+                const studentMap = new Map();
+                rawChartData.interviews.forEach(interview => {
+                    if (interview.student_id && interview.student_name) {
+                        if (!studentMap.has(interview.student_id)) {
+                            studentMap.set(interview.student_id, {
+                                id: interview.student_id,
+                                name: interview.student_name,
+                                zeta_id: interview.zeta_id || ''
+                            });
+                        }
+                    }
+                });
+                const students = Array.from(studentMap.values()).sort((a, b) => {
+                    const nameA = (a.name || '').toLowerCase();
+                    const nameB = (b.name || '').toLowerCase();
+                    return nameA.localeCompare(nameB);
+                });
+                students.forEach(student => {
+                    const opt = document.createElement('option');
+                    opt.value = student.id;
+                    opt.textContent = `${student.name}${student.zeta_id ? ' (' + student.zeta_id + ')' : ''}`;
+                    roundVerdictStudentSelect.appendChild(opt);
                 });
             }
         }

@@ -2015,6 +2015,77 @@ app.get('/api/admin/overview', async (req, res) => {
   }
 });
 
+// Get verdict distribution by round
+app.get('/api/admin/verdicts-by-round', async (req, res) => {
+  try {
+    if (!pool) return res.json({ success: true, data: [] });
+    
+    const { session_id, student_id } = req.query;
+    
+    let query = `
+      WITH ranked_interviews AS (
+        SELECT 
+          i.id,
+          i.student_id,
+          i.session_id,
+          i.verdict,
+          i.status,
+          s.name AS session_name,
+          st.zeta_id,
+          CONCAT(st.first_name, ' ', st.last_name) AS student_name,
+          ROW_NUMBER() OVER (
+            PARTITION BY i.student_id, i.session_id 
+            ORDER BY i.created_at ASC
+          ) AS round_number
+        FROM interviews i
+        LEFT JOIN interview_sessions s ON i.session_id = s.id
+        LEFT JOIN students st ON i.student_id = st.id
+        WHERE 1=1
+    `;
+    
+    const params = [];
+    let paramCount = 1;
+    
+    if (session_id && session_id !== 'all') {
+      query += ` AND i.session_id = $${paramCount}`;
+      params.push(session_id);
+      paramCount++;
+    }
+    
+    if (student_id && student_id !== 'all') {
+      query += ` AND i.student_id = $${paramCount}`;
+      params.push(student_id);
+      paramCount++;
+    }
+    
+    query += `
+      )
+      SELECT 
+        round_number,
+        COUNT(*) FILTER (WHERE LOWER(COALESCE(verdict, '')) LIKE '%tiger%') AS tiger_count,
+        COUNT(*) FILTER (WHERE LOWER(COALESCE(verdict, '')) LIKE '%cow%') AS cow_count,
+        COUNT(*) FILTER (WHERE LOWER(COALESCE(verdict, '')) LIKE '%sheep%') AS sheep_count,
+        COUNT(*) FILTER (WHERE status = 'in_progress' OR verdict IS NULL OR verdict = '') AS pending_count
+      FROM ranked_interviews
+      GROUP BY round_number
+      ORDER BY round_number
+    `;
+    
+    const result = await pool.query(query, params);
+    
+    res.json({
+      success: true,
+      data: result.rows
+    });
+  } catch (error) {
+    console.error('Error getting verdicts by round:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Get all interviewers
 app.get('/api/admin/users/interviewers', async (req, res) => {
   try {
