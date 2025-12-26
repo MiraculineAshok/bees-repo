@@ -10752,19 +10752,57 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         }
 
         function generateConsolidationExcel(rows) {
-            const headers = [['Student Name', 'Zeta ID', 'Session', 'Interviewers', 'Verdicts', 'Score', 'Interview Status', 'Status', 'Notes', 'Last Interview']];
-            const excelRows = rows.map(row => [
-                row.student_name || '',
-                row.zeta_id || '',
-                row.session_name || '',
-                (row.interviewer_names || []).join(', ') || '',
-                (row.verdicts || []).join(', ') || '',
-                row.total_score || '',
-                (row.interview_statuses || []).join(', ') || '',
-                row.status || '',
-                row.notes || '',
-                row.last_interview_at ? new Date(row.last_interview_at).toLocaleDateString() : ''
-            ]);
+            // Find the maximum number of interviewers across all rows
+            let maxInterviewers = 0;
+            rows.forEach(row => {
+                const interviewerCount = (row.interviewer_names || []).length;
+                const verdictCount = (row.verdicts || []).length;
+                const maxCount = Math.max(interviewerCount, verdictCount);
+                if (maxCount > maxInterviewers) {
+                    maxInterviewers = maxCount;
+                }
+            });
+            
+            // Build dynamic headers: Student Name, Zeta ID, Session, Interviewer 1, Verdict 1, Interviewer 2, Verdict 2, etc.
+            const baseHeaders = ['Student Name', 'Zeta ID', 'Session'];
+            const interviewerHeaders = [];
+            for (let i = 1; i <= maxInterviewers; i++) {
+                interviewerHeaders.push(`Interviewer ${i}`, `Verdict ${i}`);
+            }
+            const remainingHeaders = ['Score', 'Interview Status', 'Status', 'Notes', 'Last Interview'];
+            const headers = [[...baseHeaders, ...interviewerHeaders, ...remainingHeaders]];
+            
+            // Build rows with interviewer-verdict pairs in separate columns
+            const excelRows = rows.map(row => {
+                const baseData = [
+                    row.student_name || '',
+                    row.zeta_id || '',
+                    row.session_name || ''
+                ];
+                
+                const interviewerNames = row.interviewer_names || [];
+                const verdicts = row.verdicts || [];
+                
+                // Add interviewer-verdict pairs
+                const pairData = [];
+                for (let i = 0; i < maxInterviewers; i++) {
+                    pairData.push(
+                        interviewerNames[i] || '',
+                        verdicts[i] || ''
+                    );
+                }
+                
+                const remainingData = [
+                    row.total_score || '',
+                    (row.interview_statuses || []).join(', ') || '',
+                    row.status || '',
+                    row.notes || '',
+                    row.last_interview_at ? new Date(row.last_interview_at).toLocaleDateString() : ''
+                ];
+                
+                return [...baseData, ...pairData, ...remainingData];
+            });
+            
             return [...headers, ...excelRows];
         }
 
