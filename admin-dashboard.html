@@ -10537,25 +10537,53 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
 
         // Helper functions for getting current filtered data
         function getCurrentFilteredQuestions() {
-            // This would return the currently filtered questions
-            // For now, return all questions
-            return questions || [];
+            // Apply the same filters as displayQuestions
+            const questionsData = questions || [];
+            const term = document.getElementById('questions-inline-search')?.value || '';
+            let list = applyInlineSearch(questionsData, term, ['question','question_text','category']);
+            list = applyAdvancedFiltersQuestions(list);
+            list = applyInlineSort(list, 'questions');
+            return list;
         }
 
         function getCurrentFilteredSessions() {
-            return sessions || [];
+            // Apply the same filters as displaySessions
+            const sessionsData = sessions || [];
+            const term = document.getElementById('sessions-inline-search')?.value || '';
+            let list = applyInlineSearch(sessionsData, term, ['name','description','status','created_by_name']);
+            list = applyAdvancedFiltersSessions(list);
+            list = applyInlineSort(list, 'sessions');
+            return list;
         }
 
         function getCurrentFilteredStudents() {
-            return students || [];
+            // Apply the same filters as displayStudents
+            const studentsData = students || [];
+            const term = document.getElementById('students-inline-search')?.value || '';
+            let list = applyInlineSearch(studentsData, term, ['first_name','last_name','email','zeta_id','phone','school','location']);
+            list = applyAdvancedFiltersStudents(list);
+            list = applyInlineSort(list, 'students');
+            return list;
         }
 
         function getCurrentFilteredMyInterviews() {
-            return myInterviews || [];
+            // Apply the same filters as displayMyInterviews
+            const interviewsData = myInterviews || [];
+            const term = document.getElementById('my-interviews-inline-search')?.value || '';
+            let list = applyInlineSearch(interviewsData, term, ['student_name','student_email','zeta_id','session_name','status','verdict']);
+            list = applyAdvancedFiltersMyInterviews(list);
+            list = applyInlineSort(list, 'my-interviews');
+            return list;
         }
 
         function getCurrentFilteredUsers() {
-            return users || [];
+            // Apply the same filters as displayUsers
+            const usersData = users || [];
+            const term = document.getElementById('users-inline-search')?.value || '';
+            let list = applyInlineSearch(usersData, term, ['name','email','role','status']);
+            list = applyAdvancedFiltersUsers(list);
+            list = applyInlineSort(list, 'users');
+            return list;
         }
 
         // CSV generation functions
