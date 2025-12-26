@@ -10372,32 +10372,32 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         // Export functions
         function exportQuestions() {
             const filteredQuestions = getCurrentFilteredQuestions();
-            const csvContent = generateQuestionsCSV(filteredQuestions);
-            downloadCSV(csvContent, 'questions.csv');
+            const excelData = generateQuestionsExcel(filteredQuestions);
+            downloadExcel(excelData, 'questions.xlsx');
         }
 
         function exportSessions() {
             const filteredSessions = getCurrentFilteredSessions();
-            const csvContent = generateSessionsCSV(filteredSessions);
-            downloadCSV(csvContent, 'sessions.csv');
+            const excelData = generateSessionsExcel(filteredSessions);
+            downloadExcel(excelData, 'sessions.xlsx');
         }
 
         function exportStudents() {
             const filteredStudents = getCurrentFilteredStudents();
-            const csvContent = generateStudentsCSV(filteredStudents);
-            downloadCSV(csvContent, 'students.csv');
+            const excelData = generateStudentsExcel(filteredStudents);
+            downloadExcel(excelData, 'students.xlsx');
         }
 
         function exportMyInterviews() {
             const filteredMyInterviews = getCurrentFilteredMyInterviews();
-            const csvContent = generateMyInterviewsCSV(filteredMyInterviews);
-            downloadCSV(csvContent, 'my-interviews.csv');
+            const excelData = generateMyInterviewsExcel(filteredMyInterviews);
+            downloadExcel(excelData, 'my-interviews.xlsx');
         }
 
         function exportUsers() {
             const filteredUsers = getCurrentFilteredUsers();
-            const csvContent = generateUsersCSV(filteredUsers);
-            downloadCSV(csvContent, 'users.csv');
+            const excelData = generateUsersExcel(filteredUsers);
+            downloadExcel(excelData, 'users.xlsx');
         }
 
         function exportConsolidation() {
@@ -10406,9 +10406,9 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             rows = applyConsolidationFiltersAndSort(rows);
             rows = applyAdvancedFiltersCons(rows);
             
-            const csvContent = generateConsolidationCSV(rows);
-            const filename = `consolidation_export_${new Date().toISOString().split('T')[0]}.csv`;
-            downloadCSV(csvContent, filename);
+            const excelData = generateConsolidationExcel(rows);
+            const filename = `consolidation_export_${new Date().toISOString().split('T')[0]}.xlsx`;
+            downloadExcel(excelData, filename);
         }
 
         function exportStudentSessions() {
@@ -10418,9 +10418,9 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             list = applyAdvancedFiltersStudentSessions(list);
             list = applyInlineSort(list, 'student-sessions');
             
-            const csvContent = generateStudentSessionsCSV(list);
-            const filename = `student_sessions_export_${new Date().toISOString().split('T')[0]}.csv`;
-            downloadCSV(csvContent, filename);
+            const excelData = generateStudentSessionsExcel(list);
+            const filename = `student_sessions_export_${new Date().toISOString().split('T')[0]}.xlsx`;
+            downloadExcel(excelData, filename);
         }
 
         // Helper functions for getting current filtered data
@@ -10542,6 +10542,104 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 s.total_score || ''
             ]);
             return [headers.join(','), ...csvRows.map(row => row.join(','))].join('\n');
+        }
+
+        // Excel generation functions (returns array of arrays for SheetJS)
+        function generateQuestionsExcel(questions) {
+            const headers = [['Question', 'Category', 'Times Asked', 'Correct Answers', 'Incorrect Answers', 'Success Rate', 'Created At']];
+            const rows = questions.map(q => [
+                q.question || '',
+                q.category || '',
+                q.times_asked || 0,
+                q.correct_answers || 0,
+                q.incorrect_answers || 0,
+                q.success_rate || 0,
+                q.created_at ? new Date(q.created_at).toLocaleDateString() : ''
+            ]);
+            return [...headers, ...rows];
+        }
+
+        function generateSessionsExcel(sessions) {
+            const headers = [['Session Name', 'Status', 'Created At', 'Panelists']];
+            const rows = sessions.map(s => [
+                s.session_name || '',
+                s.status || '',
+                s.created_at ? new Date(s.created_at).toLocaleDateString() : '',
+                s.panelists ? s.panelists.join('; ') : ''
+            ]);
+            return [...headers, ...rows];
+        }
+
+        function generateStudentsExcel(students) {
+            const headers = [['First Name', 'Last Name', 'Zeta ID', 'Email', 'Phone', 'Address', 'Created At']];
+            const rows = students.map(s => [
+                s.first_name || '',
+                s.last_name || '',
+                s.zeta_id || '',
+                s.email || '',
+                s.phone || '',
+                s.address || '',
+                s.created_at ? new Date(s.created_at).toLocaleDateString() : ''
+            ]);
+            return [...headers, ...rows];
+        }
+
+        function generateMyInterviewsExcel(interviews) {
+            const headers = [['Date', 'Student Name', 'Zeta ID', 'Session', 'Status', 'Verdict', 'Duration (min)']];
+            const rows = interviews.map(i => [
+                i.created_at ? new Date(i.created_at).toLocaleDateString() : '',
+                i.student_name || '',
+                i.zeta_id || '',
+                i.session_name || 'N/A',
+                i.status || '',
+                i.verdict || '',
+                i.duration_seconds ? Math.round(i.duration_seconds / 60) : 0
+            ]);
+            return [...headers, ...rows];
+        }
+
+        function generateUsersExcel(users) {
+            const headers = [['Name', 'Email', 'Role', 'Status', 'Created At', 'Last Login']];
+            const rows = users.map(u => [
+                u.name || '',
+                u.email || '',
+                u.role || '',
+                u.status || '',
+                u.created_at ? new Date(u.created_at).toLocaleDateString() : '',
+                u.last_login_at ? new Date(u.last_login_at).toLocaleDateString() : 'Never'
+            ]);
+            return [...headers, ...rows];
+        }
+
+        function generateConsolidationExcel(rows) {
+            const headers = [['Student Name', 'Zeta ID', 'Session', 'Interviewers', 'Verdicts', 'Score', 'Interview Status', 'Status', 'Notes', 'Last Interview']];
+            const excelRows = rows.map(row => [
+                row.student_name || '',
+                row.zeta_id || '',
+                row.session_name || '',
+                (row.interviewer_names || []).join(', ') || '',
+                (row.verdicts || []).join(', ') || '',
+                row.total_score || '',
+                (row.interview_statuses || []).join(', ') || '',
+                row.status || '',
+                row.notes || '',
+                row.last_interview_at ? new Date(row.last_interview_at).toLocaleDateString() : ''
+            ]);
+            return [...headers, ...excelRows];
+        }
+
+        function generateStudentSessionsExcel(sessions) {
+            const headers = [['Student Name', 'Phone', 'Email', 'Zeta ID', 'Interview Session', 'Interview Status', 'Score']];
+            const excelRows = sessions.map(s => [
+                s.student_name || '',
+                s.phone || '',
+                s.email || '',
+                s.zeta_id || '',
+                s.session_name || '',
+                s.session_status || '',
+                s.total_score || ''
+            ]);
+            return [...headers, ...excelRows];
         }
 
         // User Action Menu Functions
@@ -10721,6 +10819,25 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        }
+
+        function downloadExcel(data, filename) {
+            // Check if SheetJS is available
+            if (typeof XLSX === 'undefined') {
+                console.error('SheetJS library not loaded. Falling back to CSV.');
+                // Fallback to CSV
+                const csvContent = data.map(row => row.join(',')).join('\n');
+                downloadCSV(csvContent, filename.replace('.xlsx', '.csv'));
+                return;
+            }
+
+            // Create workbook and worksheet
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+
+            // Generate Excel file and download
+            XLSX.writeFile(wb, filename);
         }
 
         // Users Management Functions
@@ -16534,6 +16651,8 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js" onload="window.chartJsLoaded = true; console.log('✅ Chart.js loaded and ready'); window.dispatchEvent(new Event('chartJsReady'));"></script>
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </body>
 </html>
 </html>
