@@ -2598,6 +2598,7 @@
                     <h2 class="section-title">Student Sessions</h2>
                     <div class="header-actions">
                         <input type="text" id="student-sessions-inline-search" class="form-input" placeholder="Search..." oninput="displayStudentSessions()" style="max-width:220px">
+                        <button class="btn-export" onclick="exportData('student-sessions')">Export Data</button>
                         <button class="btn btn-primary" onclick="refreshStudentSessions()">Refresh</button>
                     </div>
                 </div>
@@ -2709,6 +2710,7 @@
                         <button class="btn btn-secondary" id="bulk-email-btn" onclick="openBulkEmailPopup()" style="display:none">
                             Send Bulk Email (<span id="bulk-email-count">0</span>)
                         </button>
+                        <button class="btn-export" onclick="exportData('consolidation')">Export Data</button>
                         <button class="btn btn-primary" onclick="refreshConsolidation()">Refresh</button>
                     </div>
                 </div>
@@ -9712,6 +9714,12 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 case 'users':
                     exportUsers();
                     break;
+                case 'consolidation':
+                    exportConsolidation();
+                    break;
+                case 'student-sessions':
+                    exportStudentSessions();
+                    break;
                 default:
                     console.log('Unknown tab:', tab);
             }
@@ -10369,6 +10377,29 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             downloadCSV(csvContent, 'users.csv');
         }
 
+        function exportConsolidation() {
+            // Get filtered consolidation data
+            let rows = window.__consolidationRows || [];
+            rows = applyConsolidationFiltersAndSort(rows);
+            rows = applyAdvancedFiltersCons(rows);
+            
+            const csvContent = generateConsolidationCSV(rows);
+            const filename = `consolidation_export_${new Date().toISOString().split('T')[0]}.csv`;
+            downloadCSV(csvContent, filename);
+        }
+
+        function exportStudentSessions() {
+            // Get filtered student sessions data
+            const term = document.getElementById('student-sessions-inline-search')?.value || '';
+            let list = applyInlineSearch(studentSessions || [], term, ['student_name', 'session_name', 'session_status', 'phone', 'email', 'zeta_id']);
+            list = applyAdvancedFiltersStudentSessions(list);
+            list = applyInlineSort(list, 'student-sessions');
+            
+            const csvContent = generateStudentSessionsCSV(list);
+            const filename = `student_sessions_export_${new Date().toISOString().split('T')[0]}.csv`;
+            downloadCSV(csvContent, filename);
+        }
+
         // Helper functions for getting current filtered data
         function getCurrentFilteredQuestions() {
             // This would return the currently filtered questions
@@ -10457,6 +10488,37 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 u.last_login_at ? new Date(u.last_login_at).toLocaleDateString() : 'Never'
             ]);
             return [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+        }
+
+        function generateConsolidationCSV(rows) {
+            const headers = ['Student Name', 'Zeta ID', 'Session', 'Interviewers', 'Verdicts', 'Score', 'Interview Status', 'Status', 'Notes', 'Last Interview'];
+            const csvRows = rows.map(row => [
+                `"${(row.student_name || '').replace(/"/g, '""')}"`,
+                `"${(row.zeta_id || '').replace(/"/g, '""')}"`,
+                `"${(row.session_name || '').replace(/"/g, '""')}"`,
+                `"${((row.interviewer_names || []).join(', ') || '').replace(/"/g, '""')}"`,
+                `"${((row.verdicts || []).join(', ') || '').replace(/"/g, '""')}"`,
+                row.total_score || '',
+                `"${((row.interview_statuses || []).join(', ') || '').replace(/"/g, '""')}"`,
+                `"${(row.status || '').replace(/"/g, '""')}"`,
+                `"${(row.notes || '').replace(/"/g, '""')}"`,
+                row.last_interview_at ? new Date(row.last_interview_at).toLocaleDateString() : ''
+            ]);
+            return [headers.join(','), ...csvRows.map(row => row.join(','))].join('\n');
+        }
+
+        function generateStudentSessionsCSV(sessions) {
+            const headers = ['Student Name', 'Phone', 'Email', 'Zeta ID', 'Interview Session', 'Interview Status', 'Score'];
+            const csvRows = sessions.map(s => [
+                `"${(s.student_name || '').replace(/"/g, '""')}"`,
+                `"${(s.phone || '').replace(/"/g, '""')}"`,
+                `"${(s.email || '').replace(/"/g, '""')}"`,
+                `"${(s.zeta_id || '').replace(/"/g, '""')}"`,
+                `"${(s.session_name || '').replace(/"/g, '""')}"`,
+                `"${(s.session_status || '').replace(/"/g, '""')}"`,
+                s.total_score || ''
+            ]);
+            return [headers.join(','), ...csvRows.map(row => row.join(','))].join('\n');
         }
 
         // User Action Menu Functions
