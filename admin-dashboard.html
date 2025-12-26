@@ -6675,6 +6675,31 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                         borderColor: '#fff'
                     }]
                 },
+                plugins: [{
+                    id: 'datalabels-status',
+                    afterDraw: function(chart) {
+                        const ctx = chart.ctx;
+                        const data = chart.data.datasets[0].data;
+                        chart.data.datasets.forEach((dataset, i) => {
+                            const meta = chart.getDatasetMeta(i);
+                            meta.data.forEach((segment, index) => {
+                                const value = data[index];
+                                if (value > 0) {
+                                    const angle = (segment.startAngle + segment.endAngle) / 2;
+                                    const x = segment.x + Math.cos(angle) * (segment.outerRadius * 0.7);
+                                    const y = segment.y + Math.sin(angle) * (segment.outerRadius * 0.7);
+                                    ctx.save();
+                                    ctx.fillStyle = '#111827';
+                                    ctx.font = 'bold 12px Arial';
+                                    ctx.textAlign = 'center';
+                                    ctx.textBaseline = 'middle';
+                                    ctx.fillText(value, x, y);
+                                    ctx.restore();
+                                }
+                            });
+                        });
+                    }
+                }],
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
@@ -6713,6 +6738,31 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                         borderColor: '#fff'
                     }]
                 },
+                plugins: [{
+                    id: 'datalabels-verdict',
+                    afterDraw: function(chart) {
+                        const ctx = chart.ctx;
+                        const data = chart.data.datasets[0].data;
+                        chart.data.datasets.forEach((dataset, i) => {
+                            const meta = chart.getDatasetMeta(i);
+                            meta.data.forEach((segment, index) => {
+                                const value = data[index];
+                                if (value > 0) {
+                                    const angle = (segment.startAngle + segment.endAngle) / 2;
+                                    const x = segment.x + Math.cos(angle) * (segment.outerRadius * 0.7);
+                                    const y = segment.y + Math.sin(angle) * (segment.outerRadius * 0.7);
+                                    ctx.save();
+                                    ctx.fillStyle = '#111827';
+                                    ctx.font = 'bold 12px Arial';
+                                    ctx.textAlign = 'center';
+                                    ctx.textBaseline = 'middle';
+                                    ctx.fillText(value, x, y);
+                                    ctx.restore();
+                                }
+                            });
+                        });
+                    }
+                }],
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
@@ -6766,6 +6816,29 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                         fill: true
                     }]
                 },
+                plugins: [{
+                    id: 'datalabels-trends',
+                    afterDatasetsDraw: function(chart) {
+                        const ctx = chart.ctx;
+                        chart.data.datasets.forEach((dataset, i) => {
+                            const meta = chart.getDatasetMeta(i);
+                            meta.data.forEach((point, index) => {
+                                const value = dataset.data[index];
+                                if (value > 0) {
+                                    ctx.save();
+                                    ctx.fillStyle = '#111827';
+                                    ctx.font = 'bold 11px Arial';
+                                    ctx.textAlign = 'center';
+                                    ctx.textBaseline = 'bottom';
+                                    const x = point.x;
+                                    const y = point.y - 8;
+                                    ctx.fillText(value, x, y);
+                                    ctx.restore();
+                                }
+                            });
+                        });
+                    }
+                }],
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
@@ -6931,6 +7004,31 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                         borderColor: '#fff'
                     }]
                 },
+                plugins: [{
+                    id: 'datalabels-categories',
+                    afterDraw: function(chart) {
+                        const ctx = chart.ctx;
+                        const data = chart.data.datasets[0].data;
+                        chart.data.datasets.forEach((dataset, i) => {
+                            const meta = chart.getDatasetMeta(i);
+                            meta.data.forEach((segment, index) => {
+                                const value = data[index];
+                                if (value > 0) {
+                                    const angle = (segment.startAngle + segment.endAngle) / 2;
+                                    const x = segment.x + Math.cos(angle) * (segment.outerRadius * 0.7);
+                                    const y = segment.y + Math.sin(angle) * (segment.outerRadius * 0.7);
+                                    ctx.save();
+                                    ctx.fillStyle = '#111827';
+                                    ctx.font = 'bold 12px Arial';
+                                    ctx.textAlign = 'center';
+                                    ctx.textBaseline = 'middle';
+                                    ctx.fillText(value, x, y);
+                                    ctx.restore();
+                                }
+                            });
+                        });
+                    }
+                }],
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
@@ -7477,7 +7575,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             // Create Excel data (array of arrays)
             const headers = [['ID', 'Student Name', 'Student Email', 'Zeta ID', 'Interviewer', 'Session', 'Status', 'Verdict', 'Duration (min)', 'Date']];
             const rows = sortedInterviews.map(interview => [
-                interview.id,
+                    interview.id,
                 interview.student_name || '',
                 interview.student_email || '',
                 interview.zeta_id || '',
@@ -7485,7 +7583,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 interview.session_name || '',
                 interview.status || '',
                 interview.verdict || '',
-                Math.floor((interview.duration_seconds || 0) / 60),
+                    Math.floor((interview.duration_seconds || 0) / 60),
                 formatDate(interview.interview_date || interview.created_at)
             ]);
             const excelData = [...headers, ...rows];
