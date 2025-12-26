@@ -7474,34 +7474,25 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             const filteredInterviews = applyFiltersToInterviews();
             const sortedInterviews = applySortingToInterviews(filteredInterviews);
             
-            // Create CSV content
-            const headers = ['ID', 'Student Name', 'Student Email', 'Zeta ID', 'Interviewer', 'Session', 'Status', 'Verdict', 'Duration (min)', 'Date'];
-            const csvContent = [
-                headers.join(','),
-                ...sortedInterviews.map(interview => [
-                    interview.id,
-                    `"${interview.student_name || ''}"`,
-                    `"${interview.student_email || ''}"`,
-                    `"${interview.zeta_id || ''}"`,
-                    `"${interview.interviewer_name || ''}"`,
-                    `"${interview.session_name || ''}"`,
-                    `"${interview.status || ''}"`,
-                    `"${interview.verdict || ''}"`,
-                    Math.floor((interview.duration_seconds || 0) / 60),
-                    `"${formatDate(interview.interview_date || interview.created_at)}"`
-                ].join(','))
-            ].join('\n');
+            // Create Excel data (array of arrays)
+            const headers = [['ID', 'Student Name', 'Student Email', 'Zeta ID', 'Interviewer', 'Session', 'Status', 'Verdict', 'Duration (min)', 'Date']];
+            const rows = sortedInterviews.map(interview => [
+                interview.id,
+                interview.student_name || '',
+                interview.student_email || '',
+                interview.zeta_id || '',
+                interview.interviewer_name || '',
+                interview.session_name || '',
+                interview.status || '',
+                interview.verdict || '',
+                Math.floor((interview.duration_seconds || 0) / 60),
+                formatDate(interview.interview_date || interview.created_at)
+            ]);
+            const excelData = [...headers, ...rows];
             
-            // Download CSV
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `interviews_export_${new Date().toISOString().split('T')[0]}.csv`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
+            // Download Excel
+            const filename = `interviews_export_${new Date().toISOString().split('T')[0]}.xlsx`;
+            downloadExcel(excelData, filename);
         }
         
         function populateInterviewerFilter() {
