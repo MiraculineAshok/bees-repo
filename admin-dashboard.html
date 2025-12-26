@@ -10763,16 +10763,16 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 }
             });
             
-            // Build dynamic headers: Student Name, Zeta ID, Session, Interviewer 1, Verdict 1, Interviewer 2, Verdict 2, etc.
+            // Build dynamic headers: Student Name, Zeta ID, Session, Interviewer 1, Verdict 1, Score, Notes 1, Interviewer 2, Verdict 2, Score, Notes 2, etc.
             const baseHeaders = ['Student Name', 'Zeta ID', 'Session'];
             const interviewerHeaders = [];
             for (let i = 1; i <= maxInterviewers; i++) {
-                interviewerHeaders.push(`Interviewer ${i}`, `Verdict ${i}`);
+                interviewerHeaders.push(`Interviewer ${i}`, `Verdict ${i}`, `Score ${i}`, `Notes ${i} (comments)`);
             }
-            const remainingHeaders = ['Score', 'Interview Status', 'Status', 'Notes', 'Last Interview'];
+            const remainingHeaders = ['Status', 'Last Interview'];
             const headers = [[...baseHeaders, ...interviewerHeaders, ...remainingHeaders]];
             
-            // Build rows with interviewer-verdict pairs in separate columns
+            // Build rows with interviewer-verdict-score-notes groups in separate columns
             const excelRows = rows.map(row => {
                 const baseData = [
                     row.student_name || '',
@@ -10782,25 +10782,26 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 
                 const interviewerNames = row.interviewer_names || [];
                 const verdicts = row.verdicts || [];
+                const interviewScores = row.interview_scores || [];
+                const interviewNotes = row.interview_notes || [];
                 
-                // Add interviewer-verdict pairs
-                const pairData = [];
+                // Add interviewer-verdict-score-notes groups
+                const groupData = [];
                 for (let i = 0; i < maxInterviewers; i++) {
-                    pairData.push(
+                    groupData.push(
                         interviewerNames[i] || '',
-                        verdicts[i] || ''
+                        verdicts[i] || '',
+                        interviewScores[i] !== undefined ? interviewScores[i] : '',
+                        interviewNotes[i] || ''
                     );
                 }
                 
                 const remainingData = [
-                    row.total_score || '',
-                    (row.interview_statuses || []).join(', ') || '',
                     row.status || '',
-                    row.notes || '',
                     row.last_interview_at ? new Date(row.last_interview_at).toLocaleDateString() : ''
                 ];
                 
-                return [...baseData, ...pairData, ...remainingData];
+                return [...baseData, ...groupData, ...remainingData];
             });
             
             return [...headers, ...excelRows];

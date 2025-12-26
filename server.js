@@ -2181,7 +2181,7 @@ app.get('/api/admin/consolidation', async (req, res) => {
         c.verdicts,
         c.interview_statuses,
         c.status,
-        -- concatenate latest notes from interviews for this student+session
+        -- concatenate latest notes from interviews for this student+session (for backward compatibility)
         (
           SELECT STRING_AGG(COALESCE(i.overall_notes, ''), ' \n---\n ' ORDER BY i.created_at DESC)
           FROM interviews i
@@ -2200,6 +2200,15 @@ app.get('/api/admin/consolidation', async (req, res) => {
           FROM interviews i
           WHERE i.student_id = c.student_id AND (c.session_id IS NULL OR i.session_id = c.session_id)
         ) AS interview_scores,
+        -- Get notes per interview (matching interviewer_names order)
+        (
+          SELECT ARRAY_AGG(
+            COALESCE(i.overall_notes, '')
+            ORDER BY i.created_at
+          )
+          FROM interviews i
+          WHERE i.student_id = c.student_id AND (c.session_id IS NULL OR i.session_id = c.session_id)
+        ) AS interview_notes,
         (
           SELECT ARRAY_AGG(
             COALESCE((
