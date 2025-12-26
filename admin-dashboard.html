@@ -7092,6 +7092,29 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                         borderRadius: 4
                     }]
                 },
+                plugins: [{
+                    id: 'datalabels-scores',
+                    afterDatasetsDraw: function(chart) {
+                        const ctx = chart.ctx;
+                        chart.data.datasets.forEach((dataset, i) => {
+                            const meta = chart.getDatasetMeta(i);
+                            meta.data.forEach((bar, index) => {
+                                const value = dataset.data[index];
+                                if (value > 0) {
+                                    ctx.save();
+                                    ctx.fillStyle = '#111827';
+                                    ctx.font = 'bold 12px Arial';
+                                    ctx.textAlign = 'center';
+                                    ctx.textBaseline = 'bottom';
+                                    const x = bar.x;
+                                    const y = bar.y - 5;
+                                    ctx.fillText(value, x, y);
+                                    ctx.restore();
+                                }
+                            });
+                        });
+                    }
+                }],
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
