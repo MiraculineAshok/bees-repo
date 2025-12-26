@@ -6623,6 +6623,186 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             createScoresChart(rawChartData.questions, metric);
         }
 
+        async function updateRoundVerdictChart() {
+            const sessionId = document.getElementById('round-verdict-session-filter')?.value || 'all';
+            const studentId = document.getElementById('round-verdict-student-filter')?.value || 'all';
+            
+            try {
+                const params = new URLSearchParams();
+                if (sessionId !== 'all') params.append('session_id', sessionId);
+                if (studentId !== 'all') params.append('student_id', studentId);
+                
+                const response = await fetch(`/api/admin/verdicts-by-round?${params.toString()}`);
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    createRoundVerdictChart(result.data);
+                } else {
+                    console.error('Error fetching round verdict data:', result.error);
+                    // Show empty chart if no data
+                    createRoundVerdictChart([]);
+                }
+            } catch (error) {
+                console.error('Error updating round verdict chart:', error);
+                // Show empty chart on error
+                createRoundVerdictChart([]);
+            }
+        }
+
+        function createRoundVerdictChart(data) {
+            const ctx = document.getElementById('roundVerdictChart');
+            if (!ctx) {
+                console.error('roundVerdictChart canvas not found');
+                return;
+            }
+
+            // Group data by round
+            const rounds = {};
+            if (data && data.length > 0) {
+                data.forEach(row => {
+                    const round = `Round ${row.round_number}`;
+                    if (!rounds[round]) {
+                        rounds[round] = {
+                            tiger: 0,
+                            cow: 0,
+                            sheep: 0,
+                            pending: 0
+                        };
+                    }
+                    rounds[round].tiger += parseInt(row.tiger_count || 0);
+                    rounds[round].cow += parseInt(row.cow_count || 0);
+                    rounds[round].sheep += parseInt(row.sheep_count || 0);
+                    rounds[round].pending += parseInt(row.pending_count || 0);
+                });
+            }
+            
+            const roundLabels = Object.keys(rounds).sort((a, b) => {
+                const numA = parseInt(a.replace('Round ', ''));
+                const numB = parseInt(b.replace('Round ', ''));
+                return numA - numB;
+            });
+            
+            // If no data, show empty chart with message
+            if (roundLabels.length === 0) {
+                if (charts.roundVerdict) charts.roundVerdict.destroy();
+                charts.roundVerdict = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['No Data'],
+                        datasets: [{
+                            label: 'No interviews found',
+                            data: [0],
+                            backgroundColor: '#e5e7eb'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        scales: {
+                            y: { beginAtZero: true }
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { enabled: false }
+                        }
+                    }
+                });
+                return;
+            }
+            
+            if (charts.roundVerdict) charts.roundVerdict.destroy();
+            
+            charts.roundVerdict = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: roundLabels,
+                    datasets: [
+                        {
+                            label: 'Tiger',
+                            data: roundLabels.map(round => rounds[round].tiger),
+                            backgroundColor: '#10b981',
+                            borderColor: '#10b981',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Cow',
+                            data: roundLabels.map(round => rounds[round].cow),
+                            backgroundColor: '#f59e0b',
+                            borderColor: '#f59e0b',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Sheep',
+                            data: roundLabels.map(round => rounds[round].sheep),
+                            backgroundColor: '#6b7280',
+                            borderColor: '#6b7280',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Pending',
+                            data: roundLabels.map(round => rounds[round].pending),
+                            backgroundColor: '#e5e7eb',
+                            borderColor: '#e5e7eb',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                plugins: [{
+                    id: 'datalabels-round-verdict',
+                    afterDraw: function(chart) {
+                        const ctx = chart.ctx;
+                        chart.data.datasets.forEach((dataset, datasetIndex) => {
+                            const meta = chart.getDatasetMeta(datasetIndex);
+                            meta.data.forEach((bar, index) => {
+                                const value = dataset.data[index];
+                                if (value > 0) {
+                                    ctx.save();
+                                    ctx.fillStyle = '#111827';
+                                    ctx.font = 'bold 12px Arial';
+                                    ctx.textAlign = 'center';
+                                    ctx.textBaseline = 'middle';
+                                    const x = bar.x;
+                                    const y = bar.y - 10;
+                                    ctx.fillText(value, x, y);
+                                    ctx.restore();
+                                }
+                            });
+                        });
+                    }
+                }],
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        x: {
+                            stacked: true,
+                            ticks: {
+                                font: { size: 11 }
+                            }
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1,
+                                font: { size: 11 }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { padding: 15, font: { size: 12 } }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    }
+                }
+            });
+        }
+
         async function initializeDashboardCharts() {
             try {
                 console.log('📊 Initializing dashboard charts...');
