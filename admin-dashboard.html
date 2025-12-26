@@ -10560,7 +10560,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             // Apply the same filters as displayStudents
             const studentsData = students || [];
             const term = document.getElementById('students-inline-search')?.value || '';
-            let list = applyInlineSearch(studentsData, term, ['first_name','last_name','email','zeta_id','phone','school','location']);
+            let list = applyInlineSearch(studentsData, term, ['name','email','zeta_id','phone']);
             list = applyAdvancedFiltersStudents(list);
             list = applyInlineSort(list, 'students');
             return list;
