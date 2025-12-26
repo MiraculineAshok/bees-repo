@@ -11003,8 +11003,11 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         function downloadExcel(data, filename) {
             // Check if SheetJS is available
             if (typeof XLSX === 'undefined') {
-                console.error('SheetJS library not loaded. Please wait for the library to load and try again.');
-                alert('Excel library is still loading. Please wait a moment and try again.');
+                console.warn('SheetJS library not loaded. Falling back to CSV format.');
+                // Fallback to CSV with proper escaping
+                const csvContent = convertToCSV(data);
+                const csvFilename = filename.replace(/\.(xlsx|xls)$/i, '') + '.csv';
+                downloadCSV(csvContent, csvFilename);
                 return;
             }
 
@@ -11024,8 +11027,31 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 console.log('Excel file downloaded:', filename);
             } catch (error) {
                 console.error('Error generating Excel file:', error);
-                alert('Error generating Excel file: ' + error.message);
+                // Fallback to CSV on error
+                const csvContent = convertToCSV(data);
+                const csvFilename = filename.replace(/\.(xlsx|xls)$/i, '') + '.csv';
+                downloadCSV(csvContent, csvFilename);
             }
+        }
+
+        // Helper function to convert data array to properly escaped CSV
+        function convertToCSV(data) {
+            if (!data || data.length === 0) return '';
+            
+            return data.map(row => {
+                return row.map(cell => {
+                    // Convert cell to string
+                    const cellValue = cell === null || cell === undefined ? '' : String(cell);
+                    
+                    // If cell contains comma, quote, or newline, wrap in quotes and escape quotes
+                    if (cellValue.includes(',') || cellValue.includes('"') || cellValue.includes('\n') || cellValue.includes('\r')) {
+                        // Escape quotes by doubling them and wrap in quotes
+                        return '"' + cellValue.replace(/"/g, '""') + '"';
+                    }
+                    
+                    return cellValue;
+                }).join(',');
+            }).join('\n');
         }
 
         // Users Management Functions
