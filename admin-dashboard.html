@@ -16866,6 +16866,6 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js" onload="window.chartJsLoaded = true; console.log('✅ Chart.js loaded and ready'); window.dispatchEvent(new Event('chartJsReady'));"></script>
     <!-- SheetJS for Excel export - using jsdelivr CDN to comply with CSP -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" onload="window.XLSXLoaded = true; console.log('✅ SheetJS (XLSX) loaded and ready'); if (typeof XLSX !== 'undefined') console.log('✅ XLSX object available:', typeof XLSX);"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" onload="window.XLSXLoaded = true; console.log('✅ SheetJS (XLSX) loaded and ready'); if (typeof XLSX !== 'undefined') { console.log('✅ XLSX object available:', typeof XLSX); } else { console.error('❌ XLSX object not available after load'); }" onerror="console.error('❌ Failed to load SheetJS library from jsdelivr');"></script>
 </body>
 </html>
