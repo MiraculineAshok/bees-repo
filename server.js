@@ -3304,7 +3304,7 @@ app.post('/api/admin/send-email', async (req, res) => {
       const isHTML = /<[a-z][\s\S]*>/i.test(message);
       
       const mailOptions = {
-        from: `"${process.env.EMAIL_FROM_NAME || 'BEES Interview Platform'}" <${from}>`,
+        from: `"${process.env.EMAIL_FROM_NAME || 'Admissions_Zoho Schools'}" <${from}>`,
         to: toArray.join(', '),
         subject: subject
       };
