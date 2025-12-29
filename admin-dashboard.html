@@ -2650,12 +2650,13 @@
                                 <th data-field="session_name" onclick="sortBy('student-sessions','session_name')">Interview Session <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th data-field="session_status" onclick="sortBy('student-sessions','session_status')">Interview Status <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th data-field="total_score" onclick="sortBy('student-sessions','total_score')">Score <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
+                                <th>Status Tags</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="student-sessions-table-body">
                             <tr>
-                                <td colspan="9" class="loading">Loading student sessions...</td>
+                                <td colspan="10" class="loading">Loading student sessions...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -2769,21 +2770,15 @@
                 
                 <!-- Add Tag Modal -->
                 <div id="add-tag-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;z-index:2000;align-items:center;justify-content:center">
-                    <div style="background:#fff;border-radius:8px;padding:24px;max-width:400px;width:90%;box-shadow:0 10px 25px rgba(0,0,0,0.2)">
-                        <h3 style="margin:0 0 16px 0;color:#111827">Add Status Tag</h3>
+                    <div style="background:#fff;border-radius:8px;padding:24px;max-width:500px;width:90%;box-shadow:0 10px 25px rgba(0,0,0,0.2)">
+                        <h3 style="margin:0 0 16px 0;color:#111827">Add Custom Status Tag</h3>
                         <div style="margin-bottom:16px">
-                            <label style="display:block;margin-bottom:6px;color:#374151;font-weight:500">Activity Type:</label>
-                            <select id="add-tag-activity-type" style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:14px">
-                                <option value="round_started">Round Started</option>
-                                <option value="email_sent">Email Sent</option>
-                                <option value="interview_cancelled">Interview Cancelled</option>
-                                <option value="interview_completed">Interview Completed</option>
-                                <option value="status_updated">Status Updated</option>
-                            </select>
+                            <label style="display:block;margin-bottom:6px;color:#374151;font-weight:500">Tag Name:</label>
+                            <input type="text" id="add-tag-name" placeholder="e.g., Round 1 started, Round 2 ended, Selected, Waitlisted" style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:14px">
                         </div>
                         <div style="margin-bottom:16px">
-                            <label style="display:block;margin-bottom:6px;color:#374151;font-weight:500">Description:</label>
-                            <input type="text" id="add-tag-description" placeholder="Enter description" style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:14px">
+                            <label style="display:block;margin-bottom:6px;color:#374151;font-weight:500">Description (optional):</label>
+                            <textarea id="add-tag-description" placeholder="Enter additional details..." rows="3" style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;resize:vertical"></textarea>
                         </div>
                         <div style="display:flex;gap:8px;justify-content:flex-end">
                             <button onclick="closeAddTagModal()" style="padding:8px 16px;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:6px;cursor:pointer;font-size:14px">Cancel</button>
@@ -4457,7 +4452,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                             <td style="max-width:300px;overflow-x:auto;position:relative">
                                 <div style="display:flex;flex-wrap:wrap;gap:2px;align-items:center;min-height:24px">
                                     ${statusTags || '<span style="color:#9ca3af;font-size:11px">No activities</span>'}
-                                    <button onclick="openAddTagModal(${r.id}, ${r.student_id}, ${r.session_id || 'null'})" style="background:#3b82f6;color:#fff;border:none;padding:2px 6px;border-radius:10px;font-size:9px;cursor:pointer;margin-left:4px" title="Add Tag">+</button>
+                                    <button onclick="openAddTagModal(${r.id}, ${r.student_id}, ${r.session_id || 'null'}, 'consolidation')" style="background:#3b82f6;color:#fff;border:none;padding:2px 6px;border-radius:10px;font-size:9px;cursor:pointer;margin-left:4px" title="Add Tag">+</button>
                                 </div>
                             </td>
                             <td>${lastAt}</td>
@@ -8395,7 +8390,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             const tbody = document.getElementById('students-table-body');
             
             if (!studentsData || studentsData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No students found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="11" class="empty-state">No students found</td></tr>';
                 return;
             }
 
@@ -8430,24 +8425,22 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             updateTotalPages(list, 'students');
             const paginatedData = getPaginatedData(list, 'students');
 
-            // Fetch activity summaries for all students
-            const studentIds = paginatedData.map(s => s.id).join(',');
-            let activitySummaries = {};
+            // Fetch activity logs for all students
+            const studentIds = paginatedData.map(s => s.id);
+            let activityLogsMap = {};
             try {
-                const activityRes = await fetch(`/api/admin/student-activity-logs/summary?student_id=all`);
+                const activityRes = await fetch(`/api/admin/student-activity-logs?student_id=all&limit=100`);
                 const activityData = await activityRes.json();
                 if (activityData.success && activityData.data) {
-                    // Convert to a map keyed by student_id_session_id
-                    Object.keys(activityData.data).forEach(key => {
-                        const summary = activityData.data[key];
-                        if (!activitySummaries[summary.student_id]) {
-                            activitySummaries[summary.student_id] = [];
+                    activityData.data.forEach(log => {
+                        if (!activityLogsMap[log.student_id]) {
+                            activityLogsMap[log.student_id] = [];
                         }
-                        activitySummaries[summary.student_id].push(...summary.activities);
+                        activityLogsMap[log.student_id].push(log);
                     });
                 }
             } catch (error) {
-                console.error('Error fetching activity summaries:', error);
+                console.error('Error fetching activity logs:', error);
             }
 
             tbody.innerHTML = paginatedData.map(student => {
@@ -8473,40 +8466,37 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 
                 // Format activity status tags
                 let statusTags = '';
-                if (activitySummaries[student.id] && activitySummaries[student.id].length > 0) {
-                    const activityTypeLabels = {
-                        'round_started': 'Round Started',
-                        'email_sent': 'Email Sent',
-                        'interview_cancelled': 'Interview Cancelled',
-                        'interview_completed': 'Interview Completed',
-                        'verdict_given': 'Verdict Given',
-                        'status_updated': 'Status Updated'
-                    };
+                const activityLogs = activityLogsMap[student.id] || [];
+                
+                if (activityLogs.length > 0) {
                     const activityColors = {
                         'round_started': '#3b82f6',
                         'email_sent': '#10b981',
                         'interview_cancelled': '#ef4444',
                         'interview_completed': '#059669',
-                        'verdict_given': '#8b5cf6',
-                        'status_updated': '#f59e0b'
+                        'status_updated': '#f59e0b',
+                        'custom_tag': '#8b5cf6'
                     };
                     
-                    // Get unique activity types and show latest ones
+                    // Get unique activities (latest occurrence)
                     const uniqueActivities = {};
-                    activitySummaries[student.id].forEach(activity => {
-                        if (!uniqueActivities[activity.type] || 
-                            new Date(activity.last_occurrence) > new Date(uniqueActivities[activity.type].last_occurrence)) {
-                            uniqueActivities[activity.type] = activity;
+                    activityLogs.forEach(log => {
+                        const key = log.activity_type;
+                        if (!uniqueActivities[key] || 
+                            new Date(log.created_at) > new Date(uniqueActivities[key].created_at)) {
+                            uniqueActivities[key] = log;
                         }
                     });
                     
                     statusTags = Object.values(uniqueActivities)
-                        .sort((a, b) => new Date(b.last_occurrence) - new Date(a.last_occurrence))
-                        .slice(0, 5) // Show max 5 most recent activities
-                        .map(activity => {
-                            const label = activityTypeLabels[activity.type] || activity.type;
-                            const color = activityColors[activity.type] || '#6b7280';
-                            return `<span style="display:inline-block;background:${color};color:#fff;padding:2px 6px;border-radius:10px;font-size:9px;margin:1px;white-space:nowrap" title="${label} - ${new Date(activity.last_occurrence).toLocaleString()}">${label}</span>`;
+                        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                        .slice(0, 5)
+                        .map(log => {
+                            const label = log.activity_type === 'custom_tag' 
+                                ? (log.activity_description || log.activity_type)
+                                : (log.activity_description || log.activity_type);
+                            const color = activityColors[log.activity_type] || '#6b7280';
+                            return `<span style="display:inline-block;background:${color};color:#fff;padding:2px 6px;border-radius:10px;font-size:9px;margin:1px;white-space:nowrap" title="${log.activity_description} - ${formatDate(log.created_at)}">${label}</span>`;
                         }).join(' ');
                 }
                 
@@ -8520,7 +8510,12 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                         <td>${student.school || '-'}</td>
                         <td>${student.location || '-'}</td>
                         <td data-field="verdicts">${verdictsDisplay}</td>
-                        <td data-field="status_tags" style="max-width:300px;overflow-x:auto">${statusTags || '<span style="color:#9ca3af;font-size:11px">No activities</span>'}</td>
+                        <td data-field="status_tags" style="max-width:300px;overflow-x:auto;position:relative">
+                            <div style="display:flex;flex-wrap:wrap;gap:2px;align-items:center;min-height:24px">
+                                ${statusTags || '<span style="color:#9ca3af;font-size:11px">No activities</span>'}
+                                <button onclick="openAddTagModal(null, ${student.id}, null, 'students')" style="background:#3b82f6;color:#fff;border:none;padding:2px 6px;border-radius:10px;font-size:9px;cursor:pointer;margin-left:4px" title="Add Tag">+</button>
+                            </div>
+                        </td>
                         <td data-field="created_at">${student.created_at ? formatDate(student.created_at) : '-'}</td>
                         <td>
                             <button class="icon-btn edit-btn" onclick="startEdit('${student.id}')" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
@@ -12535,12 +12530,12 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             }
         }
 
-        function displayStudentSessions() {
+        async function displayStudentSessions() {
             const tbody = document.getElementById('student-sessions-table-body');
             if (!tbody) return;
 
             if (!studentSessions || studentSessions.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No student sessions found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No student sessions found</td></tr>';
                 const container = document.querySelector('#student-sessions .table-container');
                 if (container) {
                     const existingPagination = container.querySelector('.pagination-controls');
@@ -17226,14 +17221,15 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         // Add Tag Modal Functions
         let currentTagData = null;
         
-        function openAddTagModal(consolidationId, studentId, sessionId) {
+        function openAddTagModal(consolidationId, studentId, sessionId, viewType = 'consolidation') {
             currentTagData = {
                 consolidationId: consolidationId,
                 studentId: studentId,
-                sessionId: sessionId === 'null' ? null : sessionId
+                sessionId: sessionId === 'null' ? null : sessionId,
+                viewType: viewType
             };
             document.getElementById('add-tag-overlay').style.display = 'flex';
-            document.getElementById('add-tag-activity-type').value = 'round_started';
+            document.getElementById('add-tag-name').value = '';
             document.getElementById('add-tag-description').value = '';
         }
         
@@ -17245,11 +17241,11 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         async function saveTag() {
             if (!currentTagData) return;
             
-            const activityType = document.getElementById('add-tag-activity-type').value;
+            const tagName = document.getElementById('add-tag-name').value.trim();
             const description = document.getElementById('add-tag-description').value.trim();
             
-            if (!description) {
-                showError('Please enter a description');
+            if (!tagName) {
+                showError('Please enter a tag name');
                 return;
             }
             
@@ -17260,8 +17256,8 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     body: JSON.stringify({
                         student_id: currentTagData.studentId,
                         session_id: currentTagData.sessionId,
-                        activity_type: activityType,
-                        activity_description: description
+                        activity_type: 'custom_tag', // Use custom_tag as the type
+                        activity_description: description ? `${tagName} - ${description}` : tagName
                     })
                 });
                 
@@ -17272,7 +17268,14 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 
                 showSuccess('Tag added successfully');
                 closeAddTagModal();
-                loadConsolidation(true); // Refresh consolidation data
+                // Refresh the appropriate view based on context
+                if (currentTagData.viewType === 'consolidation') {
+                    loadConsolidation(true);
+                } else if (currentTagData.viewType === 'students') {
+                    displayStudents();
+                } else if (currentTagData.viewType === 'student-sessions') {
+                    displayStudentSessions();
+                }
             } catch (error) {
                 console.error('Error adding tag:', error);
                 showError(error.message || 'Failed to add tag');

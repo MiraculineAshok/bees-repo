@@ -831,11 +831,10 @@ class InterviewService {
                 [interviewId]
             );
             
-            // Log interview completed activity
+            // Log interview completed activity with round number
             try {
-                const activityDescription = verdict 
-                    ? `Interview completed - Verdict: ${verdict}`
-                    : 'Interview completed';
+                const roundNumber = await this.getCurrentRoundNumber(student_id, session_id);
+                const activityDescription = `Round ${roundNumber} ended`;
                 await pool.query(
                     `INSERT INTO student_activity_logs 
                      (student_id, session_id, activity_type, activity_description, metadata)
@@ -845,7 +844,7 @@ class InterviewService {
                         session_id,
                         'interview_completed',
                         activityDescription,
-                        JSON.stringify({ interview_id: interviewId, verdict: verdict || null })
+                        JSON.stringify({ interview_id: interviewId, round_number: roundNumber, verdict: verdict || null })
                     ]
                 );
             } catch (logError) {

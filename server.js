@@ -2618,6 +2618,26 @@ app.put('/api/admin/consolidation/:id/status', async (req, res) => {
       }
     }
     
+    // Log status updated activity with actual status name
+    try {
+      const statusLabel = statusValue === 'selected' ? 'Selected' : statusValue === 'rejected' ? 'Rejected' : statusValue === 'waitlisted' ? 'Waitlisted' : statusValue;
+      await pool.query(
+        `INSERT INTO student_activity_logs 
+         (student_id, session_id, activity_type, activity_description, metadata)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [
+          student_id,
+          session_id,
+          'status_updated',
+          `Status updated: ${statusLabel}`,
+          JSON.stringify({ consolidation_id: id, status: statusValue })
+        ]
+      );
+    } catch (logError) {
+      console.error('Error logging status updated activity:', logError);
+      // Don't throw - logging failures shouldn't break the main flow
+    }
+    
     res.json({ success: true, data: result.rows[0] });
   } catch (e) {
     console.error('Error updating consolidation status:', e);
