@@ -2969,7 +2969,9 @@ app.post('/api/admin/send-email', async (req, res) => {
   try {
     const { from, to, cc, bcc, subject, message, consolidation_id, status, draft_id } = req.body;
     
-    const emailStatus = status || (draft_id ? undefined : 'drafted');
+    // If status is explicitly provided, use it. Otherwise, default to sending (not drafting)
+    // Only save as draft if status is explicitly set to 'drafted'
+    const emailStatus = status === 'drafted' ? 'drafted' : undefined;
     
     // For drafts, allow partial data. For sending emails, require all fields.
     if (emailStatus !== 'drafted') {
