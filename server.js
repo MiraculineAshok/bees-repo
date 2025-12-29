@@ -3946,6 +3946,24 @@ app.post('/api/admin/consolidation/refresh', async (req, res) => {
   }
 });
 
+// Backfill student activity logs endpoint
+app.post('/api/admin/backfill-activity-logs', async (req, res) => {
+  try {
+    const { backfillStudentActivityLogs } = require('./db/migrations/030_backfill_student_activity_logs');
+    await backfillStudentActivityLogs();
+    res.json({
+      success: true,
+      message: 'Activity logs backfilled successfully'
+    });
+  } catch (error) {
+    console.error('Error backfilling activity logs:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // AI Question Generation API
 app.post('/api/generate-ai-question', async (req, res) => {
     try {
