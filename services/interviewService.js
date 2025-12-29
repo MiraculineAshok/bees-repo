@@ -1032,6 +1032,18 @@ class InterviewService {
                 throw new Error('No valid fields to update');
             }
 
+            // Get current interview details before update
+            const currentInterview = await pool.query(
+                `SELECT student_id, session_id, status, verdict FROM interviews WHERE id = $1`,
+                [id]
+            );
+            
+            if (currentInterview.rows.length === 0) {
+                throw new Error('Interview not found');
+            }
+            
+            const { student_id, session_id, status: oldStatus, verdict: oldVerdict } = currentInterview.rows[0];
+            
             const fields = Object.keys(validUpdateData);
             const values = Object.values(validUpdateData);
             const setClause = fields.map((field, index) => `${field} = $${index + 2}`).join(', ');
@@ -1043,7 +1055,56 @@ class InterviewService {
                 throw new Error('Interview not found');
             }
             
-            return result.rows[0];
+            const updatedInterview = result.rows[0];
+            const newStatus = updatedInterview.status;
+            const newVerdict = updatedInterview.verdict;
+            
+            // Log activity if status changed to completed
+            if (newStatus === 'completed' && oldStatus !== 'completed') {
+                try {
+                    const activityDescription = newVerdict 
+                        ? `Interview completed - Verdict: ${newVerdict}`
+                        : 'Interview completed';
+                    await pool.query(
+                        `INSERT INTO student_activity_logs 
+                         (student_id, session_id, activity_type, activity_description, metadata)
+                         VALUES ($1, $2, $3, $4, $5)`,
+                        [
+                            student_id,
+                            session_id,
+                            'interview_completed',
+                            activityDescription,
+                            JSON.stringify({ interview_id: id, verdict: newVerdict || null })
+                        ]
+                    );
+                } catch (logError) {
+                    console.error('Error logging interview completed activity:', logError);
+                    // Don't throw - logging failures shouldn't break the main flow
+                }
+            }
+            
+            // Log activity if verdict changed
+            if (newVerdict && newVerdict !== oldVerdict) {
+                try {
+                    await pool.query(
+                        `INSERT INTO student_activity_logs 
+                         (student_id, session_id, activity_type, activity_description, metadata)
+                         VALUES ($1, $2, $3, $4, $5)`,
+                        [
+                            student_id,
+                            session_id,
+                            'verdict_given',
+                            `Verdict given: ${newVerdict}`,
+                            JSON.stringify({ interview_id: id, verdict: newVerdict })
+                        ]
+                    );
+                } catch (logError) {
+                    console.error('Error logging verdict given activity:', logError);
+                    // Don't throw - logging failures shouldn't break the main flow
+                }
+            }
+            
+            return updatedInterview;
         } catch (error) {
             console.error('Error updating interview:', error);
             throw error;
