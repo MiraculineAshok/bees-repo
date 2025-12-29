@@ -2753,19 +2753,44 @@
                                 <th>Score</th>
                                 <th>Interview Status</th>
                                 <th class="sortable" onclick="setConsolidationSort('status')">Status <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
-                                <th>Notes</th>
+                                <th>Status Tags</th>
                                 <th class="sortable" onclick="setConsolidationSort('last_interview_at')">Last Interview <span class="sort-indicator"><span class="asc">▲</span><span class="desc">▼</span></span></th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="consolidation-table-body">
-                            <tr><td colspan="10" class="loading">Loading consolidation...</td></tr>
+                            <tr><td colspan="11" class="loading">Loading consolidation...</td></tr>
                         </tbody>
                     </table>
                 </div>
                 <!-- Slide-in detail panel -->
                 <div id="cons-detail-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.35);display:none;z-index:1600"></div>
                 <div id="cons-detail-panel" style="position:fixed;top:0;right:-520px;width:520px;height:100%;background:#fff;border-left:1px solid #e5e7eb;box-shadow:-8px 0 24px rgba(0,0,0,0.1);z-index:1700;transition:right 0.25s ease;overflow:auto">                </div>
+                
+                <!-- Add Tag Modal -->
+                <div id="add-tag-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;z-index:2000;align-items:center;justify-content:center">
+                    <div style="background:#fff;border-radius:8px;padding:24px;max-width:400px;width:90%;box-shadow:0 10px 25px rgba(0,0,0,0.2)">
+                        <h3 style="margin:0 0 16px 0;color:#111827">Add Status Tag</h3>
+                        <div style="margin-bottom:16px">
+                            <label style="display:block;margin-bottom:6px;color:#374151;font-weight:500">Activity Type:</label>
+                            <select id="add-tag-activity-type" style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:14px">
+                                <option value="round_started">Round Started</option>
+                                <option value="email_sent">Email Sent</option>
+                                <option value="interview_cancelled">Interview Cancelled</option>
+                                <option value="interview_completed">Interview Completed</option>
+                                <option value="status_updated">Status Updated</option>
+                            </select>
+                        </div>
+                        <div style="margin-bottom:16px">
+                            <label style="display:block;margin-bottom:6px;color:#374151;font-weight:500">Description:</label>
+                            <input type="text" id="add-tag-description" placeholder="Enter description" style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:14px">
+                        </div>
+                        <div style="display:flex;gap:8px;justify-content:flex-end">
+                            <button onclick="closeAddTagModal()" style="padding:8px 16px;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:6px;cursor:pointer;font-size:14px">Cancel</button>
+                            <button onclick="saveTag()" style="padding:8px 16px;background:#3b82f6;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px">Add Tag</button>
+                        </div>
+                    </div>
+                </div>
                 
             </section>
 
@@ -4382,7 +4407,42 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     const interviewStatuses = Array.isArray(r.interview_statuses) ? r.interview_statuses.map(statusBadge).join('<br>') : '-';
                     const lastAt = r.last_interview_at ? formatDate(r.last_interview_at) : '-';
                     const status = r.status || '';
-                    const notes = r.notes ? r.notes.replace(/\n/g,'<br>') : '-';
+                    
+                    // Format activity logs as status tags
+                    const activityLogs = Array.isArray(r.activity_logs) ? r.activity_logs : [];
+                    const activityTypeLabels = {
+                        'round_started': 'Round Started',
+                        'email_sent': 'Email Sent',
+                        'interview_cancelled': 'Interview Cancelled',
+                        'interview_completed': 'Interview Completed',
+                        'status_updated': 'Status Updated'
+                    };
+                    const activityColors = {
+                        'round_started': '#3b82f6',
+                        'email_sent': '#10b981',
+                        'interview_cancelled': '#ef4444',
+                        'interview_completed': '#059669',
+                        'status_updated': '#f59e0b'
+                    };
+                    
+                    // Get unique activity types (latest occurrence)
+                    const uniqueActivities = {};
+                    activityLogs.forEach(log => {
+                        if (!uniqueActivities[log.activity_type] || 
+                            new Date(log.created_at) > new Date(uniqueActivities[log.activity_type].created_at)) {
+                            uniqueActivities[log.activity_type] = log;
+                        }
+                    });
+                    
+                    const statusTags = Object.values(uniqueActivities)
+                        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                        .slice(0, 5) // Show max 5 most recent activities
+                        .map(log => {
+                            const label = activityTypeLabels[log.activity_type] || log.activity_type;
+                            const color = activityColors[log.activity_type] || '#6b7280';
+                            return `<span style="display:inline-block;background:${color};color:#fff;padding:2px 6px;border-radius:10px;font-size:9px;margin:1px;white-space:nowrap" title="${log.activity_description} - ${formatDate(log.created_at)}">${label}</span>`;
+                        }).join(' ');
+                    
                     return `
                         <tr>
                             <td><input type="checkbox" class="consolidation-checkbox" value="${r.id}" onchange="updateBulkEmailButton()"></td>
@@ -4394,10 +4454,10 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                             <td style="line-height:1.8">${scoresDisplay || '-'}</td>
                             <td style="line-height:1.8">${interviewStatuses}</td>
                             <td>${status ? `<span class="status-badge ${status}" style="display:inline-block;padding:3px 8px;border-radius:12px;color:#fff;background:${String(status).toLowerCase().includes('select')?'#10b981':String(status).toLowerCase().includes('reject')?'#ef4444':String(status).toLowerCase().includes('wait')?'#f59e0b':'#6b7280'}">${status}</span>` : ''}</td>
-                            <td>
-                                <div style="max-height:64px;overflow:hidden;position:relative">
-                                    <div>${notes}</div>
-                                    ${notes && notes.length>120 ? '<div style="position:absolute;bottom:0;left:0;right:0;height:24px;background:linear-gradient(180deg, rgba(255,0,255,255,0), #fff)"></div>' : ''}
+                            <td style="max-width:300px;overflow-x:auto;position:relative">
+                                <div style="display:flex;flex-wrap:wrap;gap:2px;align-items:center;min-height:24px">
+                                    ${statusTags || '<span style="color:#9ca3af;font-size:11px">No activities</span>'}
+                                    <button onclick="openAddTagModal(${r.id}, ${r.student_id}, ${r.session_id || 'null'})" style="background:#3b82f6;color:#fff;border:none;padding:2px 6px;border-radius:10px;font-size:9px;cursor:pointer;margin-left:4px" title="Add Tag">+</button>
                                 </div>
                             </td>
                             <td>${lastAt}</td>
@@ -17161,6 +17221,62 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             
             console.log(`getEmailsFromTags(${field}):`, { tagsCount: tags.length, emails });
             return emails;
+        }
+        
+        // Add Tag Modal Functions
+        let currentTagData = null;
+        
+        function openAddTagModal(consolidationId, studentId, sessionId) {
+            currentTagData = {
+                consolidationId: consolidationId,
+                studentId: studentId,
+                sessionId: sessionId === 'null' ? null : sessionId
+            };
+            document.getElementById('add-tag-overlay').style.display = 'flex';
+            document.getElementById('add-tag-activity-type').value = 'round_started';
+            document.getElementById('add-tag-description').value = '';
+        }
+        
+        function closeAddTagModal() {
+            document.getElementById('add-tag-overlay').style.display = 'none';
+            currentTagData = null;
+        }
+        
+        async function saveTag() {
+            if (!currentTagData) return;
+            
+            const activityType = document.getElementById('add-tag-activity-type').value;
+            const description = document.getElementById('add-tag-description').value.trim();
+            
+            if (!description) {
+                showError('Please enter a description');
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/admin/student-activity-logs', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        student_id: currentTagData.studentId,
+                        session_id: currentTagData.sessionId,
+                        activity_type: activityType,
+                        activity_description: description
+                    })
+                });
+                
+                const json = await res.json();
+                if (!res.ok || !json.success) {
+                    throw new Error(json.error || 'Failed to add tag');
+                }
+                
+                showSuccess('Tag added successfully');
+                closeAddTagModal();
+                loadConsolidation(true); // Refresh consolidation data
+            } catch (error) {
+                console.error('Error adding tag:', error);
+                showError(error.message || 'Failed to add tag');
+            }
         }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js" onload="window.chartJsLoaded = true; console.log('✅ Chart.js loaded and ready'); window.dispatchEvent(new Event('chartJsReady'));"></script>

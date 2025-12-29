@@ -2512,7 +2512,60 @@ app.get('/api/admin/consolidation', async (req, res) => {
       LEFT JOIN students s ON c.student_id = s.id
       ORDER BY c.last_interview_at DESC NULLS LAST, c.student_name
     `);
-    res.json({ success: true, data: result.rows });
+    
+    // Fetch activity logs for all consolidations
+    let activityLogsMap = {};
+    
+    if (result.rows.length > 0) {
+      const studentIds = [...new Set(result.rows.map(r => r.student_id))];
+      const sessionIds = [...new Set(result.rows.map(r => r.session_id).filter(id => id !== null))];
+      
+      let activityQuery = `
+        SELECT 
+          sal.student_id,
+          sal.session_id,
+          sal.activity_type,
+          sal.activity_description,
+          sal.created_at,
+          sal.metadata
+        FROM student_activity_logs sal
+        WHERE sal.student_id = ANY($1)
+          AND sal.activity_type IN ('round_started', 'email_sent', 'interview_cancelled', 'interview_completed', 'status_updated')
+      `;
+      
+      const params = [studentIds];
+      
+      if (sessionIds.length > 0) {
+        activityQuery += ` AND (sal.session_id = ANY($2) OR sal.session_id IS NULL)`;
+        params.push(sessionIds);
+      } else {
+        activityQuery += ` AND sal.session_id IS NULL`;
+      }
+      
+      activityQuery += ` ORDER BY sal.created_at DESC`;
+      
+      const activityResult = await pool.query(activityQuery, params);
+      
+      // Group by student_id and session_id
+      activityResult.rows.forEach(log => {
+        const key = `${log.student_id}_${log.session_id || 'null'}`;
+        if (!activityLogsMap[key]) {
+          activityLogsMap[key] = [];
+        }
+        activityLogsMap[key].push(log);
+      });
+    }
+    
+    // Attach activity logs to consolidation rows
+    const rowsWithActivities = result.rows.map(row => {
+      const key = `${row.student_id}_${row.session_id || 'null'}`;
+      return {
+        ...row,
+        activity_logs: activityLogsMap[key] || []
+      };
+    });
+    
+    res.json({ success: true, data: rowsWithActivities });
   } catch (error) {
     console.error('Error fetching consolidation:', error);
     res.status(500).json({ success: false, error: error.message });

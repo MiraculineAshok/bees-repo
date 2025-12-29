@@ -891,26 +891,7 @@ class InterviewService {
                 [verdict, interviewId]
             );
             
-            // Log verdict given activity if verdict changed
-            if (verdict && verdict !== old_verdict) {
-                try {
-                    await pool.query(
-                        `INSERT INTO student_activity_logs 
-                         (student_id, session_id, activity_type, activity_description, metadata)
-                         VALUES ($1, $2, $3, $4, $5)`,
-                        [
-                            student_id,
-                            session_id,
-                            'verdict_given',
-                            `Verdict given: ${verdict}`,
-                            JSON.stringify({ interview_id: interviewId, verdict: verdict })
-                        ]
-                    );
-                } catch (logError) {
-                    console.error('Error logging verdict given activity:', logError);
-                    // Don't throw - logging failures shouldn't break the main flow
-                }
-            }
+            // Note: Verdict given logging removed as per requirements - only track rounds, emails, cancellations, completions, and status updates
             
             return result.rows[0];
         } catch (error) {
@@ -1093,8 +1074,8 @@ class InterviewService {
                         [
                             student_id,
                             session_id,
-                            'verdict_given',
-                            `Verdict given: ${newVerdict}`,
+                            'status_updated',
+                            `Status updated: Verdict changed to ${newVerdict}`,
                             JSON.stringify({ interview_id: id, verdict: newVerdict })
                         ]
                     );
