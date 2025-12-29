@@ -254,6 +254,31 @@ class StudentService {
         throw new Error('Student not found');
       }
       
+      const newData = result.rows[0];
+      
+      // Update consolidation table with latest student data (email, name, zeta_id)
+      // This ensures consolidation table stays in sync with students table
+      try {
+        await pool.query(`
+          UPDATE interview_consolidation 
+          SET student_name = CONCAT($1, ' ', $2),
+              student_email = $3,
+              zeta_id = $4,
+              updated_at = CURRENT_TIMESTAMP
+          WHERE student_id = $5
+        `, [
+          newData.first_name,
+          newData.last_name,
+          newData.email,
+          newData.zeta_id,
+          id
+        ]);
+        console.log(`✅ Updated consolidation table for student ${id} (email, name, zeta_id)`);
+      } catch (consolidationError) {
+        console.error('⚠️ Error updating consolidation table:', consolidationError);
+        // Don't throw - student update succeeded, consolidation update is secondary
+      }
+      
       console.log('✅ Student updated:', result.rows[0]);
       return result.rows[0];
       
