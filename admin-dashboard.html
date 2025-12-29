@@ -8331,7 +8331,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             }
         }
 
-        function displayStudents(studentsData = students, groupBy = '') {
+        async function displayStudents(studentsData = students, groupBy = '') {
             const tbody = document.getElementById('students-table-body');
             
             if (!studentsData || studentsData.length === 0) {
