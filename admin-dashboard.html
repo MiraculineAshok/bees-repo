@@ -2768,25 +2768,6 @@
                 <div id="cons-detail-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.35);display:none;z-index:1600"></div>
                 <div id="cons-detail-panel" style="position:fixed;top:0;right:-520px;width:520px;height:100%;background:#fff;border-left:1px solid #e5e7eb;box-shadow:-8px 0 24px rgba(0,0,0,0.1);z-index:1700;transition:right 0.25s ease;overflow:auto">                </div>
                 
-                <!-- Add Tag Modal -->
-                <div id="add-tag-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;z-index:2000;align-items:center;justify-content:center">
-                    <div style="background:#fff;border-radius:8px;padding:24px;max-width:500px;width:90%;box-shadow:0 10px 25px rgba(0,0,0,0.2)">
-                        <h3 style="margin:0 0 16px 0;color:#111827">Add Custom Status Tag</h3>
-                        <div style="margin-bottom:16px">
-                            <label style="display:block;margin-bottom:6px;color:#374151;font-weight:500">Tag Name:</label>
-                            <input type="text" id="add-tag-name" placeholder="e.g., Round 1 started, Round 2 ended, Selected, Waitlisted" style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:14px">
-                        </div>
-                        <div style="margin-bottom:16px">
-                            <label style="display:block;margin-bottom:6px;color:#374151;font-weight:500">Description (optional):</label>
-                            <textarea id="add-tag-description" placeholder="Enter additional details..." rows="3" style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;resize:vertical"></textarea>
-                        </div>
-                        <div style="display:flex;gap:8px;justify-content:flex-end">
-                            <button onclick="closeAddTagModal()" style="padding:8px 16px;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:6px;cursor:pointer;font-size:14px">Cancel</button>
-                            <button onclick="saveTag()" style="padding:8px 16px;background:#3b82f6;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px">Add Tag</button>
-                        </div>
-                    </div>
-                </div>
-                
             </section>
 
             <!-- Settings Section -->
@@ -4417,7 +4398,8 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                         'email_sent': '#10b981',
                         'interview_cancelled': '#ef4444',
                         'interview_completed': '#059669',
-                        'status_updated': '#f59e0b'
+                        'status_updated': '#f59e0b',
+                        'custom_tag': '#8b5cf6'
                     };
                     
                     // Get unique activity types (latest occurrence)
@@ -4433,7 +4415,10 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                         .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
                         .slice(0, 5) // Show max 5 most recent activities
                         .map(log => {
-                            const label = activityTypeLabels[log.activity_type] || log.activity_type;
+                            // For custom tags, use the description as the label
+                            const label = log.activity_type === 'custom_tag' 
+                                ? (log.activity_description || log.activity_type)
+                                : (activityTypeLabels[log.activity_type] || log.activity_description || log.activity_type);
                             const color = activityColors[log.activity_type] || '#6b7280';
                             return `<span style="display:inline-block;background:${color};color:#fff;padding:2px 6px;border-radius:10px;font-size:9px;margin:1px;white-space:nowrap" title="${log.activity_description} - ${formatDate(log.created_at)}">${label}</span>`;
                         }).join(' ');
@@ -12612,7 +12597,64 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 }).join('<br>');
             };
 
-            tbody.innerHTML = paginatedData.map(item => `
+            // Fetch activity logs for all student sessions
+            const studentSessionIds = paginatedData.map(s => `${s.student_id}_${s.session_id || 'null'}`);
+            let activityLogsMap = {};
+            try {
+                const studentIds = [...new Set(paginatedData.map(s => s.student_id))];
+                const sessionIds = [...new Set(paginatedData.map(s => s.session_id).filter(id => id !== null))];
+                
+                let activityQuery = `/api/admin/student-activity-logs?student_id=all&limit=100`;
+                const activityRes = await fetch(activityQuery);
+                const activityData = await activityRes.json();
+                if (activityData.success && activityData.data) {
+                    activityData.data.forEach(log => {
+                        const key = `${log.student_id}_${log.session_id || 'null'}`;
+                        if (!activityLogsMap[key]) {
+                            activityLogsMap[key] = [];
+                        }
+                        activityLogsMap[key].push(log);
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching activity logs:', error);
+            }
+
+            tbody.innerHTML = paginatedData.map(item => {
+                const key = `${item.student_id}_${item.session_id || 'null'}`;
+                const activityLogs = activityLogsMap[key] || [];
+                
+                const activityColors = {
+                    'round_started': '#3b82f6',
+                    'email_sent': '#10b981',
+                    'interview_cancelled': '#ef4444',
+                    'interview_completed': '#059669',
+                    'status_updated': '#f59e0b',
+                    'custom_tag': '#8b5cf6'
+                };
+                
+                // Get unique activities (latest occurrence)
+                const uniqueActivities = {};
+                activityLogs.forEach(log => {
+                    const logKey = log.activity_type;
+                    if (!uniqueActivities[logKey] || 
+                        new Date(log.created_at) > new Date(uniqueActivities[logKey].created_at)) {
+                        uniqueActivities[logKey] = log;
+                    }
+                });
+                
+                const statusTags = Object.values(uniqueActivities)
+                    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                    .slice(0, 5)
+                    .map(log => {
+                        const label = log.activity_type === 'custom_tag' 
+                            ? (log.activity_description || log.activity_type)
+                            : (log.activity_description || log.activity_type);
+                        const color = activityColors[log.activity_type] || '#6b7280';
+                        return `<span style="display:inline-block;background:${color};color:#fff;padding:2px 6px;border-radius:10px;font-size:9px;margin:1px;white-space:nowrap" title="${log.activity_description} - ${formatDate(log.created_at)}">${label}</span>`;
+                    }).join(' ');
+                
+                return `
                 <tr data-row-id="${item.id}">
                     <td><input type="checkbox" class="row-checkbox" data-row-id="${item.id}" ${selectedRows.has(String(item.id)) ? 'checked' : ''} onchange="toggleRowSelection('${item.id}')"></td>
                     <td data-field="student_name">${item.student_name || '—'}</td>
@@ -12622,11 +12664,18 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     <td data-field="session_name">${item.session_name || '—'}</td>
                     <td data-field="session_status">${formatStatus(item.session_status)}</td>
                     <td data-field="total_score">${formatScore(item)}</td>
+                    <td style="max-width:300px;overflow-x:auto;position:relative">
+                        <div style="display:flex;flex-wrap:wrap;gap:2px;align-items:center;min-height:24px">
+                            ${statusTags || '<span style="color:#9ca3af;font-size:11px">No activities</span>'}
+                            <button onclick="openAddTagModal(null, ${item.student_id}, ${item.session_id || 'null'}, 'student-sessions')" style="background:#3b82f6;color:#fff;border:none;padding:2px 6px;border-radius:10px;font-size:9px;cursor:pointer;margin-left:4px" title="Add Tag">+</button>
+                        </div>
+                    </td>
                     <td>
                         <button class="icon-btn edit-btn" onclick="startEdit('${item.id}', ${JSON.stringify(item).replace(/"/g, '&quot;')})" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
                     </td>
                 </tr>
-            `).join('');
+            `;
+            }).join('');
 
             // Update Select All checkbox state
             updateSelectAllCheckbox();
@@ -17239,7 +17288,10 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         }
         
         async function saveTag() {
-            if (!currentTagData) return;
+            if (!currentTagData) {
+                showError('No tag data available. Please try again.');
+                return;
+            }
             
             const tagName = document.getElementById('add-tag-name').value.trim();
             const description = document.getElementById('add-tag-description').value.trim();
@@ -17249,19 +17301,31 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 return;
             }
             
+            if (!currentTagData.studentId) {
+                showError('Student ID is missing. Cannot save tag.');
+                console.error('currentTagData:', currentTagData);
+                return;
+            }
+            
             try {
+                const payload = {
+                    student_id: currentTagData.studentId,
+                    session_id: currentTagData.sessionId || null,
+                    activity_type: 'custom_tag',
+                    activity_description: description ? `${tagName} - ${description}` : tagName
+                };
+                
+                console.log('Saving tag with payload:', payload);
+                
                 const res = await fetch('/api/admin/student-activity-logs', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        student_id: currentTagData.studentId,
-                        session_id: currentTagData.sessionId,
-                        activity_type: 'custom_tag', // Use custom_tag as the type
-                        activity_description: description ? `${tagName} - ${description}` : tagName
-                    })
+                    body: JSON.stringify(payload)
                 });
                 
                 const json = await res.json();
+                console.log('Save tag response:', json);
+                
                 if (!res.ok || !json.success) {
                     throw new Error(json.error || 'Failed to add tag');
                 }
@@ -17276,16 +17340,36 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 if (viewType === 'consolidation') {
                     loadConsolidation(true);
                 } else if (viewType === 'students') {
-                    displayStudents();
+                    await displayStudents();
                 } else if (viewType === 'student-sessions') {
-                    displayStudentSessions();
+                    await displayStudentSessions();
                 }
             } catch (error) {
                 console.error('Error adding tag:', error);
-                showError(error.message || 'Failed to add tag');
+                showError(error.message || 'Failed to add tag. Please check console for details.');
             }
         }
     </script>
+    
+    <!-- Add Tag Modal - Placed at body level for proper z-index -->
+    <div id="add-tag-overlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:none;z-index:9999;align-items:center;justify-content:center">
+        <div style="background:#fff;border-radius:8px;padding:24px;max-width:500px;width:90%;box-shadow:0 10px 25px rgba(0,0,0,0.2)">
+            <h3 style="margin:0 0 16px 0;color:#111827">Add Custom Status Tag</h3>
+            <div style="margin-bottom:16px">
+                <label style="display:block;margin-bottom:6px;color:#374151;font-weight:500">Tag Name:</label>
+                <input type="text" id="add-tag-name" placeholder="e.g., Round 1 started, Round 2 ended, Selected, Waitlisted" style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:14px">
+            </div>
+            <div style="margin-bottom:16px">
+                <label style="display:block;margin-bottom:6px;color:#374151;font-weight:500">Description (optional):</label>
+                <textarea id="add-tag-description" placeholder="Enter additional details..." rows="3" style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;resize:vertical"></textarea>
+            </div>
+            <div style="display:flex;gap:8px;justify-content:flex-end">
+                <button onclick="closeAddTagModal()" style="padding:8px 16px;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:6px;cursor:pointer;font-size:14px">Cancel</button>
+                <button onclick="saveTag()" style="padding:8px 16px;background:#3b82f6;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px">Add Tag</button>
+            </div>
+        </div>
+    </div>
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js" onload="window.chartJsLoaded = true; console.log('✅ Chart.js loaded and ready'); window.dispatchEvent(new Event('chartJsReady'));"></script>
     <!-- SheetJS for Excel export - using jsdelivr CDN to comply with CSP -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" onload="window.XLSXLoaded = true; console.log('✅ SheetJS (XLSX) loaded and ready'); if (typeof XLSX !== 'undefined') { console.log('✅ XLSX object available:', typeof XLSX); } else { console.error('❌ XLSX object not available after load'); }" onerror="console.error('❌ Failed to load SheetJS library from jsdelivr');"></script>

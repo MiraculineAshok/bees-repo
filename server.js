@@ -2530,7 +2530,7 @@ app.get('/api/admin/consolidation', async (req, res) => {
           sal.metadata
         FROM student_activity_logs sal
         WHERE sal.student_id = ANY($1)
-          AND sal.activity_type IN ('round_started', 'email_sent', 'interview_cancelled', 'interview_completed', 'status_updated')
+          AND sal.activity_type IN ('round_started', 'email_sent', 'interview_cancelled', 'interview_completed', 'status_updated', 'custom_tag')
       `;
       
       const params = [studentIds];
