@@ -1,9 +1,16 @@
 // Backfill student_activity_logs from existing records
 // Run this script to populate activity logs for historical data
 
+// Load environment variables
+require('dotenv').config();
+
 const pool = require('../pool');
 
 async function backfillStudentActivityLogs() {
+  if (!pool) {
+    throw new Error('Database connection not available. Please set DATABASE_URL or DATABASE_POOL_URL environment variable.');
+  }
+  
   const client = await pool.connect();
   try {
     console.log('🔄 Starting backfill of student activity logs...');
