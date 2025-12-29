@@ -4402,18 +4402,33 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                         'custom_tag': '#8b5cf6'
                     };
                     
-                    // Get unique activity types (latest occurrence)
-                    const uniqueActivities = {};
+                    // Separate custom tags from other activities
+                    const customTags = [];
+                    const otherActivities = {};
+                    
                     activityLogs.forEach(log => {
-                        if (!uniqueActivities[log.activity_type] || 
-                            new Date(log.created_at) > new Date(uniqueActivities[log.activity_type].created_at)) {
-                            uniqueActivities[log.activity_type] = log;
+                        if (log.activity_type === 'custom_tag') {
+                            // For custom tags, show all of them
+                            customTags.push(log);
+                        } else {
+                            // For other activity types, keep only the latest occurrence
+                            if (!otherActivities[log.activity_type] || 
+                                new Date(log.created_at) > new Date(otherActivities[log.activity_type].created_at)) {
+                                otherActivities[log.activity_type] = log;
+                            }
                         }
                     });
                     
-                    const statusTags = Object.values(uniqueActivities)
+                    // Sort custom tags by date (newest first) and limit to 10
+                    customTags.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                    const recentCustomTags = customTags.slice(0, 10);
+                    
+                    // Combine custom tags and other activities
+                    const allTags = [...recentCustomTags, ...Object.values(otherActivities)];
+                    
+                    const statusTags = allTags
                         .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-                        .slice(0, 5) // Show max 5 most recent activities
+                        .slice(0, 10) // Show max 10 tags total
                         .map(log => {
                             // For custom tags, use the description as the label
                             const label = log.activity_type === 'custom_tag' 
@@ -12633,19 +12648,34 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     'custom_tag': '#8b5cf6'
                 };
                 
-                // Get unique activities (latest occurrence)
-                const uniqueActivities = {};
+                // Separate custom tags from other activities
+                const customTags = [];
+                const otherActivities = {};
+                
                 activityLogs.forEach(log => {
-                    const logKey = log.activity_type;
-                    if (!uniqueActivities[logKey] || 
-                        new Date(log.created_at) > new Date(uniqueActivities[logKey].created_at)) {
-                        uniqueActivities[logKey] = log;
+                    if (log.activity_type === 'custom_tag') {
+                        // For custom tags, show all of them
+                        customTags.push(log);
+                    } else {
+                        // For other activity types, keep only the latest occurrence
+                        const logKey = log.activity_type;
+                        if (!otherActivities[logKey] || 
+                            new Date(log.created_at) > new Date(otherActivities[logKey].created_at)) {
+                            otherActivities[logKey] = log;
+                        }
                     }
                 });
                 
-                const statusTags = Object.values(uniqueActivities)
+                // Sort custom tags by date (newest first) and limit to 10
+                customTags.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                const recentCustomTags = customTags.slice(0, 10);
+                
+                // Combine custom tags and other activities
+                const allTags = [...recentCustomTags, ...Object.values(otherActivities)];
+                
+                const statusTags = allTags
                     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-                    .slice(0, 5)
+                    .slice(0, 10) // Show max 10 tags total
                     .map(log => {
                         const label = log.activity_type === 'custom_tag' 
                             ? (log.activity_description || log.activity_type)
@@ -17293,10 +17323,10 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 return;
             }
             
-            const tagName = document.getElementById('add-tag-name').value.trim();
+            const tagNameInput = document.getElementById('add-tag-name').value.trim();
             const description = document.getElementById('add-tag-description').value.trim();
             
-            if (!tagName) {
+            if (!tagNameInput) {
                 showError('Please enter a tag name');
                 return;
             }
@@ -17307,30 +17337,46 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 return;
             }
             
+            // Split comma-separated tags
+            const tagNames = tagNameInput.split(',').map(t => t.trim()).filter(t => t.length > 0);
+            
+            if (tagNames.length === 0) {
+                showError('Please enter at least one valid tag name');
+                return;
+            }
+            
             try {
-                const payload = {
-                    student_id: currentTagData.studentId,
-                    session_id: currentTagData.sessionId || null,
-                    activity_type: 'custom_tag',
-                    activity_description: description ? `${tagName} - ${description}` : tagName
-                };
-                
-                console.log('Saving tag with payload:', payload);
-                
-                const res = await fetch('/api/admin/student-activity-logs', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                // Save all tags
+                const savePromises = tagNames.map(async (tagName) => {
+                    const payload = {
+                        student_id: currentTagData.studentId,
+                        session_id: currentTagData.sessionId || null,
+                        activity_type: 'custom_tag',
+                        activity_description: description ? `${tagName} - ${description}` : tagName
+                    };
+                    
+                    console.log('Saving tag with payload:', payload);
+                    
+                    const res = await fetch('/api/admin/student-activity-logs', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    const json = await res.json();
+                    console.log('Save tag response:', json);
+                    
+                    if (!res.ok || !json.success) {
+                        throw new Error(json.error || `Failed to add tag: ${tagName}`);
+                    }
+                    
+                    return json.data;
                 });
                 
-                const json = await res.json();
-                console.log('Save tag response:', json);
+                const results = await Promise.all(savePromises);
+                console.log('All tags saved:', results);
                 
-                if (!res.ok || !json.success) {
-                    throw new Error(json.error || 'Failed to add tag');
-                }
-                
-                showSuccess('Tag added successfully');
+                showSuccess(`Successfully added ${tagNames.length} tag(s)`);
                 
                 // Store viewType before closing modal (which clears currentTagData)
                 const viewType = currentTagData ? currentTagData.viewType : 'consolidation';
