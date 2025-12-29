@@ -815,6 +815,13 @@ class InterviewService {
             
             const { student_id, session_id } = interviewResult.rows[0];
             
+            // Get interview details for logging
+            const interviewDetails = await pool.query(
+                `SELECT verdict FROM interviews WHERE id = $1`,
+                [interviewId]
+            );
+            const verdict = interviewDetails.rows[0]?.verdict;
+            
             // Update interview status
             const result = await pool.query(
                 `UPDATE interviews 
@@ -823,6 +830,28 @@ class InterviewService {
                  RETURNING *`,
                 [interviewId]
             );
+            
+            // Log interview completed activity
+            try {
+                const activityDescription = verdict 
+                    ? `Interview completed - Verdict: ${verdict}`
+                    : 'Interview completed';
+                await pool.query(
+                    `INSERT INTO student_activity_logs 
+                     (student_id, session_id, activity_type, activity_description, metadata)
+                     VALUES ($1, $2, $3, $4, $5)`,
+                    [
+                        student_id,
+                        session_id,
+                        'interview_completed',
+                        activityDescription,
+                        JSON.stringify({ interview_id: interviewId, verdict: verdict || null })
+                    ]
+                );
+            } catch (logError) {
+                console.error('Error logging interview completed activity:', logError);
+                // Don't throw - logging failures shouldn't break the main flow
+            }
             
             // Update session status in student_sessions table
             if (session_id) {
@@ -842,6 +871,18 @@ class InterviewService {
         }
 
         try {
+            // Get interview details before updating
+            const interviewResult = await pool.query(
+                `SELECT student_id, session_id, verdict as old_verdict FROM interviews WHERE id = $1`,
+                [interviewId]
+            );
+            
+            if (interviewResult.rows.length === 0) {
+                throw new Error('Interview not found');
+            }
+            
+            const { student_id, session_id, old_verdict } = interviewResult.rows[0];
+            
             const result = await pool.query(
                 `UPDATE interviews 
                  SET verdict = $1, updated_at = CURRENT_TIMESTAMP
@@ -849,6 +890,28 @@ class InterviewService {
                  RETURNING *`,
                 [verdict, interviewId]
             );
+            
+            // Log verdict given activity if verdict changed
+            if (verdict && verdict !== old_verdict) {
+                try {
+                    await pool.query(
+                        `INSERT INTO student_activity_logs 
+                         (student_id, session_id, activity_type, activity_description, metadata)
+                         VALUES ($1, $2, $3, $4, $5)`,
+                        [
+                            student_id,
+                            session_id,
+                            'verdict_given',
+                            `Verdict given: ${verdict}`,
+                            JSON.stringify({ interview_id: interviewId, verdict: verdict })
+                        ]
+                    );
+                } catch (logError) {
+                    console.error('Error logging verdict given activity:', logError);
+                    // Don't throw - logging failures shouldn't break the main flow
+                }
+            }
+            
             return result.rows[0];
         } catch (error) {
             console.error('Error updating verdict:', error);
