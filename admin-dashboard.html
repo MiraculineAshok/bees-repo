@@ -8469,6 +8469,13 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 const activityLogs = activityLogsMap[student.id] || [];
                 
                 if (activityLogs.length > 0) {
+                    const activityTypeLabels = {
+                        'round_started': 'Round Started',
+                        'email_sent': 'Email Sent',
+                        'interview_cancelled': 'Interview Cancelled',
+                        'interview_completed': 'Interview Completed',
+                        'status_updated': 'Status Updated'
+                    };
                     const activityColors = {
                         'round_started': '#3b82f6',
                         'email_sent': '#10b981',
@@ -8478,23 +8485,40 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                         'custom_tag': '#8b5cf6'
                     };
                     
-                    // Get unique activities (latest occurrence)
-                    const uniqueActivities = {};
+                    // Separate custom tags from other activities
+                    const customTags = [];
+                    const otherActivities = {};
+                    
                     activityLogs.forEach(log => {
-                        const key = log.activity_type;
-                        if (!uniqueActivities[key] || 
-                            new Date(log.created_at) > new Date(uniqueActivities[key].created_at)) {
-                            uniqueActivities[key] = log;
+                        if (log.activity_type === 'custom_tag') {
+                            // For custom tags, show all of them
+                            customTags.push(log);
+                        } else {
+                            // For other activity types, keep only the latest occurrence
+                            const key = log.activity_type;
+                            if (!otherActivities[key] || 
+                                new Date(log.created_at) > new Date(otherActivities[key].created_at)) {
+                                otherActivities[key] = log;
+                            }
                         }
                     });
                     
-                    statusTags = Object.values(uniqueActivities)
+                    // Sort custom tags by date (newest first) and limit to 10
+                    customTags.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                    const recentCustomTags = customTags.slice(0, 10);
+                    
+                    // Combine custom tags and other activities
+                    const allTags = [...recentCustomTags, ...Object.values(otherActivities)];
+                    
+                    statusTags = allTags
                         .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-                        .slice(0, 5)
+                        .slice(0, 10) // Show max 10 tags total
                         .map(log => {
+                            // For custom tags, use the description as the label
+                            // For other activity types, use the standardized label from activityTypeLabels
                             const label = log.activity_type === 'custom_tag' 
                                 ? (log.activity_description || log.activity_type)
-                                : (log.activity_description || log.activity_type);
+                                : (activityTypeLabels[log.activity_type] || log.activity_description || log.activity_type);
                             const color = activityColors[log.activity_type] || '#6b7280';
                             return `<span style="display:inline-block;background:${color};color:#fff;padding:2px 6px;border-radius:10px;font-size:9px;margin:1px;white-space:nowrap" title="${log.activity_description} - ${formatDate(log.created_at)}">${label}</span>`;
                         }).join(' ');
@@ -12639,6 +12663,13 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 const key = `${item.student_id}_${item.session_id || 'null'}`;
                 const activityLogs = activityLogsMap[key] || [];
                 
+                const activityTypeLabels = {
+                    'round_started': 'Round Started',
+                    'email_sent': 'Email Sent',
+                    'interview_cancelled': 'Interview Cancelled',
+                    'interview_completed': 'Interview Completed',
+                    'status_updated': 'Status Updated'
+                };
                 const activityColors = {
                     'round_started': '#3b82f6',
                     'email_sent': '#10b981',
@@ -12677,9 +12708,11 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
                     .slice(0, 10) // Show max 10 tags total
                     .map(log => {
+                        // For custom tags, use the description as the label
+                        // For other activity types, use the standardized label from activityTypeLabels
                         const label = log.activity_type === 'custom_tag' 
                             ? (log.activity_description || log.activity_type)
-                            : (log.activity_description || log.activity_type);
+                            : (activityTypeLabels[log.activity_type] || log.activity_description || log.activity_type);
                         const color = activityColors[log.activity_type] || '#6b7280';
                         return `<span style="display:inline-block;background:${color};color:#fff;padding:2px 6px;border-radius:10px;font-size:9px;margin:1px;white-space:nowrap" title="${log.activity_description} - ${formatDate(log.created_at)}">${label}</span>`;
                     }).join(' ');
@@ -16423,11 +16456,8 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 // Get message from Quill editor or fallback textarea
                 let message = '';
                 if (sendMailQuill) {
-                    const htmlContent = sendMailQuill.root.innerHTML;
-                    // Convert HTML to plain text for email body
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = htmlContent;
-                    message = tempDiv.textContent || tempDiv.innerText || '';
+                    // Send HTML content directly to preserve formatting
+                    message = sendMailQuill.root.innerHTML;
                 } else {
                     // Fallback for textarea
                     const fallback = document.getElementById('send-mail-message-fallback');

@@ -3298,13 +3298,35 @@ app.post('/api/admin/send-email', async (req, res) => {
       }
       
       // Send email
+      // Check if message contains HTML tags
+      const isHTML = /<[a-z][\s\S]*>/i.test(message);
+      
       const mailOptions = {
         from: `"${process.env.EMAIL_FROM_NAME || 'BEES Interview Platform'}" <${from}>`,
         to: toArray.join(', '),
-        subject: subject,
-        text: message,
-        html: message.replace(/\n/g, '<br>') // Convert newlines to HTML breaks
+        subject: subject
       };
+      
+      if (isHTML) {
+        // Message is HTML, use it directly
+        mailOptions.html = message;
+        // Also provide plain text version for email clients that don't support HTML
+        // Simple HTML tag removal for plain text version
+        mailOptions.text = message
+          .replace(/<br\s*\/?>/gi, '\n') // Convert <br> to newlines
+          .replace(/<\/p>/gi, '\n\n') // Convert </p> to double newlines
+          .replace(/<[^>]*>/g, '') // Remove all other HTML tags
+          .replace(/&nbsp;/g, ' ') // Convert &nbsp; to spaces
+          .replace(/&amp;/g, '&') // Convert &amp; to &
+          .replace(/&lt;/g, '<') // Convert &lt; to <
+          .replace(/&gt;/g, '>') // Convert &gt; to >
+          .replace(/&quot;/g, '"') // Convert &quot; to "
+          .trim();
+      } else {
+        // Message is plain text
+        mailOptions.text = message;
+        mailOptions.html = message.replace(/\n/g, '<br>'); // Convert newlines to HTML breaks
+      }
       
       if (ccArray.length > 0) {
         mailOptions.cc = ccArray.join(', ');
