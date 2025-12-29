@@ -8334,7 +8334,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             const tbody = document.getElementById('students-table-body');
             
             if (!studentsData || studentsData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No students found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No students found</td></tr>';
                 return;
             }
 
@@ -8369,6 +8369,26 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             updateTotalPages(list, 'students');
             const paginatedData = getPaginatedData(list, 'students');
 
+            // Fetch activity summaries for all students
+            const studentIds = paginatedData.map(s => s.id).join(',');
+            let activitySummaries = {};
+            try {
+                const activityRes = await fetch(`/api/admin/student-activity-logs/summary?student_id=all`);
+                const activityData = await activityRes.json();
+                if (activityData.success && activityData.data) {
+                    // Convert to a map keyed by student_id_session_id
+                    Object.keys(activityData.data).forEach(key => {
+                        const summary = activityData.data[key];
+                        if (!activitySummaries[summary.student_id]) {
+                            activitySummaries[summary.student_id] = [];
+                        }
+                        activitySummaries[summary.student_id].push(...summary.activities);
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching activity summaries:', error);
+            }
+
             tbody.innerHTML = paginatedData.map(student => {
                 // Format verdicts
                 let verdictsDisplay = '-';
@@ -8390,6 +8410,45 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     }).join(' ');
                 }
                 
+                // Format activity status tags
+                let statusTags = '';
+                if (activitySummaries[student.id] && activitySummaries[student.id].length > 0) {
+                    const activityTypeLabels = {
+                        'round_started': 'Round Started',
+                        'email_sent': 'Email Sent',
+                        'interview_cancelled': 'Interview Cancelled',
+                        'interview_completed': 'Interview Completed',
+                        'verdict_given': 'Verdict Given',
+                        'status_updated': 'Status Updated'
+                    };
+                    const activityColors = {
+                        'round_started': '#3b82f6',
+                        'email_sent': '#10b981',
+                        'interview_cancelled': '#ef4444',
+                        'interview_completed': '#059669',
+                        'verdict_given': '#8b5cf6',
+                        'status_updated': '#f59e0b'
+                    };
+                    
+                    // Get unique activity types and show latest ones
+                    const uniqueActivities = {};
+                    activitySummaries[student.id].forEach(activity => {
+                        if (!uniqueActivities[activity.type] || 
+                            new Date(activity.last_occurrence) > new Date(uniqueActivities[activity.type].last_occurrence)) {
+                            uniqueActivities[activity.type] = activity;
+                        }
+                    });
+                    
+                    statusTags = Object.values(uniqueActivities)
+                        .sort((a, b) => new Date(b.last_occurrence) - new Date(a.last_occurrence))
+                        .slice(0, 5) // Show max 5 most recent activities
+                        .map(activity => {
+                            const label = activityTypeLabels[activity.type] || activity.type;
+                            const color = activityColors[activity.type] || '#6b7280';
+                            return `<span style="display:inline-block;background:${color};color:#fff;padding:2px 6px;border-radius:10px;font-size:9px;margin:1px;white-space:nowrap" title="${label} - ${new Date(activity.last_occurrence).toLocaleString()}">${label}</span>`;
+                        }).join(' ');
+                }
+                
                 return `
                     <tr data-row-id="${student.id}">
                         <td><input type="checkbox" class="row-checkbox" data-row-id="${student.id}" ${selectedRows.has(String(student.id)) ? 'checked' : ''} onchange="toggleRowSelection('${student.id}')"></td>
@@ -8400,6 +8459,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                         <td>${student.school || '-'}</td>
                         <td>${student.location || '-'}</td>
                         <td data-field="verdicts">${verdictsDisplay}</td>
+                        <td data-field="status_tags" style="max-width:300px;overflow-x:auto">${statusTags || '<span style="color:#9ca3af;font-size:11px">No activities</span>'}</td>
                         <td data-field="created_at">${student.created_at ? formatDate(student.created_at) : '-'}</td>
                         <td>
                             <button class="icon-btn edit-btn" onclick="startEdit('${student.id}')" title="Edit"><img src="/edit.png" alt="Edit" style="width:16px;height:16px;vertical-align:middle"></button>
