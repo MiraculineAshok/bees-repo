@@ -14,7 +14,7 @@ EMAIL_PASSWORD=your-zoho-password  # Your Zoho Mail account password
 EMAIL_HOST=smtppro.zoho.in  # Use .in for India datacenter, .com for others
 EMAIL_PORT=465  # Use 465 for SSL (recommended) or 587 for TLS
 EMAIL_SECURE=true  # Use 'true' for port 465 (SSL), 'false' for port 587 (TLS)
-EMAIL_FROM_NAME=BEES Interview Platform  # Optional: Display name
+EMAIL_FROM_NAME=Admissions_Zoho Schools  # Optional: Display name (default: Admissions_Zoho Schools)
 ```
 
 **Note:** 
@@ -32,7 +32,7 @@ EMAIL_FROM_NAME=BEES Interview Platform  # Optional: Display name
 EMAIL_USER=your-email@gmail.com
 EMAIL_PASSWORD=your-app-password  # NOT your regular Gmail password!
 EMAIL_SERVICE=gmail
-EMAIL_FROM_NAME=BEES Interview Platform  # Optional: Display name
+EMAIL_FROM_NAME=Admissions_Zoho Schools  # Optional: Display name (default: Admissions_Zoho Schools)
 ```
 
 ### For Custom SMTP (e.g., Outlook, SendGrid, etc.):
