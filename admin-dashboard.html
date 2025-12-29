@@ -17267,13 +17267,17 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                 }
                 
                 showSuccess('Tag added successfully');
+                
+                // Store viewType before closing modal (which clears currentTagData)
+                const viewType = currentTagData ? currentTagData.viewType : 'consolidation';
                 closeAddTagModal();
+                
                 // Refresh the appropriate view based on context
-                if (currentTagData.viewType === 'consolidation') {
+                if (viewType === 'consolidation') {
                     loadConsolidation(true);
-                } else if (currentTagData.viewType === 'students') {
+                } else if (viewType === 'students') {
                     displayStudents();
-                } else if (currentTagData.viewType === 'student-sessions') {
+                } else if (viewType === 'student-sessions') {
                     displayStudentSessions();
                 }
             } catch (error) {
