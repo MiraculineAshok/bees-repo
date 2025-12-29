@@ -1030,10 +1030,10 @@ app.get('/api/interviews/student/:studentId/history', async (req, res) => {
     
     // Ensure we always send a response
     if (!res.headersSent) {
-      res.status(500).json({
-        success: false,
+    res.status(500).json({
+      success: false,
         error: error.message || 'Internal server error'
-      });
+    });
     }
   }
 });
@@ -1498,6 +1498,16 @@ app.put('/api/interviews/:id/cancel', async (req, res) => {
     }
     
     const { student_id, session_id } = result.rows[0];
+
+    // Log interview cancellation activity
+    await logStudentActivity(
+      student_id,
+      session_id,
+      'interview_cancelled',
+      'Interview cancelled',
+      { interview_id: id },
+      null // TODO: Get from auth middleware
+    );
 
     // Refresh consolidation for this student/session
     try {
@@ -1991,6 +2001,208 @@ app.post('/api/question-bank/:id/increment', async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('Error incrementing times asked:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Helper function to log student activities
+async function logStudentActivity(studentId, sessionId, activityType, activityDescription, metadata = null, performedBy = null) {
+  try {
+    if (!pool) return;
+    
+    await pool.query(
+      `INSERT INTO student_activity_logs 
+       (student_id, session_id, activity_type, activity_description, metadata, performed_by)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [
+        studentId,
+        sessionId || null,
+        activityType,
+        activityDescription,
+        metadata ? JSON.stringify(metadata) : null,
+        performedBy || null
+      ]
+    );
+  } catch (error) {
+    console.error('Error logging student activity:', error);
+    // Don't throw - logging failures shouldn't break the main flow
+  }
+}
+
+// Student Activity Logs API
+app.post('/api/admin/student-activity-logs', async (req, res) => {
+  try {
+    if (!pool) return res.status(503).json({ success: false, error: 'DB unavailable' });
+    
+    const { student_id, session_id, activity_type, activity_description, metadata, performed_by } = req.body;
+    
+    if (!student_id || !activity_type || !activity_description) {
+      return res.status(400).json({
+        success: false,
+        error: 'student_id, activity_type, and activity_description are required'
+      });
+    }
+    
+    const result = await pool.query(
+      `INSERT INTO student_activity_logs 
+       (student_id, session_id, activity_type, activity_description, metadata, performed_by)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING *`,
+      [
+        student_id,
+        session_id || null,
+        activity_type,
+        activity_description,
+        metadata ? JSON.stringify(metadata) : null,
+        performed_by || null
+      ]
+    );
+    
+    res.json({
+      success: true,
+      data: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error creating student activity log:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+app.get('/api/admin/student-activity-logs', async (req, res) => {
+  try {
+    if (!pool) return res.json({ success: true, data: [] });
+    
+    const { student_id, session_id, activity_type, limit = 100 } = req.query;
+    
+    let query = `
+      SELECT 
+        sal.*,
+        s.first_name || ' ' || s.last_name AS student_name,
+        s.zeta_id,
+        iss.name AS session_name,
+        au.name AS performed_by_name,
+        au.email AS performed_by_email
+      FROM student_activity_logs sal
+      LEFT JOIN students s ON sal.student_id = s.id
+      LEFT JOIN interview_sessions iss ON sal.session_id = iss.id
+      LEFT JOIN authorized_users au ON sal.performed_by = au.id
+      WHERE 1=1
+    `;
+    
+    const params = [];
+    let paramCount = 1;
+    
+    if (student_id && student_id !== 'all') {
+      query += ` AND sal.student_id = $${paramCount}`;
+      params.push(student_id);
+      paramCount++;
+    }
+    
+    if (session_id && session_id !== 'all') {
+      query += ` AND sal.session_id = $${paramCount}`;
+      params.push(session_id);
+      paramCount++;
+    }
+    
+    if (activity_type) {
+      query += ` AND sal.activity_type = $${paramCount}`;
+      params.push(activity_type);
+      paramCount++;
+    }
+    
+    query += ` ORDER BY sal.created_at DESC LIMIT $${paramCount}`;
+    params.push(parseInt(limit));
+    
+    const result = await pool.query(query, params);
+    
+    // Parse metadata JSONB
+    const logs = result.rows.map(row => ({
+      ...row,
+      metadata: row.metadata ? (typeof row.metadata === 'string' ? JSON.parse(row.metadata) : row.metadata) : null
+    }));
+    
+    res.json({
+      success: true,
+      data: logs
+    });
+  } catch (error) {
+    console.error('Error fetching student activity logs:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+app.get('/api/admin/student-activity-logs/summary', async (req, res) => {
+  try {
+    if (!pool) return res.json({ success: true, data: {} });
+    
+    const { student_id, session_id } = req.query;
+    
+    let query = `
+      SELECT 
+        sal.student_id,
+        sal.session_id,
+        sal.activity_type,
+        MAX(sal.created_at) AS last_occurrence,
+        COUNT(*) AS occurrence_count
+      FROM student_activity_logs sal
+      WHERE 1=1
+    `;
+    
+    const params = [];
+    let paramCount = 1;
+    
+    if (student_id && student_id !== 'all') {
+      query += ` AND sal.student_id = $${paramCount}`;
+      params.push(student_id);
+      paramCount++;
+    }
+    
+    if (session_id && session_id !== 'all') {
+      query += ` AND sal.session_id = $${paramCount}`;
+      params.push(session_id);
+      paramCount++;
+    }
+    
+    query += `
+      GROUP BY sal.student_id, sal.session_id, sal.activity_type
+      ORDER BY last_occurrence DESC
+    `;
+    
+    const result = await pool.query(query, params);
+    
+    // Group by student_id and session_id
+    const summary = {};
+    result.rows.forEach(row => {
+      const key = `${row.student_id}_${row.session_id || 'null'}`;
+      if (!summary[key]) {
+        summary[key] = {
+          student_id: row.student_id,
+          session_id: row.session_id,
+          activities: []
+        };
+      }
+      summary[key].activities.push({
+        type: row.activity_type,
+        last_occurrence: row.last_occurrence,
+        count: parseInt(row.occurrence_count)
+      });
+    });
+    
+    res.json({
+      success: true,
+      data: summary
+    });
+  } catch (error) {
+    console.error('Error fetching student activity summary:', error);
     res.status(500).json({
       success: false,
       error: error.message
@@ -3030,6 +3242,30 @@ app.post('/api/admin/send-email', async (req, res) => {
       
       const info = await transporter.sendMail(mailOptions);
       emailSent = true;
+      
+      // Log email sent activity for each student in consolidation
+      if (consolidation_id) {
+        try {
+          const consolidationResult = await pool.query(
+            'SELECT student_id, session_id FROM interview_consolidation WHERE id = $1',
+            [consolidation_id]
+          );
+          if (consolidationResult.rows.length > 0) {
+            const { student_id, session_id } = consolidationResult.rows[0];
+            await logStudentActivity(
+              student_id,
+              session_id,
+              'email_sent',
+              `Email sent: ${subject}`,
+              { email_log_id: emailLogId, to: toArray, subject },
+              userId
+            );
+          }
+        } catch (logError) {
+          console.error('Error logging email sent activity:', logError);
+        }
+      }
+      
       console.log('✅ Email sent successfully:', {
         messageId: info.messageId,
         from,

@@ -667,6 +667,29 @@ async function initializeDatabase() {
     `);
     
     
+    // Create student_activity_logs table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS student_activity_logs (
+        id SERIAL PRIMARY KEY,
+        student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+        session_id INTEGER REFERENCES interview_sessions(id) ON DELETE SET NULL,
+        activity_type VARCHAR(50) NOT NULL,
+        activity_description TEXT NOT NULL,
+        metadata JSONB,
+        performed_by INTEGER REFERENCES authorized_users(id) ON DELETE SET NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    // Create indexes for student_activity_logs
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_student_activity_logs_student_id ON student_activity_logs(student_id);
+      CREATE INDEX IF NOT EXISTS idx_student_activity_logs_session_id ON student_activity_logs(session_id);
+      CREATE INDEX IF NOT EXISTS idx_student_activity_logs_student_session ON student_activity_logs(student_id, session_id);
+      CREATE INDEX IF NOT EXISTS idx_student_activity_logs_activity_type ON student_activity_logs(activity_type);
+      CREATE INDEX IF NOT EXISTS idx_student_activity_logs_created_at ON student_activity_logs(created_at DESC);
+    `);
+
     console.log('✅ Database initialized successfully');
     
   } catch (error) {

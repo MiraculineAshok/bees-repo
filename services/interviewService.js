@@ -125,6 +125,25 @@ class InterviewService {
                 [status, studentId, sessionId]
             );
             
+            // Log round started activity
+            try {
+                await pool.query(
+                    `INSERT INTO student_activity_logs 
+                     (student_id, session_id, activity_type, activity_description, metadata)
+                     VALUES ($1, $2, $3, $4, $5)`,
+                    [
+                        studentId,
+                        sessionId,
+                        'round_started',
+                        `Round ${roundNumber} started`,
+                        JSON.stringify({ round_number: roundNumber })
+                    ]
+                );
+            } catch (logError) {
+                console.error('Error logging round started activity:', logError);
+                // Don't throw - logging failures shouldn't break the main flow
+            }
+            
             console.log(`✅ Updated session status to "${status}" for student ${studentId}, session ${sessionId}`);
         } catch (error) {
             console.error('Error updating session status on start:', error);
