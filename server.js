@@ -1,11 +1,69 @@
-// Helper to create Zoho Bookings service (one-on-one)
-async function createZohoBookingsService(payload) {
+// ===== Zoho Bookings token + service helpers =====
+let zohoBookingsAccessTokenCache = null;
+let zohoBookingsAccessTokenExpiry = null;
+let zohoBookingsApiDomainCache = null;
+
+async function refreshZohoBookingsAccessToken() {
+  const refreshToken = process.env.ZOHO_BOOKINGS_REFRESH_TOKEN;
+  const clientId = process.env.ZOHO_BOOKINGS_CLIENT_ID;
+  const clientSecret = process.env.ZOHO_BOOKINGS_CLIENT_SECRET;
+  const tokenUrl = (process.env.ZOHO_ACCOUNTS_DOMAIN || 'https://accounts.zoho.com') + '/oauth/v2/token';
+
+  if (!refreshToken || !clientId || !clientSecret) {
+    throw new Error('Zoho Bookings refresh_token/client_id/client_secret not set');
+  }
+
+  const form = new URLSearchParams();
+  form.append('refresh_token', refreshToken);
+  form.append('client_id', clientId);
+  form.append('client_secret', clientSecret);
+  form.append('grant_type', 'refresh_token');
+
+  const resp = await fetch(tokenUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: form
+  });
+  const json = await resp.json().catch(() => ({}));
+  if (!resp.ok || json.error) {
+    throw new Error(json.error || resp.statusText || 'Failed to refresh Zoho Bookings token');
+  }
+
+  const accessToken = json.access_token;
+  const expiresIn = json.expires_in || 3600;
+  const apiDomain = json.api_domain || process.env.ZOHO_BOOKINGS_API_DOMAIN || 'https://www.zohoapis.com';
+
+  zohoBookingsAccessTokenCache = accessToken;
+  zohoBookingsAccessTokenExpiry = Date.now() + (expiresIn - 60) * 1000; // refresh 1 min early
+  zohoBookingsApiDomainCache = apiDomain;
+
+  return { accessToken, apiDomain };
+}
+
+async function getZohoBookingsAccessToken(forceRefresh = false) {
+  if (!forceRefresh && zohoBookingsAccessTokenCache && zohoBookingsAccessTokenExpiry && Date.now() < zohoBookingsAccessTokenExpiry) {
+    return { accessToken: zohoBookingsAccessTokenCache, apiDomain: zohoBookingsApiDomainCache || process.env.ZOHO_BOOKINGS_API_DOMAIN || 'https://www.zohoapis.com' };
+  }
+
+  // If a refresh token is provided, refresh; else use static access token from env
+  if (process.env.ZOHO_BOOKINGS_REFRESH_TOKEN) {
+    return await refreshZohoBookingsAccessToken();
+  }
+
   const accessToken = process.env.ZOHO_BOOKINGS_ACCESS_TOKEN;
   const apiDomain = process.env.ZOHO_BOOKINGS_API_DOMAIN || 'https://www.zohoapis.com';
-
   if (!accessToken) {
     throw new Error('ZOHO_BOOKINGS_ACCESS_TOKEN not set');
   }
+  zohoBookingsAccessTokenCache = accessToken;
+  zohoBookingsAccessTokenExpiry = Date.now() + 55 * 60 * 1000; // assume ~55 mins lifetime when static
+  zohoBookingsApiDomainCache = apiDomain;
+  return { accessToken, apiDomain };
+}
+
+// Helper to create Zoho Bookings service (one-on-one)
+async function createZohoBookingsService(payload, retryOnAuthFailure = true) {
+  const { accessToken, apiDomain } = await getZohoBookingsAccessToken(false);
 
   const url = `${apiDomain}/bookings/v1/json/createservice`;
   const formData = new URLSearchParams();
@@ -15,7 +73,7 @@ async function createZohoBookingsService(payload) {
     }
   });
 
-  const resp = await fetch(url, {
+  let resp = await fetch(url, {
     method: 'POST',
     headers: {
       Authorization: `Zoho-oauthtoken ${accessToken}`,
@@ -23,6 +81,25 @@ async function createZohoBookingsService(payload) {
     },
     body: formData
   });
+
+  // If unauthorized and we have refresh capability, refresh and retry once
+  if (resp.status === 401 && process.env.ZOHO_BOOKINGS_REFRESH_TOKEN && retryOnAuthFailure) {
+    try {
+      await refreshZohoBookingsAccessToken();
+      const { accessToken: freshToken, apiDomain: freshDomain } = await getZohoBookingsAccessToken(false);
+      resp = await fetch(`${freshDomain}/bookings/v1/json/createservice`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Zoho-oauthtoken ${freshToken}`,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: formData
+      });
+    } catch (e) {
+      // fall through to normal error handling
+      console.error('Zoho Bookings token refresh failed:', e);
+    }
+  }
 
   const json = await resp.json().catch(() => ({}));
   if (!resp.ok || json?.response?.status === 'error' || json?.status === 'error') {
