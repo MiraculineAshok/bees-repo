@@ -4590,7 +4590,15 @@ app.post('/api/admin/sessions', async (req, res) => {
           description: description || undefined
         };
         const serviceResp = await createZohoBookingsService(servicePayload);
-        bookingsServiceId = serviceResp?.service_id || serviceResp?.serviceId || serviceResp?.id || serviceResp?.service?.id || serviceResp?.returnvalue?.service_id || null;
+        bookingsServiceId =
+          serviceResp?.service_id ||
+          serviceResp?.serviceId ||
+          serviceResp?.id ||
+          serviceResp?.service?.id ||
+          serviceResp?.returnvalue?.service_id ||
+          serviceResp?.data?.id ||
+          serviceResp?.returnvalue?.data?.id ||
+          null;
         bookingsWorkspaceId = bookings_workspace_id;
         console.log('Zoho Bookings service created', { bookingsServiceId, bookingsWorkspaceId, serviceResp });
       } catch (zohoErr) {
