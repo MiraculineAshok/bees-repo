@@ -70,7 +70,12 @@ async function createZohoBookingsService(payload, retryOnAuthFailure = true) {
   // Zoho expects a "data" field containing JSON
   Object.entries(payload || {}).forEach(([k, v]) => {
     if (v !== undefined && v !== null && v !== '') {
-      serviceData[k] = v;
+      // Normalize known numeric fields to string to avoid implicit defaults
+      if (['duration', 'pre_buffer', 'post_buffer', 'cost'].includes(k)) {
+        serviceData[k] = String(v);
+      } else {
+        serviceData[k] = v;
+      }
     }
   });
   const formData = new URLSearchParams();
@@ -129,7 +134,12 @@ async function createZohoBookingsService(payload, retryOnAuthFailure = true) {
     throw new Error(msg || 'Unknown error creating Zoho Bookings service');
   }
 
-  return json?.response?.returnvalue || json;
+  const result = json?.response?.returnvalue || json;
+  console.log('Zoho Bookings create service parsed result', {
+    result_preview: result,
+    service_id: result?.service_id || result?.id || result?.serviceId
+  });
+  return result;
 }
 // Load environment variables from .env file
 const path = require('path');
@@ -4580,8 +4590,9 @@ app.post('/api/admin/sessions', async (req, res) => {
           description: description || undefined
         };
         const serviceResp = await createZohoBookingsService(servicePayload);
-        bookingsServiceId = serviceResp?.service_id || serviceResp?.returnvalue?.service_id || null;
+        bookingsServiceId = serviceResp?.service_id || serviceResp?.serviceId || serviceResp?.id || serviceResp?.service?.id || serviceResp?.returnvalue?.service_id || null;
         bookingsWorkspaceId = bookings_workspace_id;
+        console.log('Zoho Bookings service created', { bookingsServiceId, bookingsWorkspaceId, serviceResp });
       } catch (zohoErr) {
         console.error('Error creating Zoho Bookings service:', zohoErr);
         return res.status(500).json({ success: false, error: 'Failed to create Zoho Bookings service: ' + zohoErr.message });
