@@ -1,0 +1,6 @@
+ALTER TABLE interview_sessions
+ADD COLUMN IF NOT EXISTS is_online BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS bookings_service_id VARCHAR(100),
+ADD COLUMN IF NOT EXISTS bookings_workspace_id VARCHAR(100);
+
+

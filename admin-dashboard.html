@@ -3428,11 +3428,37 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     <select id="session-type" class="form-input" onchange="handleSessionTypeChange()" required>
                         <option value="regular">Regular (Sequential Interviews)</option>
                         <option value="panel">Panel Interview (Simultaneous)</option>
+                        <option value="online">Online Interview (creates Zoho Bookings service)</option>
                     </select>
                     <small style="color: #6b7280; font-size: 0.875rem; display: block; margin-top: 0.25rem;">
                         <strong>Regular:</strong> Interviewers interview students one-at-a-time (no parallel interviews of same student).<br>
-                        <strong>Panel:</strong> Multiple interviewers can interview the same student at the same time.
+                        <strong>Panel:</strong> Multiple interviewers can interview the same student at the same time.<br>
+                        <strong>Online:</strong> Creates a Zoho Bookings service for scheduling online interviews.
                     </small>
+                </div>
+                <div id="online-fields" style="display:none;border:1px solid #e5e7eb;border-radius:8px;padding:12px;background:#f9fafb;margin-top:8px">
+                    <div class="form-group">
+                        <label class="form-label" for="session-bookings-workspace">Zoho Bookings Workspace ID</label>
+                        <input type="text" id="session-bookings-workspace" class="form-input" placeholder="e.g. 12345678">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="session-bookings-duration">Duration (minutes)</label>
+                        <input type="number" id="session-bookings-duration" class="form-input" min="5" step="5" placeholder="30">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="session-bookings-cost">Cost (optional)</label>
+                        <input type="number" id="session-bookings-cost" class="form-input" min="0" step="0.01" placeholder="0.00">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="session-bookings-prebuffer">Pre-buffer (minutes)</label>
+                            <input type="number" id="session-bookings-prebuffer" class="form-input" min="0" step="5" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="session-bookings-postbuffer">Post-buffer (minutes)</label>
+                            <input type="number" id="session-bookings-postbuffer" class="form-input" min="0" step="5" placeholder="0">
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="panelist-search">
@@ -8691,9 +8717,15 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             const description = document.getElementById('session-description').value;
             const sessionType = document.getElementById('session-type').value;
             const isPanel = sessionType === 'panel';
+            const isOnline = sessionType === 'online';
             const locationId = document.getElementById('session-location').value || null;
             const schoolId = document.getElementById('session-school').value || null;
             const examinationModeId = document.getElementById('session-examination-mode').value || null;
+            const bookingsWorkspaceId = document.getElementById('session-bookings-workspace')?.value || '';
+            const bookingsDuration = document.getElementById('session-bookings-duration')?.value || '';
+            const bookingsCost = document.getElementById('session-bookings-cost')?.value || '';
+            const bookingsPreBuffer = document.getElementById('session-bookings-prebuffer')?.value || '';
+            const bookingsPostBuffer = document.getElementById('session-bookings-postbuffer')?.value || '';
 
             // Validate at least one interviewer
             if (selectedPanelists.length === 0) {
@@ -8715,7 +8747,13 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                         examination_mode_id: examinationModeId ? parseInt(examinationModeId) : null,
                         created_by: currentUserId || undefined,
                         is_panel: isPanel,
-                        panelists: selectedPanelists
+                        panelists: selectedPanelists,
+                        is_online: isOnline,
+                        bookings_workspace_id: isOnline ? bookingsWorkspaceId.trim() : undefined,
+                        bookings_duration: isOnline && bookingsDuration ? parseInt(bookingsDuration) : undefined,
+                        bookings_cost: isOnline && bookingsCost ? parseFloat(bookingsCost).toFixed(2) : undefined,
+                        bookings_pre_buffer: isOnline && bookingsPreBuffer ? parseInt(bookingsPreBuffer) : undefined,
+                        bookings_post_buffer: isOnline && bookingsPostBuffer ? parseInt(bookingsPostBuffer) : undefined
                     })
                 });
 
@@ -8738,11 +8776,17 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         function handleSessionTypeChange() {
             const sessionType = document.getElementById('session-type').value;
             const panelRequirement = document.getElementById('panel-requirement');
+            const onlineFields = document.getElementById('online-fields');
             
             if (sessionType === 'panel') {
                 panelRequirement.style.display = 'inline';
+                if (onlineFields) onlineFields.style.display = 'none';
+            } else if (sessionType === 'online') {
+                panelRequirement.style.display = 'none';
+                if (onlineFields) onlineFields.style.display = 'block';
             } else {
                 panelRequirement.style.display = 'none';
+                if (onlineFields) onlineFields.style.display = 'none';
             }
         }
 

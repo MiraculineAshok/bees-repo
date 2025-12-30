@@ -1,3 +1,37 @@
+// Helper to create Zoho Bookings service (one-on-one)
+async function createZohoBookingsService(payload) {
+  const accessToken = process.env.ZOHO_BOOKINGS_ACCESS_TOKEN;
+  const apiDomain = process.env.ZOHO_BOOKINGS_API_DOMAIN || 'https://www.zohoapis.com';
+
+  if (!accessToken) {
+    throw new Error('ZOHO_BOOKINGS_ACCESS_TOKEN not set');
+  }
+
+  const url = `${apiDomain}/bookings/v1/json/createservice`;
+  const formData = new URLSearchParams();
+  Object.entries(payload || {}).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && v !== '') {
+      formData.append(k, v);
+    }
+  });
+
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Zoho-oauthtoken ${accessToken}`,
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: formData
+  });
+
+  const json = await resp.json().catch(() => ({}));
+  if (!resp.ok || json?.response?.status === 'error' || json?.status === 'error') {
+    const msg = json?.response?.returnvalue?.message || json?.message || json?.error || resp.statusText;
+    throw new Error(msg || 'Unknown error creating Zoho Bookings service');
+  }
+
+  return json?.response?.returnvalue || json;
+}
 // Load environment variables from .env file
 const path = require('path');
 const env = process.env.NODE_ENV || 'development';
@@ -4398,7 +4432,21 @@ app.get('/api/admin/examination-modes', async (req, res) => {
 
 app.post('/api/admin/sessions', async (req, res) => {
   try {
-    const { name, description, location_id, school_id, examination_mode_id, is_panel = false, panelists = [] } = req.body;
+    const { 
+      name, 
+      description, 
+      location_id, 
+      school_id, 
+      examination_mode_id, 
+      is_panel = false, 
+      panelists = [],
+      is_online = false,
+      bookings_workspace_id = null,
+      bookings_duration = null,
+      bookings_cost = null,
+      bookings_pre_buffer = null,
+      bookings_post_buffer = null
+    } = req.body;
     if (!name) {
       return res.status(400).json({
         success: false,
@@ -4414,6 +4462,33 @@ app.post('/api/admin/sessions', async (req, res) => {
       });
     }
 
+    let bookingsServiceId = null;
+    let bookingsWorkspaceId = null;
+
+    if (is_online) {
+      if (!bookings_workspace_id) {
+        return res.status(400).json({ success: false, error: 'bookings_workspace_id is required for online interviews' });
+      }
+      // Create Zoho Bookings service
+      try {
+        const servicePayload = {
+          name,
+          workspace_id: bookings_workspace_id,
+          duration: bookings_duration ? String(bookings_duration) : undefined,
+          cost: bookings_cost ? String(bookings_cost) : undefined,
+          pre_buffer: bookings_pre_buffer ? String(bookings_pre_buffer) : undefined,
+          post_buffer: bookings_post_buffer ? String(bookings_post_buffer) : undefined,
+          description: description || undefined
+        };
+        const serviceResp = await createZohoBookingsService(servicePayload);
+        bookingsServiceId = serviceResp?.service_id || serviceResp?.returnvalue?.service_id || null;
+        bookingsWorkspaceId = bookings_workspace_id;
+      } catch (zohoErr) {
+        console.error('Error creating Zoho Bookings service:', zohoErr);
+        return res.status(500).json({ success: false, error: 'Failed to create Zoho Bookings service: ' + zohoErr.message });
+      }
+    }
+
     const session = await AdminService.createSession({ 
       name, 
       description, 
@@ -4421,7 +4496,10 @@ app.post('/api/admin/sessions', async (req, res) => {
       school_id, 
       examination_mode_id, 
       is_panel, 
-      panelists 
+      panelists,
+      is_online,
+      bookings_service_id: bookingsServiceId,
+      bookings_workspace_id: bookingsWorkspaceId
     });
     res.json({
       success: true,
