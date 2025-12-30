@@ -4440,7 +4440,7 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
                     
                     return `
                         <tr>
-                            <td><input type="checkbox" class="consolidation-checkbox" value="${r.id}" onchange="updateBulkEmailButton()"></td>
+                            <td><input type="checkbox" class="consolidation-checkbox" value="${r.id}" ${selectedConsolidationIds.has(String(r.id)) ? 'checked' : ''} onchange="updateBulkEmailButton()"></td>
                             <td>${r.student_name || '-'}</td>
                             <td>${r.zeta_id || '-'}</td>
                             <td>${r.session_name || '-'}</td>
@@ -16874,14 +16874,23 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
         }
         
         function updateBulkEmailButton() {
-            const checkboxes = document.querySelectorAll('.consolidation-checkbox:checked');
-            const count = checkboxes.length;
+            const allCheckboxes = Array.from(document.querySelectorAll('.consolidation-checkbox'));
+            
+            // Sync selected set with current page checkboxes while keeping selections from other pages
+            allCheckboxes.forEach(cb => {
+                if (cb.checked) {
+                    selectedConsolidationIds.add(cb.value);
+                } else {
+                    selectedConsolidationIds.delete(cb.value);
+                }
+            });
+            
+            const visibleChecked = allCheckboxes.filter(cb => cb.checked).length;
+            const totalVisible = allCheckboxes.length;
+            const count = selectedConsolidationIds.size;
             const btn = document.getElementById('bulk-email-btn');
             const countSpan = document.getElementById('bulk-email-count');
-            
-            selectedConsolidationIds.clear();
-            checkboxes.forEach(cb => selectedConsolidationIds.add(cb.value));
-            
+                        
             if (count > 0) {
                 btn.style.display = 'inline-flex';
                 countSpan.textContent = count;
@@ -16892,9 +16901,8 @@ Bob Johnson,5551234567,Central Academy,Chicago,bob@example.com,Z125" style="font
             // Update select all checkbox
             const selectAll = document.getElementById('consolidation-select-all');
             if (selectAll) {
-                const totalCheckboxes = document.querySelectorAll('.consolidation-checkbox').length;
-                selectAll.checked = count > 0 && count === totalCheckboxes;
-                selectAll.indeterminate = count > 0 && count < totalCheckboxes;
+                selectAll.checked = totalVisible > 0 && visibleChecked === totalVisible;
+                selectAll.indeterminate = visibleChecked > 0 && visibleChecked < totalVisible;
             }
         }
         
