@@ -82,6 +82,14 @@ async function createZohoBookingsService(payload, retryOnAuthFailure = true) {
     body: formData
   });
 
+  let rawBody = await resp.text();
+  console.log('Zoho Bookings create service response (first attempt)', {
+    status: resp.status,
+    url,
+    body: rawBody?.slice(0, 500), // limit log size
+    payload_preview: { name: payload?.name, workspace_id: payload?.workspace_id }
+  });
+
   // If unauthorized and we have refresh capability, refresh and retry once
   if (resp.status === 401 && process.env.ZOHO_BOOKINGS_REFRESH_TOKEN && retryOnAuthFailure) {
     try {
@@ -95,13 +103,22 @@ async function createZohoBookingsService(payload, retryOnAuthFailure = true) {
         },
         body: formData
       });
+      rawBody = await resp.text();
+      console.log('Zoho Bookings create service response (after refresh)', {
+        status: resp.status,
+        url: `${freshDomain}/bookings/v1/json/createservice`,
+        body: rawBody?.slice(0, 500),
+        payload_preview: { name: payload?.name, workspace_id: payload?.workspace_id }
+      });
     } catch (e) {
       // fall through to normal error handling
       console.error('Zoho Bookings token refresh failed:', e);
     }
   }
 
-  const json = await resp.json().catch(() => ({}));
+  const json = (() => {
+    try { return JSON.parse(rawBody || '{}'); } catch { return {}; }
+  })();
   if (!resp.ok || json?.response?.status === 'error' || json?.status === 'error') {
     const msg = json?.response?.returnvalue?.message || json?.message || json?.error || resp.statusText;
     throw new Error(msg || 'Unknown error creating Zoho Bookings service');
