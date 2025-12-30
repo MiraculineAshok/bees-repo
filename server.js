@@ -66,12 +66,15 @@ async function createZohoBookingsService(payload, retryOnAuthFailure = true) {
   const { accessToken, apiDomain } = await getZohoBookingsAccessToken(false);
 
   const url = `${apiDomain}/bookings/v1/json/createservice`;
-  const formData = new URLSearchParams();
+  const serviceData = {};
+  // Zoho expects a "data" field containing JSON
   Object.entries(payload || {}).forEach(([k, v]) => {
     if (v !== undefined && v !== null && v !== '') {
-      formData.append(k, v);
+      serviceData[k] = v;
     }
   });
+  const formData = new URLSearchParams();
+  formData.append('data', JSON.stringify(serviceData));
 
   let resp = await fetch(url, {
     method: 'POST',
@@ -87,7 +90,8 @@ async function createZohoBookingsService(payload, retryOnAuthFailure = true) {
     status: resp.status,
     url,
     body: rawBody?.slice(0, 500), // limit log size
-    payload_preview: { name: payload?.name, workspace_id: payload?.workspace_id }
+    payload_preview: { name: payload?.name, workspace_id: payload?.workspace_id, duration: payload?.duration },
+    sent_data: serviceData
   });
 
   // If unauthorized and we have refresh capability, refresh and retry once
@@ -108,7 +112,8 @@ async function createZohoBookingsService(payload, retryOnAuthFailure = true) {
         status: resp.status,
         url: `${freshDomain}/bookings/v1/json/createservice`,
         body: rawBody?.slice(0, 500),
-        payload_preview: { name: payload?.name, workspace_id: payload?.workspace_id }
+        payload_preview: { name: payload?.name, workspace_id: payload?.workspace_id, duration: payload?.duration },
+        sent_data: serviceData
       });
     } catch (e) {
       // fall through to normal error handling
